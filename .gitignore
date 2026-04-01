@@ -1,20 +1,54 @@
+# --- IDEs ---
+.idea/
+.vscode/
 
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
+# --- OS files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Symfony / environment ---
+.env.local
+.env.local.php
+.env.*.local
 /config/secrets/prod/prod.decrypt.private.php
+
+# --- Build / cache / dependencies ---
 /public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
-
-###> phpunit/phpunit ###
-/phpunit.xml
-/.phpunit.cache/
-###< phpunit/phpunit ###
-
-###> symfony/asset-mapper ###
 /public/assets/
 /assets/vendor/
-###< symfony/asset-mapper ###
+/var/
+/vendor/
+
+# --- PHPUnit ---
+/phpunit.xml
+/.phpunit.cache/
+coverage/
+
+# --- Logs ---
+*.log
+
+# --- Composer ---
+composer.phar
+
+# --- Node / frontend (if you use npm, vite, webpack, etc.) ---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# --- Optional lock files (only ignore if you do NOT want them committed) ---
+# package-lock.json
+# yarn.lock
+
+# --- Symfony CLI local config ---
+.symfony/
+
+# --- Database files (if using SQLite locally) ---
+*.sqlite
+*.db
+
+# --- Temporary / backup files ---
+*.tmp
+*.bak
+*.swp
