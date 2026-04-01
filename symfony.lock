@@ -155,6 +155,27 @@
             "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
         }
     },
+    "symfony/mercure-bundle": {
+        "version": "0.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "0.4",
+            "ref": "b141b8c8f13bc8c31d718a5488039b712c0d3592"
+        },
+        "files": [
+            "./config/packages/mercure.yaml"
+        ]
+    },
+    "symfony/mercure-notifier": {
+        "version": "8.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "5.3",
+            "ref": "4eaf30b6f48b69934a49e26dd0348e6ebfb97f12"
+        }
+    },
     "symfony/messenger": {
         "version": "8.0",
         "recipe": {
@@ -270,6 +291,84 @@
             "./templates/base.html.twig"
         ]
     },
+    "symfony/ux-autocomplete": {
+        "version": "2.34",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.6",
+            "ref": "07d9602b7231ba355f484305d6cea58310c01741"
+        },
+        "files": [
+            "./config/routes/ux_autocomplete.yaml"
+        ]
+    },
+    "symfony/ux-chartjs": {
+        "version": "v2.34.0"
+    },
+    "symfony/ux-cropperjs": {
+        "version": "v2.34.0"
+    },
+    "symfony/ux-dropzone": {
+        "version": "v2.34.0"
+    },
+    "symfony/ux-icons": {
+        "version": "2.34",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.19",
+            "ref": "c965ca0bf8a40e03420d57e08cff0bf6045e4ae7"
+        },
+        "files": [
+            "./assets/icons/symfony.svg",
+            "./config/packages/ux_icons.yaml"
+        ]
+    },
+    "symfony/ux-live-component": {
+        "version": "2.34",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.6",
+            "ref": "b7130b7b5ddc2f8994bd6149d7c093b184782f0c"
+        },
+        "files": [
+            "./config/routes/ux_live_component.yaml"
+        ]
+    },
+    "symfony/ux-map": {
+        "version": "2.34",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.19",
+            "ref": "04de870967555f00bd82f542e9e2d29683c3d39e"
+        },
+        "files": [
+            "./config/packages/ux_map.yaml"
+        ]
+    },
+    "symfony/ux-notify": {
+        "version": "v2.34.0"
+    },
+    "symfony/ux-toolkit": {
+        "version": "v2.34.0"
+    },
+    "symfony/ux-translator": {
+        "version": "2.34",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.32",
+            "ref": "20e2abac415da4c3a9a6bafa059a6419beb74593"
+        },
+        "files": [
+            "./assets/translator.js",
+            "./config/packages/ux_translator.yaml",
+            "./var/translations/index.js"
+        ]
+    },
     "symfony/ux-turbo": {
         "version": "2.34",
         "recipe": {
@@ -280,6 +379,18 @@
         },
         "files": [
             "./config/packages/ux_turbo.yaml"
+        ]
+    },
+    "symfony/ux-twig-component": {
+        "version": "2.34",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "2.13",
+            "ref": "f367ae2a1faf01c503de2171f1ec22567febeead"
+        },
+        "files": [
+            "./config/packages/twig_component.yaml"
         ]
     },
     "symfony/validator": {

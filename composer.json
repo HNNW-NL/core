@@ -37,7 +37,18 @@
         "symfony/string": "8.0.*",
         "symfony/translation": "8.0.*",
         "symfony/twig-bundle": "8.0.*",
+        "symfony/ux-autocomplete": "^2.34",
+        "symfony/ux-chartjs": "^2.34",
+        "symfony/ux-cropperjs": "^2.34",
+        "symfony/ux-dropzone": "^2.34",
+        "symfony/ux-icons": "^2.34",
+        "symfony/ux-live-component": "^2.34",
+        "symfony/ux-map": "^2.34",
+        "symfony/ux-notify": "^2.34",
+        "symfony/ux-toolkit": "^2.34",
+        "symfony/ux-translator": "^2.34",
         "symfony/ux-turbo": "^2.34",
+        "symfony/ux-twig-component": "^2.34",
         "symfony/validator": "8.0.*",
         "symfony/web-link": "8.0.*",
         "symfony/yaml": "8.0.*",
@@ -94,7 +105,8 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "8.0.*"
+            "require": "8.0.*",
+            "docker": false
         }
     },
     "require-dev": {
