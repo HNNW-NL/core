@@ -1,0 +1,47 @@
+admin:
+    resource: ../../src/Module/Admin/Controller/
+    type: attribute
+
+auth:
+    resource: ../../src/Module/Auth/Controller/
+    type: attribute
+
+communication:
+    resource: ../../src/Module/Communication/Controller/
+    type: attribute
+
+main:
+    resource: ../../src/Module/Main/Controller/
+    type: attribute
+
+matching:
+    resource: ../../src/Module/Matching/Controller/
+    type: attribute
+
+member:
+    resource: ../../src/Module/Member/Controller/
+    type: attribute
+
+profile:
+    resource: ../../src/Module/Profile/Controller/
+    type: attribute
+
+project:
+    resource: ../../src/Module/Project/Controller/
+    type: attribute
+
+reputation:
+    resource: ../../src/Module/Reputation/Controller/
+    type: attribute
+
+social:
+    resource: ../../src/Module/Social/Controller/
+    type: attribute
+
+task:
+    resource: ../../src/Module/Task/Controller/
+    type: attribute
+
+team:
+    resource: ../../src/Module/Team/Controller/
+    type: attribute
