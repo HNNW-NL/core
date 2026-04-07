@@ -123,6 +123,8 @@ The application should now be available at:
 http://127.0.0.1:8000
 ```
 
+---
+
 ## Technical Information
 
 | Category             | Information                                                            |
