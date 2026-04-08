@@ -128,7 +128,7 @@ http://127.0.0.1:8000
 ## Technical Information
 
 | Category             | Information                                                            |
-| -------------------- | ---------------------------------------------------------------------- |
+|----------------------| ---------------------------------------------------------------------- |
 | Framework            | Symfony                                                                |
 | Backend Language     | PHP                                                                    |
 | Frontend Languages   | HTML, CSS, JavaScript                                                  |
@@ -136,7 +136,7 @@ http://127.0.0.1:8000
 | Database             | PostgreSQL *(planned for future implementation)*                       |
 | UX Packages          | Symfony UX *(excluding deprecated, Vue.js, React and Svelte packages)* |
 | APIs                 | None currently                                                         |
-| Development Language | en-AU                                                                  |
+| Codebase Language    | en-AU                                                                  |
 | Application Language | nl-NL                                                                  |
 
 ---
