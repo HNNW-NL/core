@@ -2,17 +2,18 @@
 <html lang="nl-NL">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>{% block title %}HNNW{% endblock %} | HNNW</title>
+    <title>{% block title %}{% endblock %} | HNNW Organization Panel</title>
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🤝</text></svg>">
 
+    <link rel="stylesheet" href="{{ asset("assets/shared/css/style.css") }}">
+    <link rel="stylesheet" href="{{ asset("assets/org/css/style.css") }}">
     {% block stylesheets %}{% endblock %}
 
-    {% block javascripts %}
-        {% block importmap %}{{ importmap('app') }}{% endblock %}
-    {% endblock %}
+    {% block javascript %}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
     {% if frankenphpHotReload %}
@@ -21,13 +22,15 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
     {% endif %}
 </head>
-<body>
-<header>
-    <h1>HNNW</h1>
-</header>
+<body data-theme="dark">
+
+{% include "/core/org/_navigation.html.twig" %}
 
 <main>
     {% block body %}{% endblock %}
 </main>
+
+{% include "/core/org/_footer.html.twig" %}
+
 </body>
 </html>
