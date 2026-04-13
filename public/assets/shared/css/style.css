@@ -1,0 +1,64 @@
+:root {
+    --background: #020617;
+    --header-background: #0f172ab3;
+
+    --paragraph: #FFFFFF;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
+}
+[data-theme="light"] {
+    --background: #FFFFFF;
+    --header-background: #0f172ab3;
+
+    --paragraph: #020617;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
+}
+
+@font-face {
+    font-family: inter;
+    src: url("../fonts/Inter-Regular.ttf");
+}
+
+@font-face {
+    font-family: lato;
+    src: url("../fonts/Lato-Regular.ttf");
+}
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    text-decoration: none;
+    color: var(--paragraph);
+    transition: color .5s ease, background-color .5s ease, border .5s ease;
+}
+
+body {
+    background-color: var(--background);
+
+    h1, h2, h3 {
+        font-family: inter;
+    }
+
+    p {
+        font-family: lato;
+    }
+}
+
+/* For screen reader only html tags */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
