@@ -15,7 +15,6 @@ desktop.ini
 
 # --- Build / cache / dependencies ---
 /public/bundles/
-/public/assets/
 /assets/vendor/
 /var/
 /vendor/
