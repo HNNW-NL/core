@@ -7,12 +7,20 @@
 
     <title>{% block title %}{% endblock %} | HNNW</title>
 
+    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🤝</text></svg>">
 
+    <!-- SEO -->
+    <meta name="keywords" content="HNNW, hnnw, Het Nieuwe² Werken, Het Nieuwe Nieuwe Werken, {% block seoKeywords %}{% endblock %}">
+    <meta name="description" content="{% block seoDescription %}{% endblock %}">
+    <meta name="author" content="{% block seoAuthor %}{% endblock %}">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ asset("assets/shared/css/style.css") }}">
     <link rel="stylesheet" href="{{ asset("assets/main/css/style.css") }}">
     {% block stylesheets %}{% endblock %}
 
+    <!-- JavaScript -->
     {% block javascript %}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
