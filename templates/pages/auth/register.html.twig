@@ -7,10 +7,199 @@
 {% block stylesheets %}{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    {% verbatim %}
+    <script>
+        // Enhanced client-side validation and UX for the register form
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('register-form');
+            if (!form) return;
+
+            const fullName = form.querySelector('input[name="full_name"]');
+            const email = form.querySelector('input[name="email"]');
+            const password = form.querySelector('input[name="password"]');
+            const confirm = form.querySelector('input[name="confirm_password"]');
+            const terms = form.querySelector('input[name="terms"]');
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            const formErrors = document.getElementById('register-errors');
+            const emailError = document.getElementById('email-error');
+            const fullNameError = document.getElementById('full_name-error');
+            const confirmError = document.getElementById('confirm_password-error');
+            const strengthEl = document.getElementById('password-strength');
+            const meter = document.getElementById('pw-meter');
+
+            function calculateStrength(pw) {
+                let score = 0;
+                if (pw.length >= 8) score++;
+                if (/[A-Z]/.test(pw)) score++;
+                if (/[0-9]/.test(pw)) score++;
+                if (/[^A-Za-z0-9]/.test(pw)) score++;
+                return score; // 0..4
+            }
+
+            function updateStrengthUI() {
+                if (!strengthEl || !meter || !password) return;
+                const s = calculateStrength(password.value || '');
+                const labels = ['Very weak','Weak','Okay','Good','Strong'];
+                strengthEl.textContent = password.value ? labels[s] : '';
+                strengthEl.dataset.score = s;
+                meter.value = s;
+            }
+
+            function clearFieldErrors() {
+                [emailError, fullNameError, confirmError].forEach(el => {
+                    if (!el) return;
+                    el.textContent = '';
+                    el.classList.add('visually-hidden');
+                });
+                if (formErrors) { formErrors.style.display = 'none'; formErrors.innerHTML = ''; }
+            }
+
+            function setFieldError(el, msg) {
+                if (!el) return;
+                el.textContent = msg;
+                el.classList.remove('visually-hidden');
+            }
+
+            function validateFormFields() {
+                clearFieldErrors();
+                let valid = true;
+
+                if (!fullName.value.trim()) { setFieldError(fullNameError, 'Please enter your name'); valid = false; }
+
+                if (!email.value || !email.value.includes('@')) { setFieldError(emailError, 'Please enter a valid email address'); valid = false; }
+
+                if (password.value.length < 8) { setFieldError(strengthEl, 'Password must be at least 8 characters'); valid = false; }
+
+                if (password.value !== confirm.value) { setFieldError(confirmError, 'Passwords do not match'); valid = false; }
+
+                if (!terms.checked) { valid = false; }
+
+                return valid;
+            }
+
+            // Show/hide toggle buttons
+            document.querySelectorAll('.toggle-password').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const targetId = this.getAttribute('data-target');
+                    const input = document.getElementById(targetId);
+                    if (!input) return;
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        this.textContent = 'Hide';
+                        this.setAttribute('aria-pressed', 'true');
+                    } else {
+                        input.type = 'password';
+                        this.textContent = 'Show';
+                        this.setAttribute('aria-pressed', 'false');
+                    }
+                });
+            });
+
+            password && password.addEventListener('input', function () {
+                updateStrengthUI();
+                // Clear any strength error when user types
+                if (strengthEl) { strengthEl.classList.remove('error'); }
+                toggleSubmitState();
+            });
+
+            [fullName, email, confirm, terms].forEach(el => {
+                if (!el) return;
+                el.addEventListener('input', toggleSubmitState);
+                el.addEventListener('change', toggleSubmitState);
+            });
+
+            function toggleSubmitState() {
+                const ok = validateFormFields();
+                submitBtn.disabled = !ok;
+                if (submitBtn.disabled) submitBtn.classList.remove('btn-primary'); else submitBtn.classList.add('btn-primary');
+            }
+
+            // initial state
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('btn-primary');
+            updateStrengthUI();
+
+            form.addEventListener('submit', function (e) {
+                clearFieldErrors();
+
+                if (!validateFormFields()) {
+                    e.preventDefault();
+                    // Show top-level summary
+                    if (formErrors) {
+                        formErrors.innerHTML = '<strong>Please fix the errors below.</strong>';
+                        formErrors.style.display = 'block';
+                        formErrors.focus();
+                    }
+                }
+            });
+        });
+    </script>
+    {% endverbatim %}
+{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Auth - Register</h2>
-    <p>Auth - Register page.</p>
+    <main class="auth-page">
+        <h1>Register</h1>
+
+        <div class="auth-grid">
+            <section class="auth-form">
+                <header class="card-header">
+                    <h2>Create your account</h2>
+                    <p class="lead">Sign up to access the platform — we’ll keep your data safe.</p>
+                </header>
+
+                <div id="register-errors" class="form-errors mb-1" role="alert" aria-live="assertive" tabindex="-1"></div>
+
+                <form id="register-form" action="/auth/register" method="post" novalidate>
+                    {# Add CSRF token here if you use Symfony CSRF protection: <input type="hidden" name="_token" value="{{ csrf_token('submit') }}"> #}
+
+                    <fieldset>
+                        <legend class="visually-hidden">Register with email</legend>
+
+                        <label for="full_name">Full name</label>
+                        <input id="full_name" class="auth-input" name="full_name" type="text" placeholder="Your full name" autocomplete="name" required aria-required="true">
+                        <div id="full_name-error" class="field-error visually-hidden small" aria-live="polite"></div>
+
+                        <label for="email">Email</label>
+                        <input id="email" class="auth-input" name="email" type="email" placeholder="you@example.com" autocomplete="email" required aria-required="true">
+                        <div id="email-error" class="field-error visually-hidden small" aria-live="polite"></div>
+
+                        <label for="password">Password</label>
+                        <div class="input-row">
+                            <input id="password" class="auth-input" name="password" type="password" placeholder="Create a password" autocomplete="new-password" required aria-required="true" aria-describedby="password-help password-strength">
+                            <button type="button" class="toggle-password" data-target="password" aria-label="Toggle password visibility" aria-pressed="false">Show</button>
+                        </div>
+
+                        <div id="password-help" class="small">Use at least 8 characters, mix letters, numbers and symbols.</div>
+                        <div class="pw-strength mt-1">
+                            <meter id="pw-meter" min="0" max="4" value="0" low="1" high="3" optimum="4"></meter>
+                            <div id="password-strength" class="small" aria-hidden="true"></div>
+                        </div>
+
+                        <label for="confirm_password">Confirm password</label>
+                        <div class="input-row">
+                            <input id="confirm_password" class="auth-input" name="confirm_password" type="password" placeholder="Repeat your password" autocomplete="new-password" required aria-required="true">
+                            <button type="button" class="toggle-password" data-target="confirm_password" aria-label="Toggle confirm password visibility" aria-pressed="false">Show</button>
+                        </div>
+                        <div id="confirm_password-error" class="field-error visually-hidden small" aria-live="polite"></div>
+
+                        <label class="remember-me"><input type="checkbox" name="terms" id="terms"> I agree to the <a href="#">terms and privacy policy</a>.</label>
+
+                        <div class="mt-1">
+                            <button type="submit" class="btn" disabled>Create account</button>
+                        </div>
+                     </fieldset>
+                 </form>
+
+                <p class="small mt-1">Already registered? <a href="/auth/login">Sign in</a></p>
+             </section>
+
+             <!-- simplified aside removed -->
+
+         </div>
+
+     </main>
 {% endblock %}
