@@ -51,7 +51,7 @@ body {
 }
 
 /* For screen reader only html tags */
-.sr-only {
+.srOnly {
     position: absolute;
     width: 1px;
     height: 1px;
