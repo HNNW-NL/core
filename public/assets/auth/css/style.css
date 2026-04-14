@@ -1,0 +1,174 @@
+/* Styles for auth pages (register, login, forgot-password) */
+
+:root{
+    --auth-max-width:860px;
+    --auth-gap:1.25rem;
+    --color-bg: #0f1720; /* dark background fallback */
+    --color-panel: #0b1220;
+    --color-muted: #9aa4b2;
+    --color-accent: #1f2937;
+    --color-primary: #0055A4;
+    --color-success: #2b7a0b;
+    --color-danger: #f44336;
+    --radius:8px;
+
+    /* input defaults for light theme */
+    --input-bg: #ffffff;
+    --input-fg: #0b1220;
+    --input-border: rgba(11,18,32,0.08);
+    --input-placeholder: #6b7280;
+}
+
+body[data-theme="dark"]{
+    background: linear-gradient(180deg,#071021 0%, #071822 100%);
+    color: #e6eef8;
+    /* overrides for dark theme */
+    /* darker input background to increase contrast while keeping transparent look */
+    --input-bg: rgba(0,0,0,0.36);
+    --input-fg: #e6eef8; /* light text */
+    --input-border: rgba(255,255,255,0.08);
+    --input-placeholder: rgba(230,238,248,0.6);
+}
+
+main{padding:2rem}
+
+.auth-page{
+    max-width:var(--auth-max-width);
+    margin:2rem auto;
+    padding:1rem 1.25rem;
+}
+
+.auth-grid{
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:2rem;
+    align-items:start;
+}
+
+@media (max-width:880px){
+    .auth-grid{grid-template-columns:1fr;}
+}
+
+.auth-form{background:rgba(255,255,255,0.02);padding:1.25rem;border-radius:var(--radius);}
+
+/* Header inside auth form */
+.auth-form .card-header{margin-bottom:1rem}
+.auth-form h2{margin:0 0 .4rem 0}
+.auth-form p.lead{margin:0 0 1rem 0;color:var(--color-muted)}
+
+.auth-form label{display:block;font-weight:600;margin-top:.45rem}
+.auth-form input,
+.auth-form textarea,
+.auth-form select{
+    display:block;width:100%;padding:.6rem;margin:.45rem 0 1rem;border:1px solid var(--input-border);border-radius:6px;background:var(--input-bg);color:var(--input-fg}
+
+.auth-form input:focus{outline:2px solid rgba(0,0,0,0.06);box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+.auth-form input::placeholder{color:var(--input-placeholder)}
+
+.form-errors{display:none}
+.form-errors.visible{display:block}
+
+/* Input row (for password + toggle icon) */
+.input-row{display:flex;gap:.5rem;align-items:center}
+
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem .9rem;background:var(--color-accent);color:#fff;border-radius:6px;border:none;text-decoration:none;cursor:pointer}
+.btn:hover{opacity:.95}
+
+.btn-primary{background:var(--color-primary)}
+
+.auth-externals{background:rgba(255,255,255,0.02);padding:1rem;border-radius:6px}
+
+.visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
+
+.toggle-password{background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit;padding:.45rem .6rem;border-radius:6px;cursor:pointer}
+.toggle-password:hover{background:rgba(255,255,255,0.02)}
+
+#password-strength{font-weight:600}
+#password-strength[data-score="0"]{color:var(--color-danger)}
+#password-strength[data-score="1"]{color:#e67a00}
+#password-strength[data-score="2"]{color:#c1b400}
+#password-strength[data-score="3"]{color:#3aa33a}
+#password-strength[data-score="4"]{color:var(--color-success)}
+
+/* remember me */
+.remember-me{display:flex;align-items:center;gap:.5rem;margin-top:.25rem}
+.remember-me input[type="checkbox"]{width:16px;height:16px}
+
+/* small utility */
+.small{font-size:.85rem;color:var(--color-muted)}
+
+/* Make forms readable on light themes too */
+@media (prefers-color-scheme: light){
+    body[data-theme="dark"] main{color:inherit}
+}
+
+.field-error{color:var(--color-danger);margin-top:-0.5rem;margin-bottom:.75rem}
+.field-error.visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
+
+.pw-strength{gap:.5rem}
+.pw-strength meter{width:160px;height:8px;background:rgba(255,255,255,0.04);border-radius:6px}
+/* WebKit meters */
+.pw-strength meter::-webkit-meter-bar{background:rgba(255,255,255,0.04);border-radius:6px}
+.pw-strength meter::-webkit-meter-optimum-value{background:var(--color-success);border-radius:6px}
+.pw-strength meter::-webkit-meter-suboptimum-value{background:#c1b400;border-radius:6px}
+.pw-strength meter::-webkit-meter-even-less-good-value{background:#e67a00;border-radius:6px}
+.pw-strength meter::-webkit-meter-even-less-good-value{background:var(--color-danger);border-radius:6px}
+
+.btn[disabled]{opacity:.65;cursor:not-allowed;background:#7c8790;color:#fff}
+
+/* small spacing utilities */
+.mt-1{margin-top:1rem}
+.mb-1{margin-bottom:1rem}
+
+/* Force high-contrast input text and backgrounds within auth forms to avoid white-on-white issues */
+.auth-form input,
+.auth-form textarea,
+.auth-form select,
+.input-row input{
+    background: var(--input-bg) !important;
+    color: var(--input-fg) !important;
+    border-color: var(--input-border) !important;
+}
+
+/* Ensure inputs show correct typed text color and caret */
+.auth-form input,
+.auth-form textarea,
+.auth-form select,
+.input-row input{
+    color: var(--input-fg) !important;
+    -webkit-text-fill-color: var(--input-fg) !important; /* Safari/Chrome */
+    caret-color: var(--input-fg) !important;
+}
+
+.auth-form input::placeholder,
+.auth-form textarea::placeholder,
+.input-row input::placeholder{
+    color: var(--input-placeholder) !important;
+    opacity: 1 !important;
+}
+
+/* Autofill styles (Chrome / WebKit) */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill{
+    -webkit-text-fill-color: var(--input-fg) !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Firefox autofill handling */
+:-moz-autofill{
+    box-shadow: 0 0 0px 1000px var(--input-bg) inset !important;
+    -moz-text-fill-color: var(--input-fg) !important;
+}
+
+/* High-specificity helper to ensure inputs inside auth pages always use the correct colors */
+.auth-form input.auth-input,
+.auth-form textarea.auth-input,
+.auth-form select.auth-input,
+.input-row input.auth-input{
+    background: var(--input-bg) !important;
+    color: var(--input-fg) !important;
+    -webkit-text-fill-color: var(--input-fg) !important;
+    caret-color: var(--input-fg) !important;
+    border-color: var(--input-border) !important;
+}
