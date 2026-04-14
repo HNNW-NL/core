@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	function updateStrengthUI() {
 		if (!strengthEl || !meter || !password) return;
 		const s = calculateStrength(password.value || '');
-		const labels = ['Very weak', 'Weak', 'Okay', 'Good', 'Strong'];
+		const labels = ['Zeer zwak', 'Zwak', 'Redelijk', 'Goed', 'Sterk'];
 		strengthEl.textContent = password.value ? labels[s] : '';
 		strengthEl.dataset.score = s;
 		meter.value = s;
@@ -58,22 +58,22 @@ document.addEventListener('DOMContentLoaded', function () {
 		let valid = true;
 
 		if (!fullName.value.trim()) {
-			setFieldError(fullNameError, 'Please enter your name');
+			setFieldError(fullNameError, 'Vul je naam in');
 			valid = false;
 		}
 
 		if (!email.value || !email.value.includes('@')) {
-			setFieldError(emailError, 'Please enter a valid email address');
+			setFieldError(emailError, 'Vul een geldig e-mailadres in');
 			valid = false;
 		}
 
 		if (password.value.length < 8) {
-			setFieldError(strengthEl, 'Password must be at least 8 characters');
+			setFieldError(strengthEl, 'Wachtwoord moet minimaal 8 tekens bevatten');
 			valid = false;
 		}
 
 		if (password.value !== confirm.value) {
-			setFieldError(confirmError, 'Passwords do not match');
+			setFieldError(confirmError, 'Wachtwoorden komen niet overeen');
 			valid = false;
 		}
 
@@ -92,11 +92,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 			if (input.type === 'password') {
 				input.type = 'text';
-				this.textContent = 'Hide';
+				this.textContent = 'Verberg';
 				this.setAttribute('aria-pressed', 'true');
 			} else {
 				input.type = 'password';
-				this.textContent = 'Show';
+				this.textContent = 'Toon';
 				this.setAttribute('aria-pressed', 'false');
 			}
 		});
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (!validateFormFields()) {
 			e.preventDefault();
 			if (formErrors) {
-				formErrors.innerHTML = '<strong>Please fix the errors below.</strong>';
+				formErrors.innerHTML = '<strong>Herstel de fouten hieronder.</strong>';
 				formErrors.style.display = 'block';
 				formErrors.focus();
 			}
