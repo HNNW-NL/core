@@ -16,6 +16,9 @@ class Project
     #[ORM\Column(name: 'status', length: 255)]
     private ?string $status = null;
 
+    #[ORM\Column(name: 'name', length: 255)]
+    private ?string $name= null;
+
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 

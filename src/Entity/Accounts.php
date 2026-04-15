@@ -28,6 +28,12 @@ class Account
     #[ORM\Column(name: 'password_hash', length: 255)]
     private ?string $passwordHash = null;
 
+    #[ORM\Column(name: 'is_Admin', options: ['default' => false])]
+    private ?bool $isAdmin = false;
+
+    #[ORM\Column(name: 'last_login', type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $lastLogin = null;
+
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -50,6 +56,11 @@ class Account
     public function onUpdate(): void
     {
         $this->lastModified = new \DateTimeImmutable();
+    }
+
+    public function login(): void
+    {
+        $this->lastLogin = new \DateTimeImmutable();
     }
 
     public function softDelete(): void
