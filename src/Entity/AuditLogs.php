@@ -5,7 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'logs')]
+#[ORM\Table(name: 'audit_logs')]
 #[ORM\HasLifecycleCallbacks]
 class AuditLog
 {
