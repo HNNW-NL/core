@@ -7,7 +7,7 @@
 {% block javascript %}{% endblock %}
 
 {% block body %}
-    <main class="auth-page">
+    <main class="auth-page register-page">
         <h1>Registreren</h1>
 
         <div class="auth-grid">
@@ -26,6 +26,10 @@
                         <label for="full_name">Volledige naam</label>
                         <input id="full_name" class="auth-input" name="full_name" type="text" placeholder="Je volledige naam" autocomplete="name" required aria-required="true">
                         <div id="full_name-error" class="field-error visually-hidden small" aria-live="polite"></div>
+
+                        <label for="username">Gebruikersnaam</label>
+                        <input id="username" class="auth-input" name="username" type="text" placeholder="Kies een gebruikersnaam" autocomplete="username" required aria-required="true">
+                        <div id="username-error" class="field-error visually-hidden small" aria-live="polite"></div>
 
                         <label for="email">Email</label>
                         <input id="email" class="auth-input" name="email" type="email" placeholder="you@example.com" autocomplete="email" required aria-required="true">

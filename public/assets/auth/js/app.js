@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	if (!form) return;
 
 	const fullName = form.querySelector('input[name="full_name"]');
+	const username = form.querySelector('input[name="username"]');
 	const email = form.querySelector('input[name="email"]');
 	const password = form.querySelector('input[name="password"]');
 	const confirm = form.querySelector('input[name="confirm_password"]');
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	const formErrors = document.getElementById('register-errors');
 	const emailError = document.getElementById('email-error');
 	const fullNameError = document.getElementById('full_name-error');
+	const usernameError = document.getElementById('username-error');
 	const confirmError = document.getElementById('confirm_password-error');
 	const strengthEl = document.getElementById('password-strength');
 	const meter = document.getElementById('pw-meter');
@@ -35,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function clearFieldErrors() {
-		[emailError, fullNameError, confirmError].forEach(function (el) {
+		[emailError, fullNameError, usernameError, confirmError].forEach(function (el) {
 			if (!el) return;
 			el.textContent = '';
 			el.classList.add('visually-hidden');
@@ -59,6 +61,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		if (!fullName.value.trim()) {
 			setFieldError(fullNameError, 'Vul je naam in');
+			valid = false;
+		}
+
+		if (!username.value.trim()) {
+			setFieldError(usernameError, 'Vul een gebruikersnaam in');
 			valid = false;
 		}
 
@@ -112,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		});
 	}
 
-	[fullName, email, confirm, terms].forEach(function (el) {
+	[fullName, username, email, confirm, terms].forEach(function (el) {
 		if (!el) return;
 		el.addEventListener('input', toggleSubmitState);
 		el.addEventListener('change', toggleSubmitState);
