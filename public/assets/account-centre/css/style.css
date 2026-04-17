@@ -1,0 +1,59 @@
+:root {
+    --hnnw-yellow-400: #F6E05E;
+    --hnnw-yellow-500: #ECC94B;
+    --header-background: #1a202c;
+    --paragraph: #E2E8F0;
+}
+
+#account-centre-container {
+    padding: 3rem 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+#account-centre-container h1 {
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+#account-centre-container header p {
+    color: #A0AEC0;
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.account-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.account-card {
+    background: var(--header-background);
+    border: 1px solid #2d3748;
+    padding: 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: block;
+}
+
+.account-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--hnnw-yellow-400);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.account-card h3 {
+    color: var(--hnnw-yellow-400);
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.account-card p {
+    color: #A0AEC0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
