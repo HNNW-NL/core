@@ -13,4 +13,30 @@
 {% block body %}
     <h2>Projects - Modify Participants</h2>
     <p>Organization panel - modify project ({{ id }}) participants page.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Start date</th>
+            </tr>
+        </thead>
+        <tbody>
+        {#  { % for participant in participants % }
+           <tr>
+               <td>{{ participant.accounts.username }}</td>
+               <td>
+                   <select>
+                       {% for role in roles %}
+                           <option value="{{ role.id }}" {% if role.id == participant.role.id %}selected{% endif %}>
+                               {{ role.name }}
+                           </option>
+                       {% endfor %}
+                   </select>
+               </td>
+               <td>{{ participant.joinedAt|date('Y-m-d H:i') }}</td>
+           </tr>
+        {% endfor %} #}
+        </tbody>
+    </table>
 {% endblock %}
