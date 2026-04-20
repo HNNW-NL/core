@@ -2,13 +2,11 @@
 
 namespace App\Module\Org\Controller;
 
-use Doctrine\ORM\EntityManagerInterface;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Entity\ProjectRole;
-use App\Entity\ProjectParticipant;
+
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -46,40 +44,11 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET', 'POST'])]
-    public function modifyProjectParticipants(string $id, EntityManagerInterface $em, Request $request): Response
+    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET'])]
+    public function modifyProjectParticipants(string $id): Response
     {
-        $qb = $em->createQueryBuilder();
-        $roleRepository = $em->getRepository(ProjectRole::class);
-        $participantRepository = $em->getRepository(ProjectParticipant::class);
-
-        $qb->select('pp', 'a', 'currentRole')
-            ->from(ProjectParticipant::class, 'pp')
-            ->join('pp.account', 'a')
-            ->join('pp.role', 'currentRole')
-            ->where('pp.project = :projectId')
-            ->setParameter('projectId', $id);
-
-        $participants = $qb->getQuery()->getResult();
-
-        $allRoles = $roleRepository->findAll();
-
-        if ($request->isMethod('POST')) {
-            foreach ($_POST['roles'] as $participantId => $roleId) {
-
-                $participant = $participantRepository->find($participantId);
-
-                $role = $roleRepository->find($roleId);
-
-                $participant->setRole($role);
-            }
-            $em->flush();
-        }
-
         return $this->render('pages/org/projects/modify-participants.html.twig', [
             'id' => $id,
-            'participants' => $participants,
-            'roles' => $allRoles,
         ]);
     }
 
