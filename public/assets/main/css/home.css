@@ -1,0 +1,174 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* BACKGROUND */
+body {
+    background: #0b0f1a;
+    color: #ffffff;
+}
+
+/* PAGE WRAPPER */
+.page {
+    width: 90%;
+    max-width: 1100px;
+    margin: 40px auto;
+}
+
+/* HEADER */
+.header {
+    margin-bottom: 25px;
+}
+
+/* PROFILE HEADER */
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px;
+    background: #141b2e;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* PROFILE IMAGE */
+.profile-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 3px solid #ffd400;
+}
+
+/* TEXT */
+.profile-text h1 {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.profile-text p {
+    color: #aab3c5;
+    font-size: 14px;
+    margin-top: 3px;
+}
+
+/* CONTENT GRID */
+.content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+/* CARDS */
+.card {
+    background: #141b2e;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    transition: 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+/* TITLES */
+.card h2 {
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+/* NOTE TEXT */
+.note {
+    font-size: 12px;
+    color: #8f98ad;
+    margin-bottom: 15px;
+}
+
+/* LABEL */
+.label {
+    color: #ffd400;
+    font-size: 13px;
+    margin: 10px 0;
+}
+
+/* EXPERTISE TAGS */
+.expertise {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.bubble {
+    background: #1e2942;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+/* BUTTON BASE */
+.btn {
+    display: block;
+    text-decoration: none;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+/* PRIMARY BUTTON */
+.btn-primary {
+    background: #ffd400;
+    color: #000;
+}
+
+.btn-primary:hover {
+    background: #e6bf00;
+}
+
+/* SECONDARY BUTTON */
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.btn-secondary:hover {
+    background: #ffffff;
+    color: #000;
+}
+
+/* TIP BOX */
+.tip {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    color: #aab3c5;
+    font-size: 12px;
+}
+
+.tip-line {
+    width: 3px;
+    height: 40px;
+    background: #ffd400;
+    border-radius: 5px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .content {
+        grid-template-columns: 1fr;
+    }
+
+    .profile {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
