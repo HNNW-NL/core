@@ -2,21 +2,17 @@
 <html lang="nl-NL">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>{% block title %}{% endblock %} | HNNW Account Centre</title>
 
-    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🤝</text></svg>">
 
-    <!-- CSS -->
     <link rel="stylesheet" href="{{ asset("assets/shared/css/style.css") }}">
     <link rel="stylesheet" href="{{ asset("assets/main/css/style.css") }}">
     <link rel="stylesheet" href="{{ asset("assets/account-centre/css/style.css") }}">
     {% block stylesheets %}{% endblock %}
 
-    <!-- JavaScript -->
     {% block javascripts %}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
@@ -26,16 +22,9 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
     {% endif %}
 </head>
-<body data-theme="dark">
-
-{% include "/core/main/_header.html.twig" %}
-
-<main>
-    {% include "/core/account-centre/_navigation.html.twig" %}
-    {% block body %}{% endblock %}
-</main>
-
-{% include "/core/main/_footer.html.twig" %}
-
+<body style="background-color: #020617; color: white; margin: 0; font-family: 'Inter', sans-serif;">
+    <main>
+        {% block body %}{% endblock %}
+    </main>
 </body>
 </html>
