@@ -1,0 +1,23 @@
+{% extends 'layouts/main.base.html.twig' %}
+
+{# Page title meta tag #}
+{% block title %}{{ slug }}{% endblock %}
+
+{# SEO #}
+{% block seoKeywords %}{% endblock %}
+{% block seoDescription %}{% endblock %}
+{% block seoAuthor %}HNNW{% endblock %}
+
+{# CSS #}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/main/css/home.css") }}">
+{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
+{% block body %}
+    <h1>View profile</h1>
+    <p>Main - main site view profile ({{ slug }}) page.</p>
+{% endblock %}
