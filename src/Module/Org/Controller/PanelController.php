@@ -50,6 +50,14 @@ final class PanelController extends AbstractController
         ]);
     }
 
+    #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
+    public function InviteProjectParticipants(string $id): Response
+    {
+        return $this->render('pages/org/projects/invite-participants.html.twig', [
+            'id' => $id,
+        ]);
+    }
+
     #[Route('/projects/modify/{id}/reviews', name: 'modifyProject.reviews', methods: ['GET'])]
     public function modifyProjectReviews(string $id): Response
     {
