@@ -30,7 +30,6 @@ body {
     align-items: center;
     gap: 18px;
     padding: 20px;
-    background: #141b2e;
     border-radius: 14px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
@@ -72,8 +71,18 @@ body {
     transition: 0.2s ease;
 }
 
-.card:hover {
-    transform: translateY(-3px);
+.card-about-me {
+    background: #141b2e;
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 800px;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
 }
 
 /* TITLES */
@@ -104,10 +113,13 @@ body {
 }
 
 .bubble {
-    background: #1e2942;
+    background: #000000;
     padding: 8px 14px;
     border-radius: 20px;
+    border: #ffd400 3px solid;
     font-size: 13px;
+    color: #ffd400;
+    font-weight: 550;
 }
 
 /* BUTTON BASE */
