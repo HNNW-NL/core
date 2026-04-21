@@ -35,12 +35,19 @@ body {
 }
 
 /* PROFILE IMAGE */
-.profile-img {
+.profile-avatar {
+    display: inline-block;
+    padding: 4px; /* space between image and border */
+    border-radius: 18px; /* slightly bigger than image */
+    background: #ffd400; /* yellow border color */
+}
+
+.profile-avatar img {
     width: 80px;
     height: 80px;
-    border-radius: 14px;
+    border-radius: 14px; /* inner rounding */
     object-fit: cover;
-    border: 3px solid #ffd400;
+    display: block;
 }
 
 /* TEXT */
