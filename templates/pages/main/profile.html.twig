@@ -1,23 +1,68 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}{{ slug }}{% endblock %}
+{% block title %}Het nieuw werken{% endblock %}
 
-{# SEO #}
-{% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
-{% block seoAuthor %}HNNW{% endblock %}
-
-{# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset("assets/main/css/home.css") }}">
+    <link rel="stylesheet" href="{{ asset('assets/main/css/home.css') }}">
 {% endblock %}
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <h1>View profile</h1>
-    <p>Main - main site view profile ({{ slug }}) page.</p>
+    <div class="page">
+
+        <!-- PROFIEL HEADER -->
+        <div class="header">
+            <div class="profile">
+                <div class="profile-avatar">
+                    <img src="{{ asset('assets/main/images/default-avatar.png') }}" alt="Profile picture">
+                </div>
+                <div class="profile-text">
+                    <h1>Random Naam</h1>
+                    <p>Student bij Random School</p>
+                    <p>Random Locatie</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFIEL CONTENT -->
+        <div class="content">
+
+            <!-- LINKERKANT -->
+            <div>
+                <div class="card-about-me">
+                    <h2>Over mij</h2>
+                    <p class="bio-text">
+                        Deze gebruiker heeft nog geen bio.
+                    </p>
+                    <br>
+
+                    <h2>Expertise</h2>
+                    <div class="expertise">
+                        <div class="bubble">Flexibel leren</div>
+                        <div class="bubble">Online samenwerken</div>
+                        <div class="bubble">Zelfstandigheid</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECHTERKANT -->
+            <div>
+                <div class="card">
+                    <h2>Toepassing</h2>
+                    <p class="note">
+                        Dit concept wordt gebruikt binnen onderwijs en organisaties om efficiënter,
+                        flexibeler en toekomstgericht te werken en leren.
+                    </p>
+                    <a href="#" class="btn btn-primary">Start leren</a>
+                    <a href="#" class="btn btn-secondary">Meer informatie</a>
+
+                    <div class="tip">
+                        <div class="tip-line"></div>
+                        <div>
+                            Leren en werken draait om resultaat, niet om plaats of tijd.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
