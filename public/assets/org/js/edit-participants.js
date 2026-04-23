@@ -3,11 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerRow = table.querySelector('thead tr');
     let draggedColumnIndex = null;
 
-    /**
-     * Function to attach listeners to headers.
-     * We wrap this in a function so we can re-bind if necessary,
-     * though with this logic, the listeners stay attached to the elements.
-     */
+    
     const initDraggableHeaders = () => {
         const headers = table.querySelectorAll('th');
 
