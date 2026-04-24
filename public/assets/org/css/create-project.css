@@ -1,0 +1,45 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+h2 {
+    text-align: center;
+    margin-top: 40px;
+}
+
+form {
+    width: 500px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #040e34;
+}
+
+form div {
+    margin-bottom: 15px;
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    background-color: black;
+    border: none;
+}
+
+textarea#summary {
+    min-height: 80px;
+}
+
+textarea#description {
+    min-height: 140px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    cursor: pointer;
+    background-color: #000;
+}

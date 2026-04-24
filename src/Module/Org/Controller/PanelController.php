@@ -33,7 +33,7 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
         ]);
-    }
+    } 
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
     public function modifyProjectMatching(string $id): Response
     {
