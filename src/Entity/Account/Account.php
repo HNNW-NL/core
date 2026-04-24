@@ -1,7 +1,10 @@
 <?php
-namespace App\Entity;
+namespace App\Entity\Account;
 
+use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'accounts')]
@@ -9,18 +12,11 @@ use Doctrine\ORM\Mapping as ORM;
 class Account
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', unique: true)]
-    private ?int $id = null;
+    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
+    private Uuid $id;
 
     #[ORM\Column(name: 'username', length: 255, unique: true)]
     private ?string $username = null;
-
-    #[ORM\Column(name: 'first_name', length: 255)]
-    private ?string $firstName = null;
-
-    #[ORM\Column(name: 'last_name', length: 255)]
-    private ?string $lastName = null;
 
     #[ORM\Column(name: 'email', length: 255, unique: true)]
     private ?string $email = null;
@@ -28,20 +24,38 @@ class Account
     #[ORM\Column(name: 'password_hash', length: 255)]
     private ?string $passwordHash = null;
 
-    #[ORM\Column(name: 'is_Admin', options: ['default' => false])]
-    private ?bool $isAdmin = false;
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(name: 'status_id', nullable: false)]
+    private ?Status $status = null;
 
-    #[ORM\Column(name: 'last_login', type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $lastLogin = null;
+    #[ORM\Column(name: 'email_verified_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $emailVerifiedAt = null;
+
+    #[ORM\Column(name: 'last_login_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastLoginAt = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $lastModified = null;
+    private \DateTimeImmutable $lastModified;
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
+
+
+    // Functions
+
+
+    public function __construct()
+    {
+        $this->id = Uuid::v7();
+    }
+
+    public function getId(): Uuid
+    {
+        return $this->id;
+    }
 
     #[ORM\PrePersist]
     public function onCreate(): void
@@ -60,7 +74,7 @@ class Account
 
     public function login(): void
     {
-        $this->lastLogin = new \DateTimeImmutable();
+        $this->lastLoginAt = new \DateTimeImmutable();
     }
 
     public function softDelete(): void
