@@ -2,7 +2,10 @@
 namespace App\Entity\Account;
 
 use App\Entity\Common\Status;
+use App\Entity\Log\AuditLog;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
@@ -11,6 +14,8 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\HasLifecycleCallbacks]
 class Account
 {
+    // Tables
+
     #[ORM\Id]
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
     private Uuid $id;
@@ -24,7 +29,7 @@ class Account
     #[ORM\Column(name: 'password_hash', length: 255)]
     private ?string $passwordHash = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: "accounts")]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
 
@@ -44,12 +49,20 @@ class Account
     private ?\DateTimeImmutable $deletedAt = null;
 
 
+    // Reverse FKs
+
+
+    #[ORM\OneToMany(mappedBy: "actorAccount", targetEntity: AuditLog::class)]
+    private Collection $auditLogs;
+
+
     // Functions
 
 
     public function __construct()
     {
         $this->id = Uuid::v7();
+        $this->auditLogs = new ArrayCollection();
     }
 
     public function getId(): Uuid
