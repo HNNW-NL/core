@@ -11,7 +11,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\HasLifecycleCallbacks]
 class SystemLog
 {
-    // Tables
+    // Columns
 
     #[ORM\Id]
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]

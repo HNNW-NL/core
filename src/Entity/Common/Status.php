@@ -2,6 +2,7 @@
 namespace App\Entity\Common;
 
 use App\Entity\Account\Account;
+use App\Entity\Org\Organization;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -9,10 +10,12 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'statuses')]
+#[ORM\Table(name: 'statuses', uniqueConstraints: [
+    new ORM\UniqueConstraint(name: "uniq_status_name_scape", columns: ["name", "scope"])
+])]
 class Status
 {
-    // Tables
+    // Columns
 
     #[ORM\Id]
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
@@ -31,8 +34,11 @@ class Status
     // Reverse FKs
 
 
-    #[ORM\OneToMany(mappedBy: 'status', targetEntity: Account::class)]
+    #[ORM\OneToMany(targetEntity: Account::class, mappedBy: 'status')]
     private Collection $accounts;
+
+    #[ORM\OneToMany(targetEntity: Organization::class, mappedBy: 'status')]
+    private Collection $organizations;
 
 
     // Functions
@@ -42,6 +48,7 @@ class Status
     {
         $this->id = Uuid::v7();
         $this->accounts = new ArrayCollection();
+        $this->organizations = new ArrayCollection();
     }
 
     public function getId(): Uuid

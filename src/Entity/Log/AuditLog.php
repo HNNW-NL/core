@@ -12,7 +12,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\HasLifecycleCallbacks]
 class AuditLog
 {
-    // Tables
+    // Columns
 
     #[ORM\Id]
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
