@@ -58,7 +58,14 @@ class Profile
 
     // Reverse FKs
 
-    /* Insert reverse FKs here */
+    #[ORM\OneToMany(mappedBy: "profile", targetEntity: ProfileSocialLink::class)]
+    private Collection $profileSocialLinks;
+
+    #[ORM\OneToMany(mappedBy: "profile", targetEntity: ProfileSkill::class)]
+    private Collection $profileSkills;
+
+    #[ORM\OneToMany(mappedBy: "profile", targetEntity: ProfileSkillsInterest::class)]
+    private Collection $profileInterestSkills;
 
 
     // Functions
@@ -66,6 +73,9 @@ class Profile
     public function __construct()
     {
         $this->id = Uuid::v7();
+        $this->profileSocialLinks = new ArrayCollection();
+        $this->profileSkills = new ArrayCollection();
+        $this->profileInterestSkills = new ArrayCollection();
     }
 
     public function getId(): Uuid
