@@ -48,7 +48,6 @@ class SystemLog
 
     // Functions
 
-
     public function __construct()
     {
         $this->id = Uuid::v7();

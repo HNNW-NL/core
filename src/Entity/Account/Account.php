@@ -52,16 +52,17 @@ class Account
 
     // Reverse FKs
 
-
     #[ORM\OneToMany(mappedBy: "actorAccount", targetEntity: AuditLog::class)]
     private Collection $auditLogs;
 
     #[ORM\OneToMany(mappedBy: "account", targetEntity: OrgMember::class)]
     private Collection $orgMemberships;
 
+    #[ORM\OneToOne(mappedBy: "account", targetEntity: Profile::class)]
+    private ?Profile $profile = null;
+
 
     // Functions
-
 
     public function __construct()
     {

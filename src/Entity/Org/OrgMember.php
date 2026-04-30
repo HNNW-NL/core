@@ -40,12 +40,10 @@ class OrgMember
 
     // Reverse FKs
 
-
     /* Insert reverse FKs here */
 
 
     // Functions
-
 
     public function __construct()
     {

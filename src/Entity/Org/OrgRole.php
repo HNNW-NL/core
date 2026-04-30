@@ -39,13 +39,11 @@ class OrgRole
 
     // Reverse FKs
 
-
     #[ORM\OneToMany(mappedBy: "orgRole", targetEntity: OrgMember::class)]
     private Collection $orgRoleMembers;
 
 
     // Functions
-
 
     public function __construct()
     {

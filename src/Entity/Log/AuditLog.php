@@ -55,7 +55,6 @@ class AuditLog
 
     // Functions
 
-
     public function __construct()
     {
         $this->id = Uuid::v7();

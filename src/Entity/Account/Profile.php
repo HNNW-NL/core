@@ -1,7 +1,6 @@
 <?php
-namespace App\Entity\Org;
+namespace App\Entity\Account;
 
-use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -9,9 +8,9 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'organizations')]
+#[ORM\Table(name: 'profiles')]
 #[ORM\HasLifecycleCallbacks]
-class Organization
+class Profile
 {
     // Columns
 
@@ -19,18 +18,21 @@ class Organization
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
     private Uuid $id;
 
-    #[ORM\ManyToOne(inversedBy: "organizations")]
-    #[ORM\JoinColumn(name: 'status_id', nullable: false)]
-    private ?Status $status = null;
+    #[ORM\OneToOne(inversedBy: "profile")]
+    #[ORM\JoinColumn(name: 'account_id', unique: true, nullable: false)]
+    private ?Account $account = null;
 
-    #[ORM\Column(name: 'name', length: 255)]
-    private ?string $name = null;
+    #[ORM\Column(name: 'first_name', length: 255)]
+    private ?string $firstName = null;
 
-    #[ORM\Column(name: 'logo_url', type: "text", nullable: true)]
-    private ?string $logoUrl = null;
+    #[ORM\Column(name: 'last_name', length: 255)]
+    private ?string $lastName = null;
 
-    #[ORM\Column(name: 'slug', length: 255, unique: true)]
-    private ?string $slug = null;
+    #[ORM\Column(name: 'display_name', length: 255, nullable: true)]
+    private ?string $displayName = null;
+
+    #[ORM\Column(name: 'avatar_url', type: "text")]
+    private ?string $avatarUrl = null;
 
     #[ORM\Column(name: 'description', type: "text", nullable: true)]
     private ?string $description = null;
@@ -38,8 +40,11 @@ class Organization
     #[ORM\Column(name: 'location', length: 255, nullable: true)]
     private ?string $location = null;
 
-    #[ORM\Column(name: 'website_url', type: "text", nullable: true)]
-    private ?string $websiteUrl = null;
+    #[ORM\Column(name: 'is_online', type: "boolean")]
+    private ?bool $online = false;
+
+    #[ORM\Column(name: 'points', type: "integer")]
+    private ?int $points = 0;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -53,11 +58,7 @@ class Organization
 
     // Reverse FKs
 
-    #[ORM\OneToMany(mappedBy: "organization", targetEntity: OrgRole::class)]
-    private Collection $orgRoles;
-
-    #[ORM\OneToMany(mappedBy: "organization", targetEntity: OrgMember::class)]
-    private Collection $orgMembers;
+    /* Insert reverse FKs here */
 
 
     // Functions
@@ -65,8 +66,6 @@ class Organization
     public function __construct()
     {
         $this->id = Uuid::v7();
-        $this->orgRoles = new ArrayCollection();
-        $this->orgMembers = new ArrayCollection();
     }
 
     public function getId(): Uuid
