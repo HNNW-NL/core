@@ -61,6 +61,12 @@ class Account
     #[ORM\OneToOne(mappedBy: "account", targetEntity: Profile::class)]
     private ?Profile $profile = null;
 
+    #[ORM\OneToMany(mappedBy: "account", targetEntity: Notification::class)]
+    private Collection $notifications;
+
+    #[ORM\OneToMany(mappedBy: "senderAccount", targetEntity: Notification::class)]
+    private Collection $sentNotifications;
+
 
     // Functions
 
@@ -69,6 +75,8 @@ class Account
         $this->id = Uuid::v7();
         $this->auditLogs = new ArrayCollection();
         $this->orgMemberships = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
+        $this->sentNotifications = new ArrayCollection();
     }
 
     public function getId(): Uuid
