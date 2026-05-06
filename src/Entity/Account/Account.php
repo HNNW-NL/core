@@ -67,6 +67,9 @@ class Account
     #[ORM\OneToMany(mappedBy: "senderAccount", targetEntity: Notification::class)]
     private Collection $sentNotifications;
 
+    #[ORM\OneToOne(mappedBy: "account", targetEntity: AccountSetting::class)]
+    private ?AccountSetting $setting = null;
+
 
     // Functions
 
