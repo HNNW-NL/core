@@ -22,7 +22,7 @@ class OrgRole
 
     #[ORM\ManyToOne(inversedBy: "orgRoles")]
     #[ORM\JoinColumn(name: 'org_id', nullable: false)]
-    private ?Organization $organization = null;
+    private ?Organisation $organisation = null;
 
     #[ORM\Column(name: 'name', length: 255)]
     private ?string $name = null;

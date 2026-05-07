@@ -21,7 +21,7 @@ class OrgMember
 
     #[ORM\ManyToOne(inversedBy: "orgMembers")]
     #[ORM\JoinColumn(name: 'org_id', nullable: false)]
-    private ?Organization $organization = null;
+    private ?Organisation $organisation = null;
 
     #[ORM\ManyToOne(inversedBy: "orgMemberships")]
     #[ORM\JoinColumn(name: 'account_id', nullable: false)]

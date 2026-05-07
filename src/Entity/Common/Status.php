@@ -2,7 +2,7 @@
 namespace App\Entity\Common;
 
 use App\Entity\Account\Account;
-use App\Entity\Org\Organization;
+use App\Entity\Org\Organisation;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -33,22 +33,20 @@ class Status
 
     // Reverse FKs
 
-
     #[ORM\OneToMany(targetEntity: Account::class, mappedBy: 'status')]
     private Collection $accounts;
 
-    #[ORM\OneToMany(targetEntity: Organization::class, mappedBy: 'status')]
-    private Collection $organizations;
+    #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'status')]
+    private Collection $organisations;
 
 
     // Functions
-
 
     public function __construct()
     {
         $this->id = Uuid::v7();
         $this->accounts = new ArrayCollection();
-        $this->organizations = new ArrayCollection();
+        $this->organisations = new ArrayCollection();
     }
 
     public function getId(): Uuid

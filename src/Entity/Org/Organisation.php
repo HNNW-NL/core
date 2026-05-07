@@ -11,7 +11,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity]
 #[ORM\Table(name: 'organizations')]
 #[ORM\HasLifecycleCallbacks]
-class Organization
+class Organisation
 {
     // Columns
 
