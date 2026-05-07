@@ -2,9 +2,12 @@
 namespace App\Entity\Project;
 
 use App\Entity\Account\Account;
+use App\Entity\Account\Review;
 use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
@@ -73,7 +76,8 @@ class Project
 
     // Reverse FKs
 
-    /* Insert reverse FKs here */
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'project')]
+    private Collection $reviews;
 
 
     // Functions
@@ -81,6 +85,7 @@ class Project
     public function __construct()
     {
         $this->id = Uuid::v7();
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): Uuid

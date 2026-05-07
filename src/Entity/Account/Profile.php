@@ -58,20 +58,26 @@ class Profile
 
     // Reverse FKs
 
-    #[ORM\OneToMany(mappedBy: "profile", targetEntity: ProfileSocialLink::class)]
+    #[ORM\OneToMany(targetEntity: ProfileSocialLink::class, mappedBy: "profile")]
     private Collection $profileSocialLinks;
 
-    #[ORM\OneToMany(mappedBy: "profile", targetEntity: ProfileSkill::class)]
+    #[ORM\OneToMany(targetEntity: ProfileSkill::class, mappedBy: "profile")]
     private Collection $profileSkills;
 
-    #[ORM\OneToMany(mappedBy: "profile", targetEntity: ProfileSkillsInterest::class)]
+    #[ORM\OneToMany(targetEntity: ProfileSkillsInterest::class, mappedBy: "profile")]
     private Collection $profileInterestSkills;
 
-    #[ORM\OneToMany(mappedBy: "profile", targetEntity: Availability::class)]
+    #[ORM\OneToMany(targetEntity: Availability::class, mappedBy: "profile")]
     private Collection $availabilities;
 
-    #[ORM\OneToMany(mappedBy: "profile", targetEntity: ProfileExperience::class)]
+    #[ORM\OneToMany(targetEntity: ProfileExperience::class, mappedBy: "profile")]
     private Collection $experiences;
+
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: "profile")]
+    private Collection $reviews;
+
+    #[ORM\OneToMany(targetEntity: Review::class, mappedBy: "reviewerProfile")]
+    private Collection $sentReviews;
 
 
     // Functions
@@ -84,6 +90,7 @@ class Profile
         $this->profileInterestSkills = new ArrayCollection();
         $this->availabilities = new ArrayCollection();
         $this->experiences = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): Uuid
