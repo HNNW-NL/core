@@ -9,7 +9,7 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'organizations')]
+#[ORM\Table(name: 'organisations')]
 #[ORM\HasLifecycleCallbacks]
 class Organisation
 {
