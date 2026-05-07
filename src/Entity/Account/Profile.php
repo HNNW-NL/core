@@ -1,6 +1,8 @@
 <?php
 namespace App\Entity\Account;
 
+use App\Entity\Project\Project;
+use App\Entity\Project\ProjectApplication;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -79,6 +81,12 @@ class Profile
     #[ORM\OneToMany(targetEntity: Review::class, mappedBy: "reviewerProfile")]
     private Collection $sentReviews;
 
+    #[ORM\OneToMany(targetEntity: ProjectApplication::class, mappedBy: "profile")]
+    private Collection $projectApplications;
+
+    #[ORM\OneToMany(targetEntity: ProjectApplication::class, mappedBy: "reviewerProfile")]
+    private Collection $reviewedProjectApplications;
+
 
     // Functions
 
@@ -91,6 +99,9 @@ class Profile
         $this->availabilities = new ArrayCollection();
         $this->experiences = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->sentReviews = new ArrayCollection();
+        $this->projectApplications = new ArrayCollection();
+        $this->reviewedProjectApplications = new ArrayCollection();
     }
 
     public function getId(): Uuid

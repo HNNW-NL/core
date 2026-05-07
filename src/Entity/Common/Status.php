@@ -5,6 +5,7 @@ use App\Entity\Account\Account;
 use App\Entity\Account\Review;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
+use App\Entity\Project\ProjectApplication;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -47,6 +48,9 @@ class Status
     #[ORM\OneToMany(targetEntity: Review::class, mappedBy: 'status')]
     private Collection $reviews;
 
+    #[ORM\OneToMany(targetEntity: ProjectApplication::class, mappedBy: 'status')]
+    private Collection $projectApplications;
+
 
     // Functions
 
@@ -57,6 +61,7 @@ class Status
         $this->organisations = new ArrayCollection();
         $this->projects = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->projectApplications = new ArrayCollection();
     }
 
     public function getId(): Uuid
