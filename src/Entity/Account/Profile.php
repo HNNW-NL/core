@@ -70,6 +70,9 @@ class Profile
     #[ORM\OneToMany(mappedBy: "profile", targetEntity: Availability::class)]
     private Collection $availabilities;
 
+    #[ORM\OneToMany(mappedBy: "profile", targetEntity: ProfileExperience::class)]
+    private Collection $experiences;
+
 
     // Functions
 
@@ -80,6 +83,7 @@ class Profile
         $this->profileSkills = new ArrayCollection();
         $this->profileInterestSkills = new ArrayCollection();
         $this->availabilities = new ArrayCollection();
+        $this->experiences = new ArrayCollection();
     }
 
     public function getId(): Uuid
