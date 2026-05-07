@@ -29,8 +29,8 @@ class ProfileSkill
     #[ORM\Column(name: 'proficiency_level', length: 50)]
     private ?string $proficiencyLevel = null;
 
-    #[ORM\Column(name: 'is_featured', type: "boolean")]
-    private ?bool $featured = false;
+    #[ORM\Column(name: 'is_featured', type: "boolean", nullable: false)]
+    private bool $featured = false;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;

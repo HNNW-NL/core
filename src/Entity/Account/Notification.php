@@ -36,8 +36,8 @@ class Notification
     #[ORM\Column(name: 'route', type: "text", nullable: true)]
     private ?string $route = null;
 
-    #[ORM\Column(name: 'is_read', type: "boolean")]
-    private ?bool $isRead = false;
+    #[ORM\Column(name: 'is_read', type: "boolean", nullable: false)]
+    private bool $isRead = false;
 
     #[ORM\Column(name: 'data_json', type: "json", nullable: true)]
     private ?array $dataJson = null;

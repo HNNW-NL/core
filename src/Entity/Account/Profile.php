@@ -40,8 +40,8 @@ class Profile
     #[ORM\Column(name: 'location', length: 255, nullable: true)]
     private ?string $location = null;
 
-    #[ORM\Column(name: 'is_online', type: "boolean")]
-    private ?bool $online = false;
+    #[ORM\Column(name: 'is_online', type: "boolean", nullable: false)]
+    private bool $online = false;
 
     #[ORM\Column(name: 'points', type: "integer")]
     private ?int $points = 0;

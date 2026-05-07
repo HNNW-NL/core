@@ -24,7 +24,7 @@ class AccountSetting
     private ?string $language = "nl-NL";
 
     #[ORM\Column(name: 'email_notifications_enabled', type: "boolean", nullable: false)]
-    private ?bool $emailNotificationsEnabled = true;
+    private bool $emailNotificationsEnabled = true;
 
     #[ORM\Column(name: 'profile_visibility', length: 10, nullable: false)]
     private ?string $profileVisibility = "private";
