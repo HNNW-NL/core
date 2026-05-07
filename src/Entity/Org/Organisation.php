@@ -2,6 +2,7 @@
 namespace App\Entity\Org;
 
 use App\Entity\Common\Status;
+use App\Entity\Project\Project;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,7 +20,7 @@ class Organisation
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
     private Uuid $id;
 
-    #[ORM\ManyToOne(inversedBy: "organizations")]
+    #[ORM\ManyToOne(inversedBy: "organisations")]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
 
@@ -53,11 +54,14 @@ class Organisation
 
     // Reverse FKs
 
-    #[ORM\OneToMany(mappedBy: "organization", targetEntity: OrgRole::class)]
+    #[ORM\OneToMany(targetEntity: OrgRole::class, mappedBy: "organization")]
     private Collection $orgRoles;
 
-    #[ORM\OneToMany(mappedBy: "organization", targetEntity: OrgMember::class)]
+    #[ORM\OneToMany(targetEntity: OrgMember::class, mappedBy: "organization")]
     private Collection $orgMembers;
+
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: "ownerOrganisation")]
+    private Collection $ownedProjects;
 
 
     // Functions
@@ -67,6 +71,7 @@ class Organisation
         $this->id = Uuid::v7();
         $this->orgRoles = new ArrayCollection();
         $this->orgMembers = new ArrayCollection();
+        $this->ownedProjects = new ArrayCollection();
     }
 
     public function getId(): Uuid

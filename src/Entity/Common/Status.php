@@ -3,6 +3,7 @@ namespace App\Entity\Common;
 
 use App\Entity\Account\Account;
 use App\Entity\Org\Organisation;
+use App\Entity\Project\Project;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,7 +12,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'statuses', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: "uniq_status_name_scape", columns: ["name", "scope"])
+    new ORM\UniqueConstraint(name: "uniq_status_name_scope", columns: ["name", "scope"])
 ])]
 class Status
 {
@@ -39,6 +40,9 @@ class Status
     #[ORM\OneToMany(targetEntity: Organisation::class, mappedBy: 'status')]
     private Collection $organisations;
 
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'status')]
+    private Collection $projects;
+
 
     // Functions
 
@@ -47,6 +51,7 @@ class Status
         $this->id = Uuid::v7();
         $this->accounts = new ArrayCollection();
         $this->organisations = new ArrayCollection();
+        $this->projects = new ArrayCollection();
     }
 
     public function getId(): Uuid

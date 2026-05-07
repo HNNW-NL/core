@@ -4,6 +4,7 @@ namespace App\Entity\Account;
 use App\Entity\Common\Status;
 use App\Entity\Log\AuditLog;
 use App\Entity\Org\OrgMember;
+use App\Entity\Project\Project;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -67,8 +68,11 @@ class Account
     #[ORM\OneToMany(mappedBy: "senderAccount", targetEntity: Notification::class)]
     private Collection $sentNotifications;
 
-    #[ORM\OneToOne(mappedBy: "account", targetEntity: AccountSetting::class)]
+    #[ORM\OneToOne(targetEntity: AccountSetting::class, mappedBy: "account")]
     private ?AccountSetting $setting = null;
+
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: "ownerAccount")]
+    private Collection $ownedProjects;
 
 
     // Functions
@@ -80,6 +84,7 @@ class Account
         $this->orgMemberships = new ArrayCollection();
         $this->notifications = new ArrayCollection();
         $this->sentNotifications = new ArrayCollection();
+        $this->ownedProjects = new ArrayCollection();
     }
 
     public function getId(): Uuid
