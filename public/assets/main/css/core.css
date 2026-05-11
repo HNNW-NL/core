@@ -10,9 +10,11 @@ header nav ul {
     justify-content: flex-end;
     align-items: center;
     list-style: none;
-    gap: 5px;
+    gap: 1px;
     padding: 0;
     margin: 0 20px 0 0;
+    font-size: 0.925rem;
+    line-height: 1.25rem;
 }
 
 header nav ul li a {
