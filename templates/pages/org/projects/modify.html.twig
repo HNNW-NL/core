@@ -1,7 +1,7 @@
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Modify project {{ id }}{% endblock %}
+{% block title %}Publish project {{ id }}{% endblock %}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{{ asset('assets/org/css/publish-project.css') }}">
@@ -13,9 +13,7 @@
 {% block body %}
     <body>
     <main>
-        <h2>Publish project</h2>
-        <p>Share your work with the world. Fill in the details below and publish when you are ready.</p>
-
+        <h2>Publish Project</h2>
         <form method="post" action="/publish" enctype="multipart/form-data">
             <div>
                 <label for="name">Project name</label>
@@ -23,25 +21,8 @@
             </div>
 
             <div>
-                <label for="summary">Summary</label>
-                <textarea id="summary" name="summary" rows="3" placeholder="Short one-line summary" required></textarea>
-            </div>
-
-            <div>
                 <label for="description">Description</label>
                 <textarea id="description" name="description" rows="5" placeholder="What does your project do?" required></textarea>
-            </div>
-
-            <div>
-                <label for="category">Category</label>
-                <select id="category" name="category" required>
-                    <option value="">Choose a category</option>
-                    <option value="web">Web Development</option>
-                    <option value="mobile">Mobile App</option>
-                    <option value="design">Design</option>
-                    <option value="game">Game</option>
-                    <option value="other">Other</option>
-                </select>
             </div>
 
             <div>
@@ -51,33 +32,6 @@
                     <option value="private">Private</option>
                     <option value="unlisted">Unlisted</option>
                 </select>
-            </div>
-
-            <div>
-                <label for="tags">Tags (comma separated)</label>
-                <input type="text" id="tags" name="tags" placeholder="portfolio, html, css">
-            </div>
-
-            <div>
-                <label for="repoUrl">Repository URL (optional)</label>
-                <input type="url" id="repoUrl" name="repoUrl" placeholder="https://github.com/username/repo">
-            </div>
-
-            <div>
-                <label for="liveUrl">Live demo URL (optional)</label>
-                <input type="url" id="liveUrl" name="liveUrl" placeholder="https://your-project.com">
-            </div>
-
-            <div>
-                <label for="thumbnail">Thumbnail image</label>
-                <input type="file" id="thumbnail" name="thumbnail" accept="image/png,image/jpeg,image/webp">
-            </div>
-
-            <div>
-                <label>
-                    <input type="checkbox" name="terms" required>
-                    I confirm this project follows the platform guidelines.
-                </label>
             </div>
 
             <div>
