@@ -2,6 +2,8 @@
 namespace App\Entity\Project;
 
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
@@ -40,7 +42,8 @@ class ProjectRole
 
     // Reverse FKs
 
-    /* Insert reverse FKs here */
+    #[ORM\OneToMany(targetEntity: ProjectParticipant::class, mappedBy: 'role')]
+    private Collection $participants;
 
 
     // Functions
@@ -48,6 +51,8 @@ class ProjectRole
     public function __construct()
     {
         $this->id = Uuid::v7();
+
+        $this->participants = new ArrayCollection();
     }
 
     public function getId(): Uuid

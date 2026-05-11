@@ -85,6 +85,9 @@ class Project
     #[ORM\OneToMany(targetEntity: ProjectApplication::class, mappedBy: 'project')]
     private Collection $applications;
 
+    #[ORM\OneToMany(targetEntity: ProjectParticipant::class, mappedBy: 'project')]
+    private Collection $participants;
+
 
     // Functions
 
@@ -94,6 +97,7 @@ class Project
         $this->reviews = new ArrayCollection();
         $this->roles = new ArrayCollection();
         $this->applications = new ArrayCollection();
+        $this->participants = new ArrayCollection();
     }
 
     public function getId(): Uuid

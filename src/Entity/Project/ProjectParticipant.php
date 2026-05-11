@@ -4,17 +4,15 @@ namespace App\Entity\Project;
 use App\Entity\Account\Profile;
 use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'project_applications', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: "uniq_project_application_scope", columns: ["project_id", "profile_id"])
+#[ORM\Table(name: 'project_participants', uniqueConstraints: [
+    new ORM\UniqueConstraint(name: "uniq_project_participant_scope", columns: ["project_id", "profile_id"])
 ])]
 #[ORM\HasLifecycleCallbacks]
-class ProjectApplication
+class ProjectParticipant
 {
     // Columns
 
@@ -22,30 +20,31 @@ class ProjectApplication
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
     private Uuid $id;
 
-    #[ORM\ManyToOne(inversedBy: "applications")]
+    #[ORM\ManyToOne(inversedBy: "participants")]
     #[ORM\JoinColumn(name: 'project_id', nullable: false)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(inversedBy: "projectApplications")]
+    #[ORM\ManyToOne(inversedBy: "projectsParticipating")]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
     private ?Profile $profile = null;
 
-    #[ORM\ManyToOne(inversedBy: "projectApplications")]
+    #[ORM\ManyToOne(inversedBy: "participants")]
+    #[ORM\JoinColumn(name: 'role_id', nullable: true)]
+    private ?ProjectRole $role = null;
+
+    #[ORM\ManyToOne(inversedBy: "projectParticipants")]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
 
-    #[ORM\Column(name: 'motivation', type: 'text', nullable: true)]
-    private ?string $motivation = null;
+    #[ORM\OneToOne(inversedBy: "participant")]
+    #[ORM\JoinColumn(name: 'application_id', nullable: true)]
+    private ?ProjectApplication $application = null;
 
-    #[ORM\Column(name: 'reviewed_at', type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $reviewedAt = null;
+    #[ORM\Column(name: 'joined_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $joinedAt = null;
 
-    #[ORM\ManyToOne(inversedBy: "reviewedProjectApplications")]
-    #[ORM\JoinColumn(name: 'reviewer_profile_id', nullable: true)]
-    private ?Profile $reviewerProfile = null;
-
-    #[ORM\Column(name: 'review', type: 'text', nullable: true)]
-    private ?string $review = null;
+    #[ORM\Column(name: 'left_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $leftAt = null;
 
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -53,14 +52,10 @@ class ProjectApplication
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
 
-    #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $deletedAt = null;
-
 
     // Reverse FKs
 
-    #[ORM\OneToOne(targetEntity: ProjectParticipant::class, mappedBy: 'application')]
-    private Collection $participant;
+    /* Insert reverse FKs here */
 
 
     // Functions
@@ -68,8 +63,6 @@ class ProjectApplication
     public function __construct()
     {
         $this->id = Uuid::v7();
-
-        $this->participant = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -90,10 +83,5 @@ class ProjectApplication
     public function onUpdate(): void
     {
         $this->lastModified = new \DateTimeImmutable();
-    }
-
-    public function softDelete(): void
-    {
-        $this->deletedAt = new \DateTimeImmutable();
     }
 }
