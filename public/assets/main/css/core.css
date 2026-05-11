@@ -2,19 +2,16 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 3px;
-    border-bottom: #1d2330 solid 1px;
+    padding: 10px 3px;
 }
 header nav ul {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     list-style: none;
-    gap: 1px;
+    gap: 5px;
     padding: 0;
     margin: 0 20px 0 0;
-    font-size: 0.925rem;
-    line-height: 1.25rem;
 }
 
 header nav ul li a {
