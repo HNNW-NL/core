@@ -12,6 +12,15 @@
 {# Page content #}
 {% block body %}
     <body>
+    <nav class="navbar">
+        <div class="brand">Project Hub</div>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Projects</a></li>
+            <li><a href="#">Publish</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </nav>
     <main>
         <h2>Publish Project</h2>
         <form method="post" action="/publish" enctype="multipart/form-data">
