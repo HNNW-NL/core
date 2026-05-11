@@ -7,6 +7,8 @@ use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
+use App\Entity\Project\WorkPackage;
+Use App\Entity\Project\PackageTask;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -55,6 +57,12 @@ class Status
     #[ORM\OneToMany(targetEntity: ProjectParticipant::class, mappedBy: 'status')]
     private Collection $projectParticipants;
 
+    #[ORM\OneToMany(targetEntity: WorkPackage::class, mappedBy: 'status')]
+    private Collection $workPackages;
+
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'status')]
+    private Collection $workPackageTasks;
+
 
     // Functions
 
@@ -68,6 +76,8 @@ class Status
         $this->reviews = new ArrayCollection();
         $this->projectApplications = new ArrayCollection();
         $this->projectParticipants = new ArrayCollection();
+        $this->workPackages = new ArrayCollection();
+        $this->workPackageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid

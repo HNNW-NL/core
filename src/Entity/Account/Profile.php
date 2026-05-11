@@ -3,6 +3,8 @@ namespace App\Entity\Account;
 
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
+use App\Entity\Project\ProjectUpdate;
+use App\Entity\Project\PackageTask;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -90,12 +92,19 @@ class Profile
     #[ORM\OneToMany(targetEntity: ProjectParticipant::class, mappedBy: "profile")]
     private Collection $projectsParticipating;
 
+    #[ORM\OneToMany(targetEntity: ProjectUpdate::class, mappedBy: 'author')]
+    private Collection $authoredProjectUpdates;
+
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'status')]
+    private Collection $assignedWorkPackageTasks;
+
 
     // Functions
 
     public function __construct()
     {
         $this->id = Uuid::v7();
+
         $this->profileSocialLinks = new ArrayCollection();
         $this->profileSkills = new ArrayCollection();
         $this->profileInterestSkills = new ArrayCollection();
@@ -106,6 +115,8 @@ class Profile
         $this->projectApplications = new ArrayCollection();
         $this->reviewedProjectApplications = new ArrayCollection();
         $this->projectsParticipating = new ArrayCollection();
+        $this->authoredProjectUpdates = new ArrayCollection();
+        $this->assignedWorkPackageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid

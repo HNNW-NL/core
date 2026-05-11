@@ -88,16 +88,29 @@ class Project
     #[ORM\OneToMany(targetEntity: ProjectParticipant::class, mappedBy: 'project')]
     private Collection $participants;
 
+    #[ORM\OneToMany(targetEntity: ProjectUpdate::class, mappedBy: 'project')]
+    private Collection $updates;
+
+    #[ORM\OneToMany(targetEntity: WorkPackage::class, mappedBy: 'project')]
+    private Collection $workPackages;
+
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'project')]
+    private Collection $workPackageTasks;
+
 
     // Functions
 
     public function __construct()
     {
         $this->id = Uuid::v7();
+
         $this->reviews = new ArrayCollection();
         $this->roles = new ArrayCollection();
         $this->applications = new ArrayCollection();
         $this->participants = new ArrayCollection();
+        $this->updates = new ArrayCollection();
+        $this->workPackages = new ArrayCollection();
+        $this->workPackageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid
