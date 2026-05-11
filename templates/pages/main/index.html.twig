@@ -7,21 +7,20 @@
 {% endblock %}
 
 {% block body %}
-
 <div class="page">
 
     <!-- PROFIEL HEADER -->
     <div class="header">
-
         <div class="profile">
-
-            <div class="profile-text">
-                <h1>Het Nieuwe Werken</h1>
-                <p>Concept profiel • Modern leren & werken</p>
+            <div class="profile-avatar">
+                <img src="{{ asset('assets/main/images/default-avatar.png') }}" alt="Profile picture">
             </div>
-
+            <div class="profile-text">
+                <h1>Random Naam</h1>
+                <p>Student bij Random School</p>
+                <p>Random Locatie</p>
+            </div>
         </div>
-
     </div>
 
     <!-- PROFIEL CONTENT -->
@@ -29,38 +28,30 @@
 
         <!-- LINKERKANT -->
         <div>
-
-            <div class="card">
-                <h2>Profiel</h2>
-                <p>
-                    Het Nieuwe Werken is een moderne manier van leren en werken waarbij flexibiliteit,
-                    digitale samenwerking en eigen verantwoordelijkheid centraal staan.
+            <div class="card-about-me">
+                <h2>Over mij</h2>
+                <p class="bio-text">
+                    Deze gebruiker heeft nog geen bio.
                 </p>
-            </div>
+                <br>
 
-            <div class="card">
-                <h2>Kenmerken</h2>
-
+                <h2>Expertise</h2>
                 <div class="expertise">
                     <div class="bubble">Flexibel leren</div>
                     <div class="bubble">Online samenwerken</div>
                     <div class="bubble">Zelfstandigheid</div>
                 </div>
             </div>
-
         </div>
 
         <!-- RECHTERKANT -->
         <div>
-
             <div class="card">
                 <h2>Toepassing</h2>
-
                 <p class="note">
                     Dit concept wordt gebruikt binnen onderwijs en organisaties om efficiënter,
                     flexibeler en toekomstgericht te werken en leren.
                 </p>
-
                 <a href="#" class="btn btn-primary">Start leren</a>
                 <a href="#" class="btn btn-secondary">Meer informatie</a>
 
@@ -70,13 +61,8 @@
                         Leren en werken draait om resultaat, niet om plaats of tijd.
                     </div>
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
-
 {% endblock %}
