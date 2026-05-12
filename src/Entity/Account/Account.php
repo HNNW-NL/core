@@ -79,7 +79,7 @@ class Account
     #[ORM\OneToOne(targetEntity: ResetPasswordToken::class, mappedBy: "account")]
     private Collection $resetPasswordTokens;
 
-    #[ORM\OneToOne(targetEntity: ResetPasswordToken::class, mappedBy: "account")]
+    #[ORM\OneToOne(targetEntity: VerifyEmailToken::class, mappedBy: "account")]
     private Collection $verifyEmailTokens;
 
 
