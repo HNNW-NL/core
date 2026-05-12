@@ -11,7 +11,7 @@
     flex: 0 0 calc(25% - 20px);
     aspect-ratio: 1 / 1;
     
-    background-color: #3498db;
+    background-color: #115480;
     color: white;
 
     display: flex;
@@ -35,7 +35,7 @@
     margin-left: auto;
     margin-right: auto;
     padding: 10px 14px;
-    background-color: #3498db;
+    background-color: #115480;
     border-radius: 8px;
     width: fit-content;
     align-items: center;
