@@ -3,6 +3,7 @@ namespace App\Entity\Common;
 
 use App\Entity\Account\Account;
 use App\Entity\Account\Review;
+use App\Entity\Admin\Admin;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
@@ -63,6 +64,9 @@ class Status
     #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'status')]
     private Collection $workPackageTasks;
 
+    #[ORM\OneToMany(targetEntity: Admin::class, mappedBy: 'status')]
+    private Collection $admins;
+
 
     // Functions
 
@@ -78,6 +82,7 @@ class Status
         $this->projectParticipants = new ArrayCollection();
         $this->workPackages = new ArrayCollection();
         $this->workPackageTasks = new ArrayCollection();
+        $this->admins = new ArrayCollection();
     }
 
     public function getId(): Uuid

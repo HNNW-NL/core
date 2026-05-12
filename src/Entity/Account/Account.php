@@ -1,6 +1,7 @@
 <?php
 namespace App\Entity\Account;
 
+use App\Entity\Admin\Admin;
 use App\Entity\Auth\ResetPasswordToken;
 use App\Entity\Auth\VerifyEmailToken;
 use App\Entity\Common\Status;
@@ -76,11 +77,14 @@ class Account
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: "ownerAccount")]
     private Collection $ownedProjects;
 
-    #[ORM\OneToOne(targetEntity: ResetPasswordToken::class, mappedBy: "account")]
+    #[ORM\OneToMany(targetEntity: ResetPasswordToken::class, mappedBy: "account")]
     private Collection $resetPasswordTokens;
 
-    #[ORM\OneToOne(targetEntity: VerifyEmailToken::class, mappedBy: "account")]
+    #[ORM\OneToMany(targetEntity: VerifyEmailToken::class, mappedBy: "account")]
     private Collection $verifyEmailTokens;
+
+    #[ORM\OneToOne(targetEntity: Admin::class, mappedBy: "account")]
+    private ?Admin $admin = null;
 
 
     // Functions
