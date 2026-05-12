@@ -12,41 +12,58 @@
 {# Page content #}
 {% block body %}
     <body>
-    <nav class="navbar">
-        <div class="brand">Project Hub</div>
-        <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Projects</a></li>
-            <li><a href="#">Publish</a></li>
-            <li><a href="#">Contact</a></li>
-        </ul>
-    </nav>
-    <main>
-        <h2>Publish Project</h2>
-        <form method="post" action="/publish" enctype="multipart/form-data">
-            <div>
-                <label for="name">Project name</label>
-                <input type="text" id="name" name="name" placeholder="My awesome project" required>
-            </div>
-
-            <div>
-                <label for="description">Description</label>
-                <textarea id="description" name="description" rows="5" placeholder="What does your project do?" required></textarea>
-            </div>
-
-            <div>
-                <label for="visibility">Visibility</label>
-                <select id="visibility" name="visibility" required>
-                    <option value="public">Public</option>
-                    <option value="private">Private</option>
-                    <option value="unlisted">Unlisted</option>
-                </select>
-            </div>
-
-            <div>
-                <button type="submit">Publish project</button>
-            </div>
-        </form>
-    </main>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">Project Hub</div>
+            <section class="sidebar-dashboard" aria-label="Dashboard">
+                <p class="eyebrow">Dashboard</p>
+                <h2>Overview</h2>
+                <p>Track projects, drafts, and publishing activity from one place.</p>
+            </section>
+        </aside>
+        <!-- Main content -->
+        <div class="content">
+            <!-- Header -->
+            <header class="page-header">
+                <div class="header-copy">
+                    <p class="eyebrow">Publish</p>
+                    <h1>Publish Project</h1>
+                    <p>Fill out the details below to publish your project.</p>
+                </div>
+                <nav class="header-nav" aria-label="Primary">
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Projects</a></li>
+                        <li><a href="#">Publish</a></li>
+                    </ul>
+                </nav>
+            </header>
+            <!-- Form -->
+            <main>
+                <form method="post" action="/publish" enctype="multipart/form-data">
+                    <div>
+                        <label for="name">Project name</label>
+                        <input type="text" id="name" name="name" placeholder="Project Name" required>
+                    </div>
+                    <div>
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="5" placeholder="What does your project do?" required></textarea>
+                    </div>
+                    <div>
+                        <label for="visibility">Visibility</label>
+                        <select id="visibility" name="visibility" required>
+                            <option value="public">Public</option>
+                            <option value="private">Private</option>
+                            <option value="unlisted">Unlisted</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit">Publish project</button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
     </body>
 {% endblock %}
