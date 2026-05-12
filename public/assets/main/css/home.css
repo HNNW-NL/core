@@ -7,13 +7,7 @@
     padding: 0;
 
     box-sizing: border-box;
-<<<<<<< HEAD
-
-    font-family: Inter, Helvetica, sans-serif;
-
-=======
     font-family: Inter, sans-serif;
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
 }
 
 
@@ -75,9 +69,6 @@ body {
     margin-bottom: 25px;
 
     gap: 20px;
-<<<<<<< HEAD
-
-=======
 }
 
 .main-header {
@@ -94,23 +85,9 @@ body {
 .logo {
     display: flex;
     align-items: center;
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
 }
 
 
-<<<<<<< HEAD
-
-/* PROFILE */
-
-.profile {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 18px;
-
-=======
 .nav-button:hover {
     background: #ffd400;
     color: #000000;
@@ -250,7 +227,6 @@ body {
     display: flex;
     align-items: center;
     gap: 18px;
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
 }
 
 
@@ -295,11 +271,6 @@ body {
 
 }
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
 /* TECH STACK (FIXED ICON ISSUE) */
 
 .tech-stack {
@@ -323,19 +294,9 @@ body {
 
 
 .tech-icon {
-<<<<<<< HEAD
-
-    width: 55px;
-
-    height: 55px;
-
-    background: var(--icon-bg);
-
-=======
     width: 57px;
     height: 55px;
     /*background: var(--icon-bg);*/
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
     display: flex;
 
     align-items: center;
@@ -365,10 +326,6 @@ body {
 /* GRID */
 
 .main-grid {
-<<<<<<< HEAD
-
-=======
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
     display: grid;
 
     grid-template-columns: 2fr 1fr;
@@ -386,22 +343,10 @@ body {
     background: var(--card-bg);
 
     border-radius: 14px;
-<<<<<<< HEAD
-
-    border: #2b3242 solid 1px;
-
-=======
     border: 1px solid #1e293b;
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
     padding: 20px;
 
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-<<<<<<< HEAD
-
-}
-
-
-=======
 }
 
 .card-about-me {
@@ -418,7 +363,6 @@ body {
     gap: 15px;
     overflow-y: auto;
 }
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
 
 /* TITLES */
 
@@ -453,22 +397,12 @@ body {
     display: flex;
 
     gap: 10px;
-<<<<<<< HEAD
-
-    margin-top: 15px;
-
-=======
     margin-top: 10px;
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
 }
 
 
 
 .bubble {
-<<<<<<< HEAD
-
-=======
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
     background: #000;
 
     padding: 8px 14px;
@@ -482,10 +416,6 @@ body {
     color: var(--accent-yellow);
 
     font-weight: 600;
-<<<<<<< HEAD
-
-=======
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
 }
 
 
@@ -571,9 +501,4 @@ body {
     border-radius: 50%;
 
     flex-shrink: 0;
-<<<<<<< HEAD
-
-} 
-=======
 }
->>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
