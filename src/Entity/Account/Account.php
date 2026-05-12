@@ -1,6 +1,8 @@
 <?php
 namespace App\Entity\Account;
 
+use App\Entity\Auth\ResetPasswordToken;
+use App\Entity\Auth\VerifyEmailToken;
 use App\Entity\Common\Status;
 use App\Entity\Log\AuditLog;
 use App\Entity\Org\OrgMember;
@@ -74,6 +76,12 @@ class Account
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: "ownerAccount")]
     private Collection $ownedProjects;
 
+    #[ORM\OneToOne(targetEntity: ResetPasswordToken::class, mappedBy: "account")]
+    private Collection $resetPasswordTokens;
+
+    #[ORM\OneToOne(targetEntity: ResetPasswordToken::class, mappedBy: "account")]
+    private Collection $verifyEmailTokens;
+
 
     // Functions
 
@@ -85,6 +93,8 @@ class Account
         $this->notifications = new ArrayCollection();
         $this->sentNotifications = new ArrayCollection();
         $this->ownedProjects = new ArrayCollection();
+        $this->resetPasswordTokens = new ArrayCollection();
+        $this->verifyEmailTokens = new ArrayCollection();
     }
 
     public function getId(): Uuid
