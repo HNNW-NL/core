@@ -9,7 +9,9 @@
 {% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    <script src="{{ asset('assets/org/js/create-project.js') }}"></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
@@ -26,11 +28,13 @@
     <div>
         <label for="summary">Summary</label>
         <textarea id="summary" name="summary" required></textarea>
+        <p id="summary-counter">0 characters</p>
     </div>
 
     <div>
         <label for="description">Description</label>
         <textarea id="description" name="description" required></textarea>
+        <p id="description-counter">0 characters</p>
     </div>
 
     <div>
@@ -47,9 +51,8 @@
     </div>
 
     <div>
-        <button type="submit">Create project</button>
+        <button type="submit" id="submit-btn">Create project</button>
     </div>
 
 </form>
-
 {% endblock %}
