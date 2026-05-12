@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260511141805 extends AbstractMigration
+final class Version20260512125343 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -26,6 +26,12 @@ final class Version20260511141805 extends AbstractMigration
         $this->addSql('CREATE UNIQUE INDEX UNIQ_CAC89EACF85E0677 ON accounts (username)');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_CAC89EACE7927C74 ON accounts (email)');
         $this->addSql('CREATE INDEX IDX_CAC89EAC6BF700BD ON accounts (status_id)');
+        $this->addSql('CREATE TABLE admin_roles (id UUID NOT NULL, name VARCHAR(255) NOT NULL, permissions_mask BIGINT DEFAULT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY (id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_1614D53D5E237E06 ON admin_roles (name)');
+        $this->addSql('CREATE TABLE admins (id UUID NOT NULL, is_super_admin BOOLEAN NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, account_id UUID NOT NULL, admin_role_id UUID NOT NULL, status_id UUID NOT NULL, PRIMARY KEY (id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_A2E0150F9B6B5FBA ON admins (account_id)');
+        $this->addSql('CREATE INDEX IDX_A2E0150F123FA025 ON admins (admin_role_id)');
+        $this->addSql('CREATE INDEX IDX_A2E0150F6BF700BD ON admins (status_id)');
         $this->addSql('CREATE TABLE audit_logs (id UUID NOT NULL, actor_username VARCHAR(255) NOT NULL, actor_email VARCHAR(255) NOT NULL, action VARCHAR(255) NOT NULL, entity_type VARCHAR(255) NOT NULL, entity_id VARCHAR(255) NOT NULL, old_values_json JSON NOT NULL, new_values_json JSON NOT NULL, request_ip VARCHAR(50) NOT NULL, user_agent TEXT NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, actor_account_id UUID DEFAULT NULL, PRIMARY KEY (id))');
         $this->addSql('CREATE INDEX IDX_D62F2858A9474AA9 ON audit_logs (actor_account_id)');
         $this->addSql('CREATE TABLE availabilities (id UUID NOT NULL, availability_type VARCHAR(25) NOT NULL, hours_per_week INT NOT NULL, start_date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, end_date TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, note TEXT DEFAULT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, deleted_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, profile_id UUID NOT NULL, PRIMARY KEY (id))');
@@ -79,6 +85,9 @@ final class Version20260511141805 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_5C93B3A4C901C6FF ON projects (owner_account_id)');
         $this->addSql('CREATE INDEX IDX_5C93B3A451795045 ON projects (owner_org_id)');
         $this->addSql('CREATE INDEX IDX_5C93B3A46BF700BD ON projects (status_id)');
+        $this->addSql('CREATE TABLE reset_password_tokens (id UUID NOT NULL, token_hash VARCHAR(255) NOT NULL, is_used BOOLEAN NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, expires_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, account_id UUID NOT NULL, PRIMARY KEY (id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_F045D5AAB3BC57DA ON reset_password_tokens (token_hash)');
+        $this->addSql('CREATE INDEX IDX_F045D5AA9B6B5FBA ON reset_password_tokens (account_id)');
         $this->addSql('CREATE TABLE reviews (id UUID NOT NULL, message TEXT DEFAULT NULL, is_public BOOLEAN NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, deleted_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, profile_id UUID NOT NULL, reviewer_profile_id UUID NOT NULL, project_id UUID NOT NULL, status_id UUID NOT NULL, PRIMARY KEY (id))');
         $this->addSql('CREATE INDEX IDX_6970EB0FCCFA12B8 ON reviews (profile_id)');
         $this->addSql('CREATE INDEX IDX_6970EB0F1379FADA ON reviews (reviewer_profile_id)');
@@ -89,6 +98,8 @@ final class Version20260511141805 extends AbstractMigration
         $this->addSql('CREATE UNIQUE INDEX UNIQ_D5311670989D9B62 ON skills (slug)');
         $this->addSql('CREATE TABLE statuses (id UUID NOT NULL, name VARCHAR(255) NOT NULL, colour_hex VARCHAR(9) NOT NULL, scope VARCHAR(255) NOT NULL, PRIMARY KEY (id))');
         $this->addSql('CREATE TABLE system_logs (id UUID NOT NULL, code SMALLINT NOT NULL, level VARCHAR(25) NOT NULL, message TEXT NOT NULL, route TEXT DEFAULT NULL, method VARCHAR(10) DEFAULT NULL, user_agent TEXT DEFAULT NULL, context_json JSON NOT NULL, request_ip VARCHAR(50) DEFAULT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY (id))');
+        $this->addSql('CREATE TABLE verify_email_tokens (id UUID NOT NULL, email_to_verify VARCHAR(255) NOT NULL, token_hash VARCHAR(255) NOT NULL, is_used BOOLEAN NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, expires_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, account_id UUID NOT NULL, PRIMARY KEY (id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_CE8B2C519B6B5FBA ON verify_email_tokens (account_id)');
         $this->addSql('CREATE TABLE work_packages (id UUID NOT NULL, slug VARCHAR(255) NOT NULL, due_date TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, title VARCHAR(255) NOT NULL, description TEXT DEFAULT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, deleted_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, project_id UUID NOT NULL, status_id UUID NOT NULL, PRIMARY KEY (id))');
         $this->addSql('CREATE INDEX IDX_4E004AFB166D1F9C ON work_packages (project_id)');
         $this->addSql('CREATE INDEX IDX_4E004AFB6BF700BD ON work_packages (status_id)');
@@ -96,6 +107,9 @@ final class Version20260511141805 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_75EA56E0FB7336F0E3BD61CE16BA31DBBF396750 ON messenger_messages (queue_name, available_at, delivered_at, id)');
         $this->addSql('ALTER TABLE account_settings ADD CONSTRAINT FK_9D8B42739B6B5FBA FOREIGN KEY (account_id) REFERENCES accounts (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE accounts ADD CONSTRAINT FK_CAC89EAC6BF700BD FOREIGN KEY (status_id) REFERENCES statuses (id) NOT DEFERRABLE');
+        $this->addSql('ALTER TABLE admins ADD CONSTRAINT FK_A2E0150F9B6B5FBA FOREIGN KEY (account_id) REFERENCES accounts (id) NOT DEFERRABLE');
+        $this->addSql('ALTER TABLE admins ADD CONSTRAINT FK_A2E0150F123FA025 FOREIGN KEY (admin_role_id) REFERENCES admin_roles (id) NOT DEFERRABLE');
+        $this->addSql('ALTER TABLE admins ADD CONSTRAINT FK_A2E0150F6BF700BD FOREIGN KEY (status_id) REFERENCES statuses (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE audit_logs ADD CONSTRAINT FK_D62F2858A9474AA9 FOREIGN KEY (actor_account_id) REFERENCES accounts (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE availabilities ADD CONSTRAINT FK_D7FC41EFCCFA12B8 FOREIGN KEY (profile_id) REFERENCES profiles (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE notifications ADD CONSTRAINT FK_6000B0D39B6B5FBA FOREIGN KEY (account_id) REFERENCES accounts (id) NOT DEFERRABLE');
@@ -130,10 +144,12 @@ final class Version20260511141805 extends AbstractMigration
         $this->addSql('ALTER TABLE projects ADD CONSTRAINT FK_5C93B3A4C901C6FF FOREIGN KEY (owner_account_id) REFERENCES accounts (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE projects ADD CONSTRAINT FK_5C93B3A451795045 FOREIGN KEY (owner_org_id) REFERENCES organisations (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE projects ADD CONSTRAINT FK_5C93B3A46BF700BD FOREIGN KEY (status_id) REFERENCES statuses (id) NOT DEFERRABLE');
+        $this->addSql('ALTER TABLE reset_password_tokens ADD CONSTRAINT FK_F045D5AA9B6B5FBA FOREIGN KEY (account_id) REFERENCES accounts (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE reviews ADD CONSTRAINT FK_6970EB0FCCFA12B8 FOREIGN KEY (profile_id) REFERENCES profiles (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE reviews ADD CONSTRAINT FK_6970EB0F1379FADA FOREIGN KEY (reviewer_profile_id) REFERENCES profiles (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE reviews ADD CONSTRAINT FK_6970EB0F166D1F9C FOREIGN KEY (project_id) REFERENCES projects (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE reviews ADD CONSTRAINT FK_6970EB0F6BF700BD FOREIGN KEY (status_id) REFERENCES statuses (id) NOT DEFERRABLE');
+        $this->addSql('ALTER TABLE verify_email_tokens ADD CONSTRAINT FK_CE8B2C519B6B5FBA FOREIGN KEY (account_id) REFERENCES accounts (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE work_packages ADD CONSTRAINT FK_4E004AFB166D1F9C FOREIGN KEY (project_id) REFERENCES projects (id) NOT DEFERRABLE');
         $this->addSql('ALTER TABLE work_packages ADD CONSTRAINT FK_4E004AFB6BF700BD FOREIGN KEY (status_id) REFERENCES statuses (id) NOT DEFERRABLE');
     }
@@ -143,6 +159,9 @@ final class Version20260511141805 extends AbstractMigration
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE account_settings DROP CONSTRAINT FK_9D8B42739B6B5FBA');
         $this->addSql('ALTER TABLE accounts DROP CONSTRAINT FK_CAC89EAC6BF700BD');
+        $this->addSql('ALTER TABLE admins DROP CONSTRAINT FK_A2E0150F9B6B5FBA');
+        $this->addSql('ALTER TABLE admins DROP CONSTRAINT FK_A2E0150F123FA025');
+        $this->addSql('ALTER TABLE admins DROP CONSTRAINT FK_A2E0150F6BF700BD');
         $this->addSql('ALTER TABLE audit_logs DROP CONSTRAINT FK_D62F2858A9474AA9');
         $this->addSql('ALTER TABLE availabilities DROP CONSTRAINT FK_D7FC41EFCCFA12B8');
         $this->addSql('ALTER TABLE notifications DROP CONSTRAINT FK_6000B0D39B6B5FBA');
@@ -177,14 +196,18 @@ final class Version20260511141805 extends AbstractMigration
         $this->addSql('ALTER TABLE projects DROP CONSTRAINT FK_5C93B3A4C901C6FF');
         $this->addSql('ALTER TABLE projects DROP CONSTRAINT FK_5C93B3A451795045');
         $this->addSql('ALTER TABLE projects DROP CONSTRAINT FK_5C93B3A46BF700BD');
+        $this->addSql('ALTER TABLE reset_password_tokens DROP CONSTRAINT FK_F045D5AA9B6B5FBA');
         $this->addSql('ALTER TABLE reviews DROP CONSTRAINT FK_6970EB0FCCFA12B8');
         $this->addSql('ALTER TABLE reviews DROP CONSTRAINT FK_6970EB0F1379FADA');
         $this->addSql('ALTER TABLE reviews DROP CONSTRAINT FK_6970EB0F166D1F9C');
         $this->addSql('ALTER TABLE reviews DROP CONSTRAINT FK_6970EB0F6BF700BD');
+        $this->addSql('ALTER TABLE verify_email_tokens DROP CONSTRAINT FK_CE8B2C519B6B5FBA');
         $this->addSql('ALTER TABLE work_packages DROP CONSTRAINT FK_4E004AFB166D1F9C');
         $this->addSql('ALTER TABLE work_packages DROP CONSTRAINT FK_4E004AFB6BF700BD');
         $this->addSql('DROP TABLE account_settings');
         $this->addSql('DROP TABLE accounts');
+        $this->addSql('DROP TABLE admin_roles');
+        $this->addSql('DROP TABLE admins');
         $this->addSql('DROP TABLE audit_logs');
         $this->addSql('DROP TABLE availabilities');
         $this->addSql('DROP TABLE notifications');
@@ -202,10 +225,12 @@ final class Version20260511141805 extends AbstractMigration
         $this->addSql('DROP TABLE project_roles');
         $this->addSql('DROP TABLE project_updates');
         $this->addSql('DROP TABLE projects');
+        $this->addSql('DROP TABLE reset_password_tokens');
         $this->addSql('DROP TABLE reviews');
         $this->addSql('DROP TABLE skills');
         $this->addSql('DROP TABLE statuses');
         $this->addSql('DROP TABLE system_logs');
+        $this->addSql('DROP TABLE verify_email_tokens');
         $this->addSql('DROP TABLE work_packages');
         $this->addSql('DROP TABLE messenger_messages');
     }
