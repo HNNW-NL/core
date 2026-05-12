@@ -1,6 +1,8 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{% block title %}Het nieuw werken{% endblock %}
+{% block title %}
+    Het nieuwe werken - Profiel
+{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('assets/main/css/home.css') }}">
@@ -9,60 +11,67 @@
 {% block body %}
     <div class="page">
 
-        <!-- PROFIEL HEADER -->
         <div class="header">
             <div class="profile">
-                <div class="profile-avatar">
-                    <img src="{{ asset('assets/main/images/default-avatar.png') }}" alt="Profile picture">
-                </div>
+                <div class="profile-avatar"></div>
+
                 <div class="profile-text">
-                    <h1>Random Naam</h1>
-                    <p>Student bij Random School</p>
-                    <p>Random Locatie</p>
+                    <h1>Naam</h1>
+                    <p>Occupation / Status</p>
+                    <p>Locatie</p>
+                </div>
+            </div>
+
+            <div class="tech-stack">
+                <div class="tech-icon">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JS">
+                </div>
+                <div class="tech-icon">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5">
+                </div>
+                <div class="tech-icon">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3">
+                </div>
+                <div class="tech-icon">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL">
+                </div>
+                <div class="tech-icon">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP">
                 </div>
             </div>
         </div>
 
-        <!-- PROFIEL CONTENT -->
-        <div class="content">
+        <div class="main-grid">
 
-            <!-- LINKERKANT -->
-            <div>
-                <div class="card-about-me">
-                    <h2>Over mij</h2>
-                    <p class="bio-text">
-                        Deze gebruiker heeft nog geen bio.
-                    </p>
-                    <br>
+            <div class="card-about-me">
+                <h2>Over mij</h2>
+                <p class="text-muted">This is an example text.</p>
 
-                    <h2>Expertise</h2>
-                    <div class="expertise">
-                        <div class="bubble">Flexibel leren</div>
-                        <div class="bubble">Online samenwerken</div>
-                        <div class="bubble">Zelfstandigheid</div>
-                    </div>
+                <h2 style="margin-top: 40px;">Expertise</h2>
+                <div class="expertise-container">
+                    <div class="bubble">Expertise 1</div>
+                    <div class="bubble">Expertise 2</div>
+                    <div class="bubble">Expertise 3</div>
                 </div>
             </div>
 
-            <!-- RECHTERKANT -->
-            <div>
-                <div class="card">
-                    <h2>Toepassing</h2>
-                    <p class="note">
-                        Dit concept wordt gebruikt binnen onderwijs en organisaties om efficiënter,
-                        flexibeler en toekomstgericht te werken en leren.
-                    </p>
-                    <a href="#" class="btn btn-primary">Start leren</a>
-                    <a href="#" class="btn btn-secondary">Meer informatie</a>
-
-                    <div class="tip">
-                        <div class="tip-line"></div>
-                        <div>
-                            Leren en werken draait om resultaat, niet om plaats of tijd.
-                        </div>
-                    </div>
+            <div class="card">
+                <h2>Acties</h2>
+                <div class="action-buttons">
+                    <a href="#" class="btn-outline">Edit Profile</a>
+                    <a href="#" class="btn-outline">Projects</a>
                 </div>
             </div>
+
+            <div class="achievements-bar">
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+                <div class="circle"></div>
+            </div>
+
         </div>
+
     </div>
 {% endblock %}

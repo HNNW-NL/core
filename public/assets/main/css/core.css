@@ -2,17 +2,20 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 3px;
-    border-bottom: #1d2330 solid 1px;
+    padding: 10px 3px;
 }
 header nav ul {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     list-style: none;
-    gap: 1px;
+    gap: 5px;
     padding: 0;
+<<<<<<< HEAD
     margin: 0 20px 0 0;  
+=======
+    margin: 0 20px 0 0;
+>>>>>>> a22fec1794465b0c01c75d88654202cedb0af2b7
 }
 
 header nav ul li a {
@@ -29,7 +32,7 @@ header nav ul li a {
     border-radius: 4px;
     text-decoration: none;
     transition: all 0.5s ease;
-    font-family: inter;
+    font-family: inter, sans-serif;
 }
 .button:hover {
     color: #f4c400;
