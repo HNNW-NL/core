@@ -5,9 +5,11 @@
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{{ asset('assets/org/css/publish-project.css') }}">
+{% endblock %}
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+<script src="{{ asset('assets/org/js/publish-project.js') }}"></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
