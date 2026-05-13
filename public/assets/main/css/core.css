@@ -48,6 +48,19 @@ header nav ul svg:hover path {
 }
 
 /* =========================
+   FOOTER
+========================= */
+.main-footer {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 2rem;
+    background: #141b2e;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+/* =========================
    LOGO
 ========================= */
 .logo {
