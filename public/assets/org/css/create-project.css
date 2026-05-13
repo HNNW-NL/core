@@ -6,17 +6,26 @@ body {
 h2 {
     text-align: center;
     margin-top: 40px;
+    color: var(--paragraph);
 }
 
 form {
     width: 500px;
     margin: 30px auto;
     padding: 20px;
-    background-color: #040e34;
+    background-color: var(--header-background);
+    border: 1px solid var(--hnnw-yellow-500);
+    border-radius: 8px;
 }
 
 form div {
     margin-bottom: 15px;
+}
+
+label {
+    color: var(--paragraph);
+    display: block;
+    margin-bottom: 5px;
 }
 
 input,
@@ -25,8 +34,17 @@ select {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
-    background-color: black;
-    border: none;
+    background-color: var(--background);
+    border: 1px solid var(--hnnw-yellow-400);
+    color: var(--paragraph);
+    border-radius: 4px;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--hnnw-yellow-500);
 }
 
 textarea#summary {
@@ -37,9 +55,23 @@ textarea#description {
     min-height: 140px;
 }
 
+#summary-counter,
+#description-counter {
+    font-size: 12px;
+    color: var(--hnnw-yellow-300);
+    margin-top: 5px;
+}
+
 button {
     width: 100%;
     padding: 10px;
     cursor: pointer;
-    background-color: #000;
+    background-color: var(--hnnw-yellow-500);
+    color: #020617;
+    border: none;
+    border-radius: 6px;
+}
+
+button:hover {
+    background-color: var(--hnnw-yellow-400);
 }
