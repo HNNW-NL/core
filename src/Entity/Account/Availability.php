@@ -81,4 +81,99 @@ class Availability
     {
         $this->deletedAt = new \DateTimeImmutable();
     }
+
+    public function restore(): void
+    {
+        $this->deletedAt = null;
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getProfile(): ?Profile
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profile $profile): static
+    {
+        $this->profile = $profile;
+
+        return $this;
+    }
+
+    public function getAvailabilityType(): ?string
+    {
+        return $this->availabilityType;
+    }
+
+    public function setAvailabilityType(?string $availabilityType): static
+    {
+        $this->availabilityType = $availabilityType;
+
+        return $this;
+    }
+
+    public function getHoursPerWeek(): ?int
+    {
+        return $this->hoursPerWeek;
+    }
+
+    public function setHoursPerWeek(?int $hoursPerWeek): static
+    {
+        $this->hoursPerWeek = $hoursPerWeek;
+
+        return $this;
+    }
+
+    public function getStartDate(): \DateTimeImmutable
+    {
+        return $this->startDate;
+    }
+
+    public function setStartDate(\DateTimeImmutable $startDate): static
+    {
+        $this->startDate = $startDate;
+
+        return $this;
+    }
+
+    public function getEndDate(): ?\DateTimeImmutable
+    {
+        return $this->endDate;
+    }
+
+    public function setEndDate(?\DateTimeImmutable $endDate): static
+    {
+        $this->endDate = $endDate;
+
+        return $this;
+    }
+
+    public function getNote(): ?string
+    {
+        return $this->note;
+    }
+
+    public function setNote(?string $note): static
+    {
+        $this->note = $note;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
 }

@@ -70,4 +70,68 @@ class ProfileSkill
     {
         $this->lastModified = new \DateTimeImmutable();
     }
+
+    public function feature(): void
+    {
+        $this->featured = true;
+    }
+
+    public function unfeature(): void
+    {
+        $this->featured = false;
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getProfile(): ?Profile
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profile $profile): static
+    {
+        $this->profile = $profile;
+
+        return $this;
+    }
+
+    public function getSkill(): ?Skill
+    {
+        return $this->skill;
+    }
+
+    public function setSkill(?Skill $skill): static
+    {
+        $this->skill = $skill;
+
+        return $this;
+    }
+
+    public function getProficiencyLevel(): ?string
+    {
+        return $this->proficiencyLevel;
+    }
+
+    public function setProficiencyLevel(?string $proficiencyLevel): static
+    {
+        $this->proficiencyLevel = $proficiencyLevel;
+
+        return $this;
+    }
+
+    public function isFeatured(): bool
+    {
+        return $this->featured;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
 }

@@ -70,4 +70,77 @@ class AccountSetting
     {
         $this->lastModified = new \DateTimeImmutable();
     }
+
+
+    /// Getters & Setters Functions
+
+    public function getAccount(): ?Account
+    {
+        return $this->account;
+    }
+
+    public function setAccount(?Account $account): static
+    {
+        $this->account = $account;
+
+        return $this;
+    }
+
+    public function getLanguage(): ?string
+    {
+        return $this->language;
+    }
+
+    public function setLanguage(?string $language): static
+    {
+        $this->language = $language;
+
+        return $this;
+    }
+
+    public function isEmailNotificationsEnabled(): bool
+    {
+        return $this->emailNotificationsEnabled;
+    }
+
+    public function setEmailNotificationsEnabled(bool $emailNotificationsEnabled): static
+    {
+        $this->emailNotificationsEnabled = $emailNotificationsEnabled;
+
+        return $this;
+    }
+
+    public function getProfileVisibility(): ?string
+    {
+        return $this->profileVisibility;
+    }
+
+    public function setProfileVisibility(?string $profileVisibility): static
+    {
+        $this->profileVisibility = $profileVisibility;
+
+        return $this;
+    }
+
+    public function getTheme(): ?string
+    {
+        return $this->theme;
+    }
+
+    public function setTheme(?string $theme): static
+    {
+        $this->theme = $theme;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
 }

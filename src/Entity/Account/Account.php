@@ -121,6 +121,16 @@ class Account
         $this->lastModified = new \DateTimeImmutable();
     }
 
+    public function verifyEmail(): void
+    {
+        $this->emailVerifiedAt = new \DateTimeImmutable();
+    }
+
+    public function unverifyEmail(): void
+    {
+        $this->emailVerifiedAt = null;
+    }
+
     public function login(): void
     {
         $this->lastLoginAt = new \DateTimeImmutable();
@@ -129,5 +139,164 @@ class Account
     public function softDelete(): void
     {
         $this->deletedAt = new \DateTimeImmutable();
+    }
+
+    public function restore(): void
+    {
+        $this->deletedAt = null;
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(?string $username): static
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPasswordHash(): ?string
+    {
+        return $this->passwordHash;
+    }
+
+    public function setPasswordHash(?string $passwordHash): static
+    {
+        $this->passwordHash = $passwordHash;
+
+        return $this;
+    }
+
+    public function getStatus(): ?Status
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?Status $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getEmailVerifiedAt(): ?\DateTimeImmutable
+    {
+        return $this->emailVerifiedAt;
+    }
+
+    public function getLastLoginAt(): ?\DateTimeImmutable
+    {
+        return $this->lastLoginAt;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function getProfile(): ?Profile
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profile $profile): static
+    {
+        $this->profile = $profile;
+
+        return $this;
+    }
+
+    public function getSetting(): ?AccountSetting
+    {
+        return $this->setting;
+    }
+
+    public function setSetting(?AccountSetting $setting): static
+    {
+        $this->setting = $setting;
+
+        return $this;
+    }
+
+    public function getAdmin(): ?Admin
+    {
+        return $this->admin;
+    }
+
+    public function setAdmin(?Admin $admin): static
+    {
+        $this->admin = $admin;
+
+        return $this;
+    }
+
+    /** @return Collection<int, AuditLog> */
+    public function getAuditLogs(): Collection
+    {
+        return $this->auditLogs;
+    }
+
+    /** @return Collection<int, OrgMember> */
+    public function getOrgMemberships(): Collection
+    {
+        return $this->orgMemberships;
+    }
+
+    /** @return Collection<int, Notification> */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+
+    /** @return Collection<int, Notification> */
+    public function getSentNotifications(): Collection
+    {
+        return $this->sentNotifications;
+    }
+
+    /** @return Collection<int, Project> */
+    public function getOwnedProjects(): Collection
+    {
+        return $this->ownedProjects;
+    }
+
+    /** @return Collection<int, ResetPasswordToken> */
+    public function getResetPasswordTokens(): Collection
+    {
+        return $this->resetPasswordTokens;
+    }
+
+    /** @return Collection<int, VerifyEmailToken> */
+    public function getVerifyEmailTokens(): Collection
+    {
+        return $this->verifyEmailTokens;
     }
 }
