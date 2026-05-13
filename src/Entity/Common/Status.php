@@ -89,4 +89,97 @@ class Status
     {
         return $this->id;
     }
+
+
+    /// Getters & Setters Functions
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getColourHex(): ?string
+    {
+        return $this->colourHex;
+    }
+
+    public function setColourHex(?string $colourHex): static
+    {
+        $this->colourHex = $colourHex;
+
+        return $this;
+    }
+
+    public function getScope(): ?string
+    {
+        return $this->scope;
+    }
+
+    public function setScope(?string $scope): static
+    {
+        $this->scope = $scope;
+
+        return $this;
+    }
+
+    /** @return Collection<int, Account> */
+    public function getAccounts(): Collection
+    {
+        return $this->accounts;
+    }
+
+    /** @return Collection<int, Organisation> */
+    public function getOrganisations(): Collection
+    {
+        return $this->organisations;
+    }
+
+    /** @return Collection<int, Project> */
+    public function getProjects(): Collection
+    {
+        return $this->projects;
+    }
+
+    /** @return Collection<int, Review> */
+    public function getReviews(): Collection
+    {
+        return $this->reviews;
+    }
+
+    /** @return Collection<int, ProjectApplication> */
+    public function getProjectApplications(): Collection
+    {
+        return $this->projectApplications;
+    }
+
+    /** @return Collection<int, ProjectParticipant> */
+    public function getProjectParticipants(): Collection
+    {
+        return $this->projectParticipants;
+    }
+
+    /** @return Collection<int, WorkPackage> */
+    public function getWorkPackages(): Collection
+    {
+        return $this->workPackages;
+    }
+
+    /** @return Collection<int, PackageTask> */
+    public function getWorkPackageTasks(): Collection
+    {
+        return $this->workPackageTasks;
+    }
+
+    /** @return Collection<int, Admin> */
+    public function getAdmins(): Collection
+    {
+        return $this->admins;
+    }
 }

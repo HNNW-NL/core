@@ -62,4 +62,73 @@ class VerifyEmailToken
         $this->createdAt = $now;
         $this->expiresAt = $now->modify("+24 hours +5 minutes");
     }
+
+    public function markAsUsed(): void
+    {
+        $this->isUsed = true;
+    }
+
+    public function markAsUnused(): void
+    {
+        $this->isUsed = false;
+    }
+
+    public function refreshExpiration(): void
+    {
+        $this->expiresAt = (new \DateTimeImmutable())->modify("+24 hours +5 minutes");
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getAccount(): ?Account
+    {
+        return $this->account;
+    }
+
+    public function setAccount(?Account $account): static
+    {
+        $this->account = $account;
+
+        return $this;
+    }
+
+    public function getEmailToVerify(): ?string
+    {
+        return $this->emailToVerify;
+    }
+
+    public function setEmailToVerify(?string $emailToVerify): static
+    {
+        $this->emailToVerify = $emailToVerify;
+
+        return $this;
+    }
+
+    public function getTokenHash(): ?string
+    {
+        return $this->tokenHash;
+    }
+
+    public function setTokenHash(?string $tokenHash): static
+    {
+        $this->tokenHash = $tokenHash;
+
+        return $this;
+    }
+
+    public function isUsed(): bool
+    {
+        return $this->isUsed;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getExpiresAt(): \DateTimeImmutable
+    {
+        return $this->expiresAt;
+    }
 }

@@ -48,6 +48,7 @@ class OrgRole
     public function __construct()
     {
         $this->id = Uuid::v7();
+
         $this->orgRoleMembers = new ArrayCollection();
     }
 
@@ -69,5 +70,60 @@ class OrgRole
     public function onUpdate(): void
     {
         $this->lastModified = new \DateTimeImmutable();
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getOrganisation(): ?Organisation
+    {
+        return $this->organisation;
+    }
+
+    public function setOrganisation(?Organisation $organisation): static
+    {
+        $this->organisation = $organisation;
+
+        return $this;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getPermissionsMask(): ?int
+    {
+        return $this->permissionsMask;
+    }
+
+    public function setPermissionsMask(?int $permissionsMask): static
+    {
+        $this->permissionsMask = $permissionsMask;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
+
+    /** @return Collection<int, OrgMember> */
+    public function getOrgRoleMembers(): Collection
+    {
+        return $this->orgRoleMembers;
     }
 }

@@ -69,4 +69,53 @@ class OrgMember
     {
         $this->lastModified = new \DateTimeImmutable();
     }
+
+
+    /// Getters & Setters Functions
+
+    public function getOrganisation(): ?Organisation
+    {
+        return $this->organisation;
+    }
+
+    public function setOrganisation(?Organisation $organisation): static
+    {
+        $this->organisation = $organisation;
+
+        return $this;
+    }
+
+    public function getAccount(): ?Account
+    {
+        return $this->account;
+    }
+
+    public function setAccount(?Account $account): static
+    {
+        $this->account = $account;
+
+        return $this;
+    }
+
+    public function getOrgRole(): ?OrgRole
+    {
+        return $this->orgRole;
+    }
+
+    public function setOrgRole(?OrgRole $orgRole): static
+    {
+        $this->orgRole = $orgRole;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
 }

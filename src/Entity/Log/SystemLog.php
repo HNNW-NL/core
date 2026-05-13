@@ -61,8 +61,110 @@ class SystemLog
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
-        $this->createdAt = $now;
+
+    /// Getters & Setters Functions
+
+    public function getCode(): ?int
+    {
+        return $this->code;
+    }
+
+    public function setCode(?int $code): static
+    {
+        $this->code = $code;
+
+        return $this;
+    }
+
+    public function getLevel(): ?string
+    {
+        return $this->level;
+    }
+
+    public function setLevel(?string $level): static
+    {
+        $this->level = $level;
+
+        return $this;
+    }
+
+    public function getMessage(): ?string
+    {
+        return $this->message;
+    }
+
+    public function setMessage(?string $message): static
+    {
+        $this->message = $message;
+
+        return $this;
+    }
+
+    public function getRoute(): ?string
+    {
+        return $this->route;
+    }
+
+    public function setRoute(?string $route): static
+    {
+        $this->route = $route;
+
+        return $this;
+    }
+
+    public function getMethod(): ?string
+    {
+        return $this->method;
+    }
+
+    public function setMethod(?string $method): static
+    {
+        $this->method = $method;
+
+        return $this;
+    }
+
+    public function getUserAgent(): ?string
+    {
+        return $this->userAgent;
+    }
+
+    public function setUserAgent(?string $userAgent): static
+    {
+        $this->userAgent = $userAgent;
+
+        return $this;
+    }
+
+    public function getContextJson(): ?array
+    {
+        return $this->contextJson;
+    }
+
+    public function setContextJson(?array $contextJson): static
+    {
+        $this->contextJson = $contextJson;
+
+        return $this;
+    }
+
+    public function getRequestIp(): ?string
+    {
+        return $this->requestIp;
+    }
+
+    public function setRequestIp(?string $requestIp): static
+    {
+        $this->requestIp = $requestIp;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
     }
 }

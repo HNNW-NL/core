@@ -71,4 +71,68 @@ class Admin
     {
         $this->lastModified = new \DateTimeImmutable();
     }
+
+    public function makeSuperAdmin(): void
+    {
+        $this->isSuperAdmin = true;
+    }
+
+    public function revokeSuperAdmin(): void
+    {
+        $this->isSuperAdmin = false;
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getAccount(): Account
+    {
+        return $this->account;
+    }
+
+    public function setAccount(Account $account): static
+    {
+        $this->account = $account;
+
+        return $this;
+    }
+
+    public function getAdminRole(): AdminRole
+    {
+        return $this->adminRole;
+    }
+
+    public function setAdminRole(AdminRole $adminRole): static
+    {
+        $this->adminRole = $adminRole;
+
+        return $this;
+    }
+
+    public function getStatus(): Status
+    {
+        return $this->status;
+    }
+
+    public function setStatus(Status $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->isSuperAdmin;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
 }
