@@ -1,7 +1,7 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Project {{ id }} participants{% endblock %}
+{% block title %}Project {{ slug }} participants{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
@@ -17,5 +17,5 @@
 {# Page content #}
 {% block body %}
     <h2>Projects - Participants</h2>
-    <p>Main - projects participants page. For project {{ id }}.</p>
+    <p>Main - projects participants page. For project {{ slug }}.</p>
 {% endblock %}
