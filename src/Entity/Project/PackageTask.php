@@ -89,8 +89,132 @@ class PackageTask
         $this->lastModified = new \DateTimeImmutable();
     }
 
+    public function clearDueDate(): void
+    {
+        $this->dueDate = null;
+    }
+
     public function softDelete(): void
     {
         $this->deletedAt = new \DateTimeImmutable();
+    }
+
+    public function restore(): void
+    {
+        $this->deletedAt = null;
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getWorkPackage(): ?WorkPackage
+    {
+        return $this->workPackage;
+    }
+
+    public function setWorkPackage(?WorkPackage $workPackage): static
+    {
+        $this->workPackage = $workPackage;
+
+        return $this;
+    }
+
+    public function getStatus(): ?Status
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?Status $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getDueDate(): ?\DateTimeImmutable
+    {
+        return $this->dueDate;
+    }
+
+    public function setDueDate(?\DateTimeImmutable $dueDate): static
+    {
+        $this->dueDate = $dueDate;
+
+        return $this;
+    }
+
+    public function getPriority(): string
+    {
+        return $this->priority;
+    }
+
+    public function setPriority(string $priority): static
+    {
+        $this->priority = $priority;
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getAssignedProfile(): ?Profile
+    {
+        return $this->assignedProfile;
+    }
+
+    public function setAssignedProfile(?Profile $assignedProfile): static
+    {
+        $this->assignedProfile = $assignedProfile;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
     }
 }

@@ -84,4 +84,98 @@ class ProjectParticipant
     {
         $this->lastModified = new \DateTimeImmutable();
     }
+
+    public function join(): void
+    {
+        $this->joinedAt = new \DateTimeImmutable();
+        $this->leftAt = null;
+    }
+
+    public function leave(): void
+    {
+        $this->leftAt = new \DateTimeImmutable();
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): static
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
+    public function getProfile(): ?Profile
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profile $profile): static
+    {
+        $this->profile = $profile;
+
+        return $this;
+    }
+
+    public function getRole(): ?ProjectRole
+    {
+        return $this->role;
+    }
+
+    public function setRole(?ProjectRole $role): static
+    {
+        $this->role = $role;
+
+        return $this;
+    }
+
+    public function getStatus(): ?Status
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?Status $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getApplication(): ?ProjectApplication
+    {
+        return $this->application;
+    }
+
+    public function setApplication(?ProjectApplication $application): static
+    {
+        $this->application = $application;
+
+        return $this;
+    }
+
+    public function getJoinedAt(): ?\DateTimeImmutable
+    {
+        return $this->joinedAt;
+    }
+
+    public function getLeftAt(): ?\DateTimeImmutable
+    {
+        return $this->leftAt;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
 }

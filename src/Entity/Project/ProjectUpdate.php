@@ -79,8 +79,109 @@ class ProjectUpdate
         $this->lastModified = new \DateTimeImmutable();
     }
 
+    public function makePublic(): void
+    {
+        $this->isPublic = true;
+    }
+
+    public function makePrivate(): void
+    {
+        $this->isPublic = false;
+    }
+
+    public function publish(): void
+    {
+        $this->publishedAt = new \DateTimeImmutable();
+    }
+
+    public function unpublish(): void
+    {
+        $this->publishedAt = null;
+    }
+
     public function softDelete(): void
     {
         $this->deletedAt = new \DateTimeImmutable();
+    }
+
+    public function restore(): void
+    {
+        $this->deletedAt = null;
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): static
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
+    public function getAuthor(): ?Profile
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?Profile $author): static
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    public function setContent(?string $content): static
+    {
+        $this->content = $content;
+
+        return $this;
+    }
+
+    public function isPublic(): bool
+    {
+        return $this->isPublic;
+    }
+
+    public function getPublishedAt(): ?\DateTimeImmutable
+    {
+        return $this->publishedAt;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
     }
 }

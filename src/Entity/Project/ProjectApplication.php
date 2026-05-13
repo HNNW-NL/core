@@ -92,8 +92,124 @@ class ProjectApplication
         $this->lastModified = new \DateTimeImmutable();
     }
 
+    public function markAsReviewed(): void
+    {
+        $this->reviewedAt = new \DateTimeImmutable();
+    }
+
+    public function clearReviewDate(): void
+    {
+        $this->reviewedAt = null;
+    }
+
     public function softDelete(): void
     {
         $this->deletedAt = new \DateTimeImmutable();
+    }
+
+    public function restore(): void
+    {
+        $this->deletedAt = null;
+    }
+
+
+    /// Getters & Setters Functions
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): static
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
+    public function getProfile(): ?Profile
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profile $profile): static
+    {
+        $this->profile = $profile;
+
+        return $this;
+    }
+
+    public function getStatus(): ?Status
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?Status $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function getMotivation(): ?string
+    {
+        return $this->motivation;
+    }
+
+    public function setMotivation(?string $motivation): static
+    {
+        $this->motivation = $motivation;
+
+        return $this;
+    }
+
+    public function getReviewedAt(): ?\DateTimeImmutable
+    {
+        return $this->reviewedAt;
+    }
+
+    public function getReviewerProfile(): ?Profile
+    {
+        return $this->reviewerProfile;
+    }
+
+    public function setReviewerProfile(?Profile $reviewerProfile): static
+    {
+        $this->reviewerProfile = $reviewerProfile;
+
+        return $this;
+    }
+
+    public function getReview(): ?string
+    {
+        return $this->review;
+    }
+
+    public function setReview(?string $review): static
+    {
+        $this->review = $review;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    /** @return Collection<int, ProjectParticipant> */
+    public function getParticipant(): Collection
+    {
+        return $this->participant;
     }
 }

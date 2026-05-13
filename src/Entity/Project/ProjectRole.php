@@ -74,4 +74,71 @@ class ProjectRole
     {
         $this->lastModified = new \DateTimeImmutable();
     }
+
+
+/// Getters & Setters Functions
+
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): static
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(?string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getPermissionsMask(): ?int
+    {
+        return $this->permissionsMask;
+    }
+
+    public function setPermissionsMask(?int $permissionsMask): static
+    {
+        $this->permissionsMask = $permissionsMask;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getLastModified(): \DateTimeImmutable
+    {
+        return $this->lastModified;
+    }
+
+    /** @return Collection<int, ProjectParticipant> */
+    public function getParticipants(): Collection
+    {
+        return $this->participants;
+    }
 }
