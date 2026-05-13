@@ -14,6 +14,8 @@
 {# Page content #}
 {% block body %}
     <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <!-- Main page layout -->
     <div class="layout">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -42,11 +44,12 @@
                 </nav>
             </header>
             <!-- Form -->
-            <main>
+            <main id="main-content">
+                <!-- Publish form fields -->
                 <form method="post" action="/publish" enctype="multipart/form-data">
                     <div>
                         <label for="name">Project name</label>
-                        <input type="text" id="name" name="name" placeholder="Project Name" required>
+                        <input type="text" id="name" name="name" placeholder="Project Name" required autocomplete="name">
                     </div>
                     <div>
                         <label for="description">Description</label>
@@ -62,7 +65,8 @@
                     </div>
                     <div>
                         <label for="projectFile">Choose file</label>
-                        <input type="file" id="projectFile" name="projectFile" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.js,.ts,.py,.java,.html,.css,.json,.md">
+                        <input type="file" id="projectFile" name="projectFile" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.js,.ts,.py,.java,.html,.css,.json,.md" aria-describedby="projectFileHelp">
+                        <p id="projectFileHelp" class="field-help">Accepted formats: PDF, Word, images, ZIP, and common code files.</p>
                     </div>
                     <div>
                         <button type="submit">Publish project</button>

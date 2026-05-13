@@ -1,4 +1,5 @@
 :root {
+    /* Color theme */
     --bg: #020617;
     --bg-soft: rgba(15, 23, 42, 0.7);
     --card: rgba(15, 23, 42, 0.7);
@@ -10,7 +11,8 @@
     --accent: #f4c400;
     --accent-hover: #e6b800;
     --accent-soft: rgba(255, 227, 111, 0.12);
-    --ring: rgba(255, 227, 111, 0.24);
+    --ring: #f8fafc;
+    --ring-shadow: rgba(244, 196, 0, 0.55);
     --shadow: 0 18px 45px rgba(2, 6, 23, 0.35);
 }
 
@@ -18,10 +20,33 @@
     box-sizing: border-box;
 }
 
+.skip-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 10px 14px;
+    transform: translateY(-120%);
+    border-radius: 0 0 12px 0;
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.28);
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+    outline: 3px solid #0f172a;
+    outline-offset: 2px;
+}
+
 body {
+    /* Page background and base text */
     margin: 0;
     min-height: 100vh;
     font-family: Inter, "Segoe UI", "Trebuchet MS", sans-serif;
+    line-height: 1.5;
     color: var(--text);
     background:
         radial-gradient(circle at top left, rgba(255, 227, 111, 0.08), transparent 32%),
@@ -59,6 +84,7 @@ body {
 }
 
 .sidebar-dashboard {
+    /* Small info card in sidebar */
     padding: 16px;
     border-radius: 14px;
     border: 1px solid var(--border);
@@ -121,7 +147,10 @@ body {
 }
 
 .header-nav a {
-    display: block;
+    /* Top navigation links */
+    display: flex;
+    align-items: center;
+    min-height: 44px;
     padding: 10px 14px;
     border-radius: 12px;
     color: var(--muted);
@@ -140,6 +169,17 @@ body {
     background-color: var(--accent-soft);
     border-color: rgba(255, 227, 111, 0.35);
     transform: translateY(-1px);
+}
+
+.header-nav a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+input[type="file"]::file-selector-button:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--ring-shadow);
 }
 
 .content {
@@ -195,15 +235,22 @@ label {
     color: var(--text);
 }
 
+.field-help {
+    margin: 8px 0 0;
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+
 input,
 textarea,
 select {
     /* Inputs */
     width: 100%;
+    min-height: 44px;
     padding: 11px 13px;
     font: inherit;
     color: var(--text);
-    background-color: var(--field);
+    background-color: rgba(15, 23, 42, 0.9);
     border: 1px solid var(--border);
     border-radius: 14px;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease,
@@ -212,16 +259,16 @@ select {
 
 input::placeholder,
 textarea::placeholder {
-    color: #94a3b8;
+    color: #cbd5e1;
+    opacity: 1;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-    outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--ring);
-    background-color: rgba(15, 23, 42, 0.85);
+    box-shadow: 0 0 0 4px rgba(248, 250, 252, 0.14);
+    background-color: rgba(15, 23, 42, 0.98);
 }
 
 textarea#summary {
@@ -249,6 +296,7 @@ input[type="checkbox"] {
 }
 
 input[type="file"] {
+    /* File input row */
     padding: 8px;
     border-radius: 12px;
     background-color: rgba(255, 255, 255, 0.03);
@@ -267,6 +315,7 @@ input[type="file"]::file-selector-button {
     color: #0f172a;
     background: #ffffff;
     cursor: pointer;
+    min-height: 44px;
 }
 
 input[type="file"]::file-selector-button:hover {
@@ -276,6 +325,7 @@ input[type="file"]::file-selector-button:hover {
 button {
     /* Button */
     width: 100%;
+    min-height: 44px;
     border: 0;
     border-radius: 12px;
     padding: 12px 16px;
@@ -295,12 +345,30 @@ button:hover {
     transform: translateY(-1px);
 }
 
+button:focus-visible,
+input[type="file"]::file-selector-button:focus-visible {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
 button:active {
     transform: translateY(0);
     box-shadow: 0 8px 18px rgba(14, 40, 92, 0.4);
 }
 
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
 @media (max-width: 640px) {
+    /* Mobile tweaks */
     .layout {
         grid-template-columns: 1fr;
         width: min(100%, calc(100% - 20px));
