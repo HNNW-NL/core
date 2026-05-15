@@ -71,21 +71,7 @@ body {
     gap: 20px;
 }
 
-.main-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background: #141b2e;
-    margin: auto auto 30px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-    flex-wrap: wrap;
-    position: relative;
-}
-.logo {
-    display: flex;
-    align-items: center;
-}
+/* PROFILE */
 
 
 .nav-button:hover {
@@ -296,7 +282,6 @@ body {
 .tech-icon {
     width: 57px;
     height: 55px;
-    /*background: var(--icon-bg);*/
     display: flex;
 
     align-items: center;
@@ -398,6 +383,7 @@ body {
 
     gap: 10px;
     margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 
@@ -501,4 +487,75 @@ body {
     border-radius: 50%;
 
     flex-shrink: 0;
+}
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 992px) {
+
+    .main-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .achievements-bar {
+        grid-column: span 1;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .tech-stack {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .card-about-me {
+        max-width: 100%;
+    }
+
+    .achievements-bar {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .page {
+        width: 95%;
+    }
+
+    .profile {
+        /* flex-direction: column; */
+        align-items: flex-start;
+    }
+
+    .profile-text h1 {
+        font-size: 22px;
+    }
+
+    .tech-stack {
+        gap: 8px;
+    }
+
+    .tech-icon {
+        width: 45px;
+        height: 45px;
+    }
+
+    .tech-icon img {
+        width: 26px;
+        height: 26px;
+    }
+
+    .circle {
+        width: 40px;
+        height: 40px;
+    }
 }
