@@ -1,78 +1,81 @@
 /* RESET */
-
 * {
-
     margin: 0;
-
     padding: 0;
-
     box-sizing: border-box;
     font-family: Inter, sans-serif;
 }
 
-
-
 /* VARIABLES */
-
 :root {
-
     --dark-bg: #050a18;
-
     --card-bg: #141b2e;
-
     --accent-yellow: #ffd400;
-
     --text-gray: #aab3c5;
-
     --icon-bg: #161e2e;
-
 }
-
-
 
 /* BACKGROUND */
-
 body {
-
     background: var(--dark-bg);
-
     color: #ffffff;
-
 }
-
-
 
 /* PAGE */
-
 .page {
-
     width: 90%;
-
     max-width: 1100px;
-
     margin: 40px auto;
-
 }
 
-
-
 /* HEADER */
-
 .header {
-
     display: flex;
-
     justify-content: space-between;
-
     align-items: center;
-
     margin-bottom: 25px;
-
     gap: 20px;
 }
 
-/* PROFILE */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: #141b2e;
+    margin: auto auto 30px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    flex-wrap: wrap;
+    position: relative;
+}
+.logo {
+    display: flex;
+    align-items: center;
+}
 
+.logo svg {
+    display: block;
+}
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+}
+.nav-button {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background: transparent;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    font-weight: 550;
+    font-size: 14px;
+}
 
 .nav-button:hover {
     background: #ffd400;
@@ -98,7 +101,7 @@ body {
     color: #ffd400;
     transform: scale(1.1);
 }
-/* زر القائمة (Hamburger) - يظهر فقط على الموبايل */
+
 .hamburger {
     display: none;
     background: none;
@@ -113,7 +116,6 @@ body {
     fill: #ffffff;
 }
 
-/* للشاشات المتوسطة (تابلت) */
 @media (max-width: 900px) {
     .main-header {
         padding: 1rem;
@@ -125,19 +127,16 @@ body {
     }
 }
 
-/* للهواتف (عرض أقل من 768px) */
 @media (max-width: 768px) {
     .main-header {
         flex-direction: row;
         justify-content: space-between;
     }
 
-    /* إظهار زر الهامبرغر */
     .hamburger {
         display: block;
     }
 
-    /* إخفاء القائمة بشكل افتراضي */
     .navbar {
         position: absolute;
         top: 100%;
@@ -152,12 +151,10 @@ body {
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
     }
 
-    /* عند تفعيل القائمة */
     .navbar.active {
         max-height: 500px;
     }
 
-    /* تنسيق القائمة العمودية */
     .nav-links {
         flex-direction: column;
         align-items: stretch;
@@ -180,7 +177,6 @@ body {
     }
 }
 
-/* للهواتف الصغيرة جدًا */
 @media (max-width: 480px) {
     .nav-button{
         font-size: 1.1rem;
@@ -215,122 +211,68 @@ body {
     gap: 18px;
 }
 
-
-
 /* AVATAR */
-
 .profile-avatar {
-
     width: 100px;
-
     height: 100px;
-
     background: var(--accent-yellow);
-
     border-radius: 12px;
-
     flex-shrink: 0;
-
 }
-
-
 
 /* TEXT */
-
 .profile-text h1 {
-
     font-size: 26px;
-
     font-weight: 700;
-
 }
 
-
-
 .profile-text p {
-
     color: var(--text-gray);
-
     font-size: 14px;
-
     margin-top: 3px;
-
 }
 
 /* TECH STACK (FIXED ICON ISSUE) */
-
 .tech-stack {
-
     display: flex;
-
     gap: 12px;
-
     background: var(--card-bg);
-
     padding: 12px;
-
     border-radius: 8px;
-
     border: 1px solid #1e293b;
-
     align-items: center;
-
 }
-
-
 
 .tech-icon {
     width: 57px;
     height: 55px;
+    /*background: var(--icon-bg);*/
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     border-radius: 8px;
-
     flex-shrink: 0;
-
 }
-
-
 
 .tech-icon img {
-
     width: 32px;
-
     height: 32px;
-
     object-fit: contain;
-
 }
-
-
 
 /* GRID */
-
 .main-grid {
     display: grid;
-
     grid-template-columns: 2fr 1fr;
-
     gap: 20px;
-
 }
 
-
-
 /* CARD */
-
 .card {
-
     background: var(--card-bg);
-
     border-radius: 14px;
     border: 1px solid #1e293b;
     padding: 20px;
-
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 
@@ -350,212 +292,74 @@ body {
 }
 
 /* TITLES */
-
 .card h2 {
-
     font-size: 18px;
-
     margin-bottom: 15px;
-
     text-transform: uppercase;
-
 }
-
-
 
 /* MUTED TEXT */
-
 .text-muted {
-
     color: var(--text-gray);
-
     font-size: 14px;
-
 }
-
-
 
 /* EXPERTISE */
-
 .expertise-container {
-
     display: flex;
-
     gap: 10px;
     margin-top: 10px;
-    flex-wrap: wrap;
 }
-
-
 
 .bubble {
     background: #000;
-
     padding: 8px 14px;
-
     border-radius: 20px;
-
     border: 3px solid var(--accent-yellow);
-
     font-size: 13px;
-
     color: var(--accent-yellow);
-
     font-weight: 600;
 }
 
-
-
 /* ACTION BUTTONS */
-
 .action-buttons {
-
     display: flex;
-
     flex-direction: column;
-
     gap: 15px;
-
 }
-
-
 
 .btn-outline {
-
     border: 2px solid var(--accent-yellow);
-
     color: var(--accent-yellow);
-
     text-decoration: none;
-
     text-align: center;
-
     padding: 12px;
-
     border-radius: 8px;
-
     font-weight: bold;
-
     transition: 0.3s;
-
 }
-
-
 
 .btn-outline:hover {
-
     background: var(--accent-yellow);
-
     color: black;
-
 }
-
-
 
 /* ACHIEVEMENTS */
-
 .achievements-bar {
-
     grid-column: span 2;
-
     background: var(--card-bg);
-
     border: 1px solid #1e293b;
-
     border-radius: 12px;
-
     padding: 15px 25px;
-
     display: flex;
-
     gap: 20px;
-
     align-items: center;
-
 }
-
-
 
 .circle {
-
     width: 50px;
-
     height: 50px;
-
     background: #1a2332;
-
     border-radius: 50%;
-
     flex-shrink: 0;
-}
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 992px) {
-
-    .main-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .achievements-bar {
-        grid-column: span 1;
-    }
-}
-
-@media (max-width: 768px) {
-
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .tech-stack {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .card-about-me {
-        max-width: 100%;
-    }
-
-    .achievements-bar {
-        flex-wrap: wrap;
-    }
-}
-
-@media (max-width: 480px) {
-
-    .page {
-        width: 95%;
-    }
-
-    .profile {
-        /* flex-direction: column; */
-        align-items: flex-start;
-    }
-
-    .profile-text h1 {
-        font-size: 22px;
-    }
-
-    .tech-stack {
-        gap: 8px;
-    }
-
-    .tech-icon {
-        width: 45px;
-        height: 45px;
-    }
-
-    .tech-icon img {
-        width: 26px;
-        height: 26px;
-    }
-
-    .circle {
-        width: 40px;
-        height: 40px;
-    }
 }
