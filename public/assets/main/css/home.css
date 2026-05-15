@@ -113,7 +113,7 @@ body {
     fill: #ffffff;
 }
 
-/* للشاشات المتوسطة (تابلت) */
+
 @media (max-width: 900px) {
     .main-header {
         padding: 1rem;
@@ -125,19 +125,19 @@ body {
     }
 }
 
-/* للهواتف (عرض أقل من 768px) */
+
 @media (max-width: 768px) {
     .main-header {
         flex-direction: row;
         justify-content: space-between;
     }
 
-    /* إظهار زر الهامبرغر */
+   
     .hamburger {
         display: block;
     }
 
-    /* إخفاء القائمة بشكل افتراضي */
+ 
     .navbar {
         position: absolute;
         top: 100%;
@@ -152,12 +152,11 @@ body {
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
     }
 
-    /* عند تفعيل القائمة */
     .navbar.active {
         max-height: 500px;
     }
 
-    /* تنسيق القائمة العمودية */
+
     .nav-links {
         flex-direction: column;
         align-items: stretch;
@@ -180,7 +179,7 @@ body {
     }
 }
 
-/* للهواتف الصغيرة جدًا */
+
 @media (max-width: 480px) {
     .nav-button{
         font-size: 1.1rem;
