@@ -1,0 +1,436 @@
+:root {
+    /* Color theme */
+    --bg: #020617;
+    --bg-soft: rgba(15, 23, 42, 0.7);
+    --card: rgba(15, 23, 42, 0.7);
+    --card-strong: #0f172a;
+    --text: #f1f5f9;
+    --muted: #cbd5e1;
+    --border: rgba(255, 255, 255, 0.1);
+    --field: rgba(15, 23, 42, 0.55);
+    --accent: #f4c400;
+    --accent-hover: #e6b800;
+    --accent-soft: rgba(255, 227, 111, 0.12);
+    --ring: #f8fafc;
+    --ring-shadow: rgba(244, 196, 0, 0.55);
+    --shadow: 0 18px 45px rgba(2, 6, 23, 0.35);
+}
+
+/* Use border-box sizing to make spacing and widths easier to control */
+* {
+    box-sizing: border-box;
+}
+
+/* Hidden accessibility link that appears when focused */
+.skip-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 10px 14px;
+    transform: translateY(-120%);
+    border-radius: 0 0 12px 0;
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.28);
+}
+
+/* Show the skip link for keyboard users */
+.skip-link:focus {
+    transform: translateY(0);
+    outline: 3px solid #0f172a;
+    outline-offset: 2px;
+}
+
+body {
+    /* Page background and base text */
+    margin: 0;
+    min-height: 100vh;
+    font-family: Inter, "Segoe UI", "Trebuchet MS", sans-serif;
+    line-height: 1.5;
+    color: var(--text);
+    background:
+        radial-gradient(circle at top left, rgba(255, 227, 111, 0.08), transparent 32%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 28%),
+        linear-gradient(180deg, #0f172a 0%, var(--bg) 100%);
+}
+
+.layout {
+    /* Layout */
+    min-height: 100vh;
+    width: min(1120px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 16px 0 28px;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 16px;
+}
+
+.sidebar {
+    /* Sidebar */
+    padding: 24px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+}
+
+/* Organization brand/title inside the sidebar */
+.sidebar .brand {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-bottom: 18px;
+    color: var(--text);
+}
+
+.sidebar-dashboard {
+    /* Small info card in sidebar */
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Sidebar dashboard heading */
+.sidebar-dashboard h2 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+/* Sidebar dashboard description text */
+.sidebar-dashboard p {
+    margin: 10px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.page-header {
+    /* Header */
+    max-width: 100%;
+    margin: 0 0 18px;
+    padding: 22px 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* Prevent long header text from overflowing */
+.header-copy {
+    min-width: 0;
+}
+
+/* Main page heading */
+.header-copy h1 {
+    margin: 0;
+    text-align: left;
+    font-size: clamp(1.85rem, 3.5vw, 2.7rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+}
+
+/* Header introduction text */
+.header-copy p {
+    margin: 12px 0 0;
+    max-width: 60ch;
+    text-align: left;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+/* Header navigation list */
+.header-nav ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 6px;
+}
+
+.header-nav a {
+    /* Top navigation links */
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.03);
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+/* Hover and keyboard focus state for header links */
+.header-nav a:hover,
+.header-nav a:focus-visible {
+    color: #fff;
+    background-color: var(--accent-soft);
+    border-color: rgba(255, 227, 111, 0.35);
+    transform: translateY(-1px);
+}
+
+/* Shared visible focus styling for interactive elements */
+.header-nav a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+input[type="file"]::file-selector-button:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--ring-shadow);
+}
+
+/* Main content wrapper */
+.content {
+    padding: 0;
+}
+
+/* Small uppercase label above page headings */
+.eyebrow {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* Space main content sections evenly */
+main {
+    display: grid;
+    gap: 16px;
+}
+
+/* Inline navbar links */
+.navbar a {
+    display: inline-block;
+    padding: 6px 8px;
+    border-radius: 8px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.94rem;
+    font-weight: 600;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+form {
+    /* Form */
+    width: 100%;
+    margin: 0;
+    padding: 22px;
+    background: var(--card-strong);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+}
+
+/* Spacing between form field groups */
+form div {
+    margin-bottom: 16px;
+}
+
+/* Form labels */
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.93rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Help text shown below inputs */
+.field-help {
+    margin: 8px 0 0;
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+
+input,
+textarea,
+select {
+    /* Inputs */
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 13px;
+    font: inherit;
+    color: var(--text);
+    background-color: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+/* Placeholder text colour */
+input::placeholder,
+textarea::placeholder {
+    color: #cbd5e1;
+    opacity: 1;
+}
+
+/* Active input state */
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(248, 250, 252, 0.14);
+    background-color: rgba(15, 23, 42, 0.98);
+}
+
+/* Smaller summary textarea */
+textarea#summary {
+    min-height: 80px;
+}
+
+/* Larger description textarea */
+textarea#description {
+    min-height: 140px;
+}
+
+/* Checkbox label layout */
+label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 4px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+    width: auto;
+    margin: 2px 0 0;
+    accent-color: var(--accent);
+}
+
+input[type="file"] {
+    /* File input row */
+    padding: 8px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+/* Native file upload button */
+input[type="file"]::file-selector-button {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-right: 10px;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: #ffffff;
+    cursor: pointer;
+    min-height: 44px;
+}
+
+/* File upload button hover state */
+input[type="file"]::file-selector-button:hover {
+    background: #f8fafc;
+}
+
+button {
+    /* Button */
+    width: 100%;
+    min-height: 44px;
+    border: 0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font: inherit;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    color: #0f172a;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Button hover state */
+button:hover {
+    background: #f8fafc;
+    box-shadow: 0 16px 30px rgba(2, 6, 23, 0.28);
+    transform: translateY(-1px);
+}
+
+/* Keep focused buttons readable */
+button:focus-visible,
+input[type="file"]::file-selector-button:focus-visible {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+/* Button pressed state */
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 18px rgba(14, 40, 92, 0.4);
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+/* Responsive layout for small screens */
+@media (max-width: 640px) {
+    /* Mobile tweaks */
+    .layout {
+        grid-template-columns: 1fr;
+        width: min(100%, calc(100% - 20px));
+        padding: 10px 0 20px;
+    }
+
+    .sidebar {
+        border-radius: 18px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        padding: 18px 16px;
+    }
+
+    .content {
+        padding: 0;
+    }
+
+    .header-nav ul {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .page-header h1 {
+        font-size: 1.8rem;
+    }
+
+    form {
+        padding: 18px;
+        border-radius: 16px;
+    }
+}

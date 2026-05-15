@@ -4,13 +4,49 @@
 {% block title %}Modify project {{ id }} participants{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/org/css/edit-participants.css") }}">
+{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    {{ parent() }}
+    <script src="{{ asset('assets/org/js/edit-participants.js') }}"></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
     <h2>Projects - Modify Participants</h2>
     <p>Organization panel - modify project ({{ id }}) participants page.</p>
+    <form method="POST" class="edit-participants-form">
+        <input type="submit" class="submit" value="Submit Changes" >
+
+        <table class="edit-participants-table" id="edit-participants-table">
+            <thead>
+                <tr id="table-header-row">
+                    <th draggable="true" class="draggable-col" data-index="0">Name</th>
+                    <th draggable="true" class="draggable-col" data-index="1">Role</th>
+                    <th draggable="true" class="draggable-col" data-index="2">Start date</th>
+                    <th draggable="true" class="draggable-col" data-index="3">Status</th>
+                    <th draggable="true" class="draggable-col" data-index="4">Joined at</th>
+                    <th draggable="true" class="draggable-col" data-index="5">Left at</th>
+                </tr>
+            </thead>
+            <tbody>
+               <tr>
+                   <td>username</td>
+                   <td>
+                       <select class="select-role">
+                           <option value="">Admin</option>
+                           <option value="">View Only</option>
+                       </select>
+                   </td>
+                   <td>Join Date</td>
+                   <td>Online</td>
+                   <td>05/07/2025</td>
+                   <td>05/07/2025</td>
+               </tr>
+            </tbody>
+        </table>
+    </form>
 {% endblock %}
