@@ -2,11 +2,9 @@
 
 namespace App\Module\Org\Controller;
 
-
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -35,7 +33,8 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
         ]);
-    } 
+    }
+    
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
     public function modifyProjectMatching(string $id): Response
     {
