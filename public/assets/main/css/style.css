@@ -1,16 +1,21 @@
-body {
-    header {
-        position: sticky;
-        top: 0;
-        background-color: var(--header-background);
-        backdrop-filter: blur(8px);
-    }
 
-    main {
-        min-height: 100dvh;
-    }
+/*body {*/
+/*    header {*/
+/*        position: sticky;*/
+/*        top: 0;*/
+/*        background-color: var(--header-background);*/
+/*        backdrop-filter: blur(8px);*/
+/*    }*/
 
-    footer {
+/*    main {*/
+/*        min-height: 100dvh;*/
 
-    }
-}
+/*    }*/
+
+/*    footer {*/
+
+/*    }*/
+
+/*}*/
+
+
