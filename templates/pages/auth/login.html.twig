@@ -18,7 +18,6 @@
         <div class="auth-grid">
             <section class="auth-form">
                 <header class="card-header">
-                    <h2>Welkom terug</h2>
                     <p class="lead">Log in om toegang te krijgen.</p>
                 </header>
 
@@ -27,25 +26,25 @@
                         <legend class="visually-hidden">Inloggen met je account</legend>
 
                         <label for="username">Gebruikersnaam of Email</label>
-                        <input id="username" 
-                               class="auth-input" 
-                               name="_username" 
-                               type="text" 
-                               value="{{ last_username|default('') }}" 
-                               placeholder="Je gebruikersnaam" 
-                               autocomplete="username" 
-                               required 
+                        <input id="username"
+                               class="auth-input"
+                               name="_username"
+                               type="text"
+                               value="{{ last_username|default('') }}"
+                               placeholder="Je gebruikersnaam"
+                               autocomplete="username"
+                               required
                                aria-required="true">
 
                         <label for="password">Wachtwoord</label>
                         <div class="input-row">
-                            <input id="password" 
-                                   class="auth-input" 
-                                   name="_password" 
-                                   type="password" 
-                                   placeholder="Je wachtwoord" 
-                                   autocomplete="current-password" 
-                                   required 
+                            <input id="password"
+                                   class="auth-input"
+                                   name="_password"
+                                   type="password"
+                                   placeholder="Je wachtwoord"
+                                   autocomplete="current-password"
+                                   required
                                    aria-required="true">
                         </div>
 
@@ -59,7 +58,7 @@
 
                 <p class="small mt-1">Nog geen account? <a href="/auth/register">Registreren</a></p>
                 <p class="small mt-1"><a href="/auth/forgot-password">Wachtwoord vergeten?</a></p>
-                
+
             </section>
         </div>
     </main>
