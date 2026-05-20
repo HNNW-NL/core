@@ -9,7 +9,9 @@
 {% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    <script src="../../../assets/org/js/projects-view.js"></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
@@ -20,7 +22,7 @@
         <div class="projects-current-text"><h2>Current projects</h2></div>
         <div class="search-bar-projects">
             <input type="text" id="search-text" placeholder="Search projects...">
-            <button>Search</button>
+            <button id="search-button">Search</button>
         </div>
 
         <div class="projects-container">
