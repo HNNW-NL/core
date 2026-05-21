@@ -11,55 +11,49 @@
 
 {# Page content #}
 {% block body %}
-<main class>
-        <section class="register-page" aria-labelledby="login-title">
-        <h1 id="login-title">Inloggen</h1>
+<section class="auth-page register-page" aria-labelledby="login-title">
+    <h1 id="login-title">Inloggen</h1>
 
-        <div class="auth-grid">
-            <section class="auth-form">
-                <header class="card-header">
-                    <p class="lead">Log in om toegang te krijgen.</p>
-                </header>
+    <div class="auth-grid">
+        <section class="auth-form">
+            <header class="card-header">
+                <p class="lead">Log in om toegang te krijgen.</p>
+            </header>
 
-                <form id="login-form" method="post">
-                    <fieldset>
-                        <legend class="visually-hidden">Inloggen met je account</legend>
+            {% for msg in app.flashes('error') %}
+                <div class="form-errors visible" role="alert" aria-live="assertive">{{ msg }}</div>
+            {% endfor %}
+            {% for msg in app.flashes('success') %}
+                <div class="form-success" role="status" aria-live="polite">{{ msg }}</div>
+            {% endfor %}
 
-                        <label for="username">Gebruikersnaam of Email</label>
-                        <input id="username"
-                               class="auth-input"
-                               name="_username"
-                               type="text"
-                               value="{{ last_username|default('') }}"
-                               placeholder="Je gebruikersnaam"
-                               autocomplete="username"
-                               required
-                               aria-required="true">
+            {% if error is defined and error %}
+                <div class="form-errors visible" role="alert" aria-live="assertive">{{ error }}</div>
+            {% endif %}
 
-                        <label for="password">Wachtwoord</label>
-                        <div class="input-row">
-                            <input id="password"
-                                   class="auth-input"
-                                   name="_password"
-                                   type="password"
-                                   placeholder="Je wachtwoord"
-                                   autocomplete="current-password"
-                                   required
-                                   aria-required="true">
-                        </div>
+            <form id="login-form" method="post" action="/auth/login">
+                <fieldset>
+                    <legend class="visually-hidden">Inloggen met je account</legend>
 
-                        <input type="hidden" name="_csrf_token">
+                    <label for="username">Gebruikersnaam of Email</label>
+                    <input id="username" class="auth-input" name="username" type="text" value="{{ last_username|default('') }}" placeholder="Je gebruikersnaam" autocomplete="username" required aria-required="true">
 
-                        <div class="mt-1">
-                            <button type="submit" class="btn">Log in</button>
-                        </div>
-                    </fieldset>
-                </form>
+                    <label for="password">Wachtwoord</label>
+                    <div class="input-row">
+                        <input id="password" class="auth-input" name="password" type="password" placeholder="Je wachtwoord" autocomplete="current-password" required aria-required="true">
+                    </div>
 
-                <p class="small mt-1">Nog geen account? <a href="/auth/register">Registreren</a></p>
-                <p class="small mt-1"><a href="/auth/forgot-password">Wachtwoord vergeten?</a></p>
+                    <input type="hidden" name="_csrf_token">
 
-            </section>
-        </div>
-    </main>
+                    <div class="mt-1">
+                        <button type="submit" class="btn">Log in</button>
+                    </div>
+                </fieldset>
+            </form>
+
+            <p class="small mt-1">Nog geen account? <a href="/auth/register">Registreren</a></p>
+            <p class="small mt-1"><a href="/auth/forgot-password">Wachtwoord vergeten?</a></p>
+        </section>
+    </div>
+</section>
 {% endblock %}
