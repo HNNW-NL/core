@@ -26,14 +26,14 @@
         </div>
 
         <div class="projects-container">
-            <div class="project-card">Project 1</div>
-            <div class="project-card">Project 2</div>
-            <div class="project-card">Project 3</div>
-            <div class="project-card">Project 4</div>
-            <div class="project-card">Project 5</div>
-            <div class="project-card">Project 6</div>
-            <div class="project-card">Project 7</div>
-            <div class="project-card">Project 8</div>
+            {% set projects = org_projects() %}
+            {% if projects is empty %}
+                <div>No projects found.</div>
+            {% else %}
+                {% for project in projects %}
+                    <div class="project-card" data-slug="{{ project.slug }}">{{ project.title }}</div>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 {% endblock %}
