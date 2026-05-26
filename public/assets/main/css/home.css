@@ -71,6 +71,7 @@ body {
     gap: 20px;
 }
 
+
 /* PROFILE */
 
 
@@ -98,19 +99,7 @@ body {
     transform: scale(1.1);
 }
 
-.hamburger {
-    display: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-}
 
-.hamburger svg {
-    width: 1.8rem;
-    height: 1.8rem;
-    fill: #ffffff;
-}
 
 @media (max-width: 900px) {
     .main-header {
