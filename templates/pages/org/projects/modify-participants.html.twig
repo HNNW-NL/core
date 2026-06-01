@@ -42,9 +42,9 @@
 
                     <td>
                         <select name="role[{{ participant.participant_id }}]" class="select-role">
-                            <option value="selected_role" selected>{{ participant.role_name ?? '-' }}</option>
                             {% for role in roles %}
-                                <option value="{{ role.name }}">
+                                <option value="{{ role.id }}"
+                                        {% if role.name == participant.role_name %}selected{% endif %}>
                                     {{ role.name }}
                                 </option>
                             {% endfor %}
