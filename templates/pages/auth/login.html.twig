@@ -17,9 +17,8 @@
     <div class="auth-grid">
         <section class="auth-form">
             <header class="card-header">
-                <p class="lead">Log in om toegang te krijgen.</p>
+                <h2>Log hier in</h2>
             </header>
-
             {% for msg in app.flashes('error') %}
                 <div class="form-errors visible" role="alert" aria-live="assertive">{{ msg }}</div>
             {% endfor %}
