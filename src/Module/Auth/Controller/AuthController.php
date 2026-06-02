@@ -8,7 +8,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use App\Entity\Account\Account;
+use App\Entity\Auth\ResetPasswordToken;
+use App\Entity\Auth\VerifyEmailToken;
 use App\Entity\Common\Status;
 
 #[Route('/auth', name: 'auth.')]
@@ -47,7 +52,7 @@ final class AuthController extends AbstractController
     }
 
     #[Route('/register', name: 'register', methods: ['GET','POST'])]
-    public function register(Request $request, EntityManagerInterface $em): Response
+    public function register(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UrlGeneratorInterface $router): Response
     {
         if ($request->isMethod('POST')) {
             $data = [
@@ -107,6 +112,30 @@ final class AuthController extends AbstractController
             $em->persist($account);
             $em->flush();
 
+            $plainToken = bin2hex(random_bytes(32));
+            $tokenHash = password_hash($plainToken, PASSWORD_DEFAULT);
+
+            $verifyToken = new VerifyEmailToken();
+            $verifyToken->setAccount($account);
+            $verifyToken->setEmailToVerify($account->getEmail());
+            $verifyToken->setTokenHash($tokenHash);
+
+            $em->persist($verifyToken);
+            $em->flush();
+
+            $verifyLink = $router->generate('auth.verifyEmail', [
+                'token' => $plainToken,
+                'email' => $account->getEmail(),
+            ], UrlGeneratorInterface::ABSOLUTE_URL);
+
+            $mailer->send(
+                (new Email())
+                    ->from('no-reply@example.com')
+                    ->to($account->getEmail())
+                    ->subject('Bevestig je e-mailadres')
+                    ->text("Klik op deze link om je e-mailadres te bevestigen:\n\n".$verifyLink."\n\nDeze link is tijdelijk geldig.")
+            );
+
             $this->addFlash('success', 'Account aangemaakt. Je kunt nu inloggen.');
             return $this->redirectToRoute('auth.login', ['last' => $data['username']]);
         }
@@ -114,18 +143,180 @@ final class AuthController extends AbstractController
         return $this->render('pages/auth/register.html.twig');
     }
 
-    #[Route('/forgot-password', name: 'forgotPassword', methods: ['GET'])]
-    public function forgotPassword(): Response
+    #[Route('/forgot-password', name: 'forgotPassword', methods: ['GET','POST'])]
+    public function forgotPassword(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UrlGeneratorInterface $router): Response
     {
+        if ($request->isMethod('POST')) {
+            $email = trim((string)$request->request->get('email', ''));
+
+            // Always respond with a success message to avoid user enumeration
+            $this->addFlash('success', 'Als dat e-mailadres bestaat, is er een e-mail verzonden met instructies.');
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->redirectToRoute('auth.forgotPassword');
+            }
+
+            $repo = $em->getRepository(Account::class);
+            $account = $repo->findOneBy(['email' => $email]);
+
+            if (!$account) {
+                return $this->redirectToRoute('auth.forgotPassword');
+            }
+
+            $plainToken = bin2hex(random_bytes(32));
+            $tokenHash = password_hash($plainToken, PASSWORD_DEFAULT);
+
+            $token = new ResetPasswordToken();
+            $token->setAccount($account);
+            $token->setTokenHash($tokenHash);
+
+            $em->persist($token);
+            $em->flush();
+
+            $resetLink = $router->generate('auth.resetPassword', ['token' => $plainToken, 'email' => $account->getEmail()], UrlGeneratorInterface::ABSOLUTE_URL);
+
+            $emailMessage = (new Email())
+                ->from('no-reply@example.com')
+                ->to($account->getEmail())
+                ->subject('Wachtwoord resetten')
+                ->text("Klik op deze link om je wachtwoord te resetten:\n\n".$resetLink."\n\nDeze link is tijdelijk geldig.");
+
+            $mailer->send($emailMessage);
+
+            return $this->redirectToRoute('auth.forgotPassword');
+        }
+
         return $this->render('pages/auth/forgot-password.html.twig');
     }
 
-    #[Route('/reset-password/{token}/{email}', name: 'resetPassword', methods: ['GET'])]
-    public function resetPassword(string $token, string $email): Response
+    #[Route('/reset-password/{token}/{email}', name: 'resetPassword', methods: ['GET', 'POST'])]
+    public function resetPassword(Request $request, string $token, string $email, EntityManagerInterface $em): Response
     {
-        return $this->render('emails/reset-password.html.twig',[
-            'token' => $token,
-            'email' => $email
-        ]);
+        $repo = $em->getRepository(Account::class);
+        $account = $repo->findOneBy(['email' => $email]);
+
+        if (!$account) {
+            $this->addFlash('error', 'Ongeldige of verlopen reset link.');
+            return $this->redirectToRoute('auth.forgotPassword');
+        }
+
+        $tokenRepo = $em->getRepository(ResetPasswordToken::class);
+        $tokens = $tokenRepo->findBy(['account' => $account, 'isUsed' => false]);
+
+        $matchedToken = null;
+        $now = new \DateTimeImmutable();
+        foreach ($tokens as $candidate) {
+            if ($candidate->getExpiresAt() < $now) {
+                continue;
+            }
+
+            if (password_verify($token, $candidate->getTokenHash() ?? '')) {
+                $matchedToken = $candidate;
+                break;
+            }
+        }
+
+        if (!$matchedToken) {
+            $this->addFlash('error', 'Ongeldige of verlopen reset link.');
+            return $this->redirectToRoute('auth.forgotPassword');
+        }
+
+        if ($request->isMethod('POST')) {
+            $password = (string)$request->request->get('password', '');
+            $confirm = (string)$request->request->get('confirm_password', '');
+
+            $errors = [];
+            if (strlen($password) < 8) {
+                $errors[] = 'Wachtwoord moet minimaal 8 tekens bevatten.';
+            }
+            if ($password !== $confirm) {
+                $errors[] = 'Wachtwoorden komen niet overeen.';
+            }
+
+            if (!empty($errors)) {
+                return $this->renderResetPasswordPage($token, $email, $errors);
+            }
+
+            $account->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
+            $matchedToken->markAsUsed();
+
+            $em->persist($account);
+            $em->persist($matchedToken);
+            $em->flush();
+
+            $this->addFlash('success', 'Wachtwoord succesvol gereset. Je kunt nu inloggen.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        return $this->renderResetPasswordPage($token, $email);
+    }
+
+    #[Route('/verify-email/{token}/{email}', name: 'verifyEmail', methods: ['GET'])]
+    public function verifyEmail(string $token, string $email, EntityManagerInterface $em): Response
+    {
+        $repo = $em->getRepository(Account::class);
+        $account = $repo->findOneBy(['email' => $email]);
+
+        if (!$account) {
+            $this->addFlash('error', 'Ongeldige of verlopen verificatielink.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $tokenRepo = $em->getRepository(VerifyEmailToken::class);
+        $tokens = $tokenRepo->findBy(['account' => $account, 'isUsed' => false]);
+
+        $matchedToken = null;
+        $now = new \DateTimeImmutable();
+        foreach ($tokens as $candidate) {
+            if ($candidate->getExpiresAt() < $now) {
+                continue;
+            }
+
+            if (password_verify($token, $candidate->getTokenHash() ?? '')) {
+                $matchedToken = $candidate;
+                break;
+            }
+        }
+
+        if (!$matchedToken) {
+            $this->addFlash('error', 'Ongeldige of verlopen verificatielink.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $account->verifyEmail();
+        $matchedToken->markAsUsed();
+
+        $em->persist($account);
+        $em->persist($matchedToken);
+        $em->flush();
+
+        $this->addFlash('success', 'E-mailadres bevestigd. Je kunt nu inloggen.');
+        return $this->redirectToRoute('auth.login');
+    }
+
+    private function renderResetPasswordPage(string $token, string $email, array $errors = []): Response
+    {
+        $action = $this->generateUrl('auth.resetPassword', ['token' => $token, 'email' => $email]);
+
+        $html = '<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Wachtwoord resetten</title></head><body>';
+        $html .= '<h1>Wachtwoord resetten</h1>';
+
+        if (!empty($errors)) {
+            $html .= '<div class="form-errors" role="alert"><ul>';
+            foreach ($errors as $error) {
+                $html .= '<li>' . htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</li>';
+            }
+            $html .= '</ul></div>';
+        }
+
+        $html .= '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">';
+        $html .= '<label for="password">Nieuw wachtwoord</label><br>';
+        $html .= '<input id="password" name="password" type="password" minlength="8" required><br>';
+        $html .= '<label for="confirm_password">Bevestig wachtwoord</label><br>';
+        $html .= '<input id="confirm_password" name="confirm_password" type="password" minlength="8" required><br>';
+        $html .= '<button type="submit">Wachtwoord opslaan</button>';
+        $html .= '</form></body></html>';
+
+        return new Response($html);
     }
 }
