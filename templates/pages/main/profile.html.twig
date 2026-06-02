@@ -13,7 +13,24 @@
 
         <div class="header">
             <div class="profile">
-                <div class="profile-avatar"></div>
+                <div class="profile-avatar">
+                  <img id="preview" src="default-profile.png" alt="Profile Picture">
+                  <input type="file" id="upload" accept="image/*">
+                </div>
+                <script>
+                const upload = document.getElementById("upload");
+                const preview = document.getElementById("preview");
+
+                upload.addEventListener("change", function () {
+                const file = this.files[0];
+
+                if (file) {
+               preview.src = URL.createObjectURL(file);
+                }
+               });
+               </script>  
+
+
 
                 <div class="profile-text">
                     <h1>Naam</h1>
@@ -74,4 +91,8 @@
         </div>
 
     </div>
+{% endblock %}
+
+{% block javascripts %}
+
 {% endblock %}
