@@ -71,13 +71,30 @@ header nav ul svg:hover path {
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 20px 0;
+    padding: 20px 16px;
     margin-top: 40px;
+    text-align: center;
+    box-sizing: border-box;
 }
 
 .main-footer p {
     color: #64748B;
     font-size: 0.75rem;
-    line-height: 1rem;
+    line-height: 1.4;
     margin: 0;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+
+@media (max-width: 768px) {
+    .main-footer {
+        padding: 16px;
+        text-align: center;
+    }
+
+    .main-footer p {
+        font-size: 0.7rem;
+        line-height: 1.4;
+    }
 }

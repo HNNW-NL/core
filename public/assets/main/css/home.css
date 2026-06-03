@@ -330,6 +330,9 @@ body {
     overflow-y: auto;
 }
 
+.card-about-me h2 {
+    font-weight: 600;
+}
 
 /* MUTED TEXT */
 
@@ -359,17 +362,17 @@ body {
 .bubble {
     background: #000;
 
-    padding: 8px 14px;
+    padding: 10px 18px;
 
     border-radius: 20px;
 
     border: 3px solid var(--accent-yellow);
 
-    font-size: 13px;
+    font-size: 0.850rem;
 
     color: var(--accent-yellow);
 
-    font-weight: 600;
+    font-weight: 800;
 }
 
 
@@ -526,4 +529,39 @@ body {
         width: 40px;
         height: 40px;
     }
+}
+
+/* WEBKIT SCROLLBAR */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+        180deg,
+        #ffd400,
+        #ffb800
+    );
+    border-radius: 10px;
+    border: 2px solid var(--dark-bg);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+        180deg,
+        #ffe14a,
+        #ffcc00
+    );
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--dark-bg);
 }
