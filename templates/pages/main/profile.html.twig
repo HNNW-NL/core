@@ -17,7 +17,27 @@
 
                 <div class="profile-text">
                     <h1>Naam</h1>
-                    <p>Occupation / Status</p>
+                    
+                    
+                    {% if app and app.user %}
+                     
+                        <p>Status: {{ app.user.statusId|default('Geen status') }}</p>
+                        
+                        
+                        <p>
+                            {% if app.user.lastLoginAt %}
+                                Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i') }}
+                            {% else %}
+                                Laatst actief: Onbekend
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        
+                        <p>Occupation / Status</p>
+                        <p>Laatst actief: Onbekend</p>
+                    {% endif %}
+                   
+                    
                     <p>Locatie</p>
                 </div>
             </div>
