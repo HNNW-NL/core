@@ -363,16 +363,19 @@ body {
     background: #000;
 
     padding: 10px 18px;
+    width: 140px;
 
     border-radius: 20px;
 
     border: 3px solid var(--accent-yellow);
 
-    font-size: 0.850rem;
+    font-size: 0.930rem;
 
     color: var(--accent-yellow);
 
     font-weight: 800;
+    text-align: center;
+
 }
 
 
@@ -380,18 +383,15 @@ body {
 /* ACTION BUTTONS */
 
 .action-buttons {
-
     display: flex;
-
     flex-direction: column;
-
     gap: 15px;
-
+    align-items: center;
 }
 
 
 
-.btn-outline {
+.btn-outline-edit {
 
     border: 2px solid var(--accent-yellow);
 
@@ -409,11 +409,34 @@ body {
 
     transition: 0.3s;
 
+    width: 300px;
+
+}
+
+.btn-outline-projects {
+
+    border: 2px solid var(--accent-yellow);
+
+    color: var(--accent-yellow);
+
+    text-decoration: none;
+
+    text-align: center;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    font-weight: bold;
+
+    transition: 0.3s;
+
+    width: 300px;
+
 }
 
 
-
-.btn-outline:hover {
+.btn-outline-edit:hover {
 
     background: var(--accent-yellow);
 
@@ -421,7 +444,13 @@ body {
 
 }
 
+.btn-outline-projects:hover {
 
+    background: var(--accent-yellow);
+
+    color: black;
+
+}
 
 /* ACHIEVEMENTS */
 
