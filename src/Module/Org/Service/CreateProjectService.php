@@ -20,7 +20,7 @@ class CreateProjectService
         $project = new Project();
 
         $project->setTitle($dto->name);
-        $project->setSummary($dto->summary);    
+        $project->setSummary($dto->summary);        
         $project->setDescription($dto->description);
         $project->setCapacity($dto->capacity);
         $project->setVisibility($dto->visibility);
