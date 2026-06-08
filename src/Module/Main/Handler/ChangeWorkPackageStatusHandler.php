@@ -9,15 +9,16 @@ final class ChangeWorkPackageStatusHandler
 {
     public function __construct(
         private readonly WorkPackageWorkflowService $workflowService,
-    ) {}
+    ) {
+    }
 
-    public function handle(
-        ChangeWorkPackageStatusDTO $dto
-    ): void {
+    public function handle(ChangeWorkPackageStatusDTO $dto): void
+    {
         // TODO:
         // WorkPackage ophalen
-        // Huidige status ophalen
-        // Workflow controleren
-        // Nieuwe status opslaan
+        // huidige status ophalen
+        // workflow controleren
+        // nieuwe status instellen
+        // opslaan in database
     }
 }

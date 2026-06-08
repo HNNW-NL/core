@@ -13,10 +13,8 @@ final class WorkPackageWorkflowService
         'Cancelled' => [],
     ];
 
-    public function canTransition(
-        string $currentStatus,
-        string $newStatus
-    ): bool {
+    public function canTransition(string $currentStatus, string $newStatus): bool
+    {
         return in_array(
             $newStatus,
             self::TRANSITIONS[$currentStatus] ?? [],
@@ -24,9 +22,8 @@ final class WorkPackageWorkflowService
         );
     }
 
-    public function getAllowedTransitions(
-        string $currentStatus
-    ): array {
+    public function getAllowedTransitions(string $currentStatus): array
+    {
         return self::TRANSITIONS[$currentStatus] ?? [];
     }
 }
