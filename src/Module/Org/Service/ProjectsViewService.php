@@ -3,14 +3,17 @@ namespace App\Module\Org\Service;
 
 use App\Entity\Project\Project;
 use Doctrine\Persistence\ManagerRegistry;
+use Psr\Log\LoggerInterface;
 
 final class ProjectsViewService
 {
 	private ManagerRegistry $doctrine;
+	private LoggerInterface $logger;
 
-	public function __construct(ManagerRegistry $doctrine)
+	public function __construct(ManagerRegistry $doctrine, LoggerInterface $logger)
 	{
 		$this->doctrine = $doctrine;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -23,22 +26,20 @@ final class ProjectsViewService
 	public function getProjects(int $page = 1, int $perPage = 8): array
 	{
 		try {
-			$repo = $this->doctrine->getRepository(Project::class);
+			$conn = $this->doctrine->getConnection();
 
 			if ($perPage <= 0) {
-				$projects = $repo->findBy([], ['createdAt' => 'DESC']);
-				$items = [];
-				foreach ($projects as $p) {
-					if (!$p instanceof Project) {
-						continue;
-					}
-					$items[] = [
-						'id' => (string) $p->getId(),
-						'title' => $p->getTitle(),
-						'summary' => $p->getSummary(),
-						'slug' => $p->getSlug(),
+				$sqlAll = 'SELECT id, title, summary, slug FROM projects ORDER BY id DESC';
+				$rows = $conn->executeQuery($sqlAll)->fetchAllAssociative();
+
+				$items = array_map(function (array $r) {
+					return [
+						'id' => isset($r['id']) ? (string) $r['id'] : '',
+						'title' => $r['title'] ?? null,
+						'summary' => $r['summary'] ?? null,
+						'slug' => $r['slug'] ?? null,
 					];
-				}
+				}, $rows);
 
 				return [
 					'items' => $items,
@@ -53,10 +54,7 @@ final class ProjectsViewService
 
 			$page = max(1, $page);
 
-			// total count
-			$qbCount = $repo->createQueryBuilder('p')->select('COUNT(p.id)');
-			$total = (int) $qbCount->getQuery()->getSingleScalarResult();
-
+			$total = (int) $conn->executeQuery('SELECT COUNT(*) FROM projects')->fetchOne();
 			$totalPages = (int) max(1, ceil($total / $perPage));
 			if ($page > $totalPages) {
 				$page = $totalPages;
@@ -64,26 +62,18 @@ final class ProjectsViewService
 
 			$offset = ($page - 1) * $perPage;
 
-			$qb = $repo->createQueryBuilder('p')
-				->orderBy('p.createdAt', 'DESC')
-				->setFirstResult($offset)
-				->setMaxResults($perPage);
+			$sql = 'SELECT id, title, summary, slug FROM projects ORDER BY id DESC LIMIT ' . (int)$perPage . ' OFFSET ' . (int)$offset;
+			$result = $conn->executeQuery($sql);
+			$rows = $result->fetchAllAssociative();
 
-			$projects = $qb->getQuery()->getResult();
-
-			$items = [];
-			foreach ($projects as $p) {
-				if (!$p instanceof Project) {
-					continue;
-				}
-
-				$items[] = [
-					'id' => (string) $p->getId(),
-					'title' => $p->getTitle(),
-					'summary' => $p->getSummary(),
-					'slug' => $p->getSlug(),
+			$items = array_map(function (array $r) {
+				return [
+					'id' => isset($r['id']) ? (string) $r['id'] : '',
+					'title' => $r['title'] ?? null,
+					'summary' => $r['summary'] ?? null,
+					'slug' => $r['slug'] ?? null,
 				];
-			}
+			}, $rows);
 
 			return [
 				'items' => $items,
@@ -95,7 +85,10 @@ final class ProjectsViewService
 				],
 			];
 		} catch (\Throwable $e) {
-			// On any error, return an empty but valid pagination structure so Twig doesn't error out.
+			$this->logger->error('ProjectsViewService::getProjects failed', [
+				'message' => $e->getMessage(),
+				'code' => $e->getCode(),
+			]);
 			return [
 				'items' => [],
 				'pagination' => [
