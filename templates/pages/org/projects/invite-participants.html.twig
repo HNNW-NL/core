@@ -11,6 +11,13 @@
 
 {# Page content #}
 {% block body %}
+    {% include "/core/org/_modify-project-nav.html.twig" %}
     <h2>Projects - Invite Participants</h2>
     <p>Organization panel - invite project ({{ id }}) participants page.</p>
+    <form method="POST">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" required placeholder="Zoek op naam of e-mailadres">
+        <label for="invites"></label>
+        <textarea name="invites" id="invites" cols="30" rows="10" required aria-required="true"></textarea>
+    </form>
 {% endblock %}
