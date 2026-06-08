@@ -71,16 +71,17 @@ header nav ul svg:hover path {
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 20px 16px;
+    padding: 24px 20px;
     margin-top: 40px;
     text-align: center;
     box-sizing: border-box;
+    flex-wrap: wrap;
 }
 
 .main-footer p {
     color: #64748B;
-    font-size: 0.75rem;
-    line-height: 1.4;
+    font-size: 0.85rem;
+    line-height: 1.5;
     margin: 0;
     max-width: 100%;
     word-wrap: break-word;
@@ -89,8 +90,10 @@ header nav ul svg:hover path {
 
 @media (max-width: 768px) {
     .main-footer {
-        padding: 16px;
-        text-align: center;
+        padding: 20px 16px; 
+          flex-direction: column;
+          gap: 8px;
+          margin-top: auto;
     }
 
     .main-footer p {
@@ -98,3 +101,35 @@ header nav ul svg:hover path {
         line-height: 1.4;
     }
 }
+  @media (max-width: 900px) {
+    .main-footer {
+        padding:22px 18px;
+        margin-top: auto;
+    }
+.main-footer p {
+        font-size: 0.8rem;
+}
+    }
+        
+    @media (max-width: 480px) {
+       
+ .main-footer {
+        padding:16px 12px;
+        margin-top: auto;
+    }
+.main-footer p {
+        font-size: 0.7rem;
+        line-height: 1.4;
+}
+    }
+    @media (max-width: 360px) {
+    .main-footer {
+        padding: 12px 18px;
+        margin-top: auto;
+    }
+    
+    .main-footer p {
+        font-size: 0.65rem;
+    }
+}
+       
