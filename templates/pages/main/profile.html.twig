@@ -18,10 +18,16 @@
                 <div class="profile-text">
                     <h1>Naam</h1>
                     
-                    
                     {% if app and app.user %}
-                     
-                        <p>Status: {{ app.user.statusId|default('Geen status') }}</p>
+                        
+                        
+                        <p>Status: 
+                            {% if app.user.statusId == 1 %}
+                                Online
+                            {% else %}
+                                Offline
+                            {% endif %}
+                        </p>
                         
                         
                         <p>
