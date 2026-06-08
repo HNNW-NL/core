@@ -1,25 +1,20 @@
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("search-text");
     const searchButton = document.getElementById("search-button");
-    const projectCards = document.querySelectorAll(".project-card");
-
-    function searchProjects() {
-        const searchValue = searchInput.value.toLowerCase().trim();
-
-        projectCards.forEach(card => {
-            const projectName = card.textContent.toLowerCase();
-
-            if (projectName.includes(searchValue)) {
-                card.style.display = "flex";
-            } else {
-                card.style.display = "none";
-            }
-        });
+    // Perform server-side search by navigating to ?page=1&q=...
+    function submitSearch() {
+        const q = encodeURIComponent((searchInput.value || '').trim());
+        const url = q ? `?page=1&q=${q}` : `?page=1`;
+        window.location.href = url;
     }
 
     // Search when button is clicked
-    searchButton.addEventListener("click", searchProjects);
+    searchButton.addEventListener("click", submitSearch);
 
-    // Live search while typing
-    searchInput.addEventListener("keyup", searchProjects);
+    // Submit on Enter key
+    searchInput.addEventListener("keyup", (e) => {
+        if (e.key === 'Enter') {
+            submitSearch();
+        }
+    });
 });

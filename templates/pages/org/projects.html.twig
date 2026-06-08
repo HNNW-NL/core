@@ -26,7 +26,8 @@
         </div>
 
         {% set page = (app.request.query.get('page')|default(1)) + 0 %}
-        {% set data = org_projects(page, 8) %}
+        {% set q = app.request.query.get('q')|default('') %}
+        {% set data = org_projects(page, 8, q) %}
         {% set projects = data.items %}
         <div class="projects-container">
             {% if projects is empty %}
@@ -43,8 +44,15 @@
         <div class="projects-pagination">
             <div>Page {{ p.current_page }} of {{ p.total_pages }}</div>
             <div class="projects-pagination-controls">
+                {% set base = '?page=' %}
+                {% if q is not empty %}
+                    {% set qparam = '&q=' ~ q|url_encode %}
+                {% else %}
+                    {% set qparam = '' %}
+                {% endif %}
+
                 {% if p.current_page > 1 %}
-                    <a href="?page={{ p.current_page - 1 }}">Prev</a>
+                    <a href="{{ base }}{{ p.current_page - 1 }}{{ qparam }}">Prev</a>
                 {% else %}
                     <span class="disabled">Prev</span>
                 {% endif %}
@@ -53,12 +61,12 @@
                     {% if i == p.current_page %}
                         <strong>{{ i }}</strong>
                     {% else %}
-                        <a href="?page={{ i }}">{{ i }}</a>
+                        <a href="{{ base }}{{ i }}{{ qparam }}">{{ i }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if p.current_page < p.total_pages %}
-                    <a href="?page={{ p.current_page + 1 }}">Next</a>
+                    <a href="{{ base }}{{ p.current_page + 1 }}{{ qparam }}">Next</a>
                 {% else %}
                     <span class="disabled">Next</span>
                 {% endif %}

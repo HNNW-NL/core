@@ -23,7 +23,7 @@ final class ProjectsViewService
 	 *
 	 * @return array{ items: array<int, array{ id: string, title: ?string, summary: ?string, slug: ?string }>, pagination: array }
 	 */
-	public function getProjects(int $page = 1, int $perPage = 8): array
+	public function getProjects(int $page = 1, int $perPage = 8, string $q = ''): array
 	{
 		try {
 			$conn = $this->doctrine->getConnection();
@@ -54,7 +54,12 @@ final class ProjectsViewService
 
 			$page = max(1, $page);
 
-			$total = (int) $conn->executeQuery('SELECT COUNT(*) FROM projects')->fetchOne();
+			if ($q !== '') {
+				$countSql = 'SELECT COUNT(*) FROM projects WHERE title ILIKE :q OR summary ILIKE :q';
+				$total = (int) $conn->executeQuery($countSql, ['q' => '%' . $q . '%'])->fetchOne();
+			} else {
+				$total = (int) $conn->executeQuery('SELECT COUNT(*) FROM projects')->fetchOne();
+			}
 			$totalPages = (int) max(1, ceil($total / $perPage));
 			if ($page > $totalPages) {
 				$page = $totalPages;
@@ -62,8 +67,13 @@ final class ProjectsViewService
 
 			$offset = ($page - 1) * $perPage;
 
-			$sql = 'SELECT id, title, summary, slug FROM projects ORDER BY id DESC LIMIT ' . (int)$perPage . ' OFFSET ' . (int)$offset;
-			$result = $conn->executeQuery($sql);
+			if ($q !== '') {
+				$sql = 'SELECT id, title, summary, slug FROM projects WHERE title ILIKE :q OR summary ILIKE :q ORDER BY id DESC LIMIT ' . (int)$perPage . ' OFFSET ' . (int)$offset;
+				$result = $conn->executeQuery($sql, ['q' => '%' . $q . '%']);
+			} else {
+				$sql = 'SELECT id, title, summary, slug FROM projects ORDER BY id DESC LIMIT ' . (int)$perPage . ' OFFSET ' . (int)$offset;
+				$result = $conn->executeQuery($sql);
+			}
 			$rows = $result->fetchAllAssociative();
 
 			$items = array_map(function (array $r) {

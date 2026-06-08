@@ -21,8 +21,8 @@ final class ProjectsExtension extends AbstractExtension
         ];
     }
 
-    public function getProjects(int $page = 1, int $perPage = 8): array
+    public function getProjects(int $page = 1, int $perPage = 8, string $q = ''): array
     {
-        return $this->service->getProjects($page, $perPage);
+        return $this->service->getProjects($page, $perPage, $q);
     }
 }
