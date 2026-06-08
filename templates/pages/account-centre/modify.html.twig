@@ -11,6 +11,49 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Modify</h2>
-    <p>Account Centre - modify page.</p>
+<div id="account-centre-container">
+    <header class="dashboard-header">
+        <h1>Profiel Wijzigen</h1>
+        <p>Pas hier je persoonlijke gegevens en voorkeuren aan.</p>
+    </header>
+
+    <div class="account-form-container">
+        <form action="#" method="POST">
+            <div class="form-group">
+                <label for="username">Gebruikersnaam</label>
+                <input type="text" id="username" name="username" placeholder="Je naam..." value="">
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mailadres</label>
+                <input type="email" id="email" name="email" placeholder="e-mail@voorbeeld.nl" value="">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Telefoonnummer</label>
+                <input type="tel" id="phone" name="phone" placeholder="Telefoonnummer..." value="">
+            </div>
+
+            <div class="form-group">
+                <label for="bio">Over jezelf</label>
+                <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="talen">Talen</label>
+                <input type="text" id="talen" name="talen" placeholder="Talen..." value="">
+            </div>
+            <div class="form-group">
+                <label for="expertise">Expertise</label>
+                <input type="text" id="expertise" name="expertise" placeholder="Expertise..." value="">
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 2rem;">
+                <button type="submit" class="btn-primary">Opslaan</button>
+                <a href="{{ path('account.home') }}" style="color: var(--hnnw-secondary-text); text-decoration: none; font-size: 0.9rem;">
+                    Annuleren
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
