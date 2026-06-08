@@ -31,7 +31,7 @@
                         
                         <p>
                             {% if app.user.lastLoginAt %}
-                                {# De safe-filter zorgt dat de pagina nooit crasht op de datum format #}
+                             
                                 Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
                             {% else %}
                                 Laatst actief: Onbekend
