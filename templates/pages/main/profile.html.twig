@@ -1,4 +1,4 @@
- {% extends 'layouts/main.base.html.twig' %}
+{% extends 'layouts/main.base.html.twig' %}
 
 {% block title %}
   Profiel
@@ -21,8 +21,10 @@
                     {% if app and app.user %}
                         
                         <p>Status: 
-                            {% if app.user.statusId == 1 %}
+                            {% if app.user.status and app.user.status.id == 1 %}
                                 Online
+                            {% elseif app.user.status and app.user.status.id == 2 %}
+                                Afwezig
                             {% else %}
                                 Offline
                             {% endif %}
