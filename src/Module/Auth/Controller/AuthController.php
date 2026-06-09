@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use App\Entity\Account\Account;
+use App\Entity\Account\Profile;
 use App\Entity\Auth\ResetPasswordToken;
 use App\Entity\Auth\VerifyEmailToken;
 use App\Entity\Common\Status;
@@ -103,38 +104,71 @@ final class AuthController extends AbstractController
                 $em->persist($defaultStatus);
             }
 
-            $account = new Account();
-            $account->setUsername($data['username']);
-            $account->setEmail($data['email']);
-            $account->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
-            $account->setStatus($defaultStatus);
+            // Wrap in a transaction to prevent partial database data insertions
+            $em->getConnection()->beginTransaction();
+            try {
+                // 1. Setup Account (Id is automatically instantiated as Uuid object in constructor)
+                $account = new Account();
+                $account->setUsername($data['username']);
+                $account->setEmail($data['email']);
+                $account->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
+                $account->setStatus($defaultStatus);
+                $em->persist($account);
 
-            $em->persist($account);
-            $em->flush();
+                // 2. Setup Profile linked directly to Account
+                $nameParts = explode(' ', $data['full_name'], 2);
+                $firstName = $nameParts[0] !== '' ? $nameParts[0] : $data['username'];
+                $lastName = $nameParts[1] ?? ' ';
 
-            $plainToken = bin2hex(random_bytes(32));
-            $tokenHash = password_hash($plainToken, PASSWORD_DEFAULT);
+                $profile = new Profile();
+                $profile->setAccount($account);
+                $profile->setFirstName($firstName);
+                $profile->setLastName($lastName);
+                $profile->setDisplayName($data['username']);
+                $profile->setAvatarUrl('https://ui-avatars.com/api/?name=' . urlencode($firstName) . '&background=facc15&color=000');
+                $profile->setPoints(0);
+                $em->persist($profile);
 
-            $verifyToken = new VerifyEmailToken();
-            $verifyToken->setAccount($account);
-            $verifyToken->setEmailToVerify($account->getEmail());
-            $verifyToken->setTokenHash($tokenHash);
+                // 3. Setup Verification Token
+                $plainToken = bin2hex(random_bytes(32));
+                $tokenHash = password_hash($plainToken, PASSWORD_DEFAULT);
 
-            $em->persist($verifyToken);
-            $em->flush();
+                $verifyToken = new VerifyEmailToken();
+                $verifyToken->setAccount($account);
+                $verifyToken->setEmailToVerify($account->getEmail());
+                $verifyToken->setTokenHash($tokenHash);
+                $em->persist($verifyToken);
 
-            $verifyLink = $router->generate('auth.verifyEmail', [
-                'token' => $plainToken,
-                'email' => $account->getEmail(),
-            ], UrlGeneratorInterface::ABSOLUTE_URL);
+                // Sync all relationships securely to the database engine
+                $em->flush();
 
-            $mailer->send(
-                (new Email())
-                    ->from('no-reply@example.com')
-                    ->to($account->getEmail())
-                    ->subject('Bevestig je e-mailadres')
-                    ->text("Klik op deze link om je e-mailadres te bevestigen:\n\n".$verifyLink."\n\nDeze link is tijdelijk geldig.")
-            );
+                // 4. Generate Absolute URL Link & Dispatch Mail
+                $verifyLink = $router->generate('auth.verifyEmail', [
+                    'token' => $plainToken,
+                    'email' => $account->getEmail(),
+                ], UrlGeneratorInterface::ABSOLUTE_URL);
+
+                $mailer->send(
+                    (new Email())
+                        ->from('no-reply@example.com')
+                        ->to($account->getEmail())
+                        ->subject('Bevestig je e-mailadres')
+                        ->text("Klik op deze link om je e-mailadres te bevestigen:\n\n".$verifyLink."\n\nDeze link is tijdelijk geldig.")
+                );
+
+                $em->getConnection()->commit();
+
+            } catch (\Exception $e) {
+                $em->getConnection()->rollBack();
+
+                // Diagnostic dump to identify missing entity parameters easily
+                dd($e->getMessage(), $e->getTraceAsString());
+
+                $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
+                return $this->render('pages/auth/register.html.twig', [
+                    'old' => $data,
+                ]);
+            }
 
             $this->addFlash('success', 'Account aangemaakt. Je kunt nu inloggen.');
             return $this->redirectToRoute('auth.login', ['last' => $data['username']]);
@@ -149,7 +183,6 @@ final class AuthController extends AbstractController
         if ($request->isMethod('POST')) {
             $email = trim((string)$request->request->get('email', ''));
 
-            // Always respond with a success message to avoid user enumeration
             $this->addFlash('success', 'Als dat e-mailadres bestaat, is er een e-mail verzonden met instructies.');
 
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -169,7 +202,6 @@ final class AuthController extends AbstractController
             $token = new ResetPasswordToken();
             $token->setAccount($account);
             $token->setTokenHash($tokenHash);
-
             $em->persist($token);
             $em->flush();
 
@@ -248,7 +280,7 @@ final class AuthController extends AbstractController
             return $this->redirectToRoute('auth.login');
         }
 
-        return $this->renderResetPasswordPage($token, $email);
+        return $this->renderResetPasswordPage($token, $email, []);
     }
 
     #[Route('/verify-email/{token}/{email}', name: 'verifyEmail', methods: ['GET'])]

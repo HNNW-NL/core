@@ -11,46 +11,55 @@
 
 {# Page content #}
 {% block body %}
-<div id="account-centre-container">
-    <header class="dashboard-header">
-        <h1>Notificatie-instellingen</h1>
-        <p>Bepaal zelf welke updates en nieuwsbrieven je van HNNW wilt ontvangen.</p>
-    </header>
+    <div id="account-centre-container">
+        <header class="dashboard-header">
+            <h1>Notificatie-instellingen</h1>
+            <p>Bepaal zelf welke updates en nieuwsbrieven je van HNNW wilt ontvangen.</p>
+        </header>
 
-    <div class="account-form-container">
-        <form action="#" method="POST">
-            
-            <div class="form-group-checkbox">
-                <input type="checkbox" id="notify_projects" name="notify_projects" checked>
-                <label for="notify_projects">
-                    <strong>Nieuwe Projecten</strong>
-                    <span>Ontvang direct een melding zodra er een nieuw project start dat matcht met jouw skills.</span>
-                </label>
-            </div>
+        {# Flash messages for success and error state alerts #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
 
-            <div class="form-group-checkbox">
-                <input type="checkbox" id="notify_newsletter" name="notify_newsletter">
-                <label for="notify_newsletter">
-                    <strong>Maandelijkse Nieuwsbrief</strong>
-                    <span>Blijf op de hoogte van algemeen nieuws, updates en verhalen binnen de community.</span>
-                </label>
-            </div>
+        <div class="account-form-container">
+            <form action="{{ path('account.notifications') }}" method="POST">
 
-            <div class="form-group-checkbox">
-                <input type="checkbox" id="notify_security" name="notify_security" checked disabled>
-                <label for="notify_security">
-                    <strong>Beveiliging & Account (Verplicht)</strong>
-                    <span>Belangrijke updates over je wachtwoord, privacywijzigingen en inlogpogingen.</span>
-                </label>
-            </div>
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="notify_projects" name="notify_projects" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
+                    <label for="notify_projects">
+                        <strong>Nieuwe Projecten</strong>
+                        <span>Ontvang direct een melding zodra er een nieuw project start dat matcht met jouw skills.</span>
+                    </label>
+                </div>
 
-            <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 2.5rem;">
-                <button type="submit" class="btn-primary">Voorkeuren Opslaan</button>
-                <a href="/account" style="color: var(--hnnw-secondary-text); text-decoration: none; font-size: 0.9rem;">
-                    Annuleren
-                </a>
-            </div>
-        </form>
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="notify_newsletter" name="notify_newsletter" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
+                    <label for="notify_newsletter">
+                        <strong>Maandelijkse Nieuwsbrief</strong>
+                        <span>Blijf op de hoogte van algemeen nieuws, updates en verhalen binnen de community.</span>
+                    </label>
+                </div>
+
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="notify_security" name="notify_security" checked disabled>
+                    <label for="notify_security">
+                        <strong>Beveiliging & Account (Verplicht)</strong>
+                        <span>Belangrijke updates over je wachtwoord, privacywijzigingen en inlogpogingen.</span>
+                    </label>
+                </div>
+
+                <div class="form-actions-row">
+                    <button type="submit" class="btn-primary">Voorkeuren Opslaan</button>
+                    <a href="{{ path('account.home') }}" class="btn-cancel">
+                        Annuleren
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 {% endblock %}

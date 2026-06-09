@@ -17,7 +17,7 @@
         </header>
 
         {% for message in app.flashes('success') %}
-            <div style="background-color: #10b981; color: #ffffff; padding: 1rem; border-radius: 8px; max-width: 550px; margin: 0 auto 1.5rem auto; text-align: center; font-weight: 600;">
+            <div class="account-flash-success">
                 {{ message }}
             </div>
         {% endfor %}
@@ -35,14 +35,52 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="email">E-mailadres</label>
-                    <input type="email" id="email" name="email" placeholder="you@example.com" value="{{ account.email|default('') }}" required>
+                    <label for="first_name">Voornaam</label>
+                    <input type="text" id="first_name" name="first_name" placeholder="Voornaam" value="{{ profile.firstName|default('') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="last_name">Achternaam</label>
+                    <input type="text" id="last_name" name="last_name" placeholder="Achternaam" value="{{ profile.lastName|default('') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="avatar_url">Avatar URL</label>
+                    <input type="text" id="avatar_url" name="avatar_url" placeholder="https://example.com/avatar.png" value="{{ profile.avatarUrl|default('') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Locatie</label>
+                    <input type="text" id="location" name="location" placeholder="Bijv. Amsterdam, Nederland" value="{{ profile.location|default('') }}">
                 </div>
 
                 <div class="form-group">
                     <label for="bio">Over jezelf</label>
                     <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf...">{{ profile.description|default('') }}</textarea>
                 </div>
+
+                {% if settings is defined and settings is not null %}
+                    <div class="form-group">
+                        <label for="language">Taal</label>
+                        <input type="text" id="language" name="language" maxlength="5" placeholder="nl" value="{{ settings.language|default('nl') }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="theme">Thema</label>
+                        <select id="theme" name="theme" required>
+                            <option value="light" {% if settings.theme|default('dark') == 'light' %}selected{% endif %}>White</option>
+                            <option value="dark" {% if settings.theme|default('dark') == 'dark' %}selected{% endif %}>Dark</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profile_visibility">Profiel Zichtbaarheid</label>
+                        <select id="profile_visibility" name="profile_visibility" required>
+                            <option value="public" {% if settings.profileVisibility|default('public') == 'public' %}selected{% endif %}>Public</option>
+                            <option value="private" {% if settings.profileVisibility|default('public') == 'private' %}selected{% endif %}>Private</option>
+                        </select>
+                    </div>
+                {% endif %}
 
                 <button type="submit" class="btn-primary">Wijzigingen opslaan</button>
 

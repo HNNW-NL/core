@@ -1,33 +1,58 @@
-body[data-theme="dark"] #account-centre-container {
+#account-centre-container {
     padding: 3rem 1.5rem;
     max-width: 900px;
     margin: 0 auto;
 }
 
-body[data-theme="dark"] .dashboard-header {
+.dashboard-header {
     text-align: center;
     margin-bottom: 3rem;
 }
 
-body[data-theme="dark"] .dashboard-header h1 {
+.dashboard-header h1 {
     font-size: 2.5rem;
-    color: #ffffff;
     margin-bottom: 0.5rem;
 }
 
-body[data-theme="dark"] .dashboard-header p {
-    color: var(--hnnw-secondary-text);
+.alert {
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
 }
 
-body[data-theme="dark"] .account-grid {
+.alert-success {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border-left: 4px solid #10b981;
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+}
+
+.account-flash-success {
+    background-color: #10b981;
+    color: #ffffff;
+    padding: 1rem;
+    border-radius: 8px;
+    max-width: 550px;
+    margin: 0 auto 1.5rem auto;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.account-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
 }
 
-body[data-theme="dark"] .account-card {
-    background: var(--hnnw-header-background);
-    border: 1px solid #2d3748;
+.account-card {
     padding: 2rem;
     border-radius: 12px;
     text-decoration: none;
@@ -35,21 +60,91 @@ body[data-theme="dark"] .account-card {
     display: block;
 }
 
-body[data-theme="dark"] .account-card:hover {
+.account-card:hover {
     transform: translateY(-5px);
+}
+
+.account-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.account-card p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+#account-centre-container .form-group select {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+#account-centre-container .form-group select:focus {
+    outline: none;
+    border-color: #94a3b8;
+}
+
+.form-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+}
+
+.btn-cancel {
+    text-decoration: none;
+    font-size: 0.9rem;
+    color: #64748b;
+    transition: color 0.2s ease;
+}
+
+.btn-cancel:hover {
+    color: #0f172a;
+}
+
+body[data-theme="dark"] #account-centre-container {
+    padding: 3rem 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+body[data-theme="dark"] .dashboard-header h1 {
+    color: #ffffff;
+}
+
+body[data-theme="dark"] .dashboard-header p {
+    color: var(--hnnw-secondary-text);
+}
+
+body[data-theme="dark"] .account-flash-success {
+    background-color: #111625 !important;
+    color: #ffffff !important;
+    border: 1px solid #10b981 !important;
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15) !important;
+}
+
+body[data-theme="dark"] .account-card {
+    background: var(--hnnw-header-background);
+    border: 1px solid #2d3748;
+}
+
+body[data-theme="dark"] .account-card:hover {
     border-color: var(--hnnw-yellow-400);
 }
 
 body[data-theme="dark"] .account-card h3 {
     color: var(--hnnw-yellow-400);
-    font-size: 1.4rem;
-    margin-bottom: 0.75rem;
 }
 
 body[data-theme="dark"] .account-card p {
     color: var(--hnnw-secondary-text);
-    font-size: 0.95rem;
-    line-height: 1.5;
 }
 
 body[data-theme="dark"] #account-centre-container .account-form-container {
@@ -90,7 +185,8 @@ body[data-theme="dark"] #account-centre-container label {
 }
 
 body[data-theme="dark"] #account-centre-container .form-group input,
-body[data-theme="dark"] #account-centre-container .form-group textarea {
+body[data-theme="dark"] #account-centre-container .form-group textarea,
+body[data-theme="dark"] #account-centre-container .form-group select {
     width: 100% !important;
     padding: 0.85rem 1rem !important;
     background-color: #000000 !important;
@@ -101,10 +197,93 @@ body[data-theme="dark"] #account-centre-container .form-group textarea {
     font-size: 0.95rem !important;
 }
 
+body[data-theme="dark"] #account-centre-container .form-group select {
+    cursor: pointer !important;
+}
+
 body[data-theme="dark"] #account-centre-container .form-group input:focus,
-body[data-theme="dark"] #account-centre-container .form-group textarea:focus {
+body[data-theme="dark"] #account-centre-container .form-group textarea:focus,
+body[data-theme="dark"] #account-centre-container .form-group select:focus {
     outline: none !important;
     border-color: #475569 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .form-group-checkbox {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+    margin-bottom: 1.75rem !important;
+    padding-bottom: 1.25rem !important;
+    border-bottom: 1px solid #1e293b !important;
+}
+
+body[data-theme="dark"] #account-centre-container .form-group-checkbox:last-of-type {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .form-group-checkbox input[type="checkbox"] {
+    width: 1.2rem !important;
+    height: 1.2rem !important;
+    margin-top: 0.25rem !important;
+    cursor: pointer !important;
+    accent-color: #facc15 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .form-group-checkbox label {
+    display: flex !important;
+    flex-direction: column !important;
+    margin-bottom: 0 !important;
+    cursor: pointer !important;
+}
+
+body[data-theme="dark"] #account-centre-container .form-group-checkbox label strong {
+    color: #ffffff !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .form-group-checkbox label span {
+    color: #94a3b8 !important;
+    font-size: 0.9rem !important;
+    font-weight: 400 !important;
+    line-height: 1.4 !important;
+    margin-top: 0.25rem !important;
+}
+
+body[data-theme="dark"] #account-centre-container .form-group-checkbox input[type="checkbox"]:disabled + label {
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .alert {
+    background-color: #111625 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
+    color: #ffffff !important;
+}
+
+body[data-theme="dark"] #account-centre-container .alert-success {
+    border: 1px solid #10b981 !important;
+    border-left: 4px solid #10b981 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .alert-error {
+    border: 1px solid #ef4444 !important;
+    border-left: 4px solid #ef4444 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .form-actions-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+    margin-top: 2.5rem !important;
+}
+
+body[data-theme="dark"] #account-centre-container .btn-cancel {
+    color: var(--hnnw-secondary-text) !important;
+    text-decoration: none !important;
+    font-size: 0.9rem !important;
 }
 
 body[data-theme="dark"] #account-centre-container .btn-primary,
@@ -117,11 +296,10 @@ body[data-theme="dark"] #account-centre-container button[type="submit"] {
     font-weight: 700 !important;
     font-size: 0.95rem !important;
     cursor: pointer !important;
-    width: 100% !important;
-    margin-top: 1rem !important;
-    display: block !important;
-    text-align: center !important;
     transition: background-color 0.2s ease !important;
+    width: auto !important;
+    display: inline-block !important;
+    text-align: center !important;
 }
 
 body[data-theme="dark"] #account-centre-container .btn-primary:hover,
@@ -140,7 +318,7 @@ body[data-theme="dark"] #account-centre-container .btn-inline-yellow {
 body[data-theme="dark"] #account-centre-container .form-footer-link {
     text-align: center !important;
     margin-top: 1.5rem !important;
-    color: #94a3b8 !important; /* FIXED: Bumped from #64748b to pass WCAG AA contrast (5.45:1) */
+    color: #94a3b8 !important;
 }
 
 body[data-theme="dark"] #account-centre-container .form-footer-link a {
