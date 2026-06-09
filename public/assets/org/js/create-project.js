@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             button.textContent = "Creating...";
             button.disabled = true;
+            button.classList.add("loading");
 
             setTimeout(() => {
                 button.textContent = "Create project";
