@@ -12,10 +12,10 @@ h2 {
 form {
     width: 500px;
     margin: 30px auto;
-    padding: 20px;
+    padding: 25px;
     background-color: var(--header-background);
     border: 1px solid var(--hnnw-yellow-500);
-    border-radius: 8px;
+    border-radius: 12px;
 }
 
 form div {
