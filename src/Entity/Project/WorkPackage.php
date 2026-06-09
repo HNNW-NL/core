@@ -5,6 +5,8 @@ use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'work_packages', uniqueConstraints: [
@@ -51,14 +53,20 @@ class WorkPackage
 
     // Reverse FKs
 
+
+
+
     /* Insert reverse FKs here */
 
+    #[ORM\OneToMany(mappedBy: 'workPackage', targetEntity: PackageTask::class, cascade: ['persist'], orphanRemoval: false)]
+    private Collection $workPackageTasks;
 
     // Functions
 
     public function __construct()
     {
         $this->id = Uuid::v7();
+        $this->workPackageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -185,4 +193,33 @@ class WorkPackage
     {
         return $this->deletedAt;
     }
+
+/**
+ * @return Collection<int, PackageTask>
+ */
+public function getWorkPackageTasks(): Collection
+{
+    return $this->workPackageTasks;
+}
+
+public function addWorkPackageTask(PackageTask $workPackageTask): static
+{
+    if (!$this->workPackageTasks->contains($workPackageTask)) {
+        $this->workPackageTasks->add($workPackageTask);
+        $workPackageTask->setWorkPackage($this);
+    }
+
+    return $this;
+}
+
+public function removeWorkPackageTask(PackageTask $workPackageTask): static
+{
+    if ($this->workPackageTasks->removeElement($workPackageTask)) {
+        if ($workPackageTask->getWorkPackage() === $this) {
+            $workPackageTask->setWorkPackage(null);
+        }
+    }
+
+    return $this;
+}
 }
