@@ -55,6 +55,7 @@ textarea#description {
     min-height: 140px;
 }
 
+#title-counter,
 #summary-counter,
 #description-counter {
     font-size: 12px;

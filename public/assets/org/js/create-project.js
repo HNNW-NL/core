@@ -1,5 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
 
+    const title = document.getElementById("name");
+    const titleCounter = document.getElementById("title-counter");
+
+    if (title && titleCounter) {
+        title.addEventListener("input", function () {
+            titleCounter.textContent = title.value.length + " characters";
+        });
+    }
+    
     const summary = document.getElementById("summary");
     const summaryCounter = document.getElementById("summary-counter");
 
