@@ -7,8 +7,9 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use App\Repository\Project\WorkPackageRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: WorkPackageRepository::class)]
 #[ORM\Table(name: 'work_packages', uniqueConstraints: [
     new ORM\UniqueConstraint(name: "uniq_project_work_package_scope", columns: ["project_id", "slug"])
 ])]

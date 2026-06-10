@@ -5,6 +5,7 @@ namespace App\Module\Main\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Module\Main\Handler\GetProjectWorkPackagesHandler;
 
 #[Route('/projects', name: 'main.projects.')]
 final class ProjectsController extends AbstractController
@@ -72,10 +73,13 @@ final class ProjectsController extends AbstractController
     }
 
     #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
-    public function workPackages(string $slug): Response
-    {
-        return $this->render('pages/main/projects/work-packages.html.twig', [
-            'slug' => $slug,
-        ]);
-    }
+    public function workPackages( 
+         string $slug,
+         GetProjectWorkPackagesHandler $handler,
+  ): Response {
+      return $this->render('pages/main/projects/work-packages.html.twig', [
+          'slug' => $slug,
+          'workPackages' => $handler->handle($slug),
+    ]);
+ }
 }
