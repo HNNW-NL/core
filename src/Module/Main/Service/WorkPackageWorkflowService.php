@@ -5,12 +5,13 @@ namespace App\Module\Main\Service;
 final class WorkPackageWorkflowService
 {
     private const TRANSITIONS = [
-        'Draft' => ['Planned'],
-        'Planned' => ['Open'],
-        'Open' => ['Assigned'],
-        'Assigned' => ['Closed', 'Open'],
-        'Closed' => [],
-    ];
+    'Draft' => ['Planned', 'Cancelled'],
+    'Planned' => ['Open', 'Cancelled'],
+    'Open' => ['Assigned', 'Cancelled'],
+    'Assigned' => ['Closed', 'Cancelled'],
+    'Closed' => [],
+    'Cancelled' => [],
+];
 
     public function canTransition(string $currentStatus, string $newStatus): bool
     {

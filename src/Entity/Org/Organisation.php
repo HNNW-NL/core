@@ -54,10 +54,10 @@ class Organisation
 
     // Reverse FKs
 
-    #[ORM\OneToMany(targetEntity: OrgRole::class, mappedBy: "organization")]
-    private Collection $orgRoles;
+    #[ORM\OneToMany(targetEntity: OrgRole::class, mappedBy: "organisation")]
+     private Collection $orgRoles;
 
-    #[ORM\OneToMany(targetEntity: OrgMember::class, mappedBy: "organization")]
+    #[ORM\OneToMany(targetEntity: OrgMember::class, mappedBy: "organisation")]
     private Collection $orgMembers;
 
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: "ownerOrganisation")]
