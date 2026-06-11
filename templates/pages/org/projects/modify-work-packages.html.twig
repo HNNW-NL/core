@@ -6,8 +6,8 @@
 {% block javascript %}{% endblock %}
 
 {% block body %}
-    <h2>Werkpakketten beheren</h2>
-    <p>Project: {{ project.title }}</p>
+    <h2>Werkpakketten koppelen</h2>
+    <p>Project ID: {{ id }}</p>
 
     <form method="post">
         <div>
@@ -20,28 +20,35 @@
             <textarea id="description" name="description"></textarea>
         </div>
 
-        <button type="submit">Werkpakket koppelen aan project</button>
+        <button type="submit">Werkpakket toevoegen</button>
     </form>
 
     <hr>
 
     <h3>Gekoppelde werkpakketten</h3>
 
-    {% if workPackages is empty %}
-        <p>Er zijn nog geen werkpakketten gekoppeld aan dit project.</p>
-    {% else %}
+    {% if workPackages is defined and workPackages is not empty %}
         {% for workPackage in workPackages %}
             <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px;">
                 <h4>{{ workPackage.title }}</h4>
-                <p>{{ workPackage.description }}</p>
 
-                <form method="post" action="{{ path('org.modifyProject.workPackages.delete', {
-                    projectId: id,
-                    workPackageId: workPackage.id
-                }) }}">
-                    <button type="submit">Verwijderen</button>
-                </form>
+                {% if workPackage.description is defined and workPackage.description is not empty %}
+                    <p>{{ workPackage.description }}</p>
+                {% else %}
+                    <p>Geen beschrijving ingevuld.</p>
+                {% endif %}
+
+                {% if workPackage.id is defined %}
+                    <form method="post" action="{{ path('org.modifyProject.workPackages.delete', {
+                        projectId: id,
+                        workPackageId: workPackage.id
+                    }) }}">
+                        <button type="submit">Verwijderen</button>
+                    </form>
+                {% endif %}
             </div>
         {% endfor %}
+    {% else %}
+        <p>Er zijn nog geen werkpakketten gekoppeld aan dit project.</p>
     {% endif %}
 {% endblock %}
