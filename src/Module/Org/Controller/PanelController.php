@@ -2,12 +2,7 @@
 
 namespace App\Module\Org\Controller;
 
-use App\Entity\Project\Project;
-use App\Entity\Project\WorkPackage;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -39,7 +34,7 @@ final class PanelController extends AbstractController
             'id' => $id,
         ]);
     }
-
+    
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
     public function modifyProjectMatching(string $id): Response
     {
@@ -88,70 +83,11 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET', 'POST'])]
-    public function modifyProjectWorkPackages(
-        string $id,
-        Request $request,
-        EntityManagerInterface $entityManager
-    ): Response {
-        $project = $entityManager->getRepository(Project::class)->find($id);
-
-        if (!$project) {
-            throw $this->createNotFoundException('Project niet gevonden.');
-        }
-
-        if ($request->isMethod('POST')) {
-            $title = $request->request->get('title');
-
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
-
-            $workPackage = new WorkPackage();
-            $workPackage->setProject($project);
-            $workPackage->setStatus($project->getStatus());
-            $workPackage->setTitle($title);
-            $workPackage->setSlug($slug . '-' . bin2hex(random_bytes(3)));
-            $workPackage->setDescription($request->request->get('description'));
-
-            $entityManager->persist($workPackage);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('org.modifyProject.workPackages', [
-                'id' => $id,
-            ]);
-        }
-
-        $workPackages = $entityManager->getRepository(WorkPackage::class)->findBy(
-            [
-                'project' => $project,
-                'deletedAt' => null,
-            ],
-            [
-                'createdAt' => 'DESC',
-            ]
-        );
-
+    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
+    public function modifyProjectWorkPackages(string $id): Response
+    {
         return $this->render('pages/org/projects/modify-work-packages.html.twig', [
             'id' => $id,
-            'project' => $project,
-            'workPackages' => $workPackages,
-        ]);
-    }
-
-    #[Route('/projects/modify/{projectId}/work-packages/{workPackageId}/delete', name: 'modifyProject.workPackages.delete', methods: ['POST'])]
-    public function deleteWorkPackage(
-        string $projectId,
-        string $workPackageId,
-        EntityManagerInterface $entityManager
-    ): RedirectResponse {
-        $workPackage = $entityManager->getRepository(WorkPackage::class)->find($workPackageId);
-
-        if ($workPackage && (string) $workPackage->getProject()->getId() === $projectId) {
-            $workPackage->softDelete();
-            $entityManager->flush();
-        }
-
-        return $this->redirectToRoute('org.modifyProject.workPackages', [
-            'id' => $projectId,
         ]);
     }
 
@@ -168,4 +104,4 @@ final class PanelController extends AbstractController
             'id' => $id,
         ]);
     }
-} 
+}
