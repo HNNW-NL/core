@@ -33,6 +33,7 @@
 
                 <div class="profile-text">
                     <h1>Naam</h1>
+<<<<<<< HEAD
                     <p>@username</p>
                     <p>Occupation / Status</p>
                     {# <p>Locatie</p> #}
@@ -40,6 +41,38 @@
         Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
         <span style="font-size: 12px;">✏️</span>
     </p>
+=======
+                    
+                    {% if app and app.user %}
+                        
+                        <p>Status: 
+                            {% if app.user.status and app.user.status.id == 1 %}
+                                Online
+                            {% elseif app.user.status and app.user.status.id == 2 %}
+                                Afwezig
+                            {% else %}
+                                Offline
+                            {% endif %}
+                        </p>
+                       
+                        
+                        <p>
+                            {% if app.user.lastLoginAt %}
+                             
+                                Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
+                            {% else %}
+                                Laatst actief: Onbekend
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        
+                        <p>Occupation / Status</p>
+                        <p>Laatst actief: Onbekend</p>
+                    {% endif %}
+                   
+                    
+                    <p>Locatie</p>
+>>>>>>> 8cf76fb03e29d44e1a5197012d702806f7f846f5
                 </div>
                 <div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
     <h3>Locatie aanpassen</h3>
@@ -111,6 +144,7 @@
         </div>
 
     </div>
+<<<<<<< HEAD
     <script>
         function openLocationPopup() {
             document.getElementById('location-popup').style.display = 'block';
@@ -135,4 +169,6 @@
 
 {% block javascripts %}
 
+=======
+>>>>>>> 8cf76fb03e29d44e1a5197012d702806f7f846f5
 {% endblock %}
