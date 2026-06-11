@@ -15,65 +15,91 @@
 {% block body %}
     <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
-    <!-- Main page layout -->
-    <div class="layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="brand">Project Hub</div>
-            <section class="sidebar-dashboard" aria-label="Dashboard">
-                <p class="eyebrow">Dashboard</p>
-                <h2>Overview</h2>
-                <p>Track projects, drafts, and publishing activity from one place.</p>
+    <div class="content content--single">
+        <main id="main-content">
+            <section class="modify-banner" aria-label="Modification notice">
+                <p class="eyebrow">Modify</p>
+                <h1>Modify Existing Project</h1>
+                <p>Review the current values, then update only the fields you want to change.</p>
             </section>
-        </aside>
-        <!-- Main content -->
-        <div class="content">
-            <!-- Header -->
-            <header class="page-header">
-                <div class="header-copy">
-                    <p class="eyebrow">Publish</p>
-                    <h1>Publish Project</h1>
-                    <p>Fill out the details below to publish your project.</p>
+            <form method="post" action="modify.php" enctype="multipart/form-data" novalidate>
+                <div>
+                    <label for="projectId">Project ID</label>
+                    <input type="text" id="projectId" name="projectId" placeholder="e.g. 12" required autocomplete="off">
                 </div>
-                <nav class="header-nav" aria-label="Primary">
-                    <ul>
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">Projects</a></li>
-                        <li><a href="#">Publish</a></li>
-                    </ul>
-                </nav>
-            </header>
-            <!-- Form -->
-            <main id="main-content">
-                <!-- Publish form fields -->
-                <form method="post" action="/publish" enctype="multipart/form-data">
+                <section class="modify-meta" aria-label="Audit details">
                     <div>
-                        <label for="name">Project name</label>
-                        <input type="text" id="name" name="name" placeholder="Project Name" required autocomplete="name">
+                        <label for="lastModifiedBy">Last modified by</label>
+                        <input type="text" id="lastModifiedBy" name="lastModifiedBy" value="admin@example.com" readonly>
                     </div>
                     <div>
-                        <label for="description">Description</label>
-                        <textarea id="description" name="description" rows="5" placeholder="What does your project do?" required></textarea>
+                        <label for="lastModifiedAt">Current server time</label>
+                        <input type="text" id="lastModifiedAt" name="lastModifiedAt" value="2026-06-10 15:30" readonly>
+                    </div>
+                </section>
+                <div class="modify-grid">
+                    <section class="modify-box" aria-label="Current details">
+                        <h2>Current Details</h2>
+                        <p class="field-help">Loaded from the database for this project ID.</p>
+                        <div>
+                            <label for="currentName">Current project name</label>
+                            <input type="text" id="currentName" name="currentName" value="" readonly>
+                        </div>
+                        <div>
+                            <label for="currentSummary">Current summary</label>
+                            <textarea id="currentSummary" name="currentSummary" rows="3" readonly></textarea>
+                        </div>
+                        <div>
+                            <label for="currentVisibility">Current visibility</label>
+                            <input type="text" id="currentVisibility" name="currentVisibility" value="public" readonly>
+                        </div>
+                    </section>
+                    <section class="modify-box" aria-label="New details">
+                        <h2>Updated Details</h2>
+                        <p class="field-help">Only changed values will be applied.</p>
+                        <div>
+                            <label for="name">Project name</label>
+                            <input type="text" id="name" name="name" placeholder="Project name" required autocomplete="name">
+                        </div>
+                        <div>
+                            <label for="summary">Summary</label>
+                            <textarea id="summary" name="summary" rows="3" placeholder="Short project summary" required></textarea>
+                        </div>
+                        <div>
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" rows="5" placeholder="Describe the project in detail" required></textarea>
+                        </div>
+                        <div>
+                            <label for="visibility">New visibility</label>
+                            <select id="visibility" name="visibility" required>
+                                <option value="public">Public</option>
+                                <option value="private">Private</option>
+                                <option value="unlisted">Unlisted</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="projectFile">Replace file (optional)</label>
+                            <input type="file" id="projectFile" name="projectFile" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.js,.ts,.py,.java,.html,.css,.json,.md" aria-describedby="projectFileHelp">
+                            <p id="projectFileHelp" class="field-help">Accepted formats: PDF, Word, images, ZIP, and common code files.</p>
+                        </div>
+                    </section>
+                </div>
+                <div class="modify-meta">
+                    <div>
+                        <label for="effectiveAt">Effective date and time</label>
+                        <input type="datetime-local" id="effectiveAt" name="effectiveAt">
                     </div>
                     <div>
-                        <label for="visibility">Visibility</label>
-                        <select id="visibility" name="visibility" required>
-                            <option value="public">Public</option>
-                            <option value="private">Private</option>
-                            <option value="unlisted">Unlisted</option>
-                        </select>
+                        <label for="versionLabel">Version label</label>
+                        <input type="text" id="versionLabel" name="versionLabel" placeholder="e.g. v1.2.1" autocomplete="off">
                     </div>
-                    <div>
-                        <label for="projectFile">Choose file</label>
-                        <input type="file" id="projectFile" name="projectFile" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.js,.ts,.py,.java,.html,.css,.json,.md" aria-describedby="projectFileHelp">
-                        <p id="projectFileHelp" class="field-help">Accepted formats: PDF, Word, images, ZIP, and common code files.</p>
-                    </div>
-                    <div>
-                        <button type="submit">Publish project</button>
-                    </div>
-                </form>
-            </main>
-        </div>
+                </div>
+                <div class="button-row">
+                    <button type="submit" name="intent" value="modify">Modify project</button>
+                    <button type="submit" name="intent" value="delete" class="button-danger" formnovalidate>Delete project</button>
+                </div>
+            </form>
+        </main>
     </div>
     </body>
 {% endblock %}
