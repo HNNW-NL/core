@@ -8,18 +8,36 @@ use App\Entity\Common\Status;
 class ModifyProjectDTO
 {
     public function __construct(
+        // Identity
         public int $projectId,
         public int $organisationId,
+
+        // Core modification
         public Status $status,
+
+        // Optional metadata being changed
+        public ?string $description = null,
+        public ?string $summary = null,
+
+        // Notification
         public bool $notifyTeam = false,
-        public ?string $publishMessage = null,
+        public ?string $modifyMessage = null,
         public ?string $notificationEmail = null,
+
+        // Scheduling
         public ?\DateTimeImmutable $scheduledFor = null,
-        public ?Account $publishedBy = null,
+        public ?Account $modifiedBy = null,
+
+        // Timestamps of the project itself (read-only context, not changed here)
+        public ?\DateTimeImmutable $timeCreated = null,
+        public ?\DateTimeImmutable $timeModified = null,
+
+        // When this modification was submitted
+        public ?\DateTimeImmutable $modifiedAt = null,
     ) {
     }
 
-    public function shouldPublishNow(): bool
+    public function shouldModifyNow(): bool
     {
         if ($this->status !== Status::PUBLISHED) {
             return false;
@@ -43,5 +61,20 @@ class ModifyProjectDTO
         }
 
         return $this->scheduledFor > new \DateTimeImmutable();
+    }
+
+    public function hasDescriptionChanged(): bool
+    {
+        return $this->description !== null;
+    }
+
+    public function hasSummaryChanged(): bool
+    {
+        return $this->summary !== null;
+    }
+
+    public function hasModifyMessage(): bool
+    {
+        return $this->modifyMessage !== null && $this->modifyMessage !== '';
     }
 }
