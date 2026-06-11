@@ -19,6 +19,17 @@ final class StatusService
         return $this->statusRepository->findAll();
     }
 
+    public function getStatusesByScope(string $scope): array
+    {
+        return $this->statusRepository->findByScope($scope);
+    }
+
+    public function statusExists(string $name, string $scope): bool
+    {
+        return $this->statusRepository
+            ->findOneByNameAndScope($name, $scope) !== null;
+    }
+
     public function createStatus(StatusDTO $dto): void
     {
         $status = $this->statusMapper->dtoToEntity($dto);
