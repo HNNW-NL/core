@@ -5,6 +5,7 @@ namespace App\Module\Org\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Repository\Project\WorkPackageRepository;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -34,7 +35,7 @@ final class PanelController extends AbstractController
             'id' => $id,
         ]);
     }
-    
+
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
     public function modifyProjectMatching(string $id): Response
     {
@@ -75,19 +76,21 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/updates', name: 'modifyProject.updates', methods: ['GET'])]
-    public function modifyProjectUpdates(string $id): Response
-    {
-        return $this->render('pages/org/projects/modify-updates.html.twig', [
-            'id' => $id,
-        ]);
-    }
+    #[Route(
+        '/projects/modify/{id}/work-packages',
+        name: 'modifyProject.workPackages',
+        requirements: ['id' => '[0-9a-fA-F-]{36}'],
+        methods: ['GET']
+    )]
+    public function modifyProjectWorkPackages(
+        string $id,
+        WorkPackageRepository $workPackageRepository
+    ): Response {
+        $workPackages = $workPackageRepository->findActiveByProjectId($id);
 
-    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
-    public function modifyProjectWorkPackages(string $id): Response
-    {
         return $this->render('pages/org/projects/modify-work-packages.html.twig', [
             'id' => $id,
+            'workPackages' => $workPackages,
         ]);
     }
 
