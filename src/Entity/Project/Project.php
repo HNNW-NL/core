@@ -94,9 +94,7 @@ class Project
     #[ORM\OneToMany(targetEntity: WorkPackage::class, mappedBy: 'project')]
     private Collection $workPackages;
 
-    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'project')]
-    private Collection $workPackageTasks;
-
+    
 
     // Functions
 
@@ -110,7 +108,7 @@ class Project
         $this->participants = new ArrayCollection();
         $this->updates = new ArrayCollection();
         $this->workPackages = new ArrayCollection();
-        $this->workPackageTasks = new ArrayCollection();
+     
     }
 
     public function getId(): Uuid
@@ -364,9 +362,5 @@ class Project
         return $this->workPackages;
     }
 
-    /** @return Collection<int, PackageTask> */
-    public function getWorkPackageTasks(): Collection
-    {
-        return $this->workPackageTasks;
-    }
+
 }

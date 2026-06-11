@@ -11,7 +11,6 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\HasLifecycleCallbacks]
 class ProjectUpdate
 {
-    // Columns
 
     #[ORM\Id]
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
@@ -45,14 +44,6 @@ class ProjectUpdate
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
-
-
-    // Reverse FKs
-
-    /* Insert reverse FKs here */
-
-
-    // Functions
 
     public function __construct()
     {
@@ -108,9 +99,6 @@ class ProjectUpdate
     {
         $this->deletedAt = null;
     }
-
-
-    /// Getters & Setters Functions
 
     public function getProject(): ?Project
     {
