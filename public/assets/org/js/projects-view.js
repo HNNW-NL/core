@@ -37,8 +37,24 @@ document.addEventListener("DOMContentLoaded", () => {
             pageItems.forEach(project => {
                 const card = document.createElement("div");
                 card.className = "project-card";
-                card.dataset.slug = project.slug;
-                card.textContent = project.title || "Untitled";
+                card.dataset.slug = project.slug || '';
+
+                const titleEl = document.createElement("div");
+                titleEl.className = "project-title";
+                titleEl.textContent = project.title || "Untitled";
+
+                const summaryEl = document.createElement("div");
+                summaryEl.className = "project-summary";
+                summaryEl.textContent = project.summary || "";
+
+                const slugEl = document.createElement("div");
+                slugEl.className = "project-slug";
+                slugEl.textContent = project.slug || "";
+
+                card.appendChild(titleEl);
+                card.appendChild(summaryEl);
+                card.appendChild(slugEl);
+
                 container.appendChild(card);
             });
         }
