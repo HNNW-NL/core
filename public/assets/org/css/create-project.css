@@ -85,7 +85,8 @@ button.loading {
 
 input::placeholder,
 textarea::placeholder {
-    font-style: italic;
-    opacity: 0.6;
     color: var(--paragraph);
+    opacity: 0.5;
+    font-style: normal;
+    font-weight: 300;
 }
