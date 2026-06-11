@@ -22,7 +22,7 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/projects.html.twig');
     }
 
-    #[Route('/projects/create', name: 'createProject', methods: ['GET'])]
+    #[Route('/projects/create', name: 'createProject', methods: ['GET', 'POST'])]
     public function createProject(): Response
     {
         return $this->render('pages/org/projects/create.html.twig');
