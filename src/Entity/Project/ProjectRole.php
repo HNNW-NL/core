@@ -14,7 +14,6 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\HasLifecycleCallbacks]
 class ProjectRole
 {
-    // Columns
 
     #[ORM\Id]
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
@@ -39,14 +38,11 @@ class ProjectRole
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
 
-
-    // Reverse FKs
-
     #[ORM\OneToMany(targetEntity: ProjectParticipant::class, mappedBy: 'role')]
     private Collection $participants;
 
 
-    // Functions
+    // functies
 
     public function __construct()
     {

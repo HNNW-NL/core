@@ -54,8 +54,7 @@ class WorkPackage
 
     // Reverse FKs
 
-    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'workPackage')]
-    private Collection $workPackageTasks;
+    /* Insert reverse FKs here */
 
 
     // Functions
