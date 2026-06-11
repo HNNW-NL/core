@@ -322,29 +322,31 @@ body {
     background: #000;
 
     padding: 10px 18px;
+    width: 140px;
 
     border-radius: 20px;
 
     border: 3px solid var(--accent-yellow);
-
-    font-size: 0.85rem;
+    font-size: 0.930rem;
 
     color: var(--accent-yellow);
 
     font-weight: 800;
+    text-align: center;
+
 }
 
 /* ACTION BUTTONS */
 
 .action-buttons {
     display: flex;
-
     flex-direction: column;
-
     gap: 15px;
+    align-items: center;
 }
 
 .btn-outline {
+
     border: 2px solid var(--accent-yellow);
 
     color: var(--accent-yellow);
@@ -360,12 +362,29 @@ body {
     font-weight: bold;
 
     transition: 0.3s;
+
+    width: 300px;
+
 }
 
-.btn-outline:hover {
-    background: var(--accent-yellow);
 
-    color: black;
+.btn-outline:hover {
+    color: var(--accent-yellow);
+
+    text-decoration: none;
+
+    text-align: center;
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    font-weight: bold;
+
+    transition: 0.3s;
+
+    width: 300px;
+
 }
 
 /* ACHIEVEMENTS */
