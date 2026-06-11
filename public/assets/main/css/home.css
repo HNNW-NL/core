@@ -391,7 +391,7 @@ body {
 
 .achievements-bar {
 
-    grid-column: span 1;
+    grid-column: span 2;
 
 
     background: var(--card-bg);
