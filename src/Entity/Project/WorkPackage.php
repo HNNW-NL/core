@@ -7,9 +7,11 @@ use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'work_packages', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: "uniq_project_work_package_scope", columns: ["project_id", "slug"])
-])]
+#[ORM\Table(name: 'work_packages')]
+#[ORM\UniqueConstraint(
+    name: 'uniq_project_work_package_scope',
+    columns: ['project_id', 'slug']
+)]
 #[ORM\HasLifecycleCallbacks]
 class WorkPackage
 {

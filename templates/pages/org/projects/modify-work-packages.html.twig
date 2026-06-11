@@ -13,4 +13,11 @@
 {% block body %}
     <h2>Projects - Modify Work Packages</h2>
     <p>Organization panel - modify project ({{ id }}) work packages page.</p>
+
+    {% for workPackage in workPackages %}
+        <h3>{{ workPackage.title }}</h3>
+        <p>{{ workPackage.description }}</p>
+    {% else %}
+        <p>No work packages found.</p>
+    {% endfor %}
 {% endblock %}
