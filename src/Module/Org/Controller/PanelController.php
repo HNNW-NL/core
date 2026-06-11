@@ -91,48 +91,9 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET', 'POST'])]
-    public function modifyProjectWorkPackages(
-        string $id,
-        Request $request,
-        EntityManagerInterface $entityManager
-    ): Response {
-        $project = $entityManager->getRepository(Project::class)->find($id);
-
-        if (!$project) {
-            throw $this->createNotFoundException('Project niet gevonden.');
-        }
-
-        if ($request->isMethod('POST')) {
-            $title = $request->request->get('title');
-
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
-
-            $workPackage = new WorkPackage();
-            $workPackage->setProject($project);
-            $workPackage->setStatus($project->getStatus());
-            $workPackage->setTitle($title);
-            $workPackage->setSlug($slug . '-' . bin2hex(random_bytes(3)));
-            $workPackage->setDescription($request->request->get('description'));
-
-            $entityManager->persist($workPackage);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('org.modifyProject.workPackages', [
-                'id' => $id,
-            ]);
-        }
-
-        $workPackages = $entityManager->getRepository(WorkPackage::class)->findBy(
-            [
-                'project' => $project,
-                'deletedAt' => null,
-            ],
-            [
-                'createdAt' => 'DESC',
-            ]
-        );
-
+    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
+    public function modifyProjectWorkPackages(string $id): Response
+    {
         return $this->render('pages/org/projects/modify-work-packages.html.twig', [
             'id' => $id,
             'project' => $project,
