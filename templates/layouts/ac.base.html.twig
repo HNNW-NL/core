@@ -2,7 +2,7 @@
 <html lang="nl-NL">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <title>{% block title %}{% endblock %} | HNNW Account Centre</title>
@@ -13,7 +13,7 @@
     <!-- CSS -->
     <link rel="stylesheet" href="{{ asset("assets/shared/css/style.css") }}">
     <link rel="stylesheet" href="{{ asset("assets/main/css/style.css") }}">
-    <link rel="stylesheet" href="{{ asset("assets/account-centre/css/style.css") }}">
+    <link rel="stylesheet" href="{{ asset("assets/account-centre/css/style.css") }}?v=1">
     {% block stylesheets %}{% endblock %}
 
     <!-- JavaScript -->
@@ -27,7 +27,7 @@
     {% endif %}
 </head>
 <body data-theme="dark">
-    <main>
+    <div class="site-wrapper">
 
         {% include "/core/main/_header.html.twig" %}
 
@@ -38,6 +38,6 @@
 
         {% include "/core/main/_footer.html.twig" %}
 
-    </main>
+    </div>
 </body>
 </html>
