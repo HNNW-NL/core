@@ -37,15 +37,6 @@
                 {% else %}
                     <p>Geen beschrijving ingevuld.</p>
                 {% endif %}
-
-                {% if workPackage.id is defined %}
-                    <form method="post" action="{{ path('org.modifyProject.workPackages.delete', {
-                        projectId: id,
-                        workPackageId: workPackage.id
-                    }) }}">
-                        <button type="submit">Verwijderen</button>
-                    </form>
-                {% endif %}
             </div>
         {% endfor %}
     {% else %}
