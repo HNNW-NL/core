@@ -6,7 +6,7 @@
 {% block javascript %}{% endblock %}
 
 {% block body %}
-    <h2>Werkpakketten beheren</h2>
+    <h2>Werkpakketten koppelen</h2>
     <p>Project: {{ project.title }}</p>
 
     <form method="post">
@@ -20,7 +20,7 @@
             <textarea id="description" name="description"></textarea>
         </div>
 
-        <button type="submit">Werkpakket koppelen aan project</button>
+        <button type="submit">Werkpakket toevoegen</button>
     </form>
 
     <hr>
@@ -33,7 +33,12 @@
         {% for workPackage in workPackages %}
             <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px;">
                 <h4>{{ workPackage.title }}</h4>
-                <p>{{ workPackage.description }}</p>
+
+                {% if workPackage.description is not empty %}
+                    <p>{{ workPackage.description }}</p>
+                {% else %}
+                    <p>Geen beschrijving ingevuld.</p>
+                {% endif %}
 
                 <form method="post" action="{{ path('org.modifyProject.workPackages.delete', {
                     projectId: id,
