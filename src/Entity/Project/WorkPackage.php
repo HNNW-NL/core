@@ -1,10 +1,7 @@
 <?php
-
 namespace App\Entity\Project;
 
 use App\Entity\Common\Status;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -16,6 +13,7 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\HasLifecycleCallbacks]
 class WorkPackage
 {
+    // Columns
 
     #[ORM\Id]
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
@@ -50,13 +48,17 @@ class WorkPackage
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
-    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'workPackage')]
-    private Collection $workPackageTasks;
+
+    // Reverse FKs
+
+    /* Insert reverse FKs here */
+
+
+    // Functions
 
     public function __construct()
     {
         $this->id = Uuid::v7();
-        $this->workPackageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -93,6 +95,9 @@ class WorkPackage
     {
         $this->deletedAt = null;
     }
+
+
+    /// Getters & Setters Functions
 
     public function getProject(): ?Project
     {
@@ -179,11 +184,5 @@ class WorkPackage
     public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
-    }
-
-    /** @return Collection<int, PackageTask> */
-    public function getWorkPackageTasks(): Collection
-    {
-        return $this->workPackageTasks;
     }
 }
