@@ -3,6 +3,8 @@ namespace App\Entity\Project;
 
 use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
@@ -51,7 +53,8 @@ class WorkPackage
 
     // Reverse FKs
 
-    /* Insert reverse FKs here */
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'workPackage')]
+    private Collection $workPackageTasks;
 
 
     // Functions
@@ -59,6 +62,8 @@ class WorkPackage
     public function __construct()
     {
         $this->id = Uuid::v7();
+
+        $this->workPackageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid
