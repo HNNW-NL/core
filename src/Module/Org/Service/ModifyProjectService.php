@@ -27,28 +27,40 @@ class ModifyProjectService
         // Update status
         $project->setStatus($dto->status);
 
-        // Handle publish logic
-        if ($dto->shouldPublishNow()) {
-            $project->setPublishedAt(new \DateTimeImmutable());
-            $project->setPublishedBy($dto->publishedBy);
+        // Update optional fields if provided
+        if ($dto->hasDescriptionChanged()) {
+            $project->setDescription($dto->description);
+        }
 
-            if ($dto->publishMessage) {
-                $project->setPublishMessage($dto->publishMessage);
+        if ($dto->hasSummaryChanged()) {
+            $project->setSummary($dto->summary);
+        }
+
+        // Handle modify now
+        if ($dto->shouldModifyNow()) {
+            $project->setModifiedAt(new \DateTimeImmutable());
+            $project->setModifiedBy($dto->modifiedBy);
+
+            if ($dto->hasModifyMessage()) {
+                $project->setModifyMessage($dto->modifyMessage);
             }
         }
 
         // Handle schedule logic
         if ($dto->shouldSchedule()) {
             $project->setScheduledFor($dto->scheduledFor);
-            $project->setPublishedAt(null);
+            $project->setModifiedAt(null);
         }
 
-        // Handle draft
+        // Handle draft — clear modification data
         if ($dto->status === Status::DRAFT) {
-            $project->setPublishedAt(null);
+            $project->setModifiedAt(null);
             $project->setScheduledFor(null);
-            $project->setPublishedBy(null);
+            $project->setModifiedBy(null);
         }
+
+        // Always bump the timestamp
+        $project->setTimeModified(new \DateTimeImmutable());
 
         $this->entityManager->flush();
 
