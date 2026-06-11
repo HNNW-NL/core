@@ -1,10 +1,7 @@
 <?php
-
 namespace App\Entity\Project;
 
 use App\Entity\Common\Status;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -54,18 +51,15 @@ class WorkPackage
 
     // Reverse FKs
 
-#[ORM\OneToMany(
-    targetEntity: PackageTask::class,
-    mappedBy: 'workPackage'
-)]
-private Collection $workPackageTasks;
+    /* Insert reverse FKs here */
+
+
+    // Functions
 
     public function __construct()
-{
-    $this->id = Uuid::v7();
-
-    $this->workPackageTasks = new ArrayCollection();
-}
+    {
+        $this->id = Uuid::v7();
+    }
 
     public function getId(): Uuid
     {
@@ -191,9 +185,4 @@ private Collection $workPackageTasks;
     {
         return $this->deletedAt;
     }
-    /** @return Collection<int, PackageTask> */
-public function getWorkPackageTasks(): Collection
-{
-    return $this->workPackageTasks;
-}
 }

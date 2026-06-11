@@ -1,14 +1,13 @@
 <?php
-
 namespace App\Entity\Project;
 
 use App\Entity\Account\Account;
 use App\Entity\Account\Review;
-use App\Entity\Common\Status;
 use App\Entity\Org\Organisation;
+use App\Entity\Common\Status;
+use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
@@ -95,6 +94,9 @@ class Project
     #[ORM\OneToMany(targetEntity: WorkPackage::class, mappedBy: 'project')]
     private Collection $workPackages;
 
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'project')]
+    private Collection $workPackageTasks;
+
 
     // Functions
 
@@ -108,6 +110,7 @@ class Project
         $this->participants = new ArrayCollection();
         $this->updates = new ArrayCollection();
         $this->workPackages = new ArrayCollection();
+        $this->workPackageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -356,9 +359,14 @@ class Project
     }
 
     /** @return Collection<int, WorkPackage> */
-public function getWorkPackages(): Collection
-{
-    return $this->workPackages;
-}
+    public function getWorkPackages(): Collection
+    {
+        return $this->workPackages;
+    }
 
+    /** @return Collection<int, PackageTask> */
+    public function getWorkPackageTasks(): Collection
+    {
+        return $this->workPackageTasks;
+    }
 }
