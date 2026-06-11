@@ -2,9 +2,6 @@
 
 namespace App\Module\Main\Controller;
 
-use App\Entity\Project\Project;
-use App\Entity\Project\WorkPackage;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -75,32 +72,10 @@ final class ProjectsController extends AbstractController
     }
 
     #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
-    public function workPackages(
-        string $slug,
-        EntityManagerInterface $entityManager
-    ): Response {
-        $project = $entityManager->getRepository(Project::class)->findOneBy([
-            'slug' => $slug,
-        ]);
-
-        if (!$project) {
-            throw $this->createNotFoundException('Project niet gevonden.');
-        }
-
-        $workPackages = $entityManager->getRepository(WorkPackage::class)->findBy(
-            [
-                'project' => $project,
-                'deletedAt' => null,
-            ],
-            [
-                'createdAt' => 'DESC',
-            ]
-        );
-
+    public function workPackages(string $slug): Response
+    {
         return $this->render('pages/main/projects/work-packages.html.twig', [
             'slug' => $slug,
-            'project' => $project,
-            'workPackages' => $workPackages,
         ]);
     }
 }
