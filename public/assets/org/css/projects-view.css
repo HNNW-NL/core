@@ -63,14 +63,14 @@
 
 /* Project card content */
 .project-title {
-    font-size: 1rem;
+    font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 8px;
     color: #ffffff;
     width: 100%;
 }
 .project-summary {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: rgba(255,255,255,0.9);
     width: 100%;
     line-height: 1.2;
