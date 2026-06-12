@@ -24,10 +24,7 @@
                 <p>Review the current values, then update only the fields you want to change.</p>
             </section>
             <form method="post" action="modify.php" enctype="multipart/form-data" novalidate class="reveal-up" style="--reveal-delay: 140ms;">
-                <div>
-                    <label for="projectId">Project ID</label>
-                    <input type="text" id="projectId" name="projectId" placeholder="e.g. 12" required autocomplete="off">
-                </div>
+                <input type="hidden" id="projectId" name="projectId">
                 <section class="modify-meta" aria-label="Audit details">
                     <div>
                         <label for="lastModifiedBy">Last modified by</label>
@@ -41,7 +38,7 @@
                 <div class="modify-grid">
                     <section class="modify-box" aria-label="Current details">
                         <h2>Current Details</h2>
-                        <p class="field-help">Loaded from the database for this project ID.</p>
+                        <p class="field-help">Loaded from the database.</p>
                         <div>
                             <label for="currentName">Current project name</label>
                             <input type="text" id="currentName" name="currentName" value="" readonly>
@@ -102,15 +99,15 @@
     <dialog id="deleteConfirmDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
         <form method="dialog" class="delete-dialog__form">
             <h2 id="deleteDialogTitle">Confirm permanent deletion</h2>
-            <p>Type the current Project ID to confirm deletion.</p>
-            <label for="deleteConfirmInput">Project ID</label>
-            <input id="deleteConfirmInput" type="text" autocomplete="off" inputmode="numeric" placeholder="Enter Project ID">
-            <p id="deleteConfirmHint" class="field-help">The value must match the Project ID field above.</p>
+            <p>Type <strong>DELETE</strong> to permanently remove this project. This cannot be undone.</p>
+            <label for="deleteConfirmInput">Confirmation</label>
+            <input id="deleteConfirmInput" type="text" autocomplete="off" placeholder="Type DELETE">
+            <p id="deleteConfirmHint" class="field-help">Type DELETE (all caps) to enable the button.</p>
             <div class="delete-dialog__actions">
                 <button value="cancel">Cancel</button>
                 <button id="deleteConfirmButton" value="confirm" class="button-danger" disabled>Delete permanently</button>
             </div>
         </form>
     </dialog>
-    </body>
+    </body>>
 {% endblock %}

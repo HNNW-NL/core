@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    const projectIdField = document.getElementById('projectId');
     const nameField = document.getElementById('name');
     const summaryField = document.getElementById('summary');
     const descField = document.getElementById('description');
@@ -233,30 +232,23 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!deleteConfirmInput || !deleteConfirmButton) {
             return;
         }
-        const expected = projectIdField ? projectIdField.value.trim() : '';
         const entered = deleteConfirmInput.value.trim();
-        const matches = expected !== '' && entered === expected;
+        const matches = entered === 'DELETE';
         deleteConfirmButton.disabled = !matches;
 
         if (!deleteConfirmHint) {
             return;
         }
         if (entered === '') {
-            deleteConfirmHint.textContent = 'The value must match the Project ID field above.';
+            deleteConfirmHint.textContent = 'Type DELETE (all caps) to enable the button.';
         } else if (matches) {
-            deleteConfirmHint.textContent = 'Match confirmed. You can delete permanently.';
+            deleteConfirmHint.textContent = 'Confirmed. You can delete permanently.';
         } else {
-            deleteConfirmHint.textContent = 'Value does not match the current Project ID.';
+            deleteConfirmHint.textContent = 'Must be exactly DELETE in all caps.';
         }
     }
 
     function openDeleteDialog() {
-        const expected = projectIdField ? projectIdField.value.trim() : '';
-        if (!/^\d+$/.test(expected)) {
-            showError('Enter a valid numeric project ID before deleting.');
-            return false;
-        }
-
         if (deleteDialog && typeof deleteDialog.showModal === 'function') {
             if (deleteConfirmInput) {
                 deleteConfirmInput.value = '';
@@ -269,12 +261,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return true;
         }
 
-        const typed = window.prompt('Type Project ID ' + expected + ' to confirm deletion:');
+        const typed = window.prompt('Type DELETE to confirm permanent deletion:');
         if (typed === null) {
             return false;
         }
-        if (typed.trim() !== expected) {
-            showError('Deletion cancelled: Project ID did not match.');
+        if (typed.trim() !== 'DELETE') {
+            showError('Deletion cancelled: confirmation did not match.');
             return false;
         }
         deleteConfirmed = true;
@@ -319,7 +311,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    wireField(projectIdField, validateProjectId);
     wireField(nameField, validateName);
     wireField(summaryField, validateSummary);
     wireField(descField, validateDescription);
@@ -361,9 +352,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const expected = projectIdField ? projectIdField.value.trim() : '';
             const entered = deleteConfirmInput ? deleteConfirmInput.value.trim() : '';
-            if (entered !== expected) {
+            if (entered !== 'DELETE') {
                 event.preventDefault();
                 refreshDeleteConfirmationState();
                 return;
@@ -379,11 +369,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const expected = projectIdField ? projectIdField.value.trim() : '';
             const entered = deleteConfirmInput ? deleteConfirmInput.value.trim() : '';
-            if (entered !== expected) {
+            if (entered !== 'DELETE') {
                 deleteConfirmed = false;
-                showError('Deletion cancelled: Project ID did not match.');
+                showError('Deletion cancelled: confirmation did not match.');
                 setSubmittingState(false);
                 return;
             }
@@ -424,12 +413,6 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('submit', function (event) {
         message.textContent = '';
         setSubmittingState(false);
-
-        if (!validateProjectId()) {
-            showError('Enter a valid numeric project ID.');
-            event.preventDefault();
-            return;
-        }
 
         if (activeIntent === 'delete') {
             if (!deleteConfirmed) {
