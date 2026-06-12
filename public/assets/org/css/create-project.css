@@ -11,8 +11,8 @@ h2 {
 
 form {
     width: 500px;
-    margin: 30px auto;
-    padding: 25px;
+    margin: 40px auto;
+    padding: 30px;
     background-color: var(--header-background);
     border: 1px solid var(--hnnw-yellow-500);
     border-radius: 12px;
@@ -86,7 +86,7 @@ button.loading {
 input::placeholder,
 textarea::placeholder {
     color: var(--paragraph);
-    opacity: 0.5;
-    font-style: normal;
+    opacity: 0.6;
+    font-style: italic;
     font-weight: 300;
 }

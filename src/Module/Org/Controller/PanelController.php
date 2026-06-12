@@ -5,9 +5,6 @@ namespace App\Module\Org\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Module\Org\DTO\CreateProjectDTO;
-use App\Module\Org\Service\CreateProjectService;
-use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -29,25 +26,6 @@ final class PanelController extends AbstractController
     {
         return $this->render('pages/org/projects/create.html.twig');
     }
-
-    #[Route('/projects/create', name: 'createProject_store', methods: ['POST'])]
-    public function createProjectStore(
-    Request $request,
-    CreateProjectService $service
-    ): Response {
-
-    $dto = new CreateProjectDTO();
-
-    $dto->name = $request->request->get('name');
-    $dto->summary = $request->request->get('summary');
-    $dto->description = $request->request->get('description');
-    $dto->capacity = (int) $request->request->get('capacity');
-    $dto->visibility = $request->request->get('visibility');
-
-    $service->create($dto);
-
-    return $this->redirectToRoute('org.projects');
-}
 
     #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET'])]
     public function modifyProject(string $id): Response
