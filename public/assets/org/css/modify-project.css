@@ -219,20 +219,6 @@ label {
     color: #bbf7d0;
 }
 
-.file-meta {
-    margin: 8px 0 0;
-    font-size: 0.88rem;
-    color: var(--muted);
-}
-
-.file-meta--error {
-    color: #fecaca;
-}
-
-.file-meta--success {
-    color: #bbf7d0;
-}
-
 .form-status {
     margin: 0 0 16px;
     padding: 12px 14px;
