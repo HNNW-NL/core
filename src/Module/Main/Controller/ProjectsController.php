@@ -21,7 +21,7 @@ final class ProjectsController extends AbstractController
         return $this->render('pages/main/projects/detail.html.twig', [
             'id' => $id,
         ]);
-    }
+    } 
 
     #[Route('/{id}/apply', name: 'apply', methods: ['GET'])]
     public function apply(string $id): Response
