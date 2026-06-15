@@ -4,13 +4,26 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    const projectIdField = document.getElementById('projectId');
+    const currentNameField = document.getElementById('currentName');
+    const currentSummaryField = document.getElementById('currentSummary');
+    const currentVisibilityField = document.getElementById('currentVisibility');
     const nameField = document.getElementById('name');
     const summaryField = document.getElementById('summary');
     const descField = document.getElementById('description');
     const visibilityField = document.getElementById('visibility');
     const effectiveAtField = document.getElementById('effectiveAt');
-    const fileField = document.getElementById('projectFile');
-    const clearFileButton = document.getElementById('clearFileSelection');
+    const startDateField = document.getElementById('startDate');
+    const endDateField = document.getElementById('endDate');
+    const capacityField = document.getElementById('capacity');
+    const remotePossibleField = document.getElementById('remotePossible');
+    const statusIdField = document.getElementById('statusId');
+    const currentStartDateField = document.getElementById('currentStartDate');
+    const currentEndDateField = document.getElementById('currentEndDate');
+    const currentCapacityField = document.getElementById('currentCapacity');
+    const currentRemotePossibleField = document.getElementById('currentRemotePossible');
+    const currentStatusField = document.getElementById('currentStatus');
+    const currentPublishedAtField = document.getElementById('currentPublishedAt');
     const unsavedBadge = document.getElementById('unsavedBadge');
     const deleteDialog = document.getElementById('deleteConfirmDialog');
     const deleteDialogForm = deleteDialog ? deleteDialog.querySelector('.delete-dialog__form') : null;
@@ -20,6 +33,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const deleteButton = form.querySelector('button[name="intent"][value="delete"]');
     const actionButtons = form.querySelectorAll('button[name="intent"]');
     const timeField = document.getElementById('lastModifiedAt');
+
+    const url = new URL(window.location.href);
+    const idFromQuery = (url.searchParams.get('id') || '').trim();
+    const statusFromQuery = (url.searchParams.get('status') || '').trim().toLowerCase();
+    const messageFromQuery = (url.searchParams.get('message') || '').trim();
+
+    if (projectIdField && idFromQuery !== '') {
+        projectIdField.value = idFromQuery;
+    }
 
     let activeIntent = 'modify';
     let deleteConfirmed = false;
@@ -31,19 +53,9 @@ document.addEventListener('DOMContentLoaded', function () {
         form.insertBefore(message, form.firstChild);
     }
 
-    let fileMeta = form.querySelector('.file-meta');
-    if (!fileMeta && fileField) {
-        fileMeta = document.createElement('p');
-        fileMeta.className = 'file-meta';
-        fileMeta.setAttribute('aria-live', 'polite');
-        fileField.insertAdjacentElement('afterend', fileMeta);
-    }
-
-    const allowedFileTypes = ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg', 'zip', 'js', 'ts', 'py', 'java', 'html', 'css', 'json', 'md'];
-    const maxFileSize = 10 * 1024 * 1024;
-
-    const trackedFields = [nameField, summaryField, descField, visibilityField, effectiveAtField].filter(Boolean);
+    const trackedFields = [nameField, summaryField, descField, visibilityField, effectiveAtField, startDateField, endDateField, capacityField, statusIdField].filter(Boolean);
     const initialValues = new Map();
+    let initialRemotePossible = false;
     trackedFields.forEach(function (field) {
         initialValues.set(field.id, field.value);
     });
@@ -52,8 +64,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const textFieldDirty = trackedFields.some(function (field) {
             return field.value !== initialValues.get(field.id);
         });
-        const fileDirty = !!(fileField && fileField.files.length > 0);
-        return textFieldDirty || fileDirty;
+        const remoteDirty = !!(remotePossibleField && remotePossibleField.checked !== initialRemotePossible);
+        return textFieldDirty || remoteDirty;
     }
 
     function updateUnsavedBadge() {
@@ -74,11 +86,154 @@ document.addEventListener('DOMContentLoaded', function () {
     function showError(text) {
         message.textContent = text;
         message.className = 'form-status form-status--error';
+        message.hidden = false;
     }
 
     function showSuccess(text) {
         message.textContent = text;
         message.className = 'form-status form-status--success';
+        message.hidden = false;
+    }
+
+    async function loadProjectList() {
+        try {
+            const response = await fetch('handler.php?fetch=list', {
+                headers: {
+                    Accept: 'application/json'
+                }
+            });
+            const payload = await response.json();
+            if (!response.ok || !payload.ok) {
+                showError((payload && payload.message) ? payload.message : 'Could not load project list.');
+                return;
+            }
+
+            const projects = Array.isArray(payload.projects) ? payload.projects : [];
+            if (!projectIdField) {
+                return;
+            }
+
+            projectIdField.innerHTML = '';
+            projects.forEach(function (project) {
+                const option = document.createElement('option');
+                option.value = project.id;
+                option.textContent = '#' + project.id + ' - ' + project.name;
+                projectIdField.appendChild(option);
+            });
+
+            if (projects.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No projects available';
+                projectIdField.appendChild(option);
+                return;
+            }
+
+            const chosenId = idFromQuery !== '' ? idFromQuery : projects[0].id;
+            projectIdField.value = chosenId;
+            await loadProject(chosenId);
+        } catch (error) {
+            showError('Could not load project list.');
+        }
+    }
+
+    async function loadProject(projectId) {
+        try {
+            const response = await fetch('handler.php?fetch=1&id=' + encodeURIComponent(projectId), {
+                headers: {
+                    Accept: 'application/json'
+                }
+            });
+
+            const payload = await response.json();
+            if (!response.ok || !payload.ok) {
+                showError((payload && payload.message) ? payload.message : 'Could not load project details.');
+                return;
+            }
+
+            const project = payload.project || {};
+            if (projectIdField) {
+                projectIdField.value = project.id || projectId;
+            }
+            if (currentNameField) {
+                currentNameField.value = project.name || '';
+            }
+            if (currentSummaryField) {
+                currentSummaryField.value = project.summary || '';
+            }
+            if (currentVisibilityField) {
+                currentVisibilityField.value = project.visibility || 'public';
+            }
+            if (nameField && !nameField.value) {
+                nameField.value = project.name || '';
+            }
+            if (summaryField && !summaryField.value) {
+                summaryField.value = project.summary || '';
+            }
+            if (descField && !descField.value) {
+                descField.value = project.description || '';
+            }
+            if (visibilityField) {
+                visibilityField.value = project.visibility || 'public';
+            }
+            if (effectiveAtField && project.effectiveAt) {
+                effectiveAtField.value = project.effectiveAt;
+            }
+
+            const modifiedByField = document.getElementById('lastModifiedBy');
+            if (modifiedByField && project.updatedBy) {
+                modifiedByField.value = project.updatedBy;
+            }
+
+            if (currentStartDateField) {
+                currentStartDateField.value = project.startDate || '';
+            }
+            if (currentEndDateField) {
+                currentEndDateField.value = project.endDate || '';
+            }
+            if (currentCapacityField) {
+                currentCapacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
+            }
+            if (currentRemotePossibleField) {
+                currentRemotePossibleField.value = project.remotePossible ? 'Yes' : 'No';
+            }
+            if (currentStatusField) {
+                const statusLabels = { 1: 'Draft', 2: 'Active', 3: 'Closed' };
+                currentStatusField.value = statusLabels[project.statusId] || 'Unknown';
+            }
+            if (currentPublishedAtField) {
+                currentPublishedAtField.value = project.publishedAt || '';
+            }
+            if (startDateField && !startDateField.value) {
+                startDateField.value = project.startDate || '';
+            }
+            if (endDateField && !endDateField.value) {
+                endDateField.value = project.endDate || '';
+            }
+            if (capacityField && !capacityField.value) {
+                capacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
+            }
+            if (remotePossibleField) {
+                remotePossibleField.checked = !!project.remotePossible;
+            }
+            if (statusIdField) {
+                statusIdField.value = project.statusId || 1;
+            }
+
+            trackedFields.forEach(function (field) {
+                initialValues.set(field.id, field.value);
+                const group = getFieldGroup(field);
+                if (group) {
+                    group.classList.remove('is-dirty');
+                }
+            });
+
+            initialRemotePossible = !!(remotePossibleField && remotePossibleField.checked);
+
+            updateUnsavedBadge();
+        } catch (error) {
+            showError('Could not load project details.');
+        }
     }
 
     function getFieldGroup(field) {
@@ -126,16 +281,6 @@ document.addEventListener('DOMContentLoaded', function () {
         feedback.textContent = text || '';
     }
 
-    function formatFileSize(bytes) {
-        if (bytes < 1024) {
-            return bytes + ' B';
-        }
-        if (bytes < 1024 * 1024) {
-            return (bytes / 1024).toFixed(1) + ' KB';
-        }
-        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-    }
-
     function validateProjectId() {
         const projectId = projectIdField ? projectIdField.value.trim() : '';
         if (!/^\d+$/.test(projectId)) {
@@ -170,47 +315,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
         }
         setFieldState(descField, true, 'Looks good.');
-        return true;
-    }
-
-    function validateFile() {
-        if (!fileField || fileField.files.length === 0) {
-            if (clearFileButton) {
-                clearFileButton.hidden = true;
-            }
-            if (fileMeta) {
-                fileMeta.textContent = 'No replacement file selected.';
-                fileMeta.className = 'file-meta';
-            }
-            return true;
-        }
-
-        if (clearFileButton) {
-            clearFileButton.hidden = false;
-        }
-
-        const file = fileField.files[0];
-        const ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
-        if (!allowedFileTypes.includes(ext)) {
-            if (fileMeta) {
-                fileMeta.textContent = 'Unsupported file type. Choose a listed format.';
-                fileMeta.className = 'file-meta file-meta--error';
-            }
-            return false;
-        }
-
-        if (file.size > maxFileSize) {
-            if (fileMeta) {
-                fileMeta.textContent = 'File is too large. Max size is 10 MB.';
-                fileMeta.className = 'file-meta file-meta--error';
-            }
-            return false;
-        }
-
-        if (fileMeta) {
-            fileMeta.textContent = 'Selected: ' + file.name + ' (' + formatFileSize(file.size) + ').';
-            fileMeta.className = 'file-meta file-meta--success';
-        }
         return true;
     }
 
@@ -316,29 +420,36 @@ document.addEventListener('DOMContentLoaded', function () {
     wireField(descField, validateDescription);
     wireField(visibilityField, null);
     wireField(effectiveAtField, null);
+    wireField(startDateField, null);
+    wireField(endDateField, null);
+    wireField(capacityField, null);
+    wireField(statusIdField, null);
 
-    if (fileField) {
-        fileField.addEventListener('change', function () {
-            validateFile();
-            const group = getFieldGroup(fileField);
-            if (group) {
-                group.classList.toggle('is-dirty', !!(fileField && fileField.files.length > 0));
-            }
+    if (remotePossibleField) {
+        remotePossibleField.addEventListener('change', function () {
             updateUnsavedBadge();
         });
     }
 
-    if (clearFileButton && fileField) {
-        clearFileButton.addEventListener('click', function () {
-            fileField.value = '';
-            const group = getFieldGroup(fileField);
-            if (group) {
-                group.classList.remove('is-dirty');
+    if (projectIdField) {
+        projectIdField.addEventListener('change', function () {
+            const selectedProjectId = projectIdField.value.trim();
+            if (/^\d+$/.test(selectedProjectId)) {
+                loadProject(selectedProjectId);
             }
-            validateFile();
-            updateUnsavedBadge();
-            fileField.focus();
         });
+    }
+
+    if (statusFromQuery && messageFromQuery) {
+        if (statusFromQuery === 'error') {
+            showError(messageFromQuery);
+        } else {
+            showSuccess(messageFromQuery);
+        }
+
+        url.searchParams.delete('status');
+        url.searchParams.delete('message');
+        window.history.replaceState({}, document.title, url.toString());
     }
 
     if (deleteConfirmInput) {
@@ -382,7 +493,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    validateFile();
     updateUnsavedBadge();
 
     window.requestAnimationFrame(function () {
@@ -412,6 +522,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     form.addEventListener('submit', function (event) {
         message.textContent = '';
+        message.hidden = true;
         setSubmittingState(false);
 
         if (activeIntent === 'delete') {
@@ -446,12 +557,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (!validateFile()) {
-            showError('Please choose a valid file (supported type, max 10 MB).');
-            event.preventDefault();
-            return;
-        }
-
         showSuccess('Validation passed. Submitting your changes...');
         setSubmittingState(true);
     });
@@ -459,4 +564,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (deleteButton) {
         deleteButton.classList.add('button-danger');
     }
+
+    loadProjectList();
 });
