@@ -23,22 +23,28 @@
                 <h1>Modify Existing Project</h1>
                 <p>Review the current values, then update only the fields you want to change.</p>
             </section>
-            <form method="post" action="modify.php" enctype="multipart/form-data" novalidate class="reveal-up" style="--reveal-delay: 140ms;">
-                <input type="hidden" id="projectId" name="projectId">
+            <form method="post" action="handler.php" novalidate class="reveal-up" style="--reveal-delay: 140ms;">
+                <p class="form-status" role="status" aria-live="polite" hidden></p>
+                <div class="modify-meta">
+                    <div>
+                        <label for="projectId">Choose project to modify</label>
+                        <select id="projectId" name="projectId" required></select>
+                    </div>
+                </div>
                 <section class="modify-meta" aria-label="Audit details">
                     <div>
                         <label for="lastModifiedBy">Last modified by</label>
-                        <input type="text" id="lastModifiedBy" name="lastModifiedBy" value="admin@example.com" readonly>
+                        <input type="text" id="lastModifiedBy" name="lastModifiedBy" value="" readonly>
                     </div>
                     <div>
                         <label for="lastModifiedAt">Current server time</label>
-                        <input type="text" id="lastModifiedAt" name="lastModifiedAt" value="2026-06-10 15:30" readonly>
+                        <input type="text" id="lastModifiedAt" name="lastModifiedAt" value="" readonly>
                     </div>
                 </section>
                 <div class="modify-grid">
                     <section class="modify-box" aria-label="Current details">
                         <h2>Current Details</h2>
-                        <p class="field-help">Loaded from the database.</p>
+                        <p class="field-help">Loaded from the database for this project ID.</p>
                         <div>
                             <label for="currentName">Current project name</label>
                             <input type="text" id="currentName" name="currentName" value="" readonly>
@@ -50,6 +56,30 @@
                         <div>
                             <label for="currentVisibility">Current visibility</label>
                             <input type="text" id="currentVisibility" name="currentVisibility" value="public" readonly>
+                        </div>
+                        <div>
+                            <label for="currentStartDate">Current start date</label>
+                            <input type="date" id="currentStartDate" name="currentStartDate" value="" readonly>
+                        </div>
+                        <div>
+                            <label for="currentEndDate">Current end date</label>
+                            <input type="date" id="currentEndDate" name="currentEndDate" value="" readonly>
+                        </div>
+                        <div>
+                            <label for="currentCapacity">Current capacity</label>
+                            <input type="number" id="currentCapacity" name="currentCapacity" value="" readonly>
+                        </div>
+                        <div>
+                            <label for="currentRemotePossible">Current remote possible</label>
+                            <input type="text" id="currentRemotePossible" name="currentRemotePossible" value="" readonly>
+                        </div>
+                        <div>
+                            <label for="currentStatus">Current status</label>
+                            <input type="text" id="currentStatus" name="currentStatus" value="" readonly>
+                        </div>
+                        <div>
+                            <label for="currentPublishedAt">Published at</label>
+                            <input type="text" id="currentPublishedAt" name="currentPublishedAt" value="" readonly>
                         </div>
                     </section>
                     <section class="modify-box reveal-up" aria-label="New details" style="--reveal-delay: 220ms;">
@@ -76,10 +106,28 @@
                             </select>
                         </div>
                         <div>
-                            <label for="projectFile">Replace file (optional)</label>
-                            <input type="file" id="projectFile" name="projectFile" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.js,.ts,.py,.java,.html,.css,.json,.md" aria-describedby="projectFileHelp">
-                            <button type="button" id="clearFileSelection" class="button-secondary" hidden>Clear selected file</button>
-                            <p id="projectFileHelp" class="field-help">Accepted formats: PDF, Word, images, ZIP, and common code files.</p>
+                            <label for="startDate">Start date</label>
+                            <input type="date" id="startDate" name="startDate">
+                        </div>
+                        <div>
+                            <label for="endDate">End date</label>
+                            <input type="date" id="endDate" name="endDate">
+                        </div>
+                        <div>
+                            <label for="capacity">Capacity</label>
+                            <input type="number" id="capacity" name="capacity" min="1" placeholder="Max participants">
+                        </div>
+                        <div>
+                            <label for="remotePossible">Remote possible</label>
+                            <input type="checkbox" id="remotePossible" name="remotePossible" value="1">
+                        </div>
+                        <div>
+                            <label for="statusId">Status</label>
+                            <select id="statusId" name="statusId">
+                                <option value="1">Draft</option>
+                                <option value="2">Active</option>
+                                <option value="3">Closed</option>
+                            </select>
                         </div>
                     </section>
                 </div>
@@ -109,5 +157,5 @@
             </div>
         </form>
     </dialog>
-    </body>>
+    </body>
 {% endblock %}
