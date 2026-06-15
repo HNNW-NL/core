@@ -16,12 +16,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const startDateField = document.getElementById('startDate');
     const endDateField = document.getElementById('endDate');
     const capacityField = document.getElementById('capacity');
-    const remotePossibleField = document.getElementById('remotePossible');
     const statusIdField = document.getElementById('statusId');
     const currentStartDateField = document.getElementById('currentStartDate');
     const currentEndDateField = document.getElementById('currentEndDate');
     const currentCapacityField = document.getElementById('currentCapacity');
-    const currentRemotePossibleField = document.getElementById('currentRemotePossible');
     const currentStatusField = document.getElementById('currentStatus');
     const currentPublishedAtField = document.getElementById('currentPublishedAt');
     const unsavedBadge = document.getElementById('unsavedBadge');
@@ -55,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const trackedFields = [nameField, summaryField, descField, visibilityField, effectiveAtField, startDateField, endDateField, capacityField, statusIdField].filter(Boolean);
     const initialValues = new Map();
-    let initialRemotePossible = false;
     trackedFields.forEach(function (field) {
         initialValues.set(field.id, field.value);
     });
@@ -64,8 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const textFieldDirty = trackedFields.some(function (field) {
             return field.value !== initialValues.get(field.id);
         });
-        const remoteDirty = !!(remotePossibleField && remotePossibleField.checked !== initialRemotePossible);
-        return textFieldDirty || remoteDirty;
+        return textFieldDirty;
     }
 
     function updateUnsavedBadge() {
@@ -194,9 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (currentCapacityField) {
                 currentCapacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
             }
-            if (currentRemotePossibleField) {
-                currentRemotePossibleField.value = project.remotePossible ? 'Yes' : 'No';
-            }
             if (currentStatusField) {
                 const statusLabels = { 1: 'Draft', 2: 'Active', 3: 'Closed' };
                 currentStatusField.value = statusLabels[project.statusId] || 'Unknown';
@@ -213,9 +206,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (capacityField && !capacityField.value) {
                 capacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
             }
-            if (remotePossibleField) {
-                remotePossibleField.checked = !!project.remotePossible;
-            }
             if (statusIdField) {
                 statusIdField.value = project.statusId || 1;
             }
@@ -227,8 +217,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     group.classList.remove('is-dirty');
                 }
             });
-
-            initialRemotePossible = !!(remotePossibleField && remotePossibleField.checked);
 
             updateUnsavedBadge();
         } catch (error) {
@@ -424,12 +412,6 @@ document.addEventListener('DOMContentLoaded', function () {
     wireField(endDateField, null);
     wireField(capacityField, null);
     wireField(statusIdField, null);
-
-    if (remotePossibleField) {
-        remotePossibleField.addEventListener('change', function () {
-            updateUnsavedBadge();
-        });
-    }
 
     if (projectIdField) {
         projectIdField.addEventListener('change', function () {
