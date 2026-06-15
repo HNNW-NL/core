@@ -190,15 +190,18 @@ body {
 }
 
 /* AVATAR */
+.avatar {
+    width: 80px;
 
-.profile-avatar {
-    width: 100px;
+    height: 80px;
 
-    height: 100px;
+    border-radius: 50%;
 
-    border-radius: 12px;
+    overflow: hidden;
 
     flex-shrink: 0;
+
+    padding-left: 5px;
 }
 
 /* TEXT */

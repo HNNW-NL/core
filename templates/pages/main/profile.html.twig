@@ -14,20 +14,41 @@
         <div class="header">
             <div class="profile">
                 <div class="profile-avatar">
-                  <img id="preview" src="default-profile.png" alt="Profile Picture">
-                  <input type="file" id="upload" accept="image/*">
-                </div>
-                <script>
-                const upload = document.getElementById("upload");
-                const preview = document.getElementById("preview"); 
-                upload.addEventListener("change", function () {
-                const file = this.files[0];
+                <div class="profile-container">
 
-                if (file) {
-               preview.src = URL.createObjectURL(file);
-                }
-               });
-               </script>  
+                  <!-- Profile Picture -->
+                   <div class="profile-header">
+
+                  <div class="profile-picture-box">
+                  <img id="preview" src="default-profile.png" alt="Profile Picture">
+                
+
+                  <input type="file" id="upload" accept="image/*">
+
+                  
+                    
+                    <script>
+                   const upload = document.getElementById("upload");
+                   const preview = document.getElementById("preview");
+
+                  preview.addEventListener("click", () => {
+                   upload.click();
+                   });
+
+                  upload.addEventListener("change", function () {
+
+                 const file = this.files[0];
+
+                 if (file) {
+                 preview.src = URL.createObjectURL(file);
+                 }
+
+                  });
+                 </script>
+                 </div>
+                  
+
+
 
 
 
