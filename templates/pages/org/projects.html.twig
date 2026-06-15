@@ -23,6 +23,14 @@
         <div class="search-bar-projects">
             <input type="text" id="search-text" placeholder="Search projects...">
             <button id="search-button">Search</button>
+            <label for="card-size-select" class="card-size-label">Size</label>
+            <div class="card-size-wrapper">
+                <select id="card-size-select" aria-label="Card size" class="card-size-select">
+                <option value="small">Small</option>
+                <option value="medium" selected>Medium</option>
+                <option value="large">Large</option>
+                </select>
+            </div>
         </div>
 
         {% set q = app.request.query.get('q')|default('') %}

@@ -61,6 +61,55 @@
     cursor: pointer;
 }
 
+/* Card size select styling */
+.card-size-label {
+    margin-left: 8px;
+    color: #fff;
+    align-self: center;
+    font-weight: 500;
+}
+.card-size-wrapper {
+    position: relative;
+    margin-left: 6px;
+}
+.card-size-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: rgba(255,255,255,0.06);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 6px 30px 6px 8px;
+    border-radius: 6px;
+    min-width: 96px;
+    cursor: pointer;
+}
+.card-size-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(17,84,128,0.12);
+}
+.card-size-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(255,255,255,0.9);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+.card-size-select option {
+    background-color: #04202a;
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+    .card-size-select { min-width: 72px; }
+}
+
 /* Project card content */
 .project-title {
     font-size: 1.25rem;
@@ -86,6 +135,31 @@
     color: rgba(255,255,255,0.75);
     margin-top: auto;
 }
+
+/* Size variants applied on #projects-app */
+#projects-app.size-small .project-card {
+    flex: 0 0 calc(12.5% - 20px);
+    padding: 10px;
+}
+#projects-app.size-small .project-title { font-size: 1rem; }
+#projects-app.size-small .project-summary { font-size: 0.85rem; -webkit-line-clamp: 3; line-clamp: 3; }
+#projects-app.size-small .project-slug { font-size: 0.7rem; }
+
+#projects-app.size-medium .project-card {
+    flex: 0 0 calc(25% - 20px);
+    padding: 16px;
+}
+#projects-app.size-medium .project-title { font-size: 1.25rem; }
+#projects-app.size-medium .project-summary { font-size: 1rem; }
+#projects-app.size-medium .project-slug { font-size: 0.8rem; }
+
+#projects-app.size-large .project-card {
+    flex: 0 0 calc(50% - 20px);
+    padding: 24px;
+}
+#projects-app.size-large .project-title { font-size: 1.5rem; }
+#projects-app.size-large .project-summary { font-size: 1.05rem; -webkit-line-clamp: 6; line-clamp: 6; }
+#projects-app.size-large .project-slug { font-size: 0.9rem; }
 
 @media (max-width: 900px) {
     .project-card {

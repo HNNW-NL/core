@@ -24,6 +24,29 @@ document.addEventListener("DOMContentLoaded", () => {
         currentPage = totalPages;
     }
 
+    // Card size handling (small | medium | large)
+    const sizeSelect = document.getElementById("card-size-select");
+    function applySize(size) {
+        app.classList.remove('size-small', 'size-medium', 'size-large');
+        const normalized = (size || 'medium').toString();
+        app.classList.add('size-' + normalized);
+        if (sizeSelect) sizeSelect.value = normalized;
+        renderPage();
+    }
+    const urlSize = urlParams.get('size');
+    const savedSize = urlSize || localStorage.getItem('projects_card_size') || 'medium';
+    applySize(savedSize);
+    if (sizeSelect) {
+        sizeSelect.addEventListener('change', (e) => {
+            const val = e.target.value || 'medium';
+            localStorage.setItem('projects_card_size', val);
+            const u = new URL(window.location);
+            u.searchParams.set('size', val);
+            window.history.replaceState({}, '', u);
+            applySize(val);
+        });
+    }
+
     // Render current page of projects
     function renderPage() {
         container.innerHTML = "";
