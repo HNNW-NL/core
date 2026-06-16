@@ -2,8 +2,11 @@
 
 namespace App\Module\Admin\Controller;
 
+use App\Module\Admin\DTO\StatusDTO;
+use App\Module\Admin\Handler\CreateStatusHandler;
 use App\Module\Admin\Service\StatusService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -47,5 +50,26 @@ final class DashboardController extends AbstractController
         return $this->render('pages/admin/statuses.html.twig', [
             'statuses' => $statusService->getAllStatuses(),
         ]);
+    }
+
+    #[Route('/statuses/create', name: 'statuses.create', methods: ['GET', 'POST'])]
+    public function createStatus(
+        Request $request,
+        CreateStatusHandler $handler
+    ): Response {
+        if ($request->isMethod('POST')) {
+
+            $dto = new StatusDTO(
+                $request->request->get('name'),
+                $request->request->get('colourHex'),
+                $request->request->get('scope')
+            );
+
+            $handler->handle($dto);
+
+            return $this->redirectToRoute('admin.statuses');
+        }
+
+        return $this->render('pages/admin/statuses-create.html.twig');
     }
 }
