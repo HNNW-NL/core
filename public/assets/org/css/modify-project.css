@@ -69,7 +69,7 @@ input[type="file"]::file-selector-button:focus-visible {
 }
 
 .content--single {
-    width: min(760px, calc(100% - 32px));
+    width: min(1040px, calc(100% - 32px));
     margin: 20px auto 28px;
 }
 
@@ -140,49 +140,40 @@ body.page-ready .reveal-up {
 
 main {
     display: grid;
-    gap: 16px;
+    gap: 18px;
 }
 
 form {
-    /* Form */
+    position: relative;
     width: 100%;
     margin: 0;
-    padding: 22px;
+    padding: 24px;
     background: var(--card-strong);
     border: 1px solid var(--border);
-    border-radius: 18px;
+    border-radius: 22px;
     box-shadow: var(--shadow);
     backdrop-filter: blur(14px);
+    display: grid;
+    gap: 18px;
+    overflow: hidden;
 }
 
-.modify-grid {
+.modify-meta {
     display: grid;
     gap: 14px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.modify-meta {
+.modify-fields {
     display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.modify-box {
-    padding: 14px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.modify-box h2 {
-    margin: 0;
-    font-size: 1rem;
+    gap: 14px;
 }
 
 .button-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
+    margin-top: 2px;
 }
 
 
@@ -243,7 +234,6 @@ label {
 input,
 textarea,
 select {
-    /* Inputs */
     width: 100%;
     min-height: 44px;
     padding: 11px 13px;
@@ -298,8 +288,7 @@ div.is-dirty label::after {
     vertical-align: middle;
 }
 
-textarea#summary,
-textarea#currentSummary {
+textarea#summary {
     min-height: 90px;
 }
 
@@ -335,7 +324,6 @@ input[type="file"]::file-selector-button:hover {
 }
 
 button {
-    /* Button */
     width: 100%;
     min-height: 44px;
     border: 0;
@@ -464,18 +452,13 @@ button[aria-busy="true"] {
 }
 
 @media (max-width: 640px) {
-    /* Mobile tweaks */
     .content {
         padding: 0;
     }
 
     form {
         padding: 18px;
-        border-radius: 16px;
-    }
-
-    .modify-grid {
-        grid-template-columns: 1fr;
+        border-radius: 18px;
     }
 
     .modify-meta {
