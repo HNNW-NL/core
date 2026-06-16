@@ -5,9 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const projectIdField = document.getElementById('projectId');
-    const currentNameField = document.getElementById('currentName');
-    const currentSummaryField = document.getElementById('currentSummary');
-    const currentVisibilityField = document.getElementById('currentVisibility');
+    const organisationIdField = document.getElementById('organisationId');
     const nameField = document.getElementById('name');
     const summaryField = document.getElementById('summary');
     const descField = document.getElementById('description');
@@ -17,11 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const endDateField = document.getElementById('endDate');
     const capacityField = document.getElementById('capacity');
     const statusIdField = document.getElementById('statusId');
-    const currentStartDateField = document.getElementById('currentStartDate');
-    const currentEndDateField = document.getElementById('currentEndDate');
-    const currentCapacityField = document.getElementById('currentCapacity');
-    const currentStatusField = document.getElementById('currentStatus');
-    const currentPublishedAtField = document.getElementById('currentPublishedAt');
+    const remotePossibleField = document.getElementById('remotePossible');
     const unsavedBadge = document.getElementById('unsavedBadge');
     const deleteDialog = document.getElementById('deleteConfirmDialog');
     const deleteDialogForm = deleteDialog ? deleteDialog.querySelector('.delete-dialog__form') : null;
@@ -31,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const deleteButton = form.querySelector('button[name="intent"][value="delete"]');
     const actionButtons = form.querySelectorAll('button[name="intent"]');
     const timeField = document.getElementById('lastModifiedAt');
+    const dataEndpoint = form.dataset.projectDataUrl || window.location.pathname;
 
     const url = new URL(window.location.href);
     const idFromQuery = (url.searchParams.get('id') || '').trim();
@@ -51,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.insertBefore(message, form.firstChild);
     }
 
-    const trackedFields = [nameField, summaryField, descField, visibilityField, effectiveAtField, startDateField, endDateField, capacityField, statusIdField].filter(Boolean);
+    const trackedFields = [nameField, summaryField, descField, visibilityField, effectiveAtField, startDateField, endDateField, capacityField, statusIdField, remotePossibleField].filter(Boolean);
     const initialValues = new Map();
     trackedFields.forEach(function (field) {
         initialValues.set(field.id, field.value);
@@ -93,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadProjectList() {
         try {
-            const response = await fetch('handler.php?fetch=list', {
+            const response = await fetch(dataEndpoint + '?fetch=list', {
                 headers: {
                     Accept: 'application/json'
                 }
@@ -113,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function () {
             projects.forEach(function (project) {
                 const option = document.createElement('option');
                 option.value = project.id;
-                option.textContent = '#' + project.id + ' - ' + project.name;
+                option.textContent = '#' + project.id + ' - ' + (project.title || project.name || 'Project');
                 projectIdField.appendChild(option);
             });
 
@@ -135,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function loadProject(projectId) {
         try {
-            const response = await fetch('handler.php?fetch=1&id=' + encodeURIComponent(projectId), {
+            const response = await fetch(dataEndpoint + '?fetch=1&id=' + encodeURIComponent(projectId), {
                 headers: {
                     Accept: 'application/json'
                 }
@@ -151,22 +146,16 @@ document.addEventListener('DOMContentLoaded', function () {
             if (projectIdField) {
                 projectIdField.value = project.id || projectId;
             }
-            if (currentNameField) {
-                currentNameField.value = project.name || '';
+            if (organisationIdField) {
+                organisationIdField.value = project.organisationId || project.organisation_id || '';
             }
-            if (currentSummaryField) {
-                currentSummaryField.value = project.summary || '';
+            if (nameField) {
+                nameField.value = project.title || project.name || '';
             }
-            if (currentVisibilityField) {
-                currentVisibilityField.value = project.visibility || 'public';
-            }
-            if (nameField && !nameField.value) {
-                nameField.value = project.name || '';
-            }
-            if (summaryField && !summaryField.value) {
+            if (summaryField) {
                 summaryField.value = project.summary || '';
             }
-            if (descField && !descField.value) {
+            if (descField) {
                 descField.value = project.description || '';
             }
             if (visibilityField) {
@@ -181,33 +170,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 modifiedByField.value = project.updatedBy;
             }
 
-            if (currentStartDateField) {
-                currentStartDateField.value = project.startDate || '';
-            }
-            if (currentEndDateField) {
-                currentEndDateField.value = project.endDate || '';
-            }
-            if (currentCapacityField) {
-                currentCapacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
-            }
-            if (currentStatusField) {
-                const statusLabels = { 1: 'Draft', 2: 'Active', 3: 'Closed' };
-                currentStatusField.value = statusLabels[project.statusId] || 'Unknown';
-            }
-            if (currentPublishedAtField) {
-                currentPublishedAtField.value = project.publishedAt || '';
-            }
-            if (startDateField && !startDateField.value) {
+            if (startDateField) {
                 startDateField.value = project.startDate || '';
             }
-            if (endDateField && !endDateField.value) {
+            if (endDateField) {
                 endDateField.value = project.endDate || '';
             }
-            if (capacityField && !capacityField.value) {
+            if (capacityField) {
                 capacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
             }
             if (statusIdField) {
-                statusIdField.value = project.statusId || 1;
+                const statusLookup = {
+                    draft: '1',
+                    published: '2',
+                    active: '2',
+                    archived: '3',
+                    closed: '3'
+                };
+                const resolvedStatus = (project.statusName || project.status || '').toString().trim().toLowerCase();
+                statusIdField.value = statusLookup[resolvedStatus] || (project.statusId ? String(project.statusId) : '1');
+            }
+            if (remotePossibleField) {
+                if (project.remotePossible === null || project.remotePossible === undefined || project.remotePossible === '') {
+                    remotePossibleField.value = '';
+                } else {
+                    remotePossibleField.value = project.remotePossible ? '1' : '0';
+                }
             }
 
             trackedFields.forEach(function (field) {
@@ -271,8 +259,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function validateProjectId() {
         const projectId = projectIdField ? projectIdField.value.trim() : '';
-        if (!/^\d+$/.test(projectId)) {
-            setFieldState(projectIdField, false, 'Project ID must be numeric.');
+        if (projectId === '') {
+            setFieldState(projectIdField, false, 'Project ID is required.');
             return false;
         }
         setFieldState(projectIdField, true, 'Looks good.');
@@ -412,11 +400,12 @@ document.addEventListener('DOMContentLoaded', function () {
     wireField(endDateField, null);
     wireField(capacityField, null);
     wireField(statusIdField, null);
+    wireField(remotePossibleField, null);
 
     if (projectIdField) {
         projectIdField.addEventListener('change', function () {
             const selectedProjectId = projectIdField.value.trim();
-            if (/^\d+$/.test(selectedProjectId)) {
+            if (selectedProjectId !== '') {
                 loadProject(selectedProjectId);
             }
         });
