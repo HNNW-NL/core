@@ -31,21 +31,11 @@ final class StatusService
     }
 
     public function createStatus(StatusDTO $dto): void
-{
-    if ($this->statusExists($dto->name, $dto->scope)) {
-        throw new \RuntimeException(
-            sprintf(
-                'Status "%s" bestaat al voor scope "%s".',
-                $dto->name,
-                $dto->scope
-            )
-        );
+    {
+        $status = $this->statusMapper->dtoToEntity($dto);
+
+        $this->statusRepository->save($status);
     }
-
-    $status = $this->statusMapper->dtoToEntity($dto);
-
-    $this->statusRepository->save($status);
-}
 
     public function updateStatus(StatusDTO $dto): void
     {

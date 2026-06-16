@@ -2,13 +2,14 @@
 
 namespace App\Module\Admin\Controller;
 
+use App\Module\Admin\Service\StatusService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin', name: 'admin.')]
 final class DashboardController extends AbstractController
-{   
+{
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(): Response
     {
@@ -40,8 +41,11 @@ final class DashboardController extends AbstractController
     }
 
     #[Route('/statuses', name: 'statuses', methods: ['GET'])]
-    public function statuses(): Response
-    {
-        return $this->render('pages/admin/statuses.html.twig');
+    public function statuses(
+        StatusService $statusService
+    ): Response {
+        return $this->render('pages/admin/statuses.html.twig', [
+            'statuses' => $statusService->getAllStatuses(),
+        ]);
     }
 }

@@ -12,5 +12,29 @@
 {# Page content #}
 {% block body %}
     <h2>Statuses</h2>
-    <p>Admin dashboard - statuses page.</p>
+
+    <p>Aantal statuses: {{ statuses|length }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Naam</th>
+                <th>Scope</th>
+                <th>Kleur</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for status in statuses %}
+                <tr>
+                    <td>{{ status.name }}</td>
+                    <td>{{ status.scope }}</td>
+                    <td>{{ status.colourHex }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3">Geen statussen gevonden.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
