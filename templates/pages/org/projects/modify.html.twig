@@ -1,7 +1,7 @@
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Publish project {{ id }}{% endblock %}
+{% block title %}Modify Project {{ id }}{% endblock %}
 
 {% block stylesheets %}
 <link rel="stylesheet" href="{{ asset('assets/org/css/modify-project.css') }}">
@@ -20,15 +20,16 @@
         <main id="main-content">
             <section class="modify-banner reveal-up" aria-label="Modification notice" style="--reveal-delay: 60ms;">
                 <p class="eyebrow">Modify</p>
-                <h1>Modify Existing Project</h1>
-                <p>Review the current values, then update only the fields you want to change.</p>
+                <h1>Modify Project</h1>
+                <p>Update project details and save your changes.</p>
             </section>
-            <form method="post" action="handler.php" novalidate class="reveal-up" style="--reveal-delay: 140ms;">
+            <form method="post" action="{{ path('org.modifyProject.submit', { id: id }) }}" data-project-data-url="{{ path('org.modifyProject.data', { id: id }) }}" novalidate class="reveal-up" style="--reveal-delay: 140ms;">
                 <p class="form-status" role="status" aria-live="polite" hidden></p>
+                <input type="hidden" id="organisationId" name="organisation_id" value="{{ organisationId|default('') }}">
                 <div class="modify-meta">
                     <div>
                         <label for="projectId">Choose project to modify</label>
-                        <select id="projectId" name="projectId" required></select>
+                        <select id="projectId" name="project_id" required></select>
                     </div>
                 </div>
                 <section class="modify-meta" aria-label="Audit details">
@@ -41,49 +42,10 @@
                         <input type="text" id="lastModifiedAt" name="lastModifiedAt" value="" readonly>
                     </div>
                 </section>
-                <div class="modify-grid">
-                    <section class="modify-box" aria-label="Current details">
-                        <h2>Current Details</h2>
-                        <p class="field-help">Loaded from the database for this project ID.</p>
+                <div class="modify-fields reveal-up" aria-label="Project details" style="--reveal-delay: 220ms;">
                         <div>
-                            <label for="currentName">Current project name</label>
-                            <input type="text" id="currentName" name="currentName" value="" readonly>
-                        </div>
-                        <div>
-                            <label for="currentSummary">Current summary</label>
-                            <textarea id="currentSummary" name="currentSummary" rows="3" readonly></textarea>
-                        </div>
-                        <div>
-                            <label for="currentVisibility">Current visibility</label>
-                            <input type="text" id="currentVisibility" name="currentVisibility" value="public" readonly>
-                        </div>
-                        <div>
-                            <label for="currentStartDate">Current start date</label>
-                            <input type="date" id="currentStartDate" name="currentStartDate" value="" readonly>
-                        </div>
-                        <div>
-                            <label for="currentEndDate">Current end date</label>
-                            <input type="date" id="currentEndDate" name="currentEndDate" value="" readonly>
-                        </div>
-                        <div>
-                            <label for="currentCapacity">Current capacity</label>
-                            <input type="number" id="currentCapacity" name="currentCapacity" value="" readonly>
-                        </div>
-                        <div>
-                            <label for="currentStatus">Current status</label>
-                            <input type="text" id="currentStatus" name="currentStatus" value="" readonly>
-                        </div>
-                        <div>
-                            <label for="currentPublishedAt">Published at</label>
-                            <input type="text" id="currentPublishedAt" name="currentPublishedAt" value="" readonly>
-                        </div>
-                    </section>
-                    <section class="modify-box reveal-up" aria-label="New details" style="--reveal-delay: 220ms;">
-                        <h2>Updated Details</h2>
-                        <p class="field-help">Only changed values will be applied.</p>
-                        <div>
-                            <label for="name">Project name</label>
-                            <input type="text" id="name" name="name" placeholder="Project name" required autocomplete="name">
+                            <label for="name">Project title</label>
+                            <input type="text" id="name" name="title" placeholder="Project title" required autocomplete="name">
                         </div>
                         <div>
                             <label for="summary">Summary</label>
@@ -94,7 +56,7 @@
                             <textarea id="description" name="description" rows="5" placeholder="Describe the project in detail" required></textarea>
                         </div>
                         <div>
-                            <label for="visibility">New visibility</label>
+                            <label for="visibility">Visibility</label>
                             <select id="visibility" name="visibility" required>
                                 <option value="public">Public</option>
                                 <option value="private">Private</option>
@@ -115,13 +77,20 @@
                         </div>
                         <div>
                             <label for="statusId">Status</label>
-                            <select id="statusId" name="statusId">
+                            <select id="statusId" name="status_name">
                                 <option value="1">Draft</option>
-                                <option value="2">Active</option>
-                                <option value="3">Closed</option>
+                                <option value="2">Published</option>
+                                <option value="3">Archived</option>
                             </select>
                         </div>
-                    </section>
+                        <div>
+                            <label for="remotePossible">Remote possible</label>
+                            <select id="remotePossible" name="remote_possible">
+                                <option value="">No change</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
                 </div>
                 <div class="modify-meta">
                     <div>
