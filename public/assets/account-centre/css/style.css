@@ -1,3 +1,7 @@
+/* ==========================================================================
+   Account Centre & Applications Styles (Core & Light Theme)
+   ========================================================================== */
+
 #account-centre-container {
     padding: 3rem 1.5rem;
     max-width: 900px;
@@ -14,6 +18,35 @@
     margin-bottom: 0.5rem;
 }
 
+.account-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.account-card {
+    padding: 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    display: block;
+}
+
+.account-card:hover {
+    transform: translateY(-5px);
+}
+
+.account-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.account-card p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Alerts & Notifications */
 .alert {
     padding: 1rem;
     border-radius: 6px;
@@ -46,34 +79,7 @@
     border: 1px solid transparent;
 }
 
-.account-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-}
-
-.account-card {
-    padding: 2rem;
-    border-radius: 12px;
-    text-decoration: none;
-    transition: transform 0.3s ease, border-color 0.3s ease;
-    display: block;
-}
-
-.account-card:hover {
-    transform: translateY(-5px);
-}
-
-.account-card h3 {
-    font-size: 1.4rem;
-    margin-bottom: 0.75rem;
-}
-
-.account-card p {
-    font-size: 0.95rem;
-    line-height: 1.5;
-}
-
+/* Form Elements (Light Theme) */
 #account-centre-container .form-group select {
     width: 100%;
     padding: 0.85rem 1rem;
@@ -108,6 +114,11 @@
 .btn-cancel:hover {
     color: #0f172a;
 }
+
+
+/* ==========================================================================
+   Dark Theme Overrides (body[data-theme="dark"])
+   ========================================================================== */
 
 body[data-theme="dark"] #account-centre-container {
     padding: 3rem 1.5rem;
@@ -147,6 +158,7 @@ body[data-theme="dark"] .account-card p {
     color: var(--hnnw-secondary-text);
 }
 
+/* Dark Theme Forms */
 body[data-theme="dark"] #account-centre-container .account-form-container {
     background-color: #111625 !important;
     border: 1px solid #1e293b !important;
@@ -208,6 +220,7 @@ body[data-theme="dark"] #account-centre-container .form-group select:focus {
     border-color: #475569 !important;
 }
 
+/* Checkboxes */
 body[data-theme="dark"] #account-centre-container .form-group-checkbox {
     display: flex !important;
     align-items: flex-start !important;
@@ -257,6 +270,7 @@ body[data-theme="dark"] #account-centre-container .form-group-checkbox input[typ
     opacity: 0.6 !important;
 }
 
+/* Dark Theme Alerts */
 body[data-theme="dark"] #account-centre-container .alert {
     background-color: #111625 !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
@@ -273,6 +287,7 @@ body[data-theme="dark"] #account-centre-container .alert-error {
     border-left: 4px solid #ef4444 !important;
 }
 
+/* Dark Theme Actions & Buttons */
 body[data-theme="dark"] #account-centre-container .form-actions-row {
     display: flex !important;
     align-items: center !important;
@@ -330,12 +345,19 @@ body[data-theme="dark"] #account-centre-container .form-footer-link a {
 body[data-theme="dark"] #account-centre-container .form-footer-link a:hover {
     text-decoration: underline !important;
 }
+
+
+/* ==========================================================================
+   Global Header & Navigation Components
+   ========================================================================== */
+
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 3px;
 }
+
 header nav ul {
     display: flex;
     justify-content: flex-end;
@@ -349,21 +371,6 @@ header nav ul {
 header nav ul li a {
     text-decoration: none;
     display: inline-block;
-}
-
-.button {
-    display: inline-block;
-    padding: 8px 16px;
-    cursor: pointer;
-    background-color: transparent;
-    color: #cdcdcd;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: all 0.5s ease;
-    font-family: inter, sans-serif;
-}
-.button:hover {
-    color: #f4c400;
 }
 
 header nav ul svg:first-of-type {
@@ -380,3 +387,18 @@ header nav ul svg:hover path {
     transition: fill 0.5s ease;
 }
 
+.button {
+    display: inline-block;
+    padding: 8px 16px;
+    cursor: pointer;
+    background-color: transparent;
+    color: #cdcdcd;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.5s ease;
+    font-family: inter, sans-serif;
+}
+
+.button:hover {
+    color: #f4c400;
+}

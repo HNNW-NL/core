@@ -13,11 +13,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'accounts')]
 #[ORM\HasLifecycleCallbacks]
-class Account
+class Account implements UserInterface, PasswordAuthenticatedUserInterface
 {
     // Columns
 
@@ -144,6 +146,48 @@ class Account
     public function restore(): void
     {
         $this->deletedAt = null;
+    }
+
+
+    /// Symfony UserInterface & Security Functions
+
+    /**
+     * De unieke identifier voor dit account binnen Symfony Security (meestal e-mail of username).
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    /**
+     * Geeft de rollen van de gebruiker terug. Elk account krijgt sowieso ROLE_USER.
+     * Als er een admin-relatie bestaat, wordt ROLE_ADMIN dynamisch toegevoegd.
+     */
+    public function getRoles(): array
+    {
+        $roles = ['ROLE_USER'];
+
+        if ($this->admin !== null) {
+            $roles[] = 'ROLE_ADMIN';
+        }
+
+        return array_unique($roles);
+    }
+
+    /**
+     * Vertelt Symfony waar het gehashte wachtwoord staat voor PasswordAuthenticatedUserInterface.
+     */
+    public function getPassword(): ?string
+    {
+        return $this->passwordHash;
+    }
+
+    /**
+     * Wordt gebruikt om eventuele gevoelige, tijdelijke plain-text data te wissen na authenticatie.
+     */
+    public function eraseCredentials(): void
+    {
+        // Kan leeg blijven tenzij je een tijdelijke $plainPassword property gebruikt
     }
 
 

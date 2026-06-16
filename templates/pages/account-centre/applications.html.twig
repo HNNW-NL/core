@@ -1,16 +1,47 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}My Application{% endblock %}
+{% block title %}Mijn Aanmeldingen | Account Centre{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <h2>Applications</h2>
-    <p>Account Centre - applications page.</p>
+    <div id="account-centre-container">
+
+        <div class="dashboard-header">
+            <h1>Mijn Aanmeldingen</h1>
+            <p>Bekijk de status van je lopende aanmeldingen voor projecten.</p>
+        </div>
+
+        {# Snelkoppeling Debugger zonder syntaxfouten #}
+        <div style="background: #1e293b; color: #f8fafc; padding: 1rem; margin-bottom: 2rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem;">
+            <strong>🔍 Snelkoppeling Debugger (Directe Bypass Modus):</strong><br>
+            • Profiel geladen via controller: {% if profile %}<span style="color: #4ade80;">✅ Ja</span>{% else %}<span style="color: #f87171;">❌ Nee (Database tabel 'profiles' is leeg!)</span>{% endif %}
+        </div>
+
+        <div class="account-grid">
+            {# We kijken nu rechtstreeks naar de meegestuurde profile-variabele #}
+            {% if profile %}
+
+                {# We loopen direct door de projectApplications van het Profile-object #}
+                {% for application in profile.projectApplications %}
+                    <a href="#" class="account-card">
+                        <h3>{{ application.project.name|default('Naamloze aanmelding') }}</h3>
+                        <p>Status: <strong>{{ application.status|default('In behandeling') }}</strong></p>
+                    </a>
+                {% else %}
+                    {# Dit wordt getoond als de database-collectie voor dit profiel nog leeg is #}
+                    <div class="account-card" style="grid-column: 1 / -1; text-align: center; pointer-events: none; opacity: 0.7;">
+                        <h3>Geen aanmeldingen</h3>
+                        <p>Je hebt je op dit moment nog niet aangemeld voor een project.</p>
+                    </div>
+                {% endfor %}
+
+            {% else %}
+                {# Dit verschijnt alleen als er werkelijk 0 profielen in je database staan #}
+                <div class="account-card" style="grid-column: 1 / -1; text-align: center; pointer-events: none; opacity: 0.7;">
+                    <h3>Geen profieldata gevonden</h3>
+                    <p>Voeg handmatig een profiel toe aan je database om deze pagina anoniem te testen.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
 {% endblock %}
