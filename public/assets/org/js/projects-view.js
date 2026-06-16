@@ -9,16 +9,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const allProjects = JSON.parse(app.dataset.projects || "[]");
     const searchQuery = app.dataset.search || "";
-    const perPage = 8;
 
     const urlParams = new URLSearchParams(window.location.search);
+    const perPageSelect = document.getElementById('per-page-select');
+    let perPage = parseInt(urlParams.get('per_page')) || parseInt(localStorage.getItem('projects_per_page')) || 8;
+    if (perPageSelect) perPageSelect.value = String(perPage);
+
     let currentPage = parseInt(urlParams.get("page")) || 1;
 
     if (searchQuery) {
         searchInput.value = searchQuery;
     }
 
-    const totalPages = Math.max(1, Math.ceil(allProjects.length / perPage));
+    let totalPages = Math.max(1, Math.ceil(allProjects.length / perPage));
 
     if (currentPage > totalPages) {
         currentPage = totalPages;
@@ -44,6 +47,21 @@ document.addEventListener("DOMContentLoaded", () => {
             u.searchParams.set('size', val);
             window.history.replaceState({}, '', u);
             applySize(val);
+        });
+    }
+
+    // per-page selector handling
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value) || 8;
+            localStorage.setItem('projects_per_page', val);
+            perPage = val;
+            const u = new URL(window.location);
+            u.searchParams.set('per_page', val);
+            window.history.replaceState({}, '', u);
+            totalPages = Math.max(1, Math.ceil(allProjects.length / perPage));
+            if (currentPage > totalPages) currentPage = totalPages;
+            renderPage();
         });
     }
 

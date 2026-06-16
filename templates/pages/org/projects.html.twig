@@ -31,6 +31,14 @@
                 <option value="large">Large</option>
                 </select>
             </div>
+            <label for="per-page-select" class="per-page-label">Items</label>
+            <div class="card-size-wrapper">
+                <select id="per-page-select" class="card-size-select" aria-label="Items per page">
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                </select>
+            </div>
         </div>
 
         {% set q = app.request.query.get('q')|default('') %}

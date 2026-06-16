@@ -68,6 +68,12 @@
     align-self: center;
     font-weight: 500;
 }
+.per-page-label {
+    margin-left: 8px;
+    color: #fff;
+    align-self: center;
+    font-weight: 500;
+}
 .card-size-wrapper {
     position: relative;
     margin-left: 6px;
