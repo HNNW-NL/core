@@ -38,4 +38,10 @@ final class DashboardController extends AbstractController
     {
         return $this->render('pages/admin/social-staff.html.twig');
     }
+
+    #[Route('/statuses', name: 'statuses', methods: ['GET'])]
+    public function statuses(): Response
+    {
+        return $this->render('pages/admin/statuses.html.twig');
+    }
 }
