@@ -14,6 +14,6 @@ final class UpdateStatusHandler
 
     public function handle(StatusDTO $dto): void
     {
-        // TODO
+        $this->statusService->updateStatus($dto);
     }
 }

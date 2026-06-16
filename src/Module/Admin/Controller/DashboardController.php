@@ -8,7 +8,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin', name: 'admin.')]
 final class DashboardController extends AbstractController
-{
+{   
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(): Response
     {
