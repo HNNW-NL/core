@@ -3,78 +3,71 @@
 namespace App\Module\Org\DTO;
 
 use App\Entity\Account\Account;
-use App\Entity\Common\Status;
 
 class ModifyProjectDTO
 {
     public function __construct(
-        // Identity
-        public int $projectId,
-        public int $organisationId,
+        public string $projectId,
+        public string $organisationId,
 
-        // Core modification
-        public Status $status,
-
-        // Optional metadata being changed
-        public ?string $description = null,
+        public ?string $title = null,
         public ?string $summary = null,
-
-        // Notification
-        public bool $notifyTeam = false,
-        public ?string $modifyMessage = null,
-        public ?string $notificationEmail = null,
-
-        // Scheduling
-        public ?\DateTimeImmutable $scheduledFor = null,
+        public ?string $description = null,
+        public ?string $visibility = null,
+        public ?string $statusName = null,
+        public ?\DateTimeImmutable $startDate = null,
+        public ?\DateTimeImmutable $endDate = null,
+        public ?int $capacity = null,
+        public ?bool $remotePossible = null,
         public ?Account $modifiedBy = null,
-
-        // Timestamps of the project itself (read-only context, not changed here)
         public ?\DateTimeImmutable $timeCreated = null,
         public ?\DateTimeImmutable $timeModified = null,
-
-        // When this modification was submitted
         public ?\DateTimeImmutable $modifiedAt = null,
     ) {
     }
 
-    public function shouldModifyNow(): bool
+    public function hasTitleChanged(): bool
     {
-        if ($this->status !== Status::PUBLISHED) {
-            return false;
-        }
-
-        if ($this->scheduledFor === null) {
-            return true;
-        }
-
-        return $this->scheduledFor <= new \DateTimeImmutable();
-    }
-
-    public function shouldSchedule(): bool
-    {
-        if ($this->status !== Status::SCHEDULED) {
-            return false;
-        }
-
-        if ($this->scheduledFor === null) {
-            return false;
-        }
-
-        return $this->scheduledFor > new \DateTimeImmutable();
-    }
-
-    public function hasDescriptionChanged(): bool
-    {
-        return $this->description !== null;
+        return $this->title !== null && $this->title !== '';
     }
 
     public function hasSummaryChanged(): bool
     {
-        return $this->summary !== null;
+        return $this->summary !== null && $this->summary !== '';
     }
 
-    public function hasModifyMessage(): bool
+    public function hasDescriptionChanged(): bool
     {
-        return $this->modifyMessage !== null && $this->modifyMessage !== '';
+        return $this->description !== null && $this->description !== '';
+    }
+
+    public function hasVisibilityChanged(): bool
+    {
+        return $this->visibility !== null && $this->visibility !== '';
+    }
+
+    public function hasStatusChanged(): bool
+    {
+        return $this->statusName !== null && $this->statusName !== '';
+    }
+
+    public function hasStartDateChanged(): bool
+    {
+        return $this->startDate !== null;
+    }
+
+    public function hasEndDateChanged(): bool
+    {
+        return $this->endDate !== null;
+    }
+
+    public function hasCapacityChanged(): bool
+    {
+        return $this->capacity !== null;
+    }
+
+    public function hasRemotePossibleChanged(): bool
+    {
+        return $this->remotePossible !== null;
     }
 }

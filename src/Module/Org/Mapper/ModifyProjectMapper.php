@@ -3,65 +3,99 @@
 namespace App\Module\Org\Mapper;
 
 use App\Entity\Project\Project;
-use App\Entity\Common\Status;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use Symfony\Component\HttpFoundation\Request;
 
 class ModifyProjectMapper
 {
-    // Convert HTTP request to DTO
     public function fromRequest(Request $request, array $extraData = []): ModifyProjectDTO
     {
+        $title = $this->getStringFromRequest($request, ['title', 'name']);
+
         return new ModifyProjectDTO(
-            projectId: (int)$request->request->get('project_id', $extraData['project_id'] ?? 0),
-            organisationId: (int)$request->request->get('organisation_id', $extraData['organisation_id'] ?? 0),
-            status: $this->getStatusFromString($request->request->get('status', 'draft')),
-            notifyTeam: (bool)$request->request->get('notify_team', false),
-            publishMessage: $request->request->get('publish_message'),
-            notificationEmail: $request->request->get('notification_email'),
-            scheduledFor: $this->getDateFromString($request->request->get('scheduled_for')),
-            publishedBy: $extraData['publisher'] ?? null,
+            projectId: (string) $request->request->get('project_id', $extraData['project_id'] ?? $request->attributes->get('id', '')),
+            organisationId: (string) $request->request->get('organisation_id', $extraData['organisation_id'] ?? ''),
+            title: $title,
+            summary: $this->getStringFromRequest($request, ['summary']),
+            description: $this->getStringFromRequest($request, ['description']),
+            visibility: $this->getStringFromRequest($request, ['visibility']),
+            statusName: $this->normalizeStatusName($this->getStringFromRequest($request, ['status', 'status_name'])),
+            startDate: $this->getDateFromRequest($request, ['start_date', 'startDate']),
+            endDate: $this->getDateFromRequest($request, ['end_date', 'endDate']),
+            capacity: $this->getIntFromRequest($request, ['capacity']),
+            remotePossible: $this->getBoolFromRequest($request, ['remote_possible', 'remotePossible']),
+            modifiedBy: $extraData['publisher'] ?? null,
+            modifiedAt: new \DateTimeImmutable(),
         );
     }
 
-    // Convert DTO to Entity updates
     public function toEntity(Project $project, ModifyProjectDTO $dto): Project
     {
-        $project->setStatus($dto->status);
-
-        if ($dto->shouldPublishNow()) {
-            $project->setPublishedAt(new \DateTimeImmutable());
-            $project->setPublishedBy($dto->publishedBy);
-            $project->setScheduledFor(null);
+        if ($dto->hasTitleChanged()) {
+            $project->setTitle($dto->title);
         }
 
-        if ($dto->shouldSchedule()) {
-            $project->setScheduledFor($dto->scheduledFor);
-            $project->setPublishedAt(null);
+        if ($dto->hasSummaryChanged()) {
+            $project->setSummary($dto->summary);
         }
 
-        if ($dto->status === Status::DRAFT) {
-            $project->setPublishedAt(null);
-            $project->setScheduledFor(null);
-            $project->setPublishedBy(null);
+        if ($dto->hasDescriptionChanged()) {
+            $project->setDescription($dto->description);
+        }
+
+        if ($dto->hasVisibilityChanged()) {
+            $project->setVisibility($dto->visibility);
+        }
+
+        if ($dto->hasStartDateChanged()) {
+            $project->setStartDate($dto->startDate);
+        }
+
+        if ($dto->hasEndDateChanged()) {
+            $project->setEndDate($dto->endDate);
+        }
+
+        if ($dto->hasCapacityChanged()) {
+            $project->setCapacity($dto->capacity);
+        }
+
+        if ($dto->hasRemotePossibleChanged()) {
+            if ($dto->remotePossible) {
+                $project->enableRemoteWork();
+            } else {
+                $project->disableRemoteWork();
+            }
         }
 
         return $project;
     }
 
-    // Convert Entity to API response
     public function toResponse(Project $project): array
     {
         return [
             'success' => true,
-            'id' => $project->getId(),
-            'status' => $project->getStatus()->value,
+            'id' => (string) $project->getId(),
+            'organisationId' => $project->getOwnerOrganisation() ? (string) $project->getOwnerOrganisation()->getId() : null,
+            'title' => $project->getTitle(),
+            'name' => $project->getTitle(),
+            'summary' => $project->getSummary(),
+            'description' => $project->getDescription(),
+            'visibility' => $project->getVisibility(),
+            'status' => $project->getStatus()?->getName(),
+            'statusName' => $project->getStatus()?->getName(),
+            'statusId' => $project->getStatus()?->getId(),
+            'startDate' => $project->getStartDate()?->format('Y-m-d'),
+            'endDate' => $project->getEndDate()?->format('Y-m-d'),
+            'capacity' => $project->getCapacity(),
+            'remotePossible' => method_exists($project, 'isRemotePossible') ? $project->isRemotePossible() : (method_exists($project, 'getRemotePossible') ? $project->getRemotePossible() : null),
+            'updatedBy' => $project->getModifiedBy()?->getEmail(),
+            'effectiveAt' => $project->getLastModified()?->format('Y-m-d H:i:s'),
             'published_at' => $project->getPublishedAt()?->format('Y-m-d H:i:s'),
-            'url' => '/projects/' . $project->getId(),
+            'last_modified' => $project->getLastModified()->format('Y-m-d H:i:s'),
+            'url' => '/org/projects/modify/' . $project->getId(),
         ];
     }
 
-    // Convert error to response
     public function toErrorResponse(string $error, int $code = 400): array
     {
         return [
@@ -71,25 +105,70 @@ class ModifyProjectMapper
         ];
     }
 
-    // Helper methods
-    private function getStatusFromString(?string $status): Status
+    private function getStringFromRequest(Request $request, array $keys): ?string
     {
-        return match($status) {
-            'published' => Status::PUBLISHED,
-            'scheduled' => Status::SCHEDULED,
-            'archived' => Status::ARCHIVED,
-            default => Status::DRAFT,
-        };
+        foreach ($keys as $key) {
+            $value = $request->request->get($key);
+            if ($value === null) {
+                continue;
+            }
+
+            $value = trim((string) $value);
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
     }
 
-    private function getDateFromString(?string $date): ?\DateTimeImmutable
+    private function getDateFromRequest(Request $request, array $keys): ?\DateTimeImmutable
     {
-        if (!$date) return null;
+        $date = $this->getStringFromRequest($request, $keys);
+        if ($date === null) {
+            return null;
+        }
 
         try {
             return new \DateTimeImmutable($date);
-        } catch (\Exception $e) {
+        } catch (\Throwable) {
             return null;
         }
+    }
+
+    private function getIntFromRequest(Request $request, array $keys): ?int
+    {
+        $value = $this->getStringFromRequest($request, $keys);
+        if ($value === null) {
+            return null;
+        }
+
+        return is_numeric($value) ? (int) $value : null;
+    }
+
+    private function getBoolFromRequest(Request $request, array $keys): ?bool
+    {
+        $value = $this->getStringFromRequest($request, $keys);
+        if ($value === null) {
+            return null;
+        }
+
+        return filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+    }
+
+    private function normalizeStatusName(?string $statusName): ?string
+    {
+        if ($statusName === null) {
+            return null;
+        }
+
+        $statusName = trim(strtolower($statusName));
+
+        return match ($statusName) {
+            '1', 'draft' => 'draft',
+            '2', 'published', 'active' => 'published',
+            '3', 'archived', 'closed' => 'archived',
+            default => $statusName === '' ? null : $statusName,
+        };
     }
 }

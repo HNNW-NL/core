@@ -6,6 +6,7 @@ use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 class ModifyProjectService
 {
@@ -15,55 +16,81 @@ class ModifyProjectService
 
     public function modify(ModifyProjectDTO $dto): Project
     {
-        // Find the project
-        $project = $this->entityManager
-            ->getRepository(Project::class)
-            ->find($dto->projectId);
+        $project = $this->findProject($dto->projectId);
 
-        if (!$project) {
+        if ($project === null) {
             throw new \RuntimeException('Project not found');
         }
 
-        // Update status
-        $project->setStatus($dto->status);
-
-        // Update optional fields if provided
-        if ($dto->hasDescriptionChanged()) {
-            $project->setDescription($dto->description);
+        if ($dto->organisationId === '') {
+            throw new \RuntimeException('Project organisation is required');
         }
 
-        if ($dto->hasSummaryChanged()) {
-            $project->setSummary($dto->summary);
+        if ($project->getOwnerOrganisation() === null) {
+            throw new \RuntimeException('Project does not belong to an organisation');
         }
 
-        // Handle modify now
-        if ($dto->shouldModifyNow()) {
-            $project->setModifiedAt(new \DateTimeImmutable());
-            $project->setModifiedBy($dto->modifiedBy);
+        $organisationId = (string) $project->getOwnerOrganisation()->getId();
+        if ($organisationId !== $dto->organisationId) {
+            throw new \RuntimeException('Project does not belong to the selected organisation');
+        }
 
-            if ($dto->hasModifyMessage()) {
-                $project->setModifyMessage($dto->modifyMessage);
+        if ($dto->hasStatusChanged()) {
+            $project->setStatus($this->resolveStatus($dto->statusName));
+        }
+
+        $project = (new \App\Module\Org\Mapper\ModifyProjectMapper())->toEntity($project, $dto);
+
+        if ($dto->hasStatusChanged()) {
+            $statusName = $dto->statusName ?? '';
+            if ($statusName === 'published' && $project->getPublishedAt() === null) {
+                $project->publish();
+            }
+
+            if ($statusName === 'draft' || $statusName === 'archived') {
+                $project->unpublish();
             }
         }
-
-        // Handle schedule logic
-        if ($dto->shouldSchedule()) {
-            $project->setScheduledFor($dto->scheduledFor);
-            $project->setModifiedAt(null);
-        }
-
-        // Handle draft — clear modification data
-        if ($dto->status === Status::DRAFT) {
-            $project->setModifiedAt(null);
-            $project->setScheduledFor(null);
-            $project->setModifiedBy(null);
-        }
-
-        // Always bump the timestamp
-        $project->setTimeModified(new \DateTimeImmutable());
 
         $this->entityManager->flush();
 
         return $project;
+    }
+
+    private function findProject(string $projectId): ?Project
+    {
+        $projectId = trim($projectId);
+        if ($projectId === '') {
+            return null;
+        }
+
+        try {
+            $uuid = Uuid::fromString($projectId);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        $project = $this->entityManager->getRepository(Project::class)->find($uuid);
+
+        return $project instanceof Project ? $project : null;
+    }
+
+    private function resolveStatus(?string $statusName): Status
+    {
+        $statusName = trim((string) $statusName);
+        if ($statusName === '') {
+            throw new \InvalidArgumentException('Status is required');
+        }
+
+        $status = $this->entityManager->getRepository(Status::class)->findOneBy([
+            'name' => $statusName,
+            'scope' => 'project',
+        ]);
+
+        if (!$status instanceof Status) {
+            throw new \RuntimeException('Unknown project status: ' . $statusName);
+        }
+
+        return $status;
     }
 }

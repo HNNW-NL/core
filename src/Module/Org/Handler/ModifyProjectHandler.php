@@ -3,7 +3,6 @@
 namespace App\Module\Org\Handler;
 
 use App\Entity\Account\Account;
-use App\Module\Org\DTO\ModifyProjectDTO;
 use App\Module\Org\Mapper\ModifyProjectMapper;
 use App\Module\Org\Service\ModifyProjectService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,34 +18,26 @@ class ModifyProjectHandler
         private LoggerInterface $logger,
     ) {}
 
-    // Main handle method - coordinates everything
     public function handle(Request $request, Account $publisher): array
     {
         try {
-            // 1. Start transaction (if needed)
             $this->entityManager->beginTransaction();
 
-            // 2. Convert request to DTO
             $dto = $this->mapper->fromRequest($request, ['publisher' => $publisher]);
 
-            // 3. Basic validation
-            if ($dto->projectId <= 0) {
+            if ($dto->projectId === '') {
                 throw new \InvalidArgumentException('Invalid project ID');
             }
 
-            // 4. Process via service
             $project = $this->service->modify($dto);
 
-            // 5. Commit transaction
             $this->entityManager->commit();
 
-            // 6. Log success
             $this->logger->info('Project modified', [
-                'project_id' => $project->getId(),
+                'project_id' => (string) $project->getId(),
                 'publisher' => $publisher->getEmail(),
             ]);
 
-            // 7. Return success response
             return $this->mapper->toResponse($project);
 
         } catch (\InvalidArgumentException $e) {
