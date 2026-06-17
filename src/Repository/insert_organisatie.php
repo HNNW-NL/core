@@ -17,6 +17,12 @@ if (isset($_POST['btn_ins'])) {
 ?>
 
 <html>
+    <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Organisatie toevoegen</title>
+</head>
     <body>
 
         <form method="post">
@@ -35,7 +41,7 @@ if (isset($_POST['btn_ins'])) {
         </form>
 
         <br><br>
-        <a href='crud_organisaties.php'>Home</a>
+        <a href='crud_organisaties.php'>Terug naar overzicht</a>
 
     </body>
 </html>
