@@ -65,6 +65,33 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    //  highlight search terms
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/[&<>"']/g, function (s) {
+            return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[s];
+        });
+    }
+
+    function escapeRegExp(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function highlightText(text, query) {
+        text = text || '';
+        if (!query) return escapeHtml(text);
+        const terms = query.trim().split(/\s+/).filter(Boolean).map(escapeRegExp);
+        if (terms.length === 0) return escapeHtml(text);
+        const pattern = new RegExp('(' + terms.join('|') + ')', 'i');
+        const parts = text.split(pattern);
+        return parts.map((part, idx) => {
+            if (idx % 2 === 1) {
+                return '<mark class="search-highlight">' + escapeHtml(part) + '</mark>';
+            }
+            return escapeHtml(part);
+        }).join('');
+    }
+
     // Render current page of projects
     function renderPage() {
         container.innerHTML = "";
@@ -82,15 +109,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const titleEl = document.createElement("div");
                 titleEl.className = "project-title";
-                titleEl.textContent = project.title || "Untitled";
-
                 const summaryEl = document.createElement("div");
                 summaryEl.className = "project-summary";
-                summaryEl.textContent = project.summary || "";
-
                 const slugEl = document.createElement("div");
                 slugEl.className = "project-slug";
-                slugEl.textContent = project.slug || "";
+
+                const hq = (searchInput && (searchInput.value || '').trim()) || searchQuery || '';
+
+                titleEl.innerHTML = highlightText(project.title || "Untitled", hq);
+                summaryEl.innerHTML = highlightText(project.summary || "", hq);
+                slugEl.innerHTML = highlightText(project.slug || "", hq);
 
                 card.appendChild(titleEl);
                 card.appendChild(summaryEl);
