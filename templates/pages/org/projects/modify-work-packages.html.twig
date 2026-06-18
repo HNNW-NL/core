@@ -1,16 +1,299 @@
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Modify project {{ id }} work packages{% endblock %}
+{% block title %}Werkpakketten beheren{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <style>
+        body {
+            margin: 0;
+            background: #f6f8fb;
+            color: #16263a;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .org-work-package-topbar {
+            background: #0d1a2a;
+            color: #fff;
+            border-bottom: 4px solid #2d8b57;
+        }
+
+        .org-work-package-topbar-inner {
+            min-height: 64px;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .org-work-package-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+        }
+
+        .org-work-package-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 6px;
+            display: grid;
+            place-items: center;
+            background: #2d8b57;
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .org-work-package-brand small {
+            display: block;
+            color: #bfd0e4;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .org-work-package-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .org-work-package-nav span {
+            border: 1px solid rgba(255, 255, 255, .22);
+            border-radius: 6px;
+            padding: 9px 12px;
+        }
+
+        .org-work-package-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            color: #16263a;
+            font-weight: 900;
+        }
+
+        .work-package-page {
+            max-width: 1180px;
+            margin: 28px auto 48px;
+            padding: 0 28px;
+        }
+
+        .work-package-header {
+            margin-bottom: 22px;
+        }
+
+        .work-package-header h2 {
+            margin: 0 0 8px;
+            color: #16263a;
+            font-size: 36px;
+            line-height: 1.1;
+        }
+
+        .work-package-header p {
+            max-width: 760px;
+            margin: 0;
+            color: #51627a;
+        }
+
+        .work-package-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .work-package-card {
+            background: #fff;
+            border: 1px solid #d9e0ea;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 10px 28px rgba(13, 26, 42, .08);
+        }
+
+        .work-package-card h3 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            color: #16263a;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .form-field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .form-field label {
+            font-weight: 700;
+            color: #16263a;
+        }
+
+        .form-field input,
+        .form-field textarea {
+            width: 100%;
+            border: 1px solid #d9e0ea;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-field textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .button-primary {
+            width: fit-content;
+            border: 0;
+            border-radius: 6px;
+            background: #2d8b57;
+            color: #fff;
+            padding: 12px 16px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .preview-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .preview-package {
+            background: #fff;
+            border: 1px solid #d9e0ea;
+            border-left: 5px solid #2d8b57;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .preview-package h4 {
+            margin: 0 0 6px;
+            color: #16263a;
+        }
+
+        .preview-package p {
+            margin: 0 0 10px;
+            color: #607086;
+        }
+
+        .status-pill {
+            display: inline-block;
+            background: #dff2e7;
+            color: #2d8b57;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        @media (max-width: 900px) {
+            .org-work-package-topbar-inner,
+            .org-work-package-nav {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .org-work-package-topbar-inner {
+                padding: 14px 20px;
+            }
+
+            .work-package-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .work-package-page {
+                padding: 0 20px;
+            }
+        }
+    </style>
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Modify Work Packages</h2>
-    <p>Organization panel - modify project ({{ id }}) work packages page.</p>
+    <header class="org-work-package-topbar">
+        <div class="org-work-package-topbar-inner">
+            <div class="org-work-package-brand">
+                <div class="org-work-package-mark">H</div>
+                <div>
+                    Het Nieuwe² Werken
+                    <small>Projecten, mensen en taken</small>
+                </div>
+            </div>
+
+            <nav class="org-work-package-nav" aria-label="Navigatie">
+                <span>Projecten</span>
+                <span>Organisatie</span>
+                <span>Notificaties</span>
+                <div class="org-work-package-avatar">SK</div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="work-package-page">
+        <section class="work-package-header">
+            <h2>Werkpakketten beheren</h2>
+            <p>Project {{ id }} - maak werkpakketten aan en beheer straks de taken die daarbij horen.</p>
+        </section>
+
+        <div class="work-package-layout">
+            <section class="work-package-card">
+                <h3>Nieuw werkpakket</h3>
+
+                <form method="post" class="form-grid">
+                    <div class="form-field">
+                        <label for="title">Titel</label>
+                        <input id="title" name="title" type="text" placeholder="Bijvoorbeeld: Inventarisatie databronnen" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="slug">Slug</label>
+                        <input id="slug" name="slug" type="text" placeholder="inventarisatie-databronnen" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="description">Omschrijving</label>
+                        <textarea id="description" name="description" placeholder="Beschrijf kort wat er binnen dit werkpakket moet gebeuren."></textarea>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="dueDate">Deadline</label>
+                        <input id="dueDate" name="dueDate" type="date">
+                    </div>
+
+                    <button class="button-primary" type="submit">Werkpakket opslaan</button>
+                </form>
+            </section>
+
+            <aside class="work-package-card">
+                <h3>Voorbeeld</h3>
+
+                <div class="preview-list">
+                    <article class="preview-package">
+                        <h4>Inventarisatie databronnen</h4>
+                        <p>5 taken - deadline nog te bepalen</p>
+                        <span class="status-pill">Open</span>
+                    </article>
+
+                    <article class="preview-package">
+                        <h4>UX validatie</h4>
+                        <p>4 taken - klaar voor taakverdeling</p>
+                        <span class="status-pill">Open</span>
+                    </article>
+                </div>
+            </aside>
+        </div>
+    </main>
 {% endblock %}
