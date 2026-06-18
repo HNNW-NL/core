@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Module\Org\Controller;
+namespace App\Module\Admin\Controller;
 
 use App\Entity\User;
 use App\Form\Org\AccountType;
-use App\Repository\Org\UserRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/org/accounts')]
+#[Route('/admin/accounts')]
 #[IsGranted('ROLE_ADMIN')]
 class AccountAdminController extends AbstractController
 {
