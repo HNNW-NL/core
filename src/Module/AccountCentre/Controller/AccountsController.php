@@ -21,9 +21,28 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/applications', name: 'applications', methods: ['GET'])]
-    public function applications(): Response
+    public function applications(Request $request, EntityManagerInterface $entityManager): Response
     {
-        return $this->render('pages/account-centre/applications.html.twig');
+        $session = $request->getSession();
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om je aanmeldingen te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+
+        if (!$account) {
+            $this->addFlash('error', 'Account niet gevonden.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
+        return $this->render('pages/account-centre/applications.html.twig', [
+            'profile' => $profile
+        ]);
     }
 
     #[Route('/availability', name: 'availability', methods: ['GET'])]
