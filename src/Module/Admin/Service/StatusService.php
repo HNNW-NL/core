@@ -30,6 +30,11 @@ final class StatusService
             ->findOneByNameAndScope($name, $scope) !== null;
     }
 
+    public function getStatusById(string $id)
+    {
+        return $this->statusRepository->findById($id);
+    }
+
     public function createStatus(StatusDTO $dto): void
     {
         $status = $this->statusMapper->dtoToEntity($dto);
@@ -37,8 +42,28 @@ final class StatusService
         $this->statusRepository->save($status);
     }
 
-    public function updateStatus(StatusDTO $dto): void
+    public function updateStatus(string $id, StatusDTO $dto): void
     {
-        // later implementeren
+        $status = $this->statusRepository->findById($id);
+
+        if (!$status) {
+            return;
+        }
+
+        $status->setName($dto->name);
+        $status->setColourHex($dto->colourHex);
+        $status->setScope($dto->scope);
+
+        $this->statusRepository->flush();
     }
+    public function deleteStatus(string $id): void
+    {
+    $status = $this->statusRepository->findById($id);
+
+    if (!$status) {
+        return;
+    }
+
+    $this->statusRepository->remove($status);
+  }
 }

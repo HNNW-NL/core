@@ -50,4 +50,14 @@ final class StatusRepository
         $this->entityManager->persist($status);
         $this->entityManager->flush();
     }
+
+    public function flush(): void
+    {
+        $this->entityManager->flush();
+    }
+    public function remove(Status $status): void
+    {
+    $this->entityManager->remove($status);
+    $this->entityManager->flush();
+  }
 }

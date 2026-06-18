@@ -72,4 +72,43 @@ final class DashboardController extends AbstractController
 
         return $this->render('pages/admin/statuses-create.html.twig');
     }
+
+    #[Route('/statuses/{id}/edit', name: 'statuses.edit', methods: ['GET', 'POST'])]
+    public function editStatus(
+        string $id,
+        Request $request,
+        StatusService $statusService
+    ): Response {
+        $status = $statusService->getStatusById($id);
+
+        if (!$status) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($request->isMethod('POST')) {
+
+            $dto = new StatusDTO(
+                $request->request->get('name'),
+                $request->request->get('colourHex'),
+                $request->request->get('scope')
+            );
+
+            $statusService->updateStatus($id, $dto);
+
+            return $this->redirectToRoute('admin.statuses');
+        }
+
+        return $this->render('pages/admin/statuses-edit.html.twig', [
+            'status' => $status,
+        ]);
+    }
+    #[Route('/statuses/{id}/delete', name: 'statuses.delete', methods: ['POST'])]
+     public function deleteStatus(
+    string $id,
+    StatusService $statusService
+    ): Response {
+    $statusService->deleteStatus($id);
+
+    return $this->redirectToRoute('admin.statuses');
+}
 }

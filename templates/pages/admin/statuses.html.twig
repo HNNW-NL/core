@@ -17,6 +17,7 @@
                 <th>Naam</th>
                 <th>Scope</th>
                 <th>Kleur</th>
+                <th>Acties</th>
             </tr>
         </thead>
         <tbody>
@@ -25,10 +26,29 @@
                     <td>{{ status.name }}</td>
                     <td>{{ status.scope }}</td>
                     <td>{{ status.colourHex }}</td>
+                    <td>
+                        <a href="{{ path('admin.statuses.edit', {
+                            id: status.id
+                        }) }}">
+                            Bewerken
+                        </a>
+
+                        <form method="post"
+                              action="{{ path('admin.statuses.delete', {
+                                  id: status.id
+                              }) }}"
+                              style="display:inline;">
+                            <button type="submit">
+                                Verwijderen
+                            </button>
+                        </form>
+                    </td>
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="3">Geen statussen gevonden.</td>
+                    <td colspan="4">
+                        Geen statussen gevonden.
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
