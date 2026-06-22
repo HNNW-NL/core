@@ -1,16 +1,43 @@
 {% extends 'layouts/org.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}Home{% endblock %}
+{% block title %}Accounts{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <h2>Home</h2>
-    <p>Organization panel - home page.</p>
+    <h2>Accounts</h2>
+
+    <form method="get" action="" class="search-form">
+        <input type="search" name="q" placeholder="Search email, first or last name" value="{{ app.request.query.get('q') }}">
+        <button type="submit">Search</button>
+        <a class="button" href="{{ path('org_account_create') }}">Create</a>
+    </form>
+
+    <table class="accounts">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.firstName }} {{ u.lastName }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.active ? 'Yes' : 'No' }}</td>
+                <td>
+                    <a href="{{ path('org_account_show', {'id': u.id}) }}">View</a>
+                    <a href="{{ path('org_account_edit', {'id': u.id}) }}">Edit</a>
+                    <a href="{{ path('org_account_delete', {'id': u.id}) }}" onclick="return confirm('Delete this account?');">Delete</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5">No accounts found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
 {% endblock %}
