@@ -13,13 +13,10 @@
 
         <div class="header">
             <div class="profile">
-                <div class="profile-avatar">
-                <div class="profile-container">
-
+            
                   <!-- Profile Picture -->
-                   <div class="profile-header">
 
-                  <div class="profile-picture-box">
+                  <div class="avatar">
                   <img id="preview" src="default-profile.png" alt="Profile Picture">
                 
 
@@ -57,9 +54,9 @@
                     <p>@username</p>
                     {# <p>Locatie</p> #}
                      <p onclick="openLocationPopup()" style="cursor: pointer;">
-        Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
-        <span style="font-size: 12px;">✏️</span>
-    </p>
+                   Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
+                    <span style="font-size: 12px;">✏️</span>
+                      </p>
                     
                     {% if app and app.user %}
                         
