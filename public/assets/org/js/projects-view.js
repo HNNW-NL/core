@@ -6,6 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentPageSpan = document.getElementById("current-page");
     const totalPagesSpan = document.getElementById("total-pages");
     const paginationControls = document.getElementById("pagination-controls");
+    const countStartSpan = document.getElementById("projects-count-start");
+    const countEndSpan = document.getElementById("projects-count-end");
+    const countTotalSpan = document.getElementById("projects-count-total");
 
     const allProjects = JSON.parse(app.dataset.projects || "[]");
     const searchQuery = app.dataset.search || "";
@@ -98,9 +101,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (allProjects.length === 0) {
             container.innerHTML = "<div>No projects found.</div>";
+            countStartSpan.textContent = 0;
+            countEndSpan.textContent = 0;
+            countTotalSpan.textContent = 0;
         } else {
             const offset = (currentPage - 1) * perPage;
             const pageItems = allProjects.slice(offset, offset + perPage);
+            const displayStart = offset + 1;
+            const displayEnd = offset + pageItems.length;
+
+            countStartSpan.textContent = displayStart;
+            countEndSpan.textContent = displayEnd;
+            countTotalSpan.textContent = allProjects.length;
 
             pageItems.forEach(project => {
                 const card = document.createElement("div");
