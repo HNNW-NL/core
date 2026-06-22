@@ -140,6 +140,12 @@
     font-size: 0.8rem;
     color: rgba(255,255,255,0.75);
     margin-top: auto;
+    text-decoration: none;
+    transition: color 150ms ease;
+}
+.project-slug:hover {
+    color: rgba(255,255,255,0.95);
+    text-decoration: underline;
 }
 
 .search-highlight {

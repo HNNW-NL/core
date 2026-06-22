@@ -111,8 +111,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 titleEl.className = "project-title";
                 const summaryEl = document.createElement("div");
                 summaryEl.className = "project-summary";
-                const slugEl = document.createElement("div");
+                const slugEl = document.createElement("a");
                 slugEl.className = "project-slug";
+                slugEl.href = "/org/projects/" + encodeURIComponent(project.slug || '');
 
                 const hq = (searchInput && (searchInput.value || '').trim()) || searchQuery || '';
 
