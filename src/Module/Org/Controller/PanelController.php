@@ -5,7 +5,6 @@ namespace App\Module\Org\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -53,7 +52,7 @@ final class PanelController extends AbstractController
     }
 
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
-    public function InviteProjectParticipants(string $id, Request $request): Response
+    public function InviteProjectParticipants(string $id): Response
     {
         return $this->render('pages/org/projects/invite-participants.html.twig', [
             'id' => $id,
