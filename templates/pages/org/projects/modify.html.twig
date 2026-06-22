@@ -1,79 +1,16 @@
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Publish project {{ id }}{% endblock %}
+{% block title %}Modify project {{ id }}{% endblock %}
 
-{% block stylesheets %}
-<link rel="stylesheet" href="{{ asset('assets/org/css/publish-project.css') }}">
-{% endblock %}
+{# CSS #}
+{% block stylesheets %}{% endblock %}
 
-{% block javascript %}
-<script src="{{ asset('assets/org/js/publish-project.js') }}"></script>
-{% endblock %}
+{# JavaScript #}
+{% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <body>
-    <a class="skip-link" href="#main-content">Skip to main content</a>
-    <!-- Main page layout -->
-    <div class="layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="brand">Project Hub</div>
-            <section class="sidebar-dashboard" aria-label="Dashboard">
-                <p class="eyebrow">Dashboard</p>
-                <h2>Overview</h2>
-                <p>Track projects, drafts, and publishing activity from one place.</p>
-            </section>
-        </aside>
-        <!-- Main content -->
-        <div class="content">
-            <!-- Header -->
-            <header class="page-header">
-                <div class="header-copy">
-                    <p class="eyebrow">Publish</p>
-                    <h1>Publish Project</h1>
-                    <p>Fill out the details below to publish your project.</p>
-                </div>
-                <nav class="header-nav" aria-label="Primary">
-                    <ul>
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#">Projects</a></li>
-                        <li><a href="#">Publish</a></li>
-                    </ul>
-                </nav>
-            </header>
-            <!-- Form -->
-            <main id="main-content">
-                <!-- Publish form fields -->
-                <form method="post" action="/publish" enctype="multipart/form-data">
-                    <div>
-                        <label for="name">Project name</label>
-                        <input type="text" id="name" name="name" placeholder="Project Name" required autocomplete="name">
-                    </div>
-                    <div>
-                        <label for="description">Description</label>
-                        <textarea id="description" name="description" rows="5" placeholder="What does your project do?" required></textarea>
-                    </div>
-                    <div>
-                        <label for="visibility">Visibility</label>
-                        <select id="visibility" name="visibility" required>
-                            <option value="public">Public</option>
-                            <option value="private">Private</option>
-                            <option value="unlisted">Unlisted</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="projectFile">Choose file</label>
-                        <input type="file" id="projectFile" name="projectFile" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.js,.ts,.py,.java,.html,.css,.json,.md" aria-describedby="projectFileHelp">
-                        <p id="projectFileHelp" class="field-help">Accepted formats: PDF, Word, images, ZIP, and common code files.</p>
-                    </div>
-                    <div>
-                        <button type="submit">Publish project</button>
-                    </div>
-                </form>
-            </main>
-        </div>
-    </div>
-    </body>
+    <h2>Projects - Modify</h2>
+    <p>Organization panel - modify project ({{ id }}) page.</p>
 {% endblock %}

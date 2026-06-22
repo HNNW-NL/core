@@ -15,67 +15,67 @@ final class ProjectsController extends AbstractController
         return $this->render('pages/main/projects.html.twig');
     }
 
-    #[Route('/{slug}', name: 'detail', methods: ['GET'])]
-    public function detail(string $slug): Response
+    #[Route('/{id}', name: 'detail', methods: ['GET'])]
+    public function detail(string $id): Response
     {
         return $this->render('pages/main/projects/detail.html.twig', [
-            'slug' => $slug,
+            'id' => $id,
         ]);
     }
 
-    #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
-    public function apply(string $slug): Response
+    #[Route('/{id}/apply', name: 'apply', methods: ['GET'])]
+    public function apply(string $id): Response
     {
         return $this->render('pages/main/projects/apply.html.twig', [
-            'slug' => $slug,
+            'id' => $id,
         ]);
     }
 
-    #[Route('/{slug}/chat', name: 'chat', methods: ['GET'])]
-    public function chat(string $slug): Response
+    #[Route('/{id}/chat', name: 'chat', methods: ['GET'])]
+    public function chat(string $id): Response
     {
         return $this->render('pages/main/projects/chat.html.twig', [
-            'slug' => $slug,
+            'id' => $id,
         ]);
     }
 
-    #[Route('/{slug}/participants', name: 'participants', methods: ['GET'])]
-    public function participants(string $slug): Response
+    #[Route('/{id}/participants', name: 'participants', methods: ['GET'])]
+    public function participants(string $id): Response
     {
         return $this->render('pages/main/projects/participants.html.twig', [
-            'slug' => $slug,
+            'id' => $id,
         ]);
     }
 
-    #[Route('/{slug}/reviews', name: 'reviews', methods: ['GET'])]
-    public function reviews(string $slug): Response
+    #[Route('/{id}/reviews', name: 'reviews', methods: ['GET'])]
+    public function reviews(string $id): Response
     {
         return $this->render('pages/main/projects/reviews.html.twig', [
-            'slug' => $slug,
+            'id' => $id,
         ]);
     }
 
-    #[Route('/{slug}/tasks', name: 'tasks', methods: ['GET'])]
-    public function tasks(string $slug): Response
+    #[Route('/{id}/tasks', name: 'tasks', methods: ['GET'])]
+    public function tasks(string $id): Response
     {
         return $this->render('pages/main/projects/tasks.html.twig', [
-            'slug' => $slug,
+            'id' => $id,
         ]);
     }
 
-    #[Route('/{slug}/updates', name: 'updates', methods: ['GET'])]
-    public function updates(string $slug): Response
+    #[Route('/{id}/updates', name: 'updates', methods: ['GET'])]
+    public function updates(string $id): Response
     {
         return $this->render('pages/main/projects/updates.html.twig', [
-            'slug' => $slug,
+            'id' => $id,
         ]);
     }
 
-    #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
-    public function workPackages(string $slug): Response
+    #[Route('/{id}/work-packages', name: 'workPackages', methods: ['GET'])]
+    public function workPackages(string $id): Response
     {
         return $this->render('pages/main/projects/work-packages.html.twig', [
-            'slug' => $slug,
+            'id' => $id,
         ]);
     }
 }

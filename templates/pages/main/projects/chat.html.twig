@@ -1,7 +1,7 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Project {{ slug }} chat{% endblock %}
+{% block title %}Project {{ id }} chat{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
@@ -17,5 +17,5 @@
 {# Page content #}
 {% block body %}
     <h2>Projects - Chat</h2>
-    <p>Main - projects chat page. For project {{ slug }}.</p>
+    <p>Main - projects chat page. For project {{ id }}.</p>
 {% endblock %}

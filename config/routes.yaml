@@ -9,3 +9,7 @@
 
 controllers:
     resource: routing.controllers
+
+modules:
+    resource: routes/modules.yaml
+    type: yaml

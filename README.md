@@ -32,7 +32,7 @@ The platform enables:
 
 This repository contains the **core Symfony application** powering the HNNW platform.
 
-Production website: https://hnnw.nl
+Production website: https://hnnw.nl \
 Repository: https://codeberg.org/HNNW/HNNW-core
 
 ---
@@ -47,70 +47,17 @@ Before starting, ensure the following software is already installed:
 * Composer
 * Symfony CLI
 * Git
-* PostgreSQL **18** + pgAdmin 4
 
 > Note: installation steps for PHP, Composer and Symfony CLI are intentionally not included in this README.
 
----
-
-### 1. Install PostgreSQL 18
-
-Download and install PostgreSQL 18 from the official W3Schools installation guide:
-https://www.w3schools.com/postgresql/postgresql_install.php
-
-During installation:
-* Remember the password you set for the `postgres` user
-* Ensure pgAdmin 4 is installed alongside PostgreSQL
-* Keep the default PostgreSQL port (`5432`) unless you specifically need another port
-
-After installation, PostgreSQL should be running automatically.
-
-### 2. Create the database in pgAdmin
-
-Open **pgAdmin 4**.
-
-#### Create a new database
-
-1. Expand:
-
-```text
-Servers → PostgreSQL 18
-```
-
-2. Right-click:
-
-```text
-Databases
-```
-
-3. Select:
-
-```text
-Create → Database...
-```
-
-4. Enter a database name, for example:
-
-```text
-hnnw_core
-```
-
-5. Click:
-
-```text
-Save
-```
-
-The database is now ready for use.
-
-### 3. Clone the repository
+### 1. Clone the repository
 
 ```bash
 git clone https://codeberg.org/HNNW/HNNW-core.git
 cd HNNW-core
 ```
 
-### 4. Install dependencies
+### 2. Install dependencies
 
 ```bash
 composer install
@@ -130,7 +77,7 @@ This corresponds to:
 No, don't ask again for this project
 ```
 
-### 5. Create environment configuration
+### 3. Create environment configuration
 
 Duplicate the example environment file:
 
@@ -150,68 +97,21 @@ Rename it to:
 .env.local
 ```
 
-### 6. Configure `.env.local`
+### 4. Configure APP_SECRET
 
-Open `.env.local` and configure the application settings.
-
-#### Configure `APP_SECRET`
-
-Generate a secure application secret:
-
-```bash
-php -r "echo bin2hex(random_bytes(32));"
-```
-
-Place the generated value inside `.env.local`:
+Generate a secure application secret and place it inside `.env.local`:
 
 ```env
 APP_SECRET=your_generated_secret_here
 ```
 
-#### Configure PostgreSQL connection
-
-Inside `.env.local`, set the `DATABASE_URL`.
-
-Example configuration:
-
-```env
-DATABASE_URL="postgresql://your_username:your_password@127.0.0.1:5432/your_local_database?serverVersion=18&charset=utf8"
-```
-
-Replace:
-
-| Value                  | Description                             |
-|------------------------|-----------------------------------------|
-| `your_username`        | PostgreSQL username (mostly `postgres`) |
-| `your_password`        | Your PostgreSQL password                |
-| `your_local_database`  | Database name created in pgAdmin        |
-| `5432`                 | PostgreSQL port                         |
-
-Example:
-
-```env
-DATABASE_URL="postgresql://your_username:your_password@127.0.0.1:5432/your_local_database?serverVersion=18&charset=utf8"
-```
-
-### 7. Run database migrations
-
-The database tables are managed through Doctrine migrations.
-
-Run:
+You may generate one using:
 
 ```bash
-php bin/console doctrine:migrations:migrate
+php -r "echo bin2hex(random_bytes(32));"
 ```
 
-When prompted, type:
-
-```text
-yes
-```
-
-This will create all required database tables and schema structures.
-
-### 8. Start the application
+### 5. Start the application
 
 ```bash
 symfony server:start
@@ -221,29 +121,23 @@ The application should now be available at:
 
 ```text
 http://127.0.0.1:8000
-
-# and/or
-
-http://localhost:8000
 ```
 
 ---
 
 ## Technical Information
 
-| Category             | Information                                                    |
-| -------------------- | -------------------------------------------------------------- |
-| Framework            | Symfony                                                        |
-| Backend Language     | PHP                                                            |
-| Frontend Languages   | HTML, CSS, JavaScript                                          |
-| Templating           | Twig                                                           |
-| Database             | PostgreSQL 18                                                  |
-| ORM                  | Doctrine ORM                                                   |
-| Database Migrations  | Doctrine Migrations                                            |
-| UX Packages          | Symfony UX *(excluding deprecated, Vue.js and React packages)* |
-| APIs                 | None currently                                                 |
-| Codebase Language    | en-AU                                                          |
-| Application Language | nl-NL                                                          |
+| Category             | Information                                                            |
+|----------------------| ---------------------------------------------------------------------- |
+| Framework            | Symfony                                                                |
+| Backend Language     | PHP                                                                    |
+| Frontend Languages   | HTML, CSS, JavaScript                                                  |
+| Templating           | Twig                                                                   |
+| Database             | PostgreSQL *(planned for future implementation)*                       |
+| UX Packages          | Symfony UX *(excluding deprecated, Vue.js, React and Svelte packages)* |
+| APIs                 | None currently                                                         |
+| Codebase Language    | en-AU                                                                  |
+| Application Language | nl-NL                                                                  |
 
 ---
 
@@ -258,41 +152,6 @@ composer clear-cache
 composer install
 ```
 
----
-
-### Database connection errors
-
-Verify:
-
-* PostgreSQL is running
-* The database exists in pgAdmin
-* Username and password are correct
-* `DATABASE_URL` inside `.env.local` is correct
-
-You can test PostgreSQL connectivity using:
-
-```bash
-php bin/console dbal:run-sql "SELECT 1"
-```
-
----
-
-### Migration problems
-
-If migrations fail, ensure the database exists and retry:
-
-```bash
-php bin/console doctrine:migrations:migrate
-```
-
-To check migration status:
-
-```bash
-php bin/console doctrine:migrations:status
-```
-
----
-
 ### APP_SECRET missing
 
 Make sure `.env.local` exists and contains:
@@ -301,8 +160,6 @@ Make sure `.env.local` exists and contains:
 APP_SECRET=your_generated_secret_here
 ```
 
----
-
 ### Symfony cache problems
 
 Clear cache:
@@ -310,8 +167,6 @@ Clear cache:
 ```bash
 php bin/console cache:clear
 ```
-
----
 
 ### Port already in use
 
@@ -348,7 +203,7 @@ Repository organisation: https://codeberg.org/HNNW
 
 ### Development Team
 
-A team of approximately **25 developers** from **Techniek College Rotterdam (MBO)** contributes to this project.
+A team of approximately **10 to 12 developers** from **Techniek College Rotterdam (MBO)** contributes to this project.
 
 This team primarily consists of:
 

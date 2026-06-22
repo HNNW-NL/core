@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <title>{% block title %}{% endblock %} | HNNW Authenticatie</title>
+    <title>{% block title %}{% endblock %} | HNNW Authentication</title>
 
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🤝</text></svg>">
@@ -16,7 +16,6 @@
     {% block stylesheets %}{% endblock %}
 
     <!-- JavaScript -->
-    <script src="{{ asset('assets/auth/js/app.js') }}" defer></script>
     {% block javascript %}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
@@ -33,7 +32,7 @@
 
     {% set startYear = 2026 %}
     {% set currentYear = "now"|date("Y") %}
-    <p class="auth-footer">&copy; {{ startYear }}{% if startYear < currentYear %}-{{ currentYear }}{% endif %} HNNW &boxh; Het Nieuwe² Werken</p>
+    <p>&copy; {{ startYear }}{% if startYear < currentYear %}-{{ currentYear }}{% endif %} HNNW &boxh; Het Nieuwe² Werken</p>
 </main>
 
 </body>
