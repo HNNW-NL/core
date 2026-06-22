@@ -20,4 +20,12 @@ final class MainController extends AbstractController
     {
         return $this->render('pages/main/about.html.twig');
     }
+
+    #[Route('/profile/{slug}', name: 'about', methods: ['GET'])]
+    public function viewProfile(string $slug): Response
+    {
+        return $this->render('pages/main/profile.html.twig', [
+            "slug" => $slug,
+        ]);
+    }
 }

@@ -1,16 +1,18 @@
 body {
-    header {
-        position: sticky;
-        top: 0;
-        background-color: var(--header-background);
-        backdrop-filter: blur(8px);
-    }
+   header {
+       position: sticky;
+       top: 0;
+       background-color: var(--header-background);
+       backdrop-filter: blur(8px);
+   }
 
-    main {
-        min-height: 100dvh;
-    }
+   main {
+       min-height: 100dvh;
 
-    footer {
+   }
 
-    }
+   footer {
+
+   }
+
 }

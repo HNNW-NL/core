@@ -1,0 +1,156 @@
+document.addEventListener('DOMContentLoaded', function () {
+	const form = document.getElementById('register-form');
+	if (!form) return;
+
+	const fullName = form.querySelector('input[name="full_name"]');
+	const username = form.querySelector('input[name="username"]');
+	const email = form.querySelector('input[name="email"]');
+	const password = form.querySelector('input[name="password"]');
+	const confirm = form.querySelector('input[name="confirm_password"]');
+	const terms = form.querySelector('input[name="terms"]');
+	const submitBtn = form.querySelector('button[type="submit"]');
+
+	const formErrors = document.getElementById('register-errors');
+	const emailError = document.getElementById('email-error');
+	const fullNameError = document.getElementById('full_name-error');
+	const usernameError = document.getElementById('username-error');
+	const confirmError = document.getElementById('confirm_password-error');
+	const strengthEl = document.getElementById('password-strength');
+	const meter = document.getElementById('pw-meter');
+
+	function calculateStrength(pw) {
+		let score = 0;
+		if (pw.length >= 8) score++;
+		if (/[A-Z]/.test(pw)) score++;
+		if (/[0-9]/.test(pw)) score++;
+		if (/[^A-Za-z0-9]/.test(pw)) score++;
+		return score;
+	}
+
+	function updateStrengthUI() {
+		if (!strengthEl || !meter || !password) return;
+		const s = calculateStrength(password.value || '');
+		const labels = ['Zeer zwak', 'Zwak', 'Redelijk', 'Goed', 'Sterk'];
+		strengthEl.textContent = password.value ? labels[s] : '';
+		strengthEl.dataset.score = s;
+		meter.value = s;
+	}
+
+	function clearFieldErrors() {
+		[emailError, fullNameError, usernameError, confirmError].forEach(function (el) {
+			if (!el) return;
+			el.textContent = '';
+			el.classList.add('visually-hidden');
+		});
+
+		if (formErrors) {
+			formErrors.style.display = 'none';
+			formErrors.innerHTML = '';
+		}
+	}
+
+	function setFieldError(el, msg) {
+		if (!el) return;
+		el.textContent = msg;
+		el.classList.remove('visually-hidden');
+	}
+
+	function validateFormFields() {
+		clearFieldErrors();
+		let valid = true;
+
+		if (!fullName.value.trim()) {
+			setFieldError(fullNameError, 'Vul je naam in');
+			valid = false;
+		}
+
+		if (!username.value.trim()) {
+			setFieldError(usernameError, 'Vul een gebruikersnaam in');
+			valid = false;
+		}
+
+		if (!email.value || !email.value.includes('@')) {
+			setFieldError(emailError, 'Vul een geldig e-mailadres in');
+			valid = false;
+		}
+
+		if (password.value.length < 8) {
+			setFieldError(strengthEl, 'Wachtwoord moet minimaal 8 tekens bevatten');
+			valid = false;
+		}
+
+		if (password.value !== confirm.value) {
+			setFieldError(confirmError, 'Wachtwoorden komen niet overeen');
+			valid = false;
+		}
+
+		if (!terms.checked) {
+			valid = false;
+		}
+
+		return valid;
+	}
+
+	document.querySelectorAll('.toggle-password').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			const targetId = this.getAttribute('data-target');
+			const input = document.getElementById(targetId);
+			if (!input) return;
+
+			if (input.type === 'password') {
+				input.type = 'text';
+				this.textContent = 'Verberg';
+				this.setAttribute('aria-pressed', 'true');
+			} else {
+				input.type = 'password';
+				this.textContent = 'Toon';
+				this.setAttribute('aria-pressed', 'false');
+			}
+		});
+	});
+
+	if (password) {
+		password.addEventListener('input', function () {
+			updateStrengthUI();
+			if (strengthEl) {
+				strengthEl.classList.remove('error');
+			}
+			toggleSubmitState();
+		});
+	}
+
+	[fullName, username, email, confirm, terms].forEach(function (el) {
+		if (!el) return;
+		el.addEventListener('input', toggleSubmitState);
+		el.addEventListener('change', toggleSubmitState);
+	});
+
+	function toggleSubmitState() {
+		const ok = validateFormFields();
+		submitBtn.disabled = !ok;
+
+		if (submitBtn.disabled) {
+			submitBtn.classList.remove('btn-primary');
+		} else {
+			submitBtn.classList.add('btn-primary');
+		}
+	}
+
+	submitBtn.disabled = true;
+	submitBtn.classList.remove('btn-primary');
+	updateStrengthUI();
+
+	form.addEventListener('submit', function (e) {
+		clearFieldErrors();
+
+		if (!validateFormFields()) {
+			e.preventDefault();
+			if (formErrors) {
+				formErrors.innerHTML = '<strong>Herstel de fouten hieronder.</strong>';
+				formErrors.style.display = 'block';
+				formErrors.focus();
+			}
+		}
+	});
+});
+

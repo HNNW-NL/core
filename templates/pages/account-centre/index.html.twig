@@ -1,7 +1,7 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Home{% endblock %}
+{% block title %}Account Dashboard{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -11,6 +11,37 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Home</h2>
-    <p>Account Centre - home page.</p>
+<div id="account-centre-container">
+    <header class="dashboard-header">
+        <h1>Welkom bij je Account</h1>
+        <p>Account Centre - home page.</p>
+    </header>
+
+    <nav class="account-grid">
+        <a href="{{ path('account.modify') }}" class="account-card">
+            <h3>Profiel Wijzigen</h3>
+            <p>Pas je naam en contactgegevens aan zodat we je altijd kunnen bereiken.</p>
+        </a>
+
+        <a href="{{ path('account.notifications') }}" class="account-card">
+            <h3>Notificaties</h3>
+            <p>Bepaal zelf welke updates en nieuwsbrieven je van ons wilt ontvangen.</p>
+        </a>
+
+        <a href="{{ path('account.applications') }}" class="account-card">
+            <h3>Aanmeldingen</h3>
+            <p>Bekijk de status van je lopende aanmeldingen voor projecten.</p>
+        </a>
+
+        <a href="{{ path('account.availability') }}" class="account-card">
+            <h3>Beschikbaarheid</h3>
+            <p>Laat ons weten wanneer je beschikbaar bent om aan de slag te gaan.</p>
+        </a>
+
+        <a href="{{ path('account.experience') }}" class="account-card">
+            <h3>Ervaring</h3>
+            <p>Houd je skills en werkervaring up-to-date voor de beste matches.</p>
+        </a>
+    </nav>
+</div>
 {% endblock %}
