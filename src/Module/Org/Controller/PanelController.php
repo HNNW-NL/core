@@ -2,7 +2,6 @@
 
 namespace App\Module\Org\Controller;
 
-use App\Twig\Components\Org\InviteParticipantsForm;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -56,13 +55,8 @@ final class PanelController extends AbstractController
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
     public function InviteProjectParticipants(string $id, Request $request): Response
     {
-        $form = $this->createForm(InviteParticipantsForm::class);
-
-        $form->handleRequest($request);
-
         return $this->render('pages/org/projects/invite-participants.html.twig', [
             'id' => $id,
-            'form' => $form->createView(),
         ]);
     }
 

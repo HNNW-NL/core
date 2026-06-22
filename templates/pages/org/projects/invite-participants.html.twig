@@ -5,7 +5,6 @@
 
 {# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('assets/vendor/tom-select/dist/css/tom-select.default.css') }}">
     <link rel="stylesheet" href="{{ asset("assets/org/css/invite-participants.css") }}">
 {% endblock %}
 
@@ -20,11 +19,4 @@
     {% include "/core/org/_modify-project-nav.html.twig" %}
     <h2>Projects - Invite Participants</h2>
     <p>Organization panel - invite project ({{ id }}) participants page.</p>
-    {{ form_start(form) }}
-
-        {{ form_row(form.profile) }}
-
-        <button class="btn">Save</button>
-
-    {{ form_end(form) }}
 {% endblock %}
