@@ -8,6 +8,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ModifyProjectMapper
 {
+    private const DATE_FORMAT = 'Y-m-d';
+    private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+
     public function fromRequest(Request $request, array $extraData = []): ModifyProjectDTO
     {
         $title = $this->getStringFromRequest($request, ['title', 'name']);
@@ -47,6 +50,10 @@ class ModifyProjectMapper
             $project->setVisibility($dto->visibility);
         }
 
+        if ($dto->hasStatusNameChanged()) {
+            $project->setStatus($dto->statusName);
+        }
+
         if ($dto->hasStartDateChanged()) {
             $project->setStartDate($dto->startDate);
         }
@@ -84,14 +91,14 @@ class ModifyProjectMapper
             'status' => $project->getStatus()?->getName(),
             'statusName' => $project->getStatus()?->getName(),
             'statusId' => $project->getStatus()?->getId(),
-            'startDate' => $project->getStartDate()?->format('Y-m-d'),
-            'endDate' => $project->getEndDate()?->format('Y-m-d'),
+            'startDate' => $project->getStartDate()?->format(self::DATE_FORMAT),
+            'endDate' => $project->getEndDate()?->format(self::DATE_FORMAT),
             'capacity' => $project->getCapacity(),
             'remotePossible' => method_exists($project, 'isRemotePossible') ? $project->isRemotePossible() : (method_exists($project, 'getRemotePossible') ? $project->getRemotePossible() : null),
             'updatedBy' => $project->getModifiedBy()?->getEmail(),
-            'effectiveAt' => $project->getLastModified()?->format('Y-m-d H:i:s'),
-            'published_at' => $project->getPublishedAt()?->format('Y-m-d H:i:s'),
-            'last_modified' => $project->getLastModified()->format('Y-m-d H:i:s'),
+            'effectiveAt' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
+            'published_at' => $project->getPublishedAt()?->format(self::DATE_TIME_FORMAT),
+            'last_modified' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
             'url' => '/org/projects/modify/' . $project->getId(),
         ];
     }
