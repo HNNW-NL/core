@@ -180,15 +180,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 capacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
             }
             if (statusIdField) {
-                const statusLookup = {
-                    draft: '1',
-                    published: '2',
-                    active: '2',
-                    archived: '3',
-                    closed: '3'
-                };
-                const resolvedStatus = (project.statusName || project.status || '').toString().trim().toLowerCase();
-                statusIdField.value = statusLookup[resolvedStatus] || (project.statusId ? String(project.statusId) : '1');
+                const resolvedStatus = (project.statusName || project.status || 'draft').toString().trim().toLowerCase();
+                statusIdField.value = resolvedStatus;
             }
             if (remotePossibleField) {
                 if (project.remotePossible === null || project.remotePossible === undefined || project.remotePossible === '') {
@@ -291,6 +284,20 @@ document.addEventListener('DOMContentLoaded', function () {
             return false;
         }
         setFieldState(descField, true, 'Looks good.');
+        return true;
+    }
+
+    function validateStatus() {
+        if (!statusIdField) {
+            return true;
+        }
+        const validStatuses = ['draft', 'published', 'archived'];
+        const status = statusIdField.value.trim().toLowerCase();
+        if (!validStatuses.includes(status)) {
+            setFieldState(statusIdField, false, 'Please select a valid status.');
+            return false;
+        }
+        setFieldState(statusIdField, true, 'Looks good.');
         return true;
     }
 
@@ -399,7 +406,7 @@ document.addEventListener('DOMContentLoaded', function () {
     wireField(startDateField, null);
     wireField(endDateField, null);
     wireField(capacityField, null);
-    wireField(statusIdField, null);
+    wireField(statusIdField, validateStatus);
     wireField(remotePossibleField, null);
 
     if (projectIdField) {
@@ -470,8 +477,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.classList.add('page-ready');
     });
 
+    let timeFieldInterval = null;
     if (timeField) {
-        setInterval(function () {
+        const updateTime = function () {
             const now = new Date();
             const pad = function (value) {
                 return String(value).padStart(2, '0');
@@ -488,7 +496,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 pad(now.getMinutes()) +
                 ':' +
                 pad(now.getSeconds());
-        }, 1000);
+        };
+        updateTime();
+        timeFieldInterval = setInterval(updateTime, 1000);
+        window.addEventListener('beforeunload', function () {
+            if (timeFieldInterval !== null) {
+                clearInterval(timeFieldInterval);
+            }
+        });
     }
 
     form.addEventListener('submit', function (event) {

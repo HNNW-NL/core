@@ -246,6 +246,10 @@ select {
     transform 0.18s ease;
 }
 
+textarea {
+    resize: vertical;
+}
+
 input::placeholder,
 textarea::placeholder {
     color: #cbd5e1;
@@ -260,17 +264,33 @@ select:focus {
     background-color: rgba(15, 23, 42, 0.98);
 }
 
-div.is-invalid input,
-div.is-invalid textarea,
-div.is-invalid select {
-    border-color: rgba(239, 68, 68, 0.85);
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+input:readonly {
+    background-color: rgba(15, 23, 42, 0.5);
+    color: #94a3b8;
+    cursor: default;
 }
 
-div.is-valid input,
-div.is-valid textarea,
-div.is-valid select {
-    border-color: rgba(34, 197, 94, 0.75);
+input:readonly:focus {
+    border-color: var(--border);
+    box-shadow: none;
+    outline: none;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+    background-color: rgba(15, 23, 42, 0.4);
+    color: #64748b;
+    border-color: rgba(255, 255, 255, 0.05);
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+div.is-invalid input:focus,
+div.is-invalid textarea:focus,
+div.is-invalid select:focus {
+    border-color: rgba(239, 68, 68, 0.85);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
 }
 
 div.is-dirty label::after {
@@ -359,6 +379,12 @@ button:active {
 button[aria-busy="true"] {
     cursor: wait;
     opacity: 0.85;
+}
+
+button:disabled,
+button[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .button-danger {

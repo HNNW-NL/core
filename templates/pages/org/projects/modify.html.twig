@@ -13,7 +13,6 @@
 
 {# Page content #}
 {% block body %}
-    <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <p id="unsavedBadge" class="unsaved-badge" role="status" aria-live="polite" hidden>Unsaved changes</p>
     <div class="content content--single">
@@ -35,11 +34,11 @@
                 <section class="modify-meta" aria-label="Audit details">
                     <div>
                         <label for="lastModifiedBy">Last modified by</label>
-                        <input type="text" id="lastModifiedBy" name="lastModifiedBy" value="" readonly>
+                        <input type="text" id="lastModifiedBy" value="" readonly>
                     </div>
                     <div>
                         <label for="lastModifiedAt">Current server time</label>
-                        <input type="text" id="lastModifiedAt" name="lastModifiedAt" value="" readonly>
+                        <input type="text" id="lastModifiedAt" value="" readonly>
                     </div>
                 </section>
                 <div class="modify-fields reveal-up" aria-label="Project details" style="--reveal-delay: 220ms;">
@@ -78,15 +77,15 @@
                         <div>
                             <label for="statusId">Status</label>
                             <select id="statusId" name="status_name">
-                                <option value="1">Draft</option>
-                                <option value="2">Published</option>
-                                <option value="3">Archived</option>
+                                <option value="draft">Draft</option>
+                                <option value="published">Published</option>
+                                <option value="archived">Archived</option>
                             </select>
                         </div>
                         <div>
                             <label for="remotePossible">Remote possible</label>
                             <select id="remotePossible" name="remote_possible">
-                                <option value="">No change</option>
+                                <option value="">Optional</option>
                                 <option value="1">Yes</option>
                                 <option value="0">No</option>
                             </select>
@@ -118,5 +117,4 @@
             </div>
         </form>
     </dialog>
-    </body>
 {% endblock %}
