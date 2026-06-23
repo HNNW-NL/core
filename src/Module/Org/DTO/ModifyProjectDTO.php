@@ -20,10 +20,11 @@ class ModifyProjectDTO
         public ?int $capacity = null,
         public ?bool $remotePossible = null,
         public ?Account $modifiedBy = null,
-        public ?\DateTimeImmutable $timeCreated = null,
-        public ?\DateTimeImmutable $timeModified = null,
         public ?\DateTimeImmutable $modifiedAt = null,
     ) {
+        if ($projectId === '' || $organisationId === '') {
+            throw new \InvalidArgumentException('Project ID and Organisation ID cannot be empty');
+        }
     }
 
     public function hasTitleChanged(): bool
@@ -46,7 +47,7 @@ class ModifyProjectDTO
         return $this->visibility !== null && $this->visibility !== '';
     }
 
-    public function hasStatusChanged(): bool
+    public function hasStatusNameChanged(): bool
     {
         return $this->statusName !== null && $this->statusName !== '';
     }
@@ -70,4 +71,8 @@ class ModifyProjectDTO
     {
         return $this->remotePossible !== null;
     }
-}
+
+    public function hasModifiedByChanged(): bool
+    {
+        return $this->modifiedBy !== null;
+    }
