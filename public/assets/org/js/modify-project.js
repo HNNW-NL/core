@@ -182,13 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const resolvedStatus = (project.statusName || project.status || 'draft').toString().trim().toLowerCase();
                 statusIdField.value = resolvedStatus;
             }
-            if (remotePossibleField) {
-                if (project.remotePossible === null || project.remotePossible === undefined || project.remotePossible === '') {
-                    remotePossibleField.value = '';
-                } else {
-                    remotePossibleField.value = project.remotePossible ? '1' : '0';
-                }
-            }
 
             trackedFields.forEach(function (field) {
                 initialValues.set(field.id, field.value);
@@ -406,7 +399,6 @@ document.addEventListener('DOMContentLoaded', function () {
     wireField(endDateField, null);
     wireField(capacityField, null);
     wireField(statusIdField, validateStatus);
-    wireField(remotePossibleField, null);
 
     if (projectIdField) {
         projectIdField.addEventListener('change', function () {
