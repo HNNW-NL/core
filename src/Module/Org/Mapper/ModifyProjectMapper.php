@@ -81,7 +81,6 @@ class ModifyProjectMapper
             'startDate' => $project->getStartDate()?->format(self::DATE_FORMAT),
             'endDate' => $project->getEndDate()?->format(self::DATE_FORMAT),
             'capacity' => $project->getCapacity(),
-            'updatedBy' => $project->getModifiedBy()?->getEmail(),
             'effectiveAt' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
             'published_at' => $project->getPublishedAt()?->format(self::DATE_TIME_FORMAT),
             'last_modified' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
