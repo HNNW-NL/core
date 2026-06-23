@@ -13,13 +13,17 @@
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
-        .org-work-package-topbar {
+        .wp-shell * {
+            box-sizing: border-box;
+        }
+
+        .wp-topbar {
             background: #0d1a2a;
             color: #fff;
             border-bottom: 4px solid #2d8b57;
         }
 
-        .org-work-package-topbar-inner {
+        .wp-topbar-inner {
             min-height: 64px;
             max-width: 1180px;
             margin: 0 auto;
@@ -30,14 +34,14 @@
             gap: 20px;
         }
 
-        .org-work-package-brand {
+        .wp-brand {
             display: flex;
             align-items: center;
             gap: 12px;
             font-weight: 800;
         }
 
-        .org-work-package-mark {
+        .wp-logo {
             width: 42px;
             height: 42px;
             border-radius: 6px;
@@ -48,26 +52,26 @@
             font-weight: 900;
         }
 
-        .org-work-package-brand small {
+        .wp-brand small {
             display: block;
             color: #bfd0e4;
             font-weight: 600;
             margin-top: 2px;
         }
 
-        .org-work-package-nav {
+        .wp-nav {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .org-work-package-nav span {
+        .wp-nav span {
             border: 1px solid rgba(255, 255, 255, .22);
             border-radius: 6px;
             padding: 9px 12px;
         }
 
-        .org-work-package-avatar {
+        .wp-avatar {
             width: 36px;
             height: 36px;
             border-radius: 50%;
@@ -78,222 +82,971 @@
             font-weight: 900;
         }
 
-        .work-package-page {
+        .wp-main {
             max-width: 1180px;
             margin: 28px auto 48px;
             padding: 0 28px;
         }
 
-        .work-package-header {
-            margin-bottom: 22px;
+        .wp-title-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: end;
+            margin-bottom: 20px;
         }
 
-        .work-package-header h2 {
+        .wp-title-row h1 {
             margin: 0 0 8px;
             color: #16263a;
             font-size: 36px;
             line-height: 1.1;
         }
 
-        .work-package-header p {
+        .wp-title-row p {
             max-width: 760px;
             margin: 0;
             color: #51627a;
         }
 
-        .work-package-layout {
+        .wp-tabs {
             display: grid;
-            grid-template-columns: 1fr 360px;
-            gap: 24px;
-            align-items: start;
-        }
-
-        .work-package-card {
+            grid-template-columns: repeat(2, minmax(140px, 1fr));
+            gap: 4px;
+            padding: 4px;
+            border: 1px solid #d9e0ea;
             background: #fff;
-            border: 1px solid #d9e0ea;
             border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 10px 28px rgba(13, 26, 42, .08);
         }
 
-        .work-package-card h3 {
-            margin-top: 0;
-            margin-bottom: 18px;
-            color: #16263a;
-        }
-
-        .form-grid {
-            display: grid;
-            gap: 16px;
-        }
-
-        .form-field {
-            display: grid;
-            gap: 6px;
-        }
-
-        .form-field label {
-            font-weight: 700;
-            color: #16263a;
-        }
-
-        .form-field input,
-        .form-field textarea {
-            width: 100%;
-            border: 1px solid #d9e0ea;
-            border-radius: 6px;
-            padding: 10px 12px;
-            font: inherit;
-            box-sizing: border-box;
-        }
-
-        .form-field textarea {
-            min-height: 110px;
-            resize: vertical;
-        }
-
-        .button-primary {
-            width: fit-content;
+        .wp-tabs button {
+            min-height: 38px;
             border: 0;
             border-radius: 6px;
-            background: #2d8b57;
-            color: #fff;
-            padding: 12px 16px;
+            background: transparent;
+            color: #607086;
+            font: inherit;
             font-weight: 800;
             cursor: pointer;
         }
 
-        .preview-list {
-            display: grid;
-            gap: 14px;
+        .wp-tabs button[aria-pressed="true"] {
+            background: #16263a;
+            color: #fff;
         }
 
-        .preview-package {
+        .wp-toolbar {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 18px;
             background: #fff;
             border: 1px solid #d9e0ea;
-            border-left: 5px solid #2d8b57;
             border-radius: 8px;
-            padding: 16px;
+            box-shadow: 0 10px 28px rgba(13, 26, 42, .07);
         }
 
-        .preview-package h4 {
-            margin: 0 0 6px;
+        .wp-input,
+        .wp-select {
+            min-height: 42px;
+            border: 1px solid #d9e0ea;
+            border-radius: 6px;
+            padding: 9px 12px;
+            background: #fff;
+            color: #16263a;
+            font: inherit;
+        }
+
+        .wp-primary,
+        .wp-secondary,
+        .wp-ghost {
+            min-height: 42px;
+            border-radius: 6px;
+            padding: 9px 14px;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .wp-primary {
+            border: 0;
+            background: #2d8b57;
+            color: #fff;
+            box-shadow: 0 10px 18px rgba(45, 139, 87, .18);
+        }
+
+        .wp-secondary {
+            border: 1px solid #d9e0ea;
+            background: #fff;
             color: #16263a;
         }
 
-        .preview-package p {
-            margin: 0 0 10px;
-            color: #607086;
+        .wp-ghost {
+            border: 0;
+            background: transparent;
+            color: #2468a8;
+            padding-inline: 8px;
         }
 
-        .status-pill {
-            display: inline-block;
+        .wp-danger {
+            color: #b23a48;
+        }
+
+        .wp-view {
+            display: none;
+        }
+
+        .wp-view.active {
+            display: block;
+        }
+
+        .wp-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .wp-sidebar,
+        .wp-panel,
+        .wp-package,
+        .wp-form-panel,
+        .wp-summary,
+        .wp-column {
+            background: #fff;
+            border: 1px solid #d9e0ea;
+            border-radius: 8px;
+            box-shadow: 0 10px 28px rgba(13, 26, 42, .06);
+        }
+
+        .wp-sidebar {
+            padding: 14px;
+        }
+
+        .wp-sidebar h3,
+        .wp-summary-title {
+            margin: 0 0 10px;
+            color: #607086;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .wp-project {
+            display: block;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 10px;
+            color: #16263a;
+            text-decoration: none;
+        }
+
+        .wp-project + .wp-project {
+            margin-top: 8px;
+        }
+
+        .wp-project strong,
+        .wp-project span {
+            display: block;
+        }
+
+        .wp-project span {
+            margin-top: 2px;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .wp-project.active {
+            border-color: #2d8b57;
             background: #dff2e7;
-            color: #2d8b57;
+        }
+
+        .wp-project.active strong {
+            color: #16263a;
+        }
+
+        .wp-project.active span {
+            color: #51627a;
+        }
+
+        .wp-panel {
+            padding: 18px;
+        }
+
+        .wp-panel-head {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: start;
+            margin-bottom: 18px;
+        }
+
+        .wp-panel-head h2 {
+            margin: 0 0 12px;
+            font-size: 24px;
+        }
+
+        .wp-panel-head p {
+            max-width: 680px;
+            margin: 0;
+            color: #51627a;
+        }
+
+        .wp-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .wp-stat {
+            border: 1px solid #d9e0ea;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fbfcfe;
+        }
+
+        .wp-stat strong,
+        .wp-stat span {
+            display: block;
+        }
+
+        .wp-stat strong {
+            font-size: 24px;
+            line-height: 1.1;
+            color: #16263a;
+        }
+
+        .wp-stat span {
+            margin-top: 4px;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .wp-content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .wp-package-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .wp-package {
+            padding: 16px;
+        }
+
+        .wp-package-head {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .wp-package h3 {
+            margin: 0 0 4px;
+            font-size: 18px;
+        }
+
+        .wp-package p {
+            margin: 0;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .wp-status {
+            display: inline-flex;
+            min-height: 28px;
+            align-items: center;
             border-radius: 999px;
             padding: 4px 10px;
             font-size: 13px;
-            font-weight: 800;
+            font-weight: 900;
+            white-space: nowrap;
         }
 
-        @media (max-width: 900px) {
-            .org-work-package-topbar-inner,
-            .org-work-package-nav {
+        .wp-status.busy {
+            background: #fff3d8;
+            color: #b7791f;
+        }
+
+        .wp-status.open {
+            background: #e4f0fb;
+            color: #2468a8;
+        }
+
+        .wp-status.done {
+            background: #dff2e7;
+            color: #2d8b57;
+        }
+
+        .wp-progress {
+            height: 9px;
+            overflow: hidden;
+            background: #e7edf4;
+            border-radius: 999px;
+            margin-bottom: 12px;
+        }
+
+        .wp-progress span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: #2d8b57;
+        }
+
+        .wp-task {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #d9e0ea;
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        .wp-task + .wp-task {
+            margin-top: 8px;
+        }
+
+        .wp-check {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #d9e0ea;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .wp-task.done .wp-check {
+            border-color: #2d8b57;
+            background: #2d8b57;
+        }
+
+        .wp-task strong,
+        .wp-task small {
+            display: block;
+        }
+
+        .wp-task small {
+            margin-top: 2px;
+            color: #607086;
+        }
+
+        .wp-avatar-mini {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #514283;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .wp-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #d9e0ea;
+        }
+
+        .wp-actions-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .wp-form-panel {
+            padding: 18px;
+        }
+
+        .wp-form-panel h3 {
+            margin: 0 0 14px;
+        }
+
+        .wp-form {
+            display: grid;
+            gap: 12px;
+        }
+
+        .wp-field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .wp-field label {
+            font-weight: 800;
+            color: #16263a;
+        }
+
+        .wp-field input,
+        .wp-field textarea {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid #d9e0ea;
+            border-radius: 6px;
+            padding: 9px 12px;
+            color: #16263a;
+            font: inherit;
+        }
+
+        .wp-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .wp-public-layout {
+            display: grid;
+            grid-template-columns: 310px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .wp-summary {
+            padding: 18px;
+        }
+
+        .wp-summary-hero {
+            background: #16263a;
+            color: #fff;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+
+        .wp-summary-hero h2 {
+            margin: 0 0 8px;
+            font-size: 22px;
+        }
+
+        .wp-summary-hero p {
+            margin: 0 0 14px;
+            color: #d8e4f1;
+        }
+
+        .wp-hero-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .wp-hero-stats div {
+            border: 1px solid rgba(255, 255, 255, .18);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .wp-hero-stats strong,
+        .wp-hero-stats span {
+            display: block;
+        }
+
+        .wp-hero-stats span {
+            color: #bfd0e4;
+            font-size: 13px;
+        }
+
+        .wp-member {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #d9e0ea;
+        }
+
+        .wp-member:last-child {
+            border-bottom: 0;
+        }
+
+        .wp-member-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #ece8f7;
+            color: #514283;
+            font-weight: 900;
+        }
+
+        .wp-member strong,
+        .wp-member span {
+            display: block;
+        }
+
+        .wp-member span {
+            color: #607086;
+            font-size: 13px;
+        }
+
+        .wp-board {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .wp-column {
+            min-height: 420px;
+            padding: 14px;
+        }
+
+        .wp-column-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .wp-column-head h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .wp-count {
+            min-width: 30px;
+            min-height: 26px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: #eef2f7;
+            color: #607086;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .wp-board-task {
+            padding: 12px;
+            border: 1px solid #d9e0ea;
+            border-left: 4px solid #2468a8;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 10px;
+        }
+
+        .wp-board-task.busy {
+            border-left-color: #b7791f;
+        }
+
+        .wp-board-task.done {
+            border-left-color: #2d8b57;
+            background: #fbfefc;
+        }
+
+        .wp-board-task h4 {
+            margin: 0 0 7px;
+            font-size: 16px;
+        }
+
+        .wp-board-task p {
+            margin: 0 0 10px;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .wp-board-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .wp-board-footer .wp-primary,
+        .wp-board-footer .wp-secondary {
+            min-height: 34px;
+            padding: 6px 9px;
+            font-size: 13px;
+        }
+
+        .wp-tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: #eef2f7;
+            color: #607086;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 1100px) {
+            .wp-content-grid,
+            .wp-package-grid,
+            .wp-layout,
+            .wp-title-row,
+            .wp-toolbar,
+            .wp-panel-head,
+            .wp-public-layout,
+            .wp-board {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .wp-topbar-inner,
+            .wp-nav {
                 align-items: flex-start;
                 flex-direction: column;
             }
 
-            .org-work-package-topbar-inner {
+            .wp-topbar-inner {
                 padding: 14px 20px;
             }
 
-            .work-package-layout {
-                grid-template-columns: 1fr;
+            .wp-main {
+                padding: 0 20px;
             }
 
-            .work-package-page {
-                padding: 0 20px;
+            .wp-tabs,
+            .wp-stats,
+            .wp-hero-stats {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 {% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabButtons = document.querySelectorAll('[data-wp-view]');
+            const views = document.querySelectorAll('.wp-view');
+
+            tabButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    tabButtons.forEach(function (item) {
+                        item.setAttribute('aria-pressed', 'false');
+                    });
+
+                    views.forEach(function (view) {
+                        view.classList.remove('active');
+                    });
+
+                    button.setAttribute('aria-pressed', 'true');
+                    document.getElementById(button.dataset.wpView).classList.add('active');
+                });
+            });
+        });
+    </script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <header class="org-work-package-topbar">
-        <div class="org-work-package-topbar-inner">
-            <div class="org-work-package-brand">
-                <div class="org-work-package-mark">H</div>
-                <div>
-                    Het Nieuwe² Werken
-                    <small>Projecten, mensen en taken</small>
+    <div class="wp-shell">
+        <header class="wp-topbar">
+            <div class="wp-topbar-inner">
+                <div class="wp-brand">
+                    <div class="wp-logo">H</div>
+                    <div>
+                        Het Nieuwe&sup2; Werken
+                        <small>Projecten, mensen en taken</small>
+                    </div>
                 </div>
+
+                <nav class="wp-nav" aria-label="Navigatie">
+                    <span>Projecten</span>
+                    <span>Organisatie</span>
+                    <span>Notificaties</span>
+                    <div class="wp-avatar">SK</div>
+                </nav>
             </div>
+        </header>
 
-            <nav class="org-work-package-nav" aria-label="Navigatie">
-                <span>Projecten</span>
-                <span>Organisatie</span>
-                <span>Notificaties</span>
-                <div class="org-work-package-avatar">SK</div>
-            </nav>
-        </div>
-    </header>
+        <main class="wp-main">
+            <section class="wp-title-row">
+                <div>
+                    <h1>Werkpakketten</h1>
+                    <p>Maak werk behapbaar per project: beheer pakketten en taken in het organisatiepaneel, en laat projectleden hun eigen voortgang bijwerken in het projectoverzicht.</p>
+                </div>
 
-    <main class="work-package-page">
-        <section class="work-package-header">
-            <h2>Werkpakketten beheren</h2>
-            <p>Project {{ id }} - maak werkpakketten aan en beheer straks de taken die daarbij horen.</p>
-        </section>
-
-        <div class="work-package-layout">
-            <section class="work-package-card">
-                <h3>Nieuw werkpakket</h3>
-
-                <form method="post" class="form-grid">
-                    <div class="form-field">
-                        <label for="title">Titel</label>
-                        <input id="title" name="title" type="text" placeholder="Bijvoorbeeld: Inventarisatie databronnen" required>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="slug">Slug</label>
-                        <input id="slug" name="slug" type="text" placeholder="inventarisatie-databronnen" required>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="description">Omschrijving</label>
-                        <textarea id="description" name="description" placeholder="Beschrijf kort wat er binnen dit werkpakket moet gebeuren."></textarea>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="dueDate">Deadline</label>
-                        <input id="dueDate" name="dueDate" type="date">
-                    </div>
-
-                    <button class="button-primary" type="submit">Werkpakket opslaan</button>
-                </form>
+                <div class="wp-tabs" aria-label="Scherm kiezen">
+                    <button type="button" aria-pressed="true" data-wp-view="wp-admin-view">Organisatiebeheer</button>
+                    <button type="button" aria-pressed="false" data-wp-view="wp-project-view">Projectoverzicht</button>
+                </div>
             </section>
 
-            <aside class="work-package-card">
-                <h3>Voorbeeld</h3>
+            <section class="wp-toolbar">
+                <select class="wp-select" aria-label="Project selecteren">
+                    <option>Energietransitie dashboard</option>
+                    <option>Datakwaliteit subsidies</option>
+                    <option>Community pilots</option>
+                </select>
 
-                <div class="preview-list">
-                    <article class="preview-package">
-                        <h4>Inventarisatie databronnen</h4>
-                        <p>5 taken - deadline nog te bepalen</p>
-                        <span class="status-pill">Open</span>
-                    </article>
+                <input class="wp-input" type="search" placeholder="Zoek pakket of taak">
 
-                    <article class="preview-package">
-                        <h4>UX validatie</h4>
-                        <p>4 taken - klaar voor taakverdeling</p>
-                        <span class="status-pill">Open</span>
-                    </article>
+                <button class="wp-primary" type="button">+ Werkpakket</button>
+            </section>
+
+            <section id="wp-admin-view" class="wp-view active" aria-label="Organisatiebeheer">
+                <div class="wp-layout">
+                    <aside class="wp-sidebar" aria-label="Projecten">
+                        <h3>Projecten</h3>
+
+                        <a class="wp-project active" href="#">
+                            <strong>Energietransitie dashboard</strong>
+                            <span>8 leden - 4 pakketten</span>
+                        </a>
+
+                        <a class="wp-project" href="#">
+                            <strong>Datakwaliteit subsidies</strong>
+                            <span>5 leden - 3 pakketten</span>
+                        </a>
+
+                        <a class="wp-project" href="#">
+                            <strong>Community pilots</strong>
+                            <span>11 leden - 6 pakketten</span>
+                        </a>
+                    </aside>
+
+                    <section class="wp-panel" aria-label="Werkpakketten beheren">
+                        <div class="wp-panel-head">
+                            <div>
+                                <h2>Energietransitie dashboard</h2>
+                                <p>Organisatiebeheerders kunnen pakketten aanmaken, taken toevoegen, leden koppelen en statussen beheren.</p>
+                            </div>
+
+                            <button class="wp-secondary" type="button">Projectleden beheren</button>
+                        </div>
+
+                        <div class="wp-stats" aria-label="Samenvatting">
+                            <div class="wp-stat"><strong>4</strong><span>werkpakketten</span></div>
+                            <div class="wp-stat"><strong>18</strong><span>taken totaal</span></div>
+                            <div class="wp-stat"><strong>61%</strong><span>gemiddeld gereed</span></div>
+                        </div>
+
+                        <div class="wp-content-grid">
+                            <div class="wp-package-grid">
+                                <article class="wp-package">
+                                    <div class="wp-package-head">
+                                        <div>
+                                            <h3>Inventarisatie databronnen</h3>
+                                            <p>5 taken - deadline 18 juni</p>
+                                        </div>
+                                        <span class="wp-status busy">Bezig</span>
+                                    </div>
+
+                                    <div class="wp-progress" aria-label="60 procent gereed"><span style="width: 60%"></span></div>
+
+                                    <div class="wp-task done">
+                                        <span class="wp-check">✓</span>
+                                        <div><strong>Bronnenlijst opschonen</strong><small>toegewezen aan Sara</small></div>
+                                        <span class="wp-avatar-mini">S</span>
+                                    </div>
+
+                                    <div class="wp-task">
+                                        <span class="wp-check"></span>
+                                        <div><strong>API-koppelingen controleren</strong><small>toegewezen aan Jamal</small></div>
+                                        <span class="wp-avatar-mini">J</span>
+                                    </div>
+
+                                    <div class="wp-task">
+                                        <span class="wp-check"></span>
+                                        <div><strong>Risico's noteren</strong><small>nog niet gekoppeld</small></div>
+                                    </div>
+
+                                    <div class="wp-actions">
+                                        <button class="wp-ghost" type="button">+ Taak</button>
+                                        <div class="wp-actions-group">
+                                            <button class="wp-secondary" type="button">Bewerken</button>
+                                            <button class="wp-ghost wp-danger" type="button">Verwijderen</button>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <article class="wp-package">
+                                    <div class="wp-package-head">
+                                        <div>
+                                            <h3>UX validatie</h3>
+                                            <p>4 taken - deadline 24 juni</p>
+                                        </div>
+                                        <span class="wp-status open">Open</span>
+                                    </div>
+
+                                    <div class="wp-progress" aria-label="25 procent gereed"><span style="width: 25%"></span></div>
+
+                                    <div class="wp-task done">
+                                        <span class="wp-check">✓</span>
+                                        <div><strong>Testscript schrijven</strong><small>toegewezen aan Noor</small></div>
+                                        <span class="wp-avatar-mini">N</span>
+                                    </div>
+
+                                    <div class="wp-task">
+                                        <span class="wp-check"></span>
+                                        <div><strong>Gebruikers uitnodigen</strong><small>nog niet gekoppeld</small></div>
+                                    </div>
+
+                                    <div class="wp-task">
+                                        <span class="wp-check"></span>
+                                        <div><strong>Feedback samenvatten</strong><small>nog niet gekoppeld</small></div>
+                                    </div>
+
+                                    <div class="wp-actions">
+                                        <button class="wp-ghost" type="button">+ Taak</button>
+                                        <div class="wp-actions-group">
+                                            <button class="wp-secondary" type="button">Bewerken</button>
+                                            <button class="wp-ghost wp-danger" type="button">Verwijderen</button>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+
+                            <aside class="wp-form-panel">
+                                <h3>Nieuw werkpakket</h3>
+
+                                <form method="post" class="wp-form">
+                                    <div class="wp-field">
+                                        <label for="title">Titel</label>
+                                        <input id="title" name="title" type="text" placeholder="Bijvoorbeeld: Inventarisatie databronnen" required>
+                                    </div>
+
+                                    <div class="wp-field">
+                                        <label for="slug">Slug</label>
+                                        <input id="slug" name="slug" type="text" placeholder="inventarisatie-databronnen" required>
+                                    </div>
+
+                                    <div class="wp-field">
+                                        <label for="description">Omschrijving</label>
+                                        <textarea id="description" name="description" placeholder="Beschrijf kort wat er binnen dit werkpakket moet gebeuren."></textarea>
+                                    </div>
+
+                                    <div class="wp-field">
+                                        <label for="dueDate">Deadline</label>
+                                        <input id="dueDate" name="dueDate" type="date">
+                                    </div>
+
+                                    <button class="wp-primary" type="submit">Werkpakket opslaan</button>
+                                </form>
+                            </aside>
+                        </div>
+                    </section>
                 </div>
-            </aside>
-        </div>
-    </main>
+            </section>
+
+            <section id="wp-project-view" class="wp-view" aria-label="Projectoverzicht">
+                <div class="wp-public-layout">
+                    <aside class="wp-summary" aria-label="Projectinformatie">
+                        <div class="wp-summary-hero">
+                            <h2>Energietransitie dashboard</h2>
+                            <p>Gekoppelde projectleden kunnen hun taken bekijken, zichzelf koppelen en voortgang bijwerken.</p>
+                            <div class="wp-hero-stats">
+                                <div><strong>18</strong><span>taken</span></div>
+                                <div><strong>61%</strong><span>gereed</span></div>
+                            </div>
+                        </div>
+
+                        <h3 class="wp-summary-title">Projectleden</h3>
+                        <div class="wp-member">
+                            <span class="wp-member-avatar">S</span>
+                            <span><strong>Sara Kok</strong><span>3 taken - 2 gereed</span></span>
+                        </div>
+                        <div class="wp-member">
+                            <span class="wp-member-avatar">J</span>
+                            <span><strong>Jamal Vermeer</strong><span>2 taken - bezig</span></span>
+                        </div>
+                        <div class="wp-member">
+                            <span class="wp-member-avatar">N</span>
+                            <span><strong>Noor Smit</strong><span>1 taak - gereed</span></span>
+                        </div>
+                    </aside>
+
+                    <section class="wp-board" aria-label="Takenbord">
+                        <div class="wp-column">
+                            <div class="wp-column-head">
+                                <h3>Open</h3>
+                                <span class="wp-count">4</span>
+                            </div>
+
+                            <article class="wp-board-task">
+                                <h4>Risico's noteren</h4>
+                                <p>Werk de bekende afhankelijkheden en toegangsrisico's bij.</p>
+                                <div class="wp-board-footer">
+                                    <span class="wp-tag">Inventarisatie</span>
+                                    <button class="wp-primary" type="button">Zelf nemen</button>
+                                </div>
+                            </article>
+
+                            <article class="wp-board-task">
+                                <h4>Gebruikers uitnodigen</h4>
+                                <p>Nodig zes projectleden uit voor de validatieronde.</p>
+                                <div class="wp-board-footer">
+                                    <span class="wp-tag">UX validatie</span>
+                                    <button class="wp-primary" type="button">Zelf nemen</button>
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="wp-column">
+                            <div class="wp-column-head">
+                                <h3>Bezig</h3>
+                                <span class="wp-count">3</span>
+                            </div>
+
+                            <article class="wp-board-task busy">
+                                <h4>API-koppelingen controleren</h4>
+                                <p>Controleer bereikbaarheid en noteer ontbrekende rechten.</p>
+                                <div class="wp-board-footer">
+                                    <span class="wp-tag">Jamal</span>
+                                    <button class="wp-primary" type="button">Gereed melden</button>
+                                </div>
+                            </article>
+
+                            <article class="wp-board-task busy">
+                                <h4>Feedback samenvatten</h4>
+                                <p>Maak een samenvatting per thema voor de projectleider.</p>
+                                <div class="wp-board-footer">
+                                    <span class="wp-tag">Nog niemand</span>
+                                    <button class="wp-primary" type="button">Zelf nemen</button>
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="wp-column">
+                            <div class="wp-column-head">
+                                <h3>Gereed</h3>
+                                <span class="wp-count">11</span>
+                            </div>
+
+                            <article class="wp-board-task done">
+                                <h4>Bronnenlijst opschonen</h4>
+                                <p>Dubbele bronnen zijn verwijderd en eigenaars zijn gekoppeld.</p>
+                                <div class="wp-board-footer">
+                                    <span class="wp-tag">Sara</span>
+                                    <button class="wp-secondary" type="button">Heropenen</button>
+                                </div>
+                            </article>
+
+                            <article class="wp-board-task done">
+                                <h4>Demo publiceren</h4>
+                                <p>Prototype is beschikbaar voor de projectgroep.</p>
+                                <div class="wp-board-footer">
+                                    <span class="wp-tag">Jamal</span>
+                                    <button class="wp-secondary" type="button">Heropenen</button>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
+    </div>
 {% endblock %}
