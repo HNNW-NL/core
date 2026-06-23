@@ -50,10 +50,6 @@ class ModifyProjectMapper
             $project->setVisibility($dto->visibility);
         }
 
-        if ($dto->hasStatusNameChanged()) {
-            $project->setStatus($dto->statusName);
-        }
-
         if ($dto->hasStartDateChanged()) {
             $project->setStartDate($dto->startDate);
         }

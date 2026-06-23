@@ -5,13 +5,15 @@ namespace App\Module\Org\Service;
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Module\Org\DTO\ModifyProjectDTO;
+use App\Module\Org\Mapper\ModifyProjectMapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
 
 class ModifyProjectService
 {
     public function __construct(
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private ModifyProjectMapper $mapper,
     ) {}
 
     public function modify(ModifyProjectDTO $dto): Project
@@ -20,10 +22,6 @@ class ModifyProjectService
 
         if ($project === null) {
             throw new \RuntimeException('Project not found');
-        }
-
-        if ($dto->organisationId === '') {
-            throw new \RuntimeException('Project organisation is required');
         }
 
         if ($project->getOwnerOrganisation() === null) {
@@ -35,13 +33,13 @@ class ModifyProjectService
             throw new \RuntimeException('Project does not belong to the selected organisation');
         }
 
-        if ($dto->hasStatusChanged()) {
+        if ($dto->hasStatusNameChanged()) {
             $project->setStatus($this->resolveStatus($dto->statusName));
         }
 
-        $project = (new \App\Module\Org\Mapper\ModifyProjectMapper())->toEntity($project, $dto);
+        $project = $this->mapper->toEntity($project, $dto);
 
-        if ($dto->hasStatusChanged()) {
+        if ($dto->hasStatusNameChanged()) {
             $statusName = $dto->statusName ?? '';
             if ($statusName === 'published' && $project->getPublishedAt() === null) {
                 $project->publish();
