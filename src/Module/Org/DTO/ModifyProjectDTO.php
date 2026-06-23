@@ -76,3 +76,4 @@ class ModifyProjectDTO
     {
         return $this->modifiedBy !== null;
     }
+}
