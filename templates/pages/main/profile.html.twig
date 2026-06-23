@@ -17,31 +17,34 @@
                   <!-- Profile Picture -->
 
                   <div class="avatar">
-                  <img id="preview" src="default-profile.png" alt="Profile Picture">
-                
+               
+                 <img id="preview" src="default-profile.png" alt="Profile Picture">
+                    <input type="file" id="upload" style="display: none;">
 
-                  <input type="file" id="upload" accept="image/*">
-
+                <!-- eigen knop -->
+                 <label for="upload" class="upload-btn">
+                   Kies profielfoto
+                 </label>
                   
-                    
-                    <script>
-                   const upload = document.getElementById("upload");
-                   const preview = document.getElementById("preview");
 
-                  preview.addEventListener("click", () => {
-                   upload.click();
-                   });
+                 <script>
+                 const upload = document.getElementById("upload");
+                 const preview = document.getElementById("preview");
 
-                  upload.addEventListener("change", function () {
-
+                 upload.addEventListener("change", function () {
                  const file = this.files[0];
 
                  if (file) {
-                 preview.src = URL.createObjectURL(file);
-                 }
+                 const reader = new FileReader();
 
-                  });
-                 </script>
+                 reader.onload = function () {
+                  preview.src = reader.result;
+                  };
+
+                 reader.readAsDataURL(file);
+                 }
+                 });
+                </script>
                  </div>
                   
 

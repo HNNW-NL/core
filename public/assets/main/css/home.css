@@ -190,23 +190,25 @@ body {
 }
 
 /* AVATAR */
-.avatar {
+.profile-avatar img {
     width: 100px;
-
     height: 100px;
-
+    border-radius: 50%;
     object-fit: cover;
-    
-    overflow: hidden;
+}
 
-    border-radius: 0px;
-    
-    overflow: hidden;
+.upload-btn {
+    display: inline-block;
+    padding: 5px 10px;
+    background: white;
+    color: black;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+}
 
-    flex-shrink: 0;
-
-    padding-left: 5px; 
-
+.upload-btn:hover {
+    background: #ddd;
 }
 
 /* TEXT */
