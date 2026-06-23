@@ -18,7 +18,6 @@ class ModifyProjectDTO
         public ?\DateTimeImmutable $startDate = null,
         public ?\DateTimeImmutable $endDate = null,
         public ?int $capacity = null,
-        public ?bool $remotePossible = null,
         public ?Account $modifiedBy = null,
         public ?\DateTimeImmutable $modifiedAt = null,
     ) {
@@ -65,11 +64,6 @@ class ModifyProjectDTO
     public function hasCapacityChanged(): bool
     {
         return $this->capacity !== null;
-    }
-
-    public function hasRemotePossibleChanged(): bool
-    {
-        return $this->remotePossible !== null;
     }
 
     public function hasModifiedByChanged(): bool

@@ -26,7 +26,6 @@ class ModifyProjectMapper
             startDate: $this->getDateFromRequest($request, ['start_date', 'startDate']),
             endDate: $this->getDateFromRequest($request, ['end_date', 'endDate']),
             capacity: $this->getIntFromRequest($request, ['capacity']),
-            remotePossible: $this->getBoolFromRequest($request, ['remote_possible', 'remotePossible']),
             modifiedBy: $extraData['publisher'] ?? null,
             modifiedAt: new \DateTimeImmutable(),
         );
@@ -62,14 +61,6 @@ class ModifyProjectMapper
             $project->setCapacity($dto->capacity);
         }
 
-        if ($dto->hasRemotePossibleChanged()) {
-            if ($dto->remotePossible) {
-                $project->enableRemoteWork();
-            } else {
-                $project->disableRemoteWork();
-            }
-        }
-
         return $project;
     }
 
@@ -90,7 +81,6 @@ class ModifyProjectMapper
             'startDate' => $project->getStartDate()?->format(self::DATE_FORMAT),
             'endDate' => $project->getEndDate()?->format(self::DATE_FORMAT),
             'capacity' => $project->getCapacity(),
-            'remotePossible' => method_exists($project, 'isRemotePossible') ? $project->isRemotePossible() : (method_exists($project, 'getRemotePossible') ? $project->getRemotePossible() : null),
             'updatedBy' => $project->getModifiedBy()?->getEmail(),
             'effectiveAt' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
             'published_at' => $project->getPublishedAt()?->format(self::DATE_TIME_FORMAT),

@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const endDateField = document.getElementById('endDate');
     const capacityField = document.getElementById('capacity');
     const statusIdField = document.getElementById('statusId');
-    const remotePossibleField = document.getElementById('remotePossible');
     const unsavedBadge = document.getElementById('unsavedBadge');
     const deleteDialog = document.getElementById('deleteConfirmDialog');
     const deleteDialogForm = deleteDialog ? deleteDialog.querySelector('.delete-dialog__form') : null;
@@ -46,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.insertBefore(message, form.firstChild);
     }
 
-    const trackedFields = [nameField, summaryField, descField, visibilityField, effectiveAtField, startDateField, endDateField, capacityField, statusIdField, remotePossibleField].filter(Boolean);
+    const trackedFields = [nameField, summaryField, descField, visibilityField, effectiveAtField, startDateField, endDateField, capacityField, statusIdField].filter(Boolean);
     const initialValues = new Map();
     trackedFields.forEach(function (field) {
         initialValues.set(field.id, field.value);
