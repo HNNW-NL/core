@@ -2,11 +2,16 @@
 
 namespace App\Module\Org\Service;
 
+use App\Entity\Account\Account;
+use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Module\Org\DTO\ModifyProjectDTO;
+use App\Module\Org\Handler\ModifyProjectHandler;
 use App\Module\Org\Mapper\ModifyProjectMapper;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ObjectRepository;
+use Symfony\Component\HttpFoundation\Request;
 
 class ModifyProjectService
 {
@@ -54,6 +59,51 @@ class ModifyProjectService
         return $project;
     }
 
+    public function buildResponsePayload(string $id, Request $request, ModifyProjectHandler $handler): array
+    {
+        $organisationId = $this->getRequestValue($request, 'organisation_id');
+        $intent = $this->getRequestValue($request, 'intent');
+
+        $projectRepository = $this->entityManager->getRepository(Project::class);
+        $project = $this->resolveProjectReference($projectRepository, $id);
+
+        $resolvedProjectId = $project instanceof Project ? (string) $project->getId() : $id;
+        $resolvedProjectRef = $project instanceof Project ? $this->projectRef($project) : $id;
+
+        if ($intent !== '') {
+            return ['redirect' => $this->handleIntent(
+                $intent,
+                $request,
+                $handler,
+                $organisationId,
+                $resolvedProjectId,
+                $resolvedProjectRef
+            )];
+        }
+
+        $projects = $this->loadOrganisationProjects($organisationId);
+
+        if (!$project instanceof Project && !empty($projects)) {
+            $project = $projects[0];
+        }
+
+        $currentRef = $project instanceof Project ? $this->projectRef($project) : $id;
+
+        if ($project instanceof Project && $id !== $currentRef) {
+            return ['redirect' => [
+                'id' => $currentRef,
+                'organisation_id' => $organisationId,
+            ]];
+        }
+
+        return ['view' => [
+            'id' => $currentRef,
+            'organisationId' => $organisationId,
+            'project' => $project instanceof Project ? $this->mapProject($project, $organisationId) : null,
+            'projects' => $this->mapProjects($projects),
+        ]];
+    }
+
     public function delete(string $projectId, string $organisationId): Project
     {
         $project = $this->findProject($projectId);
@@ -75,6 +125,124 @@ class ModifyProjectService
         $this->entityManager->flush();
 
         return $project;
+    }
+
+    private function handleIntent(
+        string $intent,
+        Request $request,
+        ModifyProjectHandler $handler,
+        string $organisationId,
+        string $resolvedProjectId,
+        string $resolvedProjectRef
+    ): array {
+        $publisher = new Account();
+
+        if ($intent === 'delete') {
+            try {
+                $this->delete($resolvedProjectId, $organisationId);
+
+                return [
+                    'id' => $resolvedProjectRef,
+                    'organisation_id' => $organisationId,
+                    'status' => 'success',
+                    'message' => 'Project deleted successfully.',
+                ];
+            } catch (\RuntimeException $e) {
+                return [
+                    'id' => $resolvedProjectRef,
+                    'organisation_id' => $organisationId,
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ];
+            }
+        }
+
+        $request->request->set('project_id', $resolvedProjectId);
+        $request->query->set('project_id', $resolvedProjectId);
+
+        $result = $handler->handle($request, $publisher);
+
+        return [
+            'id' => $resolvedProjectRef,
+            'organisation_id' => $organisationId,
+            'status' => !empty($result['success']) ? 'success' : 'error',
+            'message' => !empty($result['success'])
+                ? 'Project updated successfully.'
+                : ($result['error'] ?? 'Update failed.'),
+        ];
+    }
+
+    private function getRequestValue(Request $request, string $key): string
+    {
+        return trim((string) ($request->request->get($key) ?? $request->query->get($key) ?? ''));
+    }
+
+    private function resolveProjectReference(ObjectRepository $projectRepository, string $reference): ?Project
+    {
+        $reference = trim($reference);
+        if ($reference === '') {
+            return null;
+        }
+
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $reference)) {
+            $project = $projectRepository->find($reference);
+            return $project instanceof Project ? $project : null;
+        }
+
+        $project = $projectRepository->findOneBy(['slug' => $reference]);
+        return $project instanceof Project ? $project : null;
+    }
+
+    private function projectRef(Project $project): string
+    {
+        return (string) ($project->getSlug() ?: $project->getId());
+    }
+
+    private function loadOrganisationProjects(string $organisationId): array
+    {
+        if ($organisationId === '') {
+            return [];
+        }
+
+        $organisation = $this->entityManager->getRepository(Organisation::class)->find($organisationId);
+        if (!$organisation instanceof Organisation) {
+            return [];
+        }
+
+        return $this->entityManager->getRepository(Project::class)->findBy(
+            ['ownerOrganisation' => $organisation],
+            ['createdAt' => 'DESC']
+        );
+    }
+
+    private function mapProject(Project $project, string $organisationId): array
+    {
+        return [
+            'id' => (string) $project->getId(),
+            'title' => $project->getTitle(),
+            'name' => $project->getTitle(),
+            'summary' => $project->getSummary(),
+            'description' => $project->getDescription(),
+            'visibility' => $project->getVisibility(),
+            'ref' => $this->projectRef($project),
+            'statusName' => $project->getStatus()?->getName(),
+            'organisationId' => $project->getOwnerOrganisation() ? (string) $project->getOwnerOrganisation()->getId() : $organisationId,
+            'startDate' => $project->getStartDate()?->format('Y-m-d'),
+            'endDate' => $project->getEndDate()?->format('Y-m-d'),
+            'capacity' => $project->getCapacity(),
+        ];
+    }
+
+    private function mapProjects(array $projects): array
+    {
+        return array_map(function (Project $item): array {
+            return [
+                'id' => (string) $item->getId(),
+                'ref' => $this->projectRef($item),
+                'title' => $item->getTitle(),
+                'slug' => $item->getSlug(),
+            ];
+        }, $projects);
     }
 
     private function findProject(string $projectId): ?Project
