@@ -33,7 +33,16 @@ class ModifyProjectHandler
         try {
             $this->entityManager->beginTransaction();
 
-            $dto = $this->mapper->fromRequest($request, ['publisher' => $publisher]);
+            $extraData = ['publisher' => $publisher];
+            $organisationId = $request->attributes->get('organisation_id');
+            if (is_scalar($organisationId)) {
+                $organisationId = trim((string) $organisationId);
+                if ($organisationId !== '') {
+                    $extraData['organisation_id'] = $organisationId;
+                }
+            }
+
+            $dto = $this->mapper->fromRequest($request, $extraData);
 
             $project = $this->service->modify($dto);
 
