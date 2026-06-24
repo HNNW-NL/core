@@ -41,12 +41,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const url = new URL(window.location.href);
     const pathSegments = url.pathname.split('/').filter(Boolean);
-    const idFromPath = pathSegments.length > 0 ? (pathSegments[pathSegments.length - 1] || '').trim() : '';
+    const refFromPath = pathSegments.length > 0 ? (pathSegments[pathSegments.length - 1] || '').trim() : '';
     const statusFromQuery = (url.searchParams.get('status') || '').trim().toLowerCase();
     const messageFromQuery = (url.searchParams.get('message') || '').trim();
 
-    if (projectIdField && idFromPath !== '') {
-        projectIdField.value = idFromPath;
+    if (projectIdField && refFromPath !== '') {
+        projectIdField.value = refFromPath;
     }
 
     let activeIntent = 'modify';
@@ -116,25 +116,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function loadProjectList() {
         if (!projectIdField) {
-            loadProject(idFromPath || embeddedProject.id || '');
+            loadProject(refFromPath || embeddedProject.ref || embeddedProject.id || '');
             return;
         }
 
         const list = Array.isArray(embeddedProjects)
             ? embeddedProjects.filter(function (project) {
-                return project && typeof project.id === 'string' && project.id.trim() !== '';
+                const ref = (project && (project.ref || project.slug || project.id)) || '';
+                return typeof ref === 'string' && ref.trim() !== '';
             })
             : [];
 
-        if (list.length === 0 && embeddedProject && embeddedProject.id) {
+        if (list.length === 0 && embeddedProject && (embeddedProject.ref || embeddedProject.id)) {
             list.push({
                 id: (embeddedProject.id || '').toString(),
+                ref: (embeddedProject.ref || embeddedProject.id || '').toString(),
                 title: embeddedProject.title || embeddedProject.name || 'Project',
             });
         }
 
-        const fallbackProjectId = list.length > 0 ? (list[0].id || '').toString() : '';
-        const projectId = (embeddedProject.id || idFromPath || fallbackProjectId || '').toString();
+        const fallbackProjectRef = list.length > 0 ? ((list[0].ref || list[0].slug || list[0].id) || '').toString() : '';
+        const projectRef = (embeddedProject.ref || refFromPath || fallbackProjectRef || '').toString();
         projectIdField.innerHTML = '';
 
         if (list.length === 0) {
@@ -145,25 +147,26 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             list.forEach(function (project) {
                 const option = document.createElement('option');
-                option.value = (project.id || '').toString();
-                option.textContent = '#' + option.value + ' - ' + (project.title || 'Project');
+                option.value = (project.ref || project.slug || project.id || '').toString();
+                option.textContent = project.title || 'Project';
                 projectIdField.appendChild(option);
             });
         }
 
-        projectIdField.value = projectId;
-        loadProject(projectId);
+        projectIdField.value = projectRef;
+        loadProject(projectRef);
     }
 
-    function loadProject(projectId) {
+    function loadProject(projectRef) {
         const foundProject = Array.isArray(embeddedProjects)
             ? embeddedProjects.find(function (item) {
-                return item && item.id && item.id.toString() === projectId.toString();
+                const itemRef = item ? (item.ref || item.slug || item.id || '') : '';
+                return itemRef.toString() === projectRef.toString();
             })
             : null;
         const project = foundProject || embeddedProject || {};
         if (projectIdField) {
-            projectIdField.value = (project.id || projectId || '').toString();
+            projectIdField.value = (project.ref || project.slug || project.id || projectRef || '').toString();
         }
         if (organisationIdField) {
             organisationIdField.value = project.organisationId || project.organisation_id || organisationIdField.value || '';
@@ -419,20 +422,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (projectIdField) {
         projectIdField.addEventListener('change', function () {
-            const selectedProjectId = projectIdField.value.trim();
-            if (selectedProjectId !== '' && selectedProjectId !== idFromPath) {
+            const selectedProjectRef = projectIdField.value.trim();
+            if (selectedProjectRef !== '' && selectedProjectRef !== refFromPath) {
                 const nextUrl = new URL(window.location.href);
                 const parts = nextUrl.pathname.split('/').filter(Boolean);
                 if (parts.length > 0) {
-                    parts[parts.length - 1] = selectedProjectId;
+                    parts[parts.length - 1] = selectedProjectRef;
                     nextUrl.pathname = '/' + parts.join('/');
                     window.location.href = nextUrl.toString();
                     return;
                 }
             }
 
-            if (selectedProjectId !== '') {
-                loadProject(selectedProjectId);
+            if (selectedProjectRef !== '') {
+                loadProject(selectedProjectRef);
             }
         });
     }
