@@ -91,6 +91,32 @@ document.addEventListener('DOMContentLoaded', function () {
         message.hidden = false;
     }
 
+    function hasOrganisationContext() {
+        return !!(organisationIdField && organisationIdField.value.trim() !== '');
+    }
+
+    function setActionsDisabled(disabled) {
+        actionButtons.forEach(function (button) {
+            button.disabled = disabled;
+            if (disabled) {
+                button.setAttribute('aria-disabled', 'true');
+            } else {
+                button.removeAttribute('aria-disabled');
+            }
+        });
+    }
+
+    function enforceOrganisationContext() {
+        if (!hasOrganisationContext()) {
+            showError('Missing organisation context. Re-open this page with an organisation_id query parameter.');
+            setActionsDisabled(true);
+            return false;
+        }
+
+        setActionsDisabled(false);
+        return true;
+    }
+
     async function loadProjectList() {
         if (!projectIdField) {
             await loadProject(idFromQuery || embeddedProject.id || '');
@@ -163,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         updateUnsavedBadge();
+        enforceOrganisationContext();
     }
 
     function getFieldGroup(field) {
@@ -431,6 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     updateUnsavedBadge();
+    enforceOrganisationContext();
 
     window.requestAnimationFrame(function () {
         document.body.classList.add('page-ready');
@@ -469,6 +497,11 @@ document.addEventListener('DOMContentLoaded', function () {
         message.textContent = '';
         message.hidden = true;
         setSubmittingState(false);
+
+        if (!enforceOrganisationContext()) {
+            event.preventDefault();
+            return;
+        }
 
         event.preventDefault();
 
