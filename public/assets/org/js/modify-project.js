@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
             projectIdField.value = (project.id || projectId || '').toString();
         }
         if (organisationIdField) {
-            organisationIdField.value = project.organisationId || project.organisation_id || '';
+            organisationIdField.value = project.organisationId || project.organisation_id || organisationIdField.value || '';
         }
         if (nameField) {
             nameField.value = project.title || project.name || '';
@@ -527,13 +527,15 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        if (!validateStatus()) {
+            showError('Please select a valid status.');
+            event.preventDefault();
+            return;
+        }
+
         showSuccess('Validation passed. Submitting your changes...');
         setSubmittingState(true);
     });
-
-    if (deleteButton) {
-        deleteButton.classList.add('button-danger');
-    }
 
     loadProjectList();
 });
