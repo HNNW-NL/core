@@ -119,6 +119,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 card.className = "project-card";
                 card.dataset.slug = project.slug || '';
 
+                const imageContainer = document.createElement("div");
+                imageContainer.className = "project-card-image-container";
+                const imageUrl = project.image || project.image_url || project.imageUrl || '';
+
+                if (imageUrl) {
+                    const img = document.createElement("img");
+                    img.className = "project-card-image";
+                    img.src = imageUrl;
+                    img.alt = project.title ? `Image for ${project.title}` : 'Project image';
+                    imageContainer.appendChild(img);
+                } else {
+                    const missingImage = document.createElement("div");
+                    missingImage.className = "project-card-image-missing";
+                    missingImage.textContent = "Geen foto gevonden.";
+                    imageContainer.appendChild(missingImage);
+                }
+
                 const titleEl = document.createElement("div");
                 titleEl.className = "project-title";
                 const summaryEl = document.createElement("div");
@@ -133,6 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 summaryEl.innerHTML = highlightText(project.summary || "", hq);
                 slugEl.innerHTML = highlightText(project.slug || "", hq);
 
+                card.appendChild(imageContainer);
                 card.appendChild(titleEl);
                 card.appendChild(summaryEl);
                 card.appendChild(slugEl);
