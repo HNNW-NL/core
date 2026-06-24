@@ -14,10 +14,16 @@ class ModifyProjectMapper
     public function fromRequest(Request $request, array $extraData = []): ModifyProjectDTO
     {
         $title = $this->getStringFromRequest($request, ['title', 'name']);
+        $projectId = $this->getStringFromRequest($request, ['project_id', 'projectId'])
+            ?? (isset($extraData['project_id']) ? trim((string) $extraData['project_id']) : null)
+            ?? trim((string) $request->attributes->get('id', ''));
+        $organisationId = $this->getStringFromRequest($request, ['organisation_id', 'organisationId'])
+            ?? (isset($extraData['organisation_id']) ? trim((string) $extraData['organisation_id']) : '')
+            ?? '';
 
         return new ModifyProjectDTO(
-            projectId: (string) $request->request->get('project_id', $extraData['project_id'] ?? $request->attributes->get('id', '')),
-            organisationId: (string) $request->request->get('organisation_id', $extraData['organisation_id'] ?? ''),
+            projectId: $projectId,
+            organisationId: $organisationId,
             title: $title,
             summary: $this->getStringFromRequest($request, ['summary']),
             description: $this->getStringFromRequest($request, ['description']),
@@ -77,14 +83,14 @@ class ModifyProjectMapper
             'visibility' => $project->getVisibility(),
             'status' => $project->getStatus()?->getName(),
             'statusName' => $project->getStatus()?->getName(),
-            'statusId' => $project->getStatus()?->getId(),
+            'statusId' => $project->getStatus() ? (string) $project->getStatus()->getId() : null,
             'startDate' => $project->getStartDate()?->format(self::DATE_FORMAT),
             'endDate' => $project->getEndDate()?->format(self::DATE_FORMAT),
             'capacity' => $project->getCapacity(),
             'effectiveAt' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
             'published_at' => $project->getPublishedAt()?->format(self::DATE_TIME_FORMAT),
             'last_modified' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
-            'url' => '/org/projects/modify/' . $project->getId(),
+            'url' => '/org/projects/modify/' . (string) $project->getId(),
         ];
     }
 
@@ -100,7 +106,7 @@ class ModifyProjectMapper
     private function getStringFromRequest(Request $request, array $keys): ?string
     {
         foreach ($keys as $key) {
-            $value = $request->request->get($key);
+            $value = $this->getInputValue($request, $key);
             if ($value === null) {
                 continue;
             }
@@ -112,6 +118,19 @@ class ModifyProjectMapper
         }
 
         return null;
+    }
+
+    private function getInputValue(Request $request, string $key): mixed
+    {
+        if ($request->request->has($key)) {
+            return $request->request->get($key);
+        }
+
+        if ($request->query->has($key)) {
+            return $request->query->get($key);
+        }
+
+        return $request->attributes->get($key);
     }
 
     private function getDateFromRequest(Request $request, array $keys): ?\DateTimeImmutable
