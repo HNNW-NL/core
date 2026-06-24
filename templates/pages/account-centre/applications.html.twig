@@ -7,10 +7,6 @@
     <div id="account-centre-container">
 
         <div class="dashboard-header">
-                <a href="/account" class="btn-back">
-                    ← Terug naar Account
-                </a>
-
             <h1>Mijn Aanmeldingen</h1>
             <p>Bekijk de status van je lopende aanmeldingen voor projecten.</p>
         </div>
@@ -21,13 +17,14 @@
                 {% for application in profile.projectApplications %}
                     <a href="#" class="account-card">
                         <h3>{{ application.project.title|default('Naamloze aanmelding') }}</h3>
+                        {# Verander application.status naar application.status.name #}
                         <p>Status: <strong>{{ application.status.name|default('In behandeling') }}</strong></p>
                     </a>
                 {% else %}
-                    <div class="account-card account-card-empty">
+                    <div class="account-card" style="grid-column: 1 / -1; text-align: center; pointer-events: none; opacity: 0.7;">
                         <h3>Geen aanmeldingen</h3>
                         <p>Je hebt je op dit moment nog niet aangemeld voor een project.</p>
-                    </div>>
+                    </div>
                 {% endfor %}
 
             {% endif %}
