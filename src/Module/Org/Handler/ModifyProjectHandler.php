@@ -54,7 +54,7 @@ class ModifyProjectHandler
         } catch (\RuntimeException $e) {
             $this->safeRollback();
             $this->logger->error($e->getMessage());
-            return $this->mapper->toErrorResponse($e->getMessage(), 403);
+            return $this->mapper->toErrorResponse($e->getMessage(), $this->resolveRuntimeStatusCode($e));
 
         } catch (\Exception $e) {
             $this->safeRollback();
@@ -72,5 +72,24 @@ class ModifyProjectHandler
         } catch (\Exception $e) {
             $this->logger->error('Failed to rollback transaction: ' . $e->getMessage());
         }
+    }
+
+    private function resolveRuntimeStatusCode(\RuntimeException $exception): int
+    {
+        $message = strtolower($exception->getMessage());
+
+        if (str_contains($message, 'not found')) {
+            return 404;
+        }
+
+        if (str_contains($message, 'does not belong')) {
+            return 403;
+        }
+
+        if (str_contains($message, 'unknown project status')) {
+            return 400;
+        }
+
+        return 400;
     }
 }
