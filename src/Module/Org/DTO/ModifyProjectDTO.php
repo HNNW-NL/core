@@ -17,6 +17,8 @@ class ModifyProjectDTO
         public ?string $statusName = null,
         public ?\DateTimeImmutable $startDate = null,
         public ?\DateTimeImmutable $endDate = null,
+        public bool $startDateTouched = false,
+        public bool $endDateTouched = false,
         public ?int $capacity = null,
         public ?Account $modifiedBy = null,
         public ?\DateTimeImmutable $modifiedAt = null,
@@ -53,12 +55,12 @@ class ModifyProjectDTO
 
     public function hasStartDateChanged(): bool
     {
-        return $this->startDate !== null;
+        return $this->startDateTouched;
     }
 
     public function hasEndDateChanged(): bool
     {
-        return $this->endDate !== null;
+        return $this->endDateTouched;
     }
 
     public function hasCapacityChanged(): bool

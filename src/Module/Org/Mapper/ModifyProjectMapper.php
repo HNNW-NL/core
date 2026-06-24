@@ -13,6 +13,9 @@ class ModifyProjectMapper
 
     public function fromRequest(Request $request, array $extraData = []): ModifyProjectDTO
     {
+        $startDateTouched = false;
+        $endDateTouched = false;
+
         $title = $this->getStringFromRequest($request, ['title', 'name']);
         $projectId = $this->getStringFromRequest($request, ['project_id', 'projectId'])
             ?? (isset($extraData['project_id']) ? trim((string) $extraData['project_id']) : null)
@@ -29,8 +32,10 @@ class ModifyProjectMapper
             description: $this->getStringFromRequest($request, ['description']),
             visibility: $this->getStringFromRequest($request, ['visibility']),
             statusName: $this->normalizeStatusName($this->getStringFromRequest($request, ['status', 'status_name'])),
-            startDate: $this->getDateFromRequest($request, ['start_date', 'startDate']),
-            endDate: $this->getDateFromRequest($request, ['end_date', 'endDate']),
+            startDate: $this->getDateFromRequest($request, ['start_date', 'startDate'], $startDateTouched),
+            endDate: $this->getDateFromRequest($request, ['end_date', 'endDate'], $endDateTouched),
+            startDateTouched: $startDateTouched,
+            endDateTouched: $endDateTouched,
             capacity: $this->getIntFromRequest($request, ['capacity']),
             modifiedBy: $extraData['publisher'] ?? null,
             modifiedAt: new \DateTimeImmutable(),
@@ -133,18 +138,42 @@ class ModifyProjectMapper
         return $request->attributes->get($key);
     }
 
-    private function getDateFromRequest(Request $request, array $keys): ?\DateTimeImmutable
+    private function getDateFromRequest(Request $request, array $keys, bool &$touched = false): ?\DateTimeImmutable
     {
-        $date = $this->getStringFromRequest($request, $keys);
-        if ($date === null) {
+        [$rawValue, $touched] = $this->getRawInputFromRequest($request, $keys);
+        if (!$touched) {
+            return null;
+        }
+
+        $date = trim((string) ($rawValue ?? ''));
+        if ($date === '') {
             return null;
         }
 
         try {
             return new \DateTimeImmutable($date);
         } catch (\Throwable) {
-            return null;
+            throw new \InvalidArgumentException('Invalid date format provided.');
         }
+    }
+
+    private function getRawInputFromRequest(Request $request, array $keys): array
+    {
+        foreach ($keys as $key) {
+            if ($request->request->has($key)) {
+                return [$request->request->get($key), true];
+            }
+
+            if ($request->query->has($key)) {
+                return [$request->query->get($key), true];
+            }
+
+            if ($request->attributes->has($key)) {
+                return [$request->attributes->get($key), true];
+            }
+        }
+
+        return [null, false];
     }
 
     private function getIntFromRequest(Request $request, array $keys): ?int

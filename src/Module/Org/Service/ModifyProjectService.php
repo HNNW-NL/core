@@ -41,6 +41,17 @@ class ModifyProjectService
             $project->setStatus($this->resolveStatus($dto->statusName));
         }
 
+        if ($dto->hasStartDateChanged() && $dto->startDate === null) {
+            throw new \InvalidArgumentException('Start date cannot be empty.');
+        }
+
+        $effectiveStartDate = $dto->hasStartDateChanged() ? $dto->startDate : $project->getStartDate();
+        $effectiveEndDate = $dto->hasEndDateChanged() ? $dto->endDate : $project->getEndDate();
+
+        if ($effectiveEndDate !== null && $effectiveStartDate !== null && $effectiveEndDate < $effectiveStartDate) {
+            throw new \InvalidArgumentException('End date cannot be earlier than start date.');
+        }
+
         $project = $this->mapper->toEntity($project, $dto);
 
         if ($dto->hasStatusNameChanged()) {

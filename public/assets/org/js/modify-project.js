@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const summaryField = document.getElementById('summary');
     const descField = document.getElementById('description');
     const visibilityField = document.getElementById('visibility');
-    const effectiveAtField = document.getElementById('effectiveAt');
     const startDateField = document.getElementById('startDate');
     const endDateField = document.getElementById('endDate');
     const capacityField = document.getElementById('capacity');
@@ -59,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.insertBefore(message, form.firstChild);
     }
 
-    const trackedFields = [nameField, summaryField, descField, visibilityField, effectiveAtField, startDateField, endDateField, capacityField, statusIdField].filter(Boolean);
+    const trackedFields = [nameField, summaryField, descField, visibilityField, startDateField, endDateField, capacityField, statusIdField].filter(Boolean);
     const initialValues = new Map();
     trackedFields.forEach(function (field) {
         initialValues.set(field.id, field.value);
@@ -183,10 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (visibilityField) {
             visibilityField.value = project.visibility || 'public';
         }
-        if (effectiveAtField) {
-            effectiveAtField.value = project.effectiveAt || '';
-        }
-
         const modifiedByField = document.getElementById('lastModifiedBy');
         if (modifiedByField) {
             modifiedByField.value = project.lastModifiedBy || project.updatedBy || '';
@@ -313,6 +308,54 @@ document.addEventListener('DOMContentLoaded', function () {
         return true;
     }
 
+    function validateDates() {
+        if (!startDateField && !endDateField) {
+            return true;
+        }
+
+        const startRaw = startDateField ? startDateField.value.trim() : '';
+        const endRaw = endDateField ? endDateField.value.trim() : '';
+
+        if (startDateField && startRaw === '') {
+            setFieldState(startDateField, false, 'Start date is required.');
+            return false;
+        }
+
+        if (startDateField && startRaw !== '') {
+            setFieldState(startDateField, true, 'Looks good.');
+        }
+
+        if (!startRaw || !endRaw) {
+            if (endDateField && endRaw === '') {
+                setFieldState(endDateField, null, 'Optional. Leave empty if there is no end date.');
+            }
+            return true;
+        }
+
+        const start = new Date(startRaw + 'T00:00:00');
+        const end = new Date(endRaw + 'T00:00:00');
+
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+            if (endDateField) {
+                setFieldState(endDateField, false, 'Please provide a valid date.');
+            }
+            return false;
+        }
+
+        if (end < start) {
+            if (endDateField) {
+                setFieldState(endDateField, false, 'End date cannot be earlier than start date.');
+            }
+            return false;
+        }
+
+        if (endDateField) {
+            setFieldState(endDateField, true, 'Looks good.');
+        }
+
+        return true;
+    }
+
     function updateDirtyState(field) {
         if (!field || !initialValues.has(field.id)) {
             return;
@@ -414,9 +457,8 @@ document.addEventListener('DOMContentLoaded', function () {
     wireField(summaryField, validateSummary);
     wireField(descField, validateDescription);
     wireField(visibilityField, null);
-    wireField(effectiveAtField, null);
-    wireField(startDateField, null);
-    wireField(endDateField, null);
+    wireField(startDateField, validateDates);
+    wireField(endDateField, validateDates);
     wireField(capacityField, null);
     wireField(statusIdField, validateStatus);
 
@@ -586,6 +628,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!validateStatus()) {
             showError('Please select a valid status.');
+            event.preventDefault();
+            return;
+        }
+
+        if (!validateDates()) {
+            showError('Please fix the date fields before submitting.');
             event.preventDefault();
             return;
         }
