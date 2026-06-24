@@ -95,31 +95,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return !!(organisationIdField && organisationIdField.value.trim() !== '');
     }
 
-    function setActionsDisabled(disabled) {
-        actionButtons.forEach(function (button) {
-            button.disabled = disabled;
-            if (disabled) {
-                button.setAttribute('aria-disabled', 'true');
-            } else {
-                button.removeAttribute('aria-disabled');
-            }
-        });
-    }
-
-    function enforceOrganisationContext() {
+    function enforceOrganisationContext(showMessage) {
         if (!hasOrganisationContext()) {
-            showError('Missing organisation context. Re-open this page with an organisation_id query parameter.');
-            setActionsDisabled(true);
+            if (showMessage) {
+                showError('Missing organisation context. Re-open this page with an organisation_id query parameter.');
+            }
             return false;
         }
 
-        setActionsDisabled(false);
         return true;
     }
 
-    async function loadProjectList() {
+    function loadProjectList() {
         if (!projectIdField) {
-            await loadProject(idFromQuery || embeddedProject.id || '');
+            loadProject(idFromQuery || embeddedProject.id || '');
             return;
         }
 
@@ -134,10 +123,10 @@ document.addEventListener('DOMContentLoaded', function () {
         projectIdField.appendChild(option);
 
         projectIdField.value = projectId;
-        await loadProject(projectId);
+        loadProject(projectId);
     }
 
-    async function loadProject(projectId) {
+    function loadProject(projectId) {
         const project = embeddedProject || {};
         if (projectIdField) {
             projectIdField.value = (project.id || projectId || '').toString();
@@ -189,7 +178,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         updateUnsavedBadge();
-        enforceOrganisationContext();
     }
 
     function getFieldGroup(field) {
@@ -458,7 +446,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     updateUnsavedBadge();
-    enforceOrganisationContext();
 
     window.requestAnimationFrame(function () {
         document.body.classList.add('page-ready');
@@ -496,18 +483,11 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('submit', function (event) {
         message.textContent = '';
         message.hidden = true;
-        setSubmittingState(false);
 
-        if (!enforceOrganisationContext()) {
+        if (!enforceOrganisationContext(true)) {
             event.preventDefault();
             return;
         }
-
-        event.preventDefault();
-
-        showError('Submit endpoint is not configured in the current controller routes.');
-        setSubmittingState(false);
-        return;
 
         if (activeIntent === 'delete') {
             if (!deleteConfirmed) {
@@ -520,6 +500,12 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteConfirmed = false;
             showSuccess('Deleting project...');
             setSubmittingState(true);
+            return;
+        }
+
+        if (!validateProjectId()) {
+            showError('Please select a project ID.');
+            event.preventDefault();
             return;
         }
 
