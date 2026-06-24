@@ -22,7 +22,7 @@
                 <h1>Modify Project</h1>
                 <p>Update project details and save your changes.</p>
             </section>
-            <form method="post" action="{{ path('org.modifyProject', { id: id }) }}" data-project='{{ project|default({})|json_encode|e('html_attr') }}' novalidate class="reveal-up" style="--reveal-delay: 140ms;">
+            <form method="post" action="{{ path('org.modifyProject', { id: id }) }}" data-project='{{ project|default({})|json_encode|e('html_attr') }}' data-projects='{{ projects|default([])|json_encode|e('html_attr') }}' novalidate class="reveal-up" style="--reveal-delay: 140ms;">
                 <p class="form-status" role="status" aria-live="polite" hidden></p>
                 <input type="hidden" id="organisationId" name="organisation_id" value="{{ organisationId|default('') }}">
                 <div class="modify-meta">

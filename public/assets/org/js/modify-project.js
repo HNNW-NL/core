@@ -25,20 +25,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const actionButtons = form.querySelectorAll('button[name="intent"]');
     const timeField = document.getElementById('lastModifiedAt');
     const embeddedProjectRaw = form.dataset.project || '{}';
+    const embeddedProjectsRaw = form.dataset.projects || '[]';
     let embeddedProject = {};
+    let embeddedProjects = [];
     try {
         embeddedProject = JSON.parse(embeddedProjectRaw);
     } catch (error) {
         embeddedProject = {};
     }
+    try {
+        embeddedProjects = JSON.parse(embeddedProjectsRaw);
+    } catch (error) {
+        embeddedProjects = [];
+    }
 
     const url = new URL(window.location.href);
-    const idFromQuery = (url.searchParams.get('id') || '').trim();
+    const pathSegments = url.pathname.split('/').filter(Boolean);
+    const idFromPath = pathSegments.length > 0 ? (pathSegments[pathSegments.length - 1] || '').trim() : '';
     const statusFromQuery = (url.searchParams.get('status') || '').trim().toLowerCase();
     const messageFromQuery = (url.searchParams.get('message') || '').trim();
 
-    if (projectIdField && idFromQuery !== '') {
-        projectIdField.value = idFromQuery;
+    if (projectIdField && idFromPath !== '') {
+        projectIdField.value = idFromPath;
     }
 
     let activeIntent = 'modify';
@@ -108,26 +116,52 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function loadProjectList() {
         if (!projectIdField) {
-            loadProject(idFromQuery || embeddedProject.id || '');
+            loadProject(idFromPath || embeddedProject.id || '');
             return;
         }
 
-        const projectId = (embeddedProject.id || idFromQuery || '').toString();
+        const list = Array.isArray(embeddedProjects)
+            ? embeddedProjects.filter(function (project) {
+                return project && typeof project.id === 'string' && project.id.trim() !== '';
+            })
+            : [];
+
+        if (list.length === 0 && embeddedProject && embeddedProject.id) {
+            list.push({
+                id: (embeddedProject.id || '').toString(),
+                title: embeddedProject.title || embeddedProject.name || 'Project',
+            });
+        }
+
+        const fallbackProjectId = list.length > 0 ? (list[0].id || '').toString() : '';
+        const projectId = (embeddedProject.id || idFromPath || fallbackProjectId || '').toString();
         projectIdField.innerHTML = '';
 
-        const option = document.createElement('option');
-        option.value = projectId;
-        option.textContent = projectId !== ''
-            ? '#' + projectId + ' - ' + (embeddedProject.title || embeddedProject.name || 'Project')
-            : 'Current project';
-        projectIdField.appendChild(option);
+        if (list.length === 0) {
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Current project';
+            projectIdField.appendChild(emptyOption);
+        } else {
+            list.forEach(function (project) {
+                const option = document.createElement('option');
+                option.value = (project.id || '').toString();
+                option.textContent = '#' + option.value + ' - ' + (project.title || 'Project');
+                projectIdField.appendChild(option);
+            });
+        }
 
         projectIdField.value = projectId;
         loadProject(projectId);
     }
 
     function loadProject(projectId) {
-        const project = embeddedProject || {};
+        const foundProject = Array.isArray(embeddedProjects)
+            ? embeddedProjects.find(function (item) {
+                return item && item.id && item.id.toString() === projectId.toString();
+            })
+            : null;
+        const project = foundProject || embeddedProject || {};
         if (projectIdField) {
             projectIdField.value = (project.id || projectId || '').toString();
         }
@@ -165,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
             capacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
         }
         if (statusIdField) {
-            const resolvedStatus = (project.statusName || project.status || 'draft').toString().trim().toLowerCase();
+            const resolvedStatus = (project.statusName || project.status_name || project.status || 'draft').toString().trim().toLowerCase();
             statusIdField.value = resolvedStatus;
         }
 
@@ -386,6 +420,17 @@ document.addEventListener('DOMContentLoaded', function () {
     if (projectIdField) {
         projectIdField.addEventListener('change', function () {
             const selectedProjectId = projectIdField.value.trim();
+            if (selectedProjectId !== '' && selectedProjectId !== idFromPath) {
+                const nextUrl = new URL(window.location.href);
+                const parts = nextUrl.pathname.split('/').filter(Boolean);
+                if (parts.length > 0) {
+                    parts[parts.length - 1] = selectedProjectId;
+                    nextUrl.pathname = '/' + parts.join('/');
+                    window.location.href = nextUrl.toString();
+                    return;
+                }
+            }
+
             if (selectedProjectId !== '') {
                 loadProject(selectedProjectId);
             }
