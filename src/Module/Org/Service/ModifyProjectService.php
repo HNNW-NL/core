@@ -54,6 +54,33 @@ class ModifyProjectService
         return $project;
     }
 
+    public function delete(string $projectId, string $organisationId): Project
+    {
+        $project = $this->findProject($projectId);
+
+        if ($project === null) {
+            throw new \RuntimeException('Project not found');
+        }
+
+        if ($project->getOwnerOrganisation() === null) {
+            throw new \RuntimeException('Project does not belong to an organisation');
+        }
+
+        $projectOrganisationId = (string) $project->getOwnerOrganisation()->getId();
+        if ($projectOrganisationId !== $organisationId) {
+            throw new \RuntimeException('Project does not belong to the selected organisation');
+        }
+
+        if ($project->getDeletedAt() !== null) {
+            throw new \RuntimeException('Project is already deleted');
+        }
+
+        $project->softDelete();
+        $this->entityManager->flush();
+
+        return $project;
+    }
+
     private function findProject(string $projectId): ?Project
     {
         $projectId = trim($projectId);
