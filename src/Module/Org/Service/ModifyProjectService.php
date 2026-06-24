@@ -7,7 +7,6 @@ use App\Entity\Project\Project;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use App\Module\Org\Mapper\ModifyProjectMapper;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Uid\Uuid;
 
 class ModifyProjectService
 {
@@ -62,13 +61,11 @@ class ModifyProjectService
             return null;
         }
 
-        try {
-            $uuid = Uuid::fromString($projectId);
-        } catch (\Throwable) {
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $projectId)) {
             return null;
         }
 
-        $project = $this->entityManager->getRepository(Project::class)->find($uuid);
+        $project = $this->entityManager->getRepository(Project::class)->find($projectId);
 
         return $project instanceof Project ? $project : null;
     }
