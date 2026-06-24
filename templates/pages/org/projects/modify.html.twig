@@ -22,6 +22,11 @@
                 <h1>Modify Project</h1>
                 <p>Update project details and save your changes.</p>
             </section>
+            {% if organisationId|default('') is empty %}
+                <p class="form-status form-status--error" role="alert">
+                    Missing organisation context. Open this page with an <strong>organisation_id</strong> query parameter.
+                </p>
+            {% endif %}
             <form method="get" action="{{ path('org.modifyProject', { id: id }) }}" data-project='{{ project|default({})|json_encode|e('html_attr') }}' novalidate class="reveal-up" style="--reveal-delay: 140ms;">
                 <p class="form-status" role="status" aria-live="polite" hidden></p>
                 <input type="hidden" id="organisationId" name="organisation_id" value="{{ organisationId|default('') }}">
