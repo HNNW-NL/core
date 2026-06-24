@@ -24,7 +24,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const deleteButton = form.querySelector('button[name="intent"][value="delete"]');
     const actionButtons = form.querySelectorAll('button[name="intent"]');
     const timeField = document.getElementById('lastModifiedAt');
-    const dataEndpoint = form.dataset.projectDataUrl || window.location.pathname;
+    const embeddedProjectRaw = form.dataset.project || '{}';
+    let embeddedProject = {};
+    try {
+        embeddedProject = JSON.parse(embeddedProjectRaw);
+    } catch (error) {
+        embeddedProject = {};
+    }
 
     const url = new URL(window.location.href);
     const idFromQuery = (url.searchParams.get('id') || '').trim();
@@ -86,115 +92,77 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function loadProjectList() {
-        try {
-            const response = await fetch(dataEndpoint + '?fetch=list', {
-                headers: {
-                    Accept: 'application/json'
-                }
-            });
-            const payload = await response.json();
-            if (!response.ok || !payload.ok) {
-                showError((payload && payload.message) ? payload.message : 'Could not load project list.');
-                return;
-            }
-
-            const projects = Array.isArray(payload.projects) ? payload.projects : [];
-            if (!projectIdField) {
-                return;
-            }
-
-            projectIdField.innerHTML = '';
-            projects.forEach(function (project) {
-                const option = document.createElement('option');
-                option.value = project.id;
-                option.textContent = '#' + project.id + ' - ' + (project.title || project.name || 'Project');
-                projectIdField.appendChild(option);
-            });
-
-            if (projects.length === 0) {
-                const option = document.createElement('option');
-                option.value = '';
-                option.textContent = 'No projects available';
-                projectIdField.appendChild(option);
-                return;
-            }
-
-            const chosenId = idFromQuery !== '' ? idFromQuery : projects[0].id;
-            projectIdField.value = chosenId;
-            await loadProject(chosenId);
-        } catch (error) {
-            showError('Could not load project list.');
+        if (!projectIdField) {
+            await loadProject(idFromQuery || embeddedProject.id || '');
+            return;
         }
+
+        const projectId = (embeddedProject.id || idFromQuery || '').toString();
+        projectIdField.innerHTML = '';
+
+        const option = document.createElement('option');
+        option.value = projectId;
+        option.textContent = projectId !== ''
+            ? '#' + projectId + ' - ' + (embeddedProject.title || embeddedProject.name || 'Project')
+            : 'Current project';
+        projectIdField.appendChild(option);
+
+        projectIdField.value = projectId;
+        await loadProject(projectId);
     }
 
     async function loadProject(projectId) {
-        try {
-            const response = await fetch(dataEndpoint + '?fetch=1&id=' + encodeURIComponent(projectId), {
-                headers: {
-                    Accept: 'application/json'
-                }
-            });
-
-            const payload = await response.json();
-            if (!response.ok || !payload.ok) {
-                showError((payload && payload.message) ? payload.message : 'Could not load project details.');
-                return;
-            }
-
-            const project = payload.project || {};
-            if (projectIdField) {
-                projectIdField.value = project.id || projectId;
-            }
-            if (organisationIdField) {
-                organisationIdField.value = project.organisationId || project.organisation_id || '';
-            }
-            if (nameField) {
-                nameField.value = project.title || project.name || '';
-            }
-            if (summaryField) {
-                summaryField.value = project.summary || '';
-            }
-            if (descField) {
-                descField.value = project.description || '';
-            }
-            if (visibilityField) {
-                visibilityField.value = project.visibility || 'public';
-            }
-            if (effectiveAtField && project.effectiveAt) {
-                effectiveAtField.value = project.effectiveAt;
-            }
-
-            const modifiedByField = document.getElementById('lastModifiedBy');
-            if (modifiedByField && project.updatedBy) {
-                modifiedByField.value = project.updatedBy;
-            }
-
-            if (startDateField) {
-                startDateField.value = project.startDate || '';
-            }
-            if (endDateField) {
-                endDateField.value = project.endDate || '';
-            }
-            if (capacityField) {
-                capacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
-            }
-            if (statusIdField) {
-                const resolvedStatus = (project.statusName || project.status || 'draft').toString().trim().toLowerCase();
-                statusIdField.value = resolvedStatus;
-            }
-
-            trackedFields.forEach(function (field) {
-                initialValues.set(field.id, field.value);
-                const group = getFieldGroup(field);
-                if (group) {
-                    group.classList.remove('is-dirty');
-                }
-            });
-
-            updateUnsavedBadge();
-        } catch (error) {
-            showError('Could not load project details.');
+        const project = embeddedProject || {};
+        if (projectIdField) {
+            projectIdField.value = (project.id || projectId || '').toString();
         }
+        if (organisationIdField) {
+            organisationIdField.value = project.organisationId || project.organisation_id || '';
+        }
+        if (nameField) {
+            nameField.value = project.title || project.name || '';
+        }
+        if (summaryField) {
+            summaryField.value = project.summary || '';
+        }
+        if (descField) {
+            descField.value = project.description || '';
+        }
+        if (visibilityField) {
+            visibilityField.value = project.visibility || 'public';
+        }
+        if (effectiveAtField) {
+            effectiveAtField.value = project.effectiveAt || '';
+        }
+
+        const modifiedByField = document.getElementById('lastModifiedBy');
+        if (modifiedByField) {
+            modifiedByField.value = project.lastModifiedBy || project.updatedBy || '';
+        }
+
+        if (startDateField) {
+            startDateField.value = project.startDate || '';
+        }
+        if (endDateField) {
+            endDateField.value = project.endDate || '';
+        }
+        if (capacityField) {
+            capacityField.value = project.capacity !== null && project.capacity !== undefined ? project.capacity : '';
+        }
+        if (statusIdField) {
+            const resolvedStatus = (project.statusName || project.status || 'draft').toString().trim().toLowerCase();
+            statusIdField.value = resolvedStatus;
+        }
+
+        trackedFields.forEach(function (field) {
+            initialValues.set(field.id, field.value);
+            const group = getFieldGroup(field);
+            if (group) {
+                group.classList.remove('is-dirty');
+            }
+        });
+
+        updateUnsavedBadge();
     }
 
     function getFieldGroup(field) {
@@ -501,6 +469,12 @@ document.addEventListener('DOMContentLoaded', function () {
         message.textContent = '';
         message.hidden = true;
         setSubmittingState(false);
+
+        event.preventDefault();
+
+        showError('Submit endpoint is not configured in the current controller routes.');
+        setSubmittingState(false);
+        return;
 
         if (activeIntent === 'delete') {
             if (!deleteConfirmed) {
