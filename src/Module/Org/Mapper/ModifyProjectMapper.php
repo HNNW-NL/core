@@ -15,6 +15,7 @@ class ModifyProjectMapper
     {
         $startDateTouched = false;
         $endDateTouched = false;
+        $visibilityTouched = false;
 
         $title = $this->getStringFromRequest($request, ['title', 'name']);
         $projectId = $this->getStringFromRequest($request, ['project_id', 'projectId'])
@@ -24,18 +25,27 @@ class ModifyProjectMapper
             ?? (isset($extraData['organisation_id']) ? trim((string) $extraData['organisation_id']) : '')
             ?? '';
 
+        $submittedVisibility = $this->getStringFromRequest($request, ['visibility']);
+        $currentProject = $request->attributes->get('_current_project');
+        $currentVisibility = $currentProject instanceof Project ? $currentProject->getVisibility() : null;
+        
+        if ($submittedVisibility !== null && $submittedVisibility !== $currentVisibility) {
+            $visibilityTouched = true;
+        }
+
         return new ModifyProjectDTO(
             projectId: $projectId,
             organisationId: $organisationId,
             title: $title,
             summary: $this->getStringFromRequest($request, ['summary']),
             description: $this->getStringFromRequest($request, ['description']),
-            visibility: $this->getStringFromRequest($request, ['visibility']),
+            visibility: $submittedVisibility,
             statusName: $this->normalizeStatusName($this->getStringFromRequest($request, ['status', 'status_name'])),
             startDate: $this->getDateFromRequest($request, ['start_date', 'startDate'], $startDateTouched),
             endDate: $this->getDateFromRequest($request, ['end_date', 'endDate'], $endDateTouched),
             startDateTouched: $startDateTouched,
             endDateTouched: $endDateTouched,
+            visibilityTouched: $visibilityTouched,
             capacity: $this->getIntFromRequest($request, ['capacity']),
             modifiedBy: $extraData['publisher'] ?? null,
             modifiedAt: new \DateTimeImmutable(),

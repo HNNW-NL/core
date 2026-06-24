@@ -88,7 +88,8 @@ class ModifyProjectService
                 $handler,
                 $organisationId,
                 $resolvedProjectId,
-                $resolvedProjectRef
+                $resolvedProjectRef,
+                $project
             )];
         }
 
@@ -144,7 +145,8 @@ class ModifyProjectService
         ModifyProjectHandler $handler,
         string $organisationId,
         string $resolvedProjectId,
-        string $resolvedProjectRef
+        string $resolvedProjectRef,
+        ?Project $project = null
     ): array {
         $publisher = new Account();
 
@@ -170,6 +172,10 @@ class ModifyProjectService
 
         $request->request->set('project_id', $resolvedProjectId);
         $request->query->set('project_id', $resolvedProjectId);
+
+        if ($project instanceof Project) {
+            $request->attributes->set('_current_project', $project);
+        }
 
         $result = $handler->handle($request, $publisher);
 

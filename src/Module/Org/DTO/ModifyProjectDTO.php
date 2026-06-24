@@ -19,6 +19,7 @@ class ModifyProjectDTO
         public ?\DateTimeImmutable $endDate = null,
         public bool $startDateTouched = false,
         public bool $endDateTouched = false,
+        public bool $visibilityTouched = false,
         public ?int $capacity = null,
         public ?Account $modifiedBy = null,
         public ?\DateTimeImmutable $modifiedAt = null,
@@ -45,7 +46,7 @@ class ModifyProjectDTO
 
     public function hasVisibilityChanged(): bool
     {
-        return $this->visibility !== null && $this->visibility !== '';
+        return $this->visibilityTouched;
     }
 
     public function hasStatusNameChanged(): bool
