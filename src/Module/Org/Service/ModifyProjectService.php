@@ -71,11 +71,7 @@ class ModifyProjectService
             throw new \RuntimeException('Project does not belong to the selected organisation');
         }
 
-        if ($project->getDeletedAt() !== null) {
-            throw new \RuntimeException('Project is already deleted');
-        }
-
-        $project->softDelete();
+        $this->entityManager->remove($project);
         $this->entityManager->flush();
 
         return $project;
