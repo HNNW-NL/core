@@ -5,6 +5,7 @@ namespace App\Module\AccountCentre\Controller;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
+use App\Entity\Project\ProjectApplication;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,6 +44,48 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/applications.html.twig', [
             'profile' => $profile
         ]);
+    }
+
+    #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
+    public function applicationsCancel(ProjectApplication $application, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $session = $request->getSession();
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        if (!$account) {
+            $this->addFlash('error', 'Account niet gevonden.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        if (!$profile || $application->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze aanmelding.');
+        }
+
+        $csrfToken = $request->request->get('_token');
+        if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
+
+            // Updates de 'deleted_at' kolom in plaats van een harde database delete
+            if (method_exists($application, 'softDelete')) {
+                $application->softDelete();
+            } else {
+                $application->setDeletedAt(new \DateTimeImmutable());
+            }
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Je aanmelding is succesvol geannuleerd.');
+        } else {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+        }
+
+        return $this->redirectToRoute('account.applications');
     }
 
     #[Route('/availability', name: 'availability', methods: ['GET'])]

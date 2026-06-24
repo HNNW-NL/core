@@ -14,18 +14,25 @@
     margin-bottom: 0.5rem;
 }
 
+/* Aangepast naar flex-direction column zodat de brede kaarten strak onder elkaar staan */
 .account-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
 }
 
+/* Aangepast naar row-layout zodat de knop naast de tekst komt te staan */
 .account-card {
     padding: 2rem;
     border-radius: 12px;
     text-decoration: none;
     transition: transform 0.3s ease, border-color 0.3s ease;
-    display: block;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .account-card:hover {
@@ -34,12 +41,39 @@
 
 .account-card h3 {
     font-size: 1.4rem;
-    margin-bottom: 0.75rem;
+    margin-top: 0;
+    margin-bottom: 0.25rem;
 }
 
 .account-card p {
     font-size: 0.95rem;
     line-height: 1.5;
+    margin: 0;
+}
+
+/* Breedte naar auto gezet en marge aan de onderkant verwijderd */
+.account-card-content {
+    width: auto;
+    margin-bottom: 0;
+}
+
+.btn-card-cancel {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap; /* Voorkomt dat de tekst van de knop afbreekt */
+}
+
+.btn-card-cancel:hover {
+    background-color: #ef4444;
+    color: #ffffff;
 }
 
 .alert {
@@ -109,6 +143,10 @@
     color: #0f172a;
 }
 
+/* ==========================================
+   DARK THEME STYLES
+   ========================================== */
+
 body[data-theme="dark"] #account-centre-container {
     padding: 3rem 1.5rem;
     max-width: 900px;
@@ -145,6 +183,17 @@ body[data-theme="dark"] .account-card h3 {
 
 body[data-theme="dark"] .account-card p {
     color: var(--hnnw-secondary-text);
+}
+
+body[data-theme="dark"] #account-centre-container .btn-card-cancel {
+    border-color: #f87171 !important;
+    color: #f87171 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .btn-card-cancel:hover {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+    border-color: #ef4444 !important;
 }
 
 body[data-theme="dark"] #account-centre-container .account-form-container {
@@ -330,6 +379,10 @@ body[data-theme="dark"] #account-centre-container .form-footer-link a {
 body[data-theme="dark"] #account-centre-container .form-footer-link a:hover {
     text-decoration: underline !important;
 }
+
+/* ==========================================
+   GLOBAL DESIGN ELEMENTS
+   ========================================== */
 
 header {
     display: flex;
