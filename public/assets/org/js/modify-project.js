@@ -43,6 +43,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const refFromPath = pathSegments.length > 0 ? (pathSegments[pathSegments.length - 1] || '').trim() : '';
     const statusFromQuery = (url.searchParams.get('status') || '').trim().toLowerCase();
     const messageFromQuery = (url.searchParams.get('message') || '').trim();
+    const limits = {
+        titleMax: 120,
+        summaryMin: 5,
+        summaryMax: 280,
+        descriptionMin: 10,
+        descriptionMax: 500,
+        capacityMin: 1,
+        capacityMax: 500,
+    };
 
     if (projectIdField && refFromPath !== '') {
         projectIdField.value = refFromPath;
@@ -78,6 +87,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const dirty = hasUnsavedChanges();
         unsavedBadge.hidden = !dirty;
         unsavedBadge.textContent = dirty ? 'Unsaved changes' : 'All changes saved';
+    }
+
+    function refreshDeleteButtonState() {
+        if (!deleteButton) {
+            return;
+        }
+
+        const hasProject = projectIdField ? projectIdField.value.trim() !== '' : true;
+        deleteButton.disabled = !hasProject;
     }
 
     actionButtons.forEach(function (button) {
@@ -209,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
+        syncDateConstraints();
         updateUnsavedBadge();
     }
 
@@ -228,9 +247,23 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!feedback) {
             feedback = document.createElement('p');
             feedback.className = 'field-feedback';
+            feedback.id = field.id + 'Feedback';
             feedback.setAttribute('aria-live', 'polite');
             group.appendChild(feedback);
         }
+
+        if (!feedback.id) {
+            feedback.id = field.id + 'Feedback';
+        }
+
+        const helper = group.querySelector('.field-help');
+        const describedBy = [];
+        if (helper && helper.id) {
+            describedBy.push(helper.id);
+        }
+        describedBy.push(feedback.id);
+        field.setAttribute('aria-describedby', describedBy.join(' ').trim());
+
         return feedback;
     }
 
@@ -268,30 +301,106 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function validateName() {
-        if (!nameField || nameField.value.trim() === '') {
+        if (!nameField) {
+            return false;
+        }
+
+        const value = nameField.value.trim();
+        if (value === '') {
             setFieldState(nameField, false, 'Please enter a project name.');
             return false;
         }
+
+        if (value.length > limits.titleMax) {
+            setFieldState(nameField, false, 'Project title cannot exceed ' + limits.titleMax + ' characters.');
+            return false;
+        }
+
         setFieldState(nameField, true, 'Looks good.');
         return true;
     }
 
     function validateSummary() {
-        if (!summaryField || summaryField.value.trim().length < 5) {
-            setFieldState(summaryField, false, 'Summary must be at least 5 characters.');
+        if (!summaryField) {
             return false;
         }
+
+        const value = summaryField.value.trim();
+        if (value.length < limits.summaryMin) {
+            setFieldState(summaryField, false, 'Summary must be at least ' + limits.summaryMin + ' characters.');
+            return false;
+        }
+
+        if (value.length > limits.summaryMax) {
+            setFieldState(summaryField, false, 'Summary cannot exceed ' + limits.summaryMax + ' characters.');
+            return false;
+        }
+
         setFieldState(summaryField, true, 'Looks good.');
         return true;
     }
 
     function validateDescription() {
-        if (!descField || descField.value.trim().length < 10) {
-            setFieldState(descField, false, 'Description must be at least 10 characters.');
+        if (!descField) {
             return false;
         }
+
+        const value = descField.value.trim();
+        if (value.length < limits.descriptionMin) {
+            setFieldState(descField, false, 'Description must be at least ' + limits.descriptionMin + ' characters.');
+            return false;
+        }
+
+        if (value.length > limits.descriptionMax) {
+            setFieldState(descField, false, 'Description cannot exceed ' + limits.descriptionMax + ' characters.');
+            return false;
+        }
+
         setFieldState(descField, true, 'Looks good.');
         return true;
+    }
+
+    function validateCapacity() {
+        if (!capacityField) {
+            return true;
+        }
+
+        const raw = capacityField.value.trim();
+        if (raw === '') {
+            setFieldState(capacityField, null, 'Optional. Leave empty if there is no capacity limit.');
+            return true;
+        }
+
+        const value = Number(raw);
+        const isInteger = Number.isInteger(value);
+        if (!isInteger || value < limits.capacityMin || value > limits.capacityMax) {
+            setFieldState(
+                capacityField,
+                false,
+                'Capacity must be a whole number between ' + limits.capacityMin + ' and ' + limits.capacityMax + '.'
+            );
+            return false;
+        }
+
+        setFieldState(capacityField, true, 'Looks good.');
+        return true;
+    }
+
+    function syncDateConstraints() {
+        if (!startDateField || !endDateField) {
+            return;
+        }
+
+        const startRaw = startDateField.value.trim();
+        if (startRaw === '') {
+            endDateField.removeAttribute('min');
+            return;
+        }
+
+        endDateField.min = startRaw;
+        if (endDateField.value && endDateField.value < startRaw) {
+            endDateField.value = '';
+        }
     }
 
     function validateStatus() {
@@ -324,6 +433,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (startDateField && startRaw !== '') {
             setFieldState(startDateField, true, 'Looks good.');
         }
+
+        syncDateConstraints();
 
         if (!startRaw || !endRaw) {
             if (endDateField && endRaw === '') {
@@ -459,8 +570,13 @@ document.addEventListener('DOMContentLoaded', function () {
     wireField(visibilityField, null);
     wireField(startDateField, validateDates);
     wireField(endDateField, validateDates);
-    wireField(capacityField, null);
+    wireField(capacityField, validateCapacity);
     wireField(statusIdField, validateStatus);
+
+    if (startDateField) {
+        startDateField.addEventListener('input', syncDateConstraints);
+        startDateField.addEventListener('change', syncDateConstraints);
+    }
 
     if (projectIdField) {
         projectIdField.addEventListener('change', function () {
@@ -478,6 +594,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (selectedProjectRef !== '') {
                 loadProject(selectedProjectRef);
+                refreshDeleteButtonState();
             }
         });
     }
@@ -536,6 +653,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     updateUnsavedBadge();
+    syncDateConstraints();
+    refreshDeleteButtonState();
 
     window.requestAnimationFrame(function () {
         document.body.classList.add('page-ready');
@@ -609,13 +728,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (!validateSummary()) {
-            showError('Summary is too short. Minimum 5 characters.');
+            showError('Summary must be between ' + limits.summaryMin + ' and ' + limits.summaryMax + ' characters.');
             event.preventDefault();
             return;
         }
 
         if (!validateDescription()) {
-            showError('Description is too short. Minimum 10 characters.');
+            showError('Description must be between ' + limits.descriptionMin + ' and ' + limits.descriptionMax + ' characters.');
+            event.preventDefault();
+            return;
+        }
+
+        if (!validateCapacity()) {
+            showError('Capacity must be a whole number between ' + limits.capacityMin + ' and ' + limits.capacityMax + '.');
             event.preventDefault();
             return;
         }
@@ -637,4 +762,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     loadProjectList();
+    refreshDeleteButtonState();
 });
