@@ -91,10 +91,14 @@
                             </select>
                         </div>
                 </fieldset>
-                <div class="button-row button-row--danger" role="group" aria-label="Danger actions">
-                    <p class="danger-note">Danger zone: deleting a project is permanent.</p>
-                    <button type="submit" name="intent" value="modify">Modify project</button>
-                    <button type="submit" name="intent" value="delete" class="button-danger" formnovalidate>Delete project</button>
+                <div class="button-row" role="group" aria-label="Danger actions">
+                    <div class="button-cell">
+                        <button type="submit" name="intent" value="modify">Modify project</button>
+                    </div>
+                    <div class="button-cell button-cell--delete button-cell--danger">
+                        <p class="danger-note">Danger zone: deleting a project is permanent.</p>
+                        <button type="submit" name="intent" value="delete" class="button-danger" formnovalidate>Delete project</button>
+                    </div>
                 </div>
             </form>
         </main>

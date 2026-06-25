@@ -194,7 +194,21 @@ form {
     margin-top: 2px;
 }
 
-.button-row--danger {
+.button-row > div {
+    margin-bottom: 0;
+}
+
+.button-cell {
+    display: grid;
+    align-content: end;
+}
+
+.button-cell--delete {
+    gap: 8px;
+    align-content: start;
+}
+
+.button-cell--danger {
     border: 1px solid rgba(239, 68, 68, 0.25);
     border-radius: 14px;
     padding: 12px;
@@ -202,7 +216,6 @@ form {
 }
 
 .danger-note {
-    grid-column: 1 / -1;
     margin: 0;
     font-size: 0.86rem;
     color: #fecaca;
