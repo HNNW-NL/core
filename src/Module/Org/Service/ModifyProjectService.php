@@ -6,12 +6,15 @@ use App\Entity\Account\Account;
 use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
+use App\Entity\Project\ProjectParticipant;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use App\Module\Org\Handler\ModifyProjectHandler;
 use App\Module\Org\Mapper\ModifyProjectMapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ModifyProjectService
 {
@@ -137,6 +140,45 @@ class ModifyProjectService
         $this->entityManager->flush();
 
         return $project;
+    }
+
+    public function assertPublicViewAccess(string $slug, ?object $user): void
+    {
+        $project = $this->resolveProjectReference(
+            $this->entityManager->getRepository(Project::class),
+            $slug
+        );
+
+        if (!$project instanceof Project) {
+            throw new NotFoundHttpException('Project not found.');
+        }
+
+        $visibility = strtolower((string) ($project->getVisibility() ?? 'public'));
+        if ($visibility === 'public') {
+            return;
+        }
+
+        if ($visibility === 'unlisted') {
+            return;
+        }
+
+        if (!$user instanceof Account) {
+            throw new AccessDeniedHttpException('You must be logged in to view this project.');
+        }
+
+        $profile = $user->getProfile();
+        if ($profile === null) {
+            throw new AccessDeniedHttpException('You do not have access to this project.');
+        }
+
+        $participant = $this->entityManager->getRepository(ProjectParticipant::class)->findOneBy([
+            'project' => $project,
+            'profile' => $profile,
+        ]);
+
+        if (!$participant instanceof ProjectParticipant) {
+            throw new AccessDeniedHttpException('You do not have access to this project.');
+        }
     }
 
     private function handleIntent(
