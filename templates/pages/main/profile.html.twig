@@ -1,7 +1,7 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {% block title %}
-  Profiel
+    Profiel
 {% endblock %}
 
 {% block stylesheets %}
@@ -27,63 +27,39 @@
                preview.src = URL.createObjectURL(file);
                 }
                });
-               </script>  
-
-
+                </script>  
 
                 <div class="profile-text">
                     <h1>Naam</h1>
                     <p>@username</p>
-                    {# <p>Locatie</p> #}
-                     <p onclick="openLocationPopup()" style="cursor: pointer;">
-        Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
-        <span style="font-size: 12px;">✏️</span>
-    </p>
                     
-                    {% if app and app.user %}
-                        
-                        <p>Status: 
-                            {% if app.user.status and app.user.status.id == 1 %}
-                                Online
-                            {% elseif app.user.status and app.user.status.id == 2 %}
-                                Afwezig
-                            {% else %}
-                                Offline
-                            {% endif %}
-                        </p>
-                       
-                        
-                        <p>
-                            {% if app.user.lastLoginAt %}
-                             
-                                Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
-                            {% else %}
-                                Laatst actief: Onbekend
-                            {% endif %}
-                        </p>
-                    {% else %}
-                        
-                        <p>Occupation / Status</p>
-                        <p>Laatst actief: Onbekend</p>
-                    {% endif %}
+                    <p onclick="openLocationPopup()" style="cursor: pointer;">
+                        Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
+                        <span style="font-size: 12px;">✏️</span>
+                    </p>
+                    
+                    <p>Status: {{ profile.status|default('Offline') }}</p>
+                    
+                    <p>Laatst actief: {{ profile.lastLogin|default('Onbekend') }}</p>
                 </div>
-                <div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
-    <h3>Locatie aanpassen</h3>
-    <select id="new-location">
-        <option value="">-- Kies een stad --</option>
-        <option value="Den Haag">Den Haag</option>
-        <option value="Amsterdam">Amsterdam</option>
-        <option value="Rotterdam">Rotterdam</option>
-        <option value="Utrecht">Utrecht</option>
-        <option value="Eindhoven">Eindhoven</option>
-        <option value="Groningen">Groningen</option>
-        <option value="Maastricht">Maastricht</option>
-    </select>
-    <button onclick="saveLocation()">Opslaan</button>
-    <button onclick="closePopup()">Annuleren</button>
-</div>
 
-<div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
+                <div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
+                    <h3>Locatie aanpassen</h3>
+                    <select id="new-location">
+                        <option value="">-- Kies een stad --</option>
+                        <option value="Den Haag">Den Haag</option>
+                        <option value="Amsterdam">Amsterdam</option>
+                        <option value="Rotterdam">Rotterdam</option>
+                        <option value="Utrecht">Utrecht</option>
+                        <option value="Eindhoven">Eindhoven</option>
+                        <option value="Groningen">Groningen</option>
+                        <option value="Maastricht">Maastricht</option>
+                    </select>
+                    <button onclick="saveLocation()">Opslaan</button>
+                    <button onclick="closePopup()">Annuleren</button>
+                </div>
+
+                <div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
             </div>
         </div>
 
@@ -156,7 +132,7 @@
                 closePopup();
             }
         }
-        </script>
+    </script>
 {% endblock %}
 
 {% block javascripts %}
