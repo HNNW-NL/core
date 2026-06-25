@@ -52,6 +52,19 @@ class ModifyProjectService
             throw new \InvalidArgumentException('End date cannot be earlier than start date.');
         }
 
+        if ($dto->hasDescriptionChanged()) {
+            $descriptionLength = strlen((string) ($dto->description ?? ''));
+            if ($descriptionLength > 500) {
+                throw new \InvalidArgumentException('Description cannot exceed 500 characters.');
+            }
+        }
+
+        if ($dto->hasCapacityChanged() && $dto->capacity !== null) {
+            if ($dto->capacity < 1 || $dto->capacity > 500) {
+                throw new \InvalidArgumentException('Capacity must be between 1 and 500.');
+            }
+        }
+
         if ($dto->hasVisibilityChanged()) {
             $visibility = strtolower(trim((string) ($dto->visibility ?? '')));
             $allowedVisibility = ['public', 'private', 'unlisted'];
