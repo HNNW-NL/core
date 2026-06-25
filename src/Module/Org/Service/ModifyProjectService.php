@@ -15,6 +15,15 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ModifyProjectService
 {
+    private const TITLE_MAX_LENGTH = 120;
+    private const SUMMARY_MIN_LENGTH = 5;
+    private const SUMMARY_MAX_LENGTH = 280;
+    private const DESCRIPTION_MIN_LENGTH = 10;
+    private const DESCRIPTION_MAX_LENGTH = 500;
+    private const CAPACITY_MIN = 1;
+    private const CAPACITY_MAX = 500;
+    private const ALLOWED_VISIBILITY = ['public', 'private', 'unlisted'];
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ModifyProjectMapper $mapper,
@@ -28,66 +37,17 @@ class ModifyProjectService
             throw new \RuntimeException('Project not found');
         }
 
-        if ($project->getOwnerOrganisation() === null) {
-            throw new \RuntimeException('Project does not belong to an organisation');
-        }
-
-        $organisationId = (string) $project->getOwnerOrganisation()->getId();
-        if ($organisationId !== $dto->organisationId) {
-            throw new \RuntimeException('Project does not belong to the selected organisation');
-        }
+        $this->assertProjectBelongsToOrganisation($project, $dto->organisationId);
 
         if ($dto->hasStatusNameChanged()) {
             $project->setStatus($this->resolveStatus($dto->statusName));
         }
 
-        if ($dto->hasStartDateChanged() && $dto->startDate === null) {
-            throw new \InvalidArgumentException('Start date cannot be empty.');
-        }
-
-        $effectiveStartDate = $dto->hasStartDateChanged() ? $dto->startDate : $project->getStartDate();
-        $effectiveEndDate = $dto->hasEndDateChanged() ? $dto->endDate : $project->getEndDate();
-
-        if ($effectiveEndDate !== null && $effectiveStartDate !== null && $effectiveEndDate < $effectiveStartDate) {
-            throw new \InvalidArgumentException('End date cannot be earlier than start date.');
-        }
-
-        if ($dto->hasDescriptionChanged()) {
-            $descriptionLength = $this->getCharacterLength((string) ($dto->description ?? ''));
-            if ($descriptionLength > 500) {
-                throw new \InvalidArgumentException('Description cannot exceed 500 characters.');
-            }
-        }
-
-        if ($dto->hasCapacityChanged() && $dto->capacity !== null) {
-            if ($dto->capacity < 1 || $dto->capacity > 500) {
-                throw new \InvalidArgumentException('Capacity must be between 1 and 500.');
-            }
-        }
-
-        if ($dto->hasVisibilityChanged()) {
-            $visibility = strtolower(trim((string) ($dto->visibility ?? '')));
-            $allowedVisibility = ['public', 'private', 'unlisted'];
-
-            if (!in_array($visibility, $allowedVisibility, true)) {
-                throw new \InvalidArgumentException('Invalid visibility option.');
-            }
-
-            $dto->visibility = $visibility;
-        }
+        $this->validateModifyConstraints($dto, $project);
 
         $project = $this->mapper->toEntity($project, $dto);
 
-        if ($dto->hasStatusNameChanged()) {
-            $statusName = $dto->statusName ?? '';
-            if ($statusName === 'published' && $project->getPublishedAt() === null) {
-                $project->publish();
-            }
-
-            if ($statusName === 'draft' || $statusName === 'archived') {
-                $project->unpublish();
-            }
-        }
+        $this->applyPublicationState($dto, $project);
 
         $this->entityManager->flush();
 
@@ -300,6 +260,113 @@ class ModifyProjectService
                 'capacity' => $item->getCapacity(),
             ];
         }, $projects);
+    }
+
+    private function assertProjectBelongsToOrganisation(Project $project, string $organisationId): void
+    {
+        if ($project->getOwnerOrganisation() === null) {
+            throw new \RuntimeException('Project does not belong to an organisation');
+        }
+
+        $projectOrganisationId = (string) $project->getOwnerOrganisation()->getId();
+        if ($projectOrganisationId !== $organisationId) {
+            throw new \RuntimeException('Project does not belong to the selected organisation');
+        }
+    }
+
+    private function validateModifyConstraints(ModifyProjectDTO $dto, Project $project): void
+    {
+        $this->validateDateRange($dto, $project);
+        $this->validateTextFields($dto);
+        $this->validateCapacity($dto);
+        $this->normalizeAndValidateVisibility($dto);
+    }
+
+    private function validateDateRange(ModifyProjectDTO $dto, Project $project): void
+    {
+        if ($dto->hasStartDateChanged() && $dto->startDate === null) {
+            throw new \InvalidArgumentException('Start date cannot be empty.');
+        }
+
+        $effectiveStartDate = $dto->hasStartDateChanged() ? $dto->startDate : $project->getStartDate();
+        $effectiveEndDate = $dto->hasEndDateChanged() ? $dto->endDate : $project->getEndDate();
+
+        if ($effectiveEndDate !== null && $effectiveStartDate !== null && $effectiveEndDate < $effectiveStartDate) {
+            throw new \InvalidArgumentException('End date cannot be earlier than start date.');
+        }
+    }
+
+    private function validateTextFields(ModifyProjectDTO $dto): void
+    {
+        if ($dto->hasTitleChanged()) {
+            $titleLength = $this->getCharacterLength(trim((string) ($dto->title ?? '')));
+            if ($titleLength === 0) {
+                throw new \InvalidArgumentException('Project title cannot be empty.');
+            }
+
+            if ($titleLength > self::TITLE_MAX_LENGTH) {
+                throw new \InvalidArgumentException('Project title cannot exceed ' . self::TITLE_MAX_LENGTH . ' characters.');
+            }
+        }
+
+        if ($dto->hasSummaryChanged()) {
+            $summaryLength = $this->getCharacterLength(trim((string) ($dto->summary ?? '')));
+            if ($summaryLength < self::SUMMARY_MIN_LENGTH || $summaryLength > self::SUMMARY_MAX_LENGTH) {
+                throw new \InvalidArgumentException(
+                    'Summary must be between ' . self::SUMMARY_MIN_LENGTH . ' and ' . self::SUMMARY_MAX_LENGTH . ' characters.'
+                );
+            }
+        }
+
+        if ($dto->hasDescriptionChanged()) {
+            $descriptionLength = $this->getCharacterLength(trim((string) ($dto->description ?? '')));
+            if ($descriptionLength < self::DESCRIPTION_MIN_LENGTH || $descriptionLength > self::DESCRIPTION_MAX_LENGTH) {
+                throw new \InvalidArgumentException(
+                    'Description must be between ' . self::DESCRIPTION_MIN_LENGTH . ' and ' . self::DESCRIPTION_MAX_LENGTH . ' characters.'
+                );
+            }
+        }
+    }
+
+    private function validateCapacity(ModifyProjectDTO $dto): void
+    {
+        if ($dto->hasCapacityChanged() && $dto->capacity !== null) {
+            if ($dto->capacity < self::CAPACITY_MIN || $dto->capacity > self::CAPACITY_MAX) {
+                throw new \InvalidArgumentException(
+                    'Capacity must be between ' . self::CAPACITY_MIN . ' and ' . self::CAPACITY_MAX . '.'
+                );
+            }
+        }
+    }
+
+    private function normalizeAndValidateVisibility(ModifyProjectDTO $dto): void
+    {
+        if (!$dto->hasVisibilityChanged()) {
+            return;
+        }
+
+        $visibility = strtolower(trim((string) ($dto->visibility ?? '')));
+        if (!in_array($visibility, self::ALLOWED_VISIBILITY, true)) {
+            throw new \InvalidArgumentException('Invalid visibility option.');
+        }
+
+        $dto->visibility = $visibility;
+    }
+
+    private function applyPublicationState(ModifyProjectDTO $dto, Project $project): void
+    {
+        if (!$dto->hasStatusNameChanged()) {
+            return;
+        }
+
+        $statusName = $dto->statusName ?? '';
+        if ($statusName === 'published' && $project->getPublishedAt() === null) {
+            $project->publish();
+        }
+
+        if ($statusName === 'draft' || $statusName === 'archived') {
+            $project->unpublish();
+        }
     }
 
     private function getCharacterLength(string $value): int

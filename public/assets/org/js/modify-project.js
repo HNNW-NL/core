@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
         projectIdField.value = refFromPath;
     }
 
-    let activeIntent = 'modify';
     let deleteConfirmed = false;
     let message = form.querySelector('.form-status');
 
@@ -97,12 +96,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const hasProject = projectIdField ? projectIdField.value.trim() !== '' : true;
         deleteButton.disabled = !hasProject;
     }
-
-    actionButtons.forEach(function (button) {
-        button.addEventListener('click', function () {
-            activeIntent = button.value;
-        });
-    });
 
     function showError(text) {
         message.textContent = text;
@@ -367,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const raw = capacityField.value.trim();
         if (raw === '') {
-            setFieldState(capacityField, null, 'Optional. Leave empty if there is no capacity limit.');
+            setFieldState(capacityField, null, 'Leave empty if there is no capacity limit.');
             return true;
         }
 
@@ -426,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const endRaw = endDateField ? endDateField.value.trim() : '';
 
         if (startDateField && startRaw === '') {
-            setFieldState(startDateField, false, 'Start date is required.');
+            setFieldState(startDateField, false, 'Please enter a start date.');
             return false;
         }
 
@@ -438,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!startRaw || !endRaw) {
             if (endDateField && endRaw === '') {
-                setFieldState(endDateField, null, 'Optional. Leave empty if there is no end date.');
+                setFieldState(endDateField, null, 'Leave empty if there is no end date.');
             }
             return true;
         }
@@ -709,8 +702,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Determine the intent from either activeIntent or the submitter button value
-        const intent = event.submitter?.value || activeIntent || 'modify';
+        // Default to modify when form is submitted without an explicit submit button.
+        const intent = event.submitter?.value || 'modify';
 
         // Always send intent explicitly so backend routing does not depend on submit button serialization.
         ensureIntentField(intent);
