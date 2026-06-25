@@ -68,9 +68,4 @@ class ModifyProjectDTO
     {
         return $this->capacity !== null;
     }
-
-    public function hasModifiedByChanged(): bool
-    {
-        return $this->modifiedBy !== null;
-    }
 }
