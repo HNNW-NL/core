@@ -1,0 +1,30 @@
+{% extends 'layouts/org.base.html.twig' %}
+
+{% block title %}Edit account{% endblock %}
+
+{% block body %}
+    <h2>{% if user.id %}Edit{% else %}Create{% endif %} account</h2>
+
+    <form method="post" action="">
+        <label>First name<br>
+            <input type="text" name="firstName" value="{{ user.firstName }}">
+        </label>
+
+        <label>Last name<br>
+            <input type="text" name="lastName" value="{{ user.lastName }}">
+        </label>
+
+        <label>Email<br>
+            <input type="email" name="email" value="{{ user.email }}">
+        </label>
+
+        <label>Active
++            <input type="checkbox" name="active" value="1" {% if user.active %}checked{% endif %}>
+        </label>
+
+        <p>
+            <button type="submit">Save</button>
+            <a href="{{ path('org_accounts') }}">Cancel</a>
+        </p>
+    </form>
+{% endblock %}

@@ -7,6 +7,7 @@ define("SERVERNAME", "localhost");
 define("USERNAME", "root");
 define("PASSWORD", "");
 
-define("CRUD_TABLE", "Users");
+// Tabel voor organisaties
+define("CRUD_TABLE", "Organisaties");
 
 ?>

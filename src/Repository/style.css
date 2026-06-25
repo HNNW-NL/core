@@ -1,0 +1,167 @@
+/* ===== Algemene instellingen ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #020B2D;
+    color: #ffffff;
+    font-family: "Segoe UI", sans-serif;
+    line-height: 1.6;
+    padding: 40px;
+}
+
+/* ===== Titels ===== */
+h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+.highlight {
+    color: #FFD22E;
+}
+
+/* ===== Navigatie ===== */
+nav {
+    margin-bottom: 30px;
+}
+
+nav a {
+    color: #ffffff;
+    text-decoration: none;
+    background: #0A163D;
+    border: 1px solid #1F2B56;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-right: 10px;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    background: #FFD22E;
+    color: #020B2D;
+}
+
+/* ===== Tabellen ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #091433;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+th {
+    background: #0E1A45;
+    color: #FFD22E;
+    padding: 15px;
+    text-align: left;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid #1B2A57;
+}
+
+tr:hover {
+    background: #101D4A;
+}
+
+/* ===== Formulieren ===== */
+form {
+    background: #091433;
+    padding: 20px;
+    border-radius: 15px;
+    width: 350px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    color: #d6d6d6;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    background: #0E1A45;
+    color: white;
+    border: 1px solid #1E2D5E;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="number"]:focus {
+    border-color: #FFD22E;
+}
+
+/* ===== Knoppen ===== */
+button,
+input[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background: #FFD22E;
+    color: #020B2D;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover,
+input[type="submit"]:hover {
+    background: #ffe05e;
+    transform: translateY(-2px);
+}
+
+/* ===== Links ===== */
+a {
+    color: #FFD22E;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ===== Cards ===== */
+.card {
+    background: #091433;
+    border: 1px solid #1A2852;
+    border-radius: 15px;
+    padding: 20px;
+    width: 350px;
+    margin: 20px auto;
+}
+
+/* ===== Responsief ===== */
+@media (max-width: 768px) {
+    body {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    table {
+        font-size: 14px;
+    }
+}

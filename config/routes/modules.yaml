@@ -21,3 +21,7 @@ main:
 org:
     resource: ../../src/Module/Org/Controller/
     type: attribute
+    
+org_accounts:
+    resource: org_accounts.yaml
+    type: yaml

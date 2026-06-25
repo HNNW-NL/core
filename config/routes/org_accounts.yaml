@@ -1,0 +1,23 @@
+org_accounts:
+    path: /org/accounts
+    controller: App\Module\Org\Controller\AccountController::index
+
+org_account_create:
+    path: /org/accounts/create
+    controller: App\Module\Org\Controller\AccountController::create
+
+org_account_show:
+    path: /org/accounts/{id}
+    controller: App\Module\Org\Controller\AccountController::show
+    requirements:
+        id: '\d+'
+
+org_account_edit:
+    path: /org/accounts/{id}/edit
+    controller: App\Module\Org\Controller\AccountController::edit
+    requirements:
+        id: '\d+'
+
+org_account_delete:
+    path: /org/accounts/{id}/delete
+    controller: App\Module\Org\Controller\AccountController::delete
