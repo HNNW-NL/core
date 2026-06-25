@@ -169,11 +169,43 @@ form {
     gap: 14px;
 }
 
+.modify-meta,
+.modify-fields {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.modify-meta legend,
+.modify-fields legend {
+    margin: 0 0 6px;
+    padding: 0;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
 .button-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
     margin-top: 2px;
+}
+
+.button-row--danger {
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 14px;
+    padding: 12px;
+    background: rgba(127, 29, 29, 0.14);
+}
+
+.danger-note {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.86rem;
+    color: #fecaca;
 }
 
 
