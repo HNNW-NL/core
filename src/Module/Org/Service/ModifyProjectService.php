@@ -52,6 +52,17 @@ class ModifyProjectService
             throw new \InvalidArgumentException('End date cannot be earlier than start date.');
         }
 
+        if ($dto->hasVisibilityChanged()) {
+            $visibility = strtolower(trim((string) ($dto->visibility ?? '')));
+            $allowedVisibility = ['public', 'private', 'unlisted'];
+
+            if (!in_array($visibility, $allowedVisibility, true)) {
+                throw new \InvalidArgumentException('Invalid visibility option.');
+            }
+
+            $dto->visibility = $visibility;
+        }
+
         $project = $this->mapper->toEntity($project, $dto);
 
         if ($dto->hasStatusNameChanged()) {
