@@ -544,6 +544,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function ensureIntentField(intent) {
+        let intentField = form.querySelector('input[name="intent"][type="hidden"]');
+        if (!intentField) {
+            intentField = document.createElement('input');
+            intentField.type = 'hidden';
+            intentField.name = 'intent';
+            form.appendChild(intentField);
+        }
+        intentField.value = intent;
+    }
+
     function wireField(field, validator) {
         if (!field) {
             return;
@@ -701,6 +712,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Determine the intent from either activeIntent or the submitter button value
         const intent = event.submitter?.value || activeIntent || 'modify';
 
+        // Always send intent explicitly so backend routing does not depend on submit button serialization.
+        ensureIntentField(intent);
+
         if (intent === 'delete') {
             if (!deleteConfirmed) {
                 event.preventDefault();
@@ -758,6 +772,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         showSuccess('Validation passed. Submitting your changes...');
+
+        // Keep the clicked button enabled during this tick so browser submit payload remains intact.
+        if (event.submitter instanceof HTMLButtonElement) {
+            event.submitter.disabled = false;
+        }
+
         setSubmittingState(true);
     });
 
