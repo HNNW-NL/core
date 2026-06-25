@@ -196,16 +196,6 @@ class ModifyProjectMapper
         return is_numeric($value) ? (int) $value : null;
     }
 
-    private function getBoolFromRequest(Request $request, array $keys): ?bool
-    {
-        $value = $this->getStringFromRequest($request, $keys);
-        if ($value === null) {
-            return null;
-        }
-
-        return filter_var($value, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
-    }
-
     private function normalizeStatusName(?string $statusName): ?string
     {
         if ($statusName === null) {
