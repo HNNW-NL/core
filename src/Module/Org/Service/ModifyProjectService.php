@@ -6,15 +6,12 @@ use App\Entity\Account\Account;
 use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
-use App\Entity\Project\ProjectParticipant;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use App\Module\Org\Handler\ModifyProjectHandler;
 use App\Module\Org\Mapper\ModifyProjectMapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectRepository;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ModifyProjectService
 {
@@ -73,7 +70,12 @@ class ModifyProjectService
         return $project;
     }
 
-    public function buildResponsePayload(string $id, Request $request, ModifyProjectHandler $handler): array
+    public function buildResponsePayload(
+        string $id,
+        Request $request,
+        ModifyProjectHandler $handler,
+        ?Account $publisher = null
+    ): array
     {
         $organisationId = $this->getRequestValue($request, 'organisation_id');
         $intent = $this->getRequestValue($request, 'intent');
@@ -92,7 +94,8 @@ class ModifyProjectService
                 $organisationId,
                 $resolvedProjectId,
                 $resolvedProjectRef,
-                $project
+                $project,
+                $publisher
             )];
         }
 
@@ -142,45 +145,6 @@ class ModifyProjectService
         return $project;
     }
 
-    public function assertPublicViewAccess(string $slug, ?object $user): void
-    {
-        $project = $this->resolveProjectReference(
-            $this->entityManager->getRepository(Project::class),
-            $slug
-        );
-
-        if (!$project instanceof Project) {
-            throw new NotFoundHttpException('Project not found.');
-        }
-
-        $visibility = strtolower((string) ($project->getVisibility() ?? 'public'));
-        if ($visibility === 'public') {
-            return;
-        }
-
-        if ($visibility === 'unlisted') {
-            return;
-        }
-
-        if (!$user instanceof Account) {
-            throw new AccessDeniedHttpException('You must be logged in to view this project.');
-        }
-
-        $profile = $user->getProfile();
-        if ($profile === null) {
-            throw new AccessDeniedHttpException('You do not have access to this project.');
-        }
-
-        $participant = $this->entityManager->getRepository(ProjectParticipant::class)->findOneBy([
-            'project' => $project,
-            'profile' => $profile,
-        ]);
-
-        if (!$participant instanceof ProjectParticipant) {
-            throw new AccessDeniedHttpException('You do not have access to this project.');
-        }
-    }
-
     private function handleIntent(
         string $intent,
         Request $request,
@@ -188,9 +152,10 @@ class ModifyProjectService
         string $organisationId,
         string $resolvedProjectId,
         string $resolvedProjectRef,
-        ?Project $project = null
+        ?Project $project = null,
+        ?Account $publisher = null
     ): array {
-        $publisher = new Account();
+        $actor = $publisher instanceof Account ? $publisher : new Account();
 
         if ($intent === 'delete') {
             try {
@@ -219,7 +184,7 @@ class ModifyProjectService
             $request->attributes->set('_current_project', $project);
         }
 
-        $result = $handler->handle($request, $publisher);
+        $result = $handler->handle($request, $actor);
 
         return [
             'id' => $resolvedProjectRef,
