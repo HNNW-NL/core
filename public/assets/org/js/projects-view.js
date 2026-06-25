@@ -144,16 +144,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 slugEl.className = "project-slug";
                 slugEl.href = "/org/projects/" + encodeURIComponent(project.slug || '');
 
+                const detailsEl = document.createElement("div");
+                detailsEl.className = "project-card-details";
+
                 const hq = (searchInput && (searchInput.value || '').trim()) || searchQuery || '';
 
                 titleEl.innerHTML = highlightText(project.title || "Untitled", hq);
                 summaryEl.innerHTML = highlightText(project.summary || "", hq);
                 slugEl.innerHTML = highlightText(project.slug || "", hq);
 
+                detailsEl.appendChild(titleEl);
+                detailsEl.appendChild(summaryEl);
+                detailsEl.appendChild(slugEl);
+
                 card.appendChild(imageContainer);
-                card.appendChild(titleEl);
-                card.appendChild(summaryEl);
-                card.appendChild(slugEl);
+                card.appendChild(detailsEl);
 
                 container.appendChild(card);
             });
