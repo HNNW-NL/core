@@ -4,11 +4,11 @@
 {% block title %}Modify Project{% endblock %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="{{ asset('assets/org/css/modify-project.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/org/css/modify-project.css') }}?v=20260625">
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ asset('assets/org/js/modify-project.js') }}"></script>
+<script src="{{ asset('assets/org/js/modify-project.js') }}?v=20260625"></script>
 {% endblock %}
 
 {# Page content #}
@@ -31,7 +31,8 @@
                         <select id="projectId" name="project_id" required></select>
                     </div>
                 </div>
-                <section class="modify-meta" aria-label="Audit details">
+                <fieldset class="modify-meta" aria-label="Audit details">
+                    <legend>Audit details</legend>
                     <div>
                         <label for="lastModifiedBy">Last modified by</label>
                         <input type="text" id="lastModifiedBy" value="" readonly>
@@ -40,19 +41,23 @@
                         <label for="lastModifiedAt">Current local time</label>
                         <input type="text" id="lastModifiedAt" value="" readonly>
                     </div>
-                </section>
-                <div class="modify-fields reveal-up" aria-label="Project details" style="--reveal-delay: 220ms;">
+                </fieldset>
+                <fieldset class="modify-fields reveal-up" aria-label="Project details" style="--reveal-delay: 220ms;">
+                        <legend>Project details</legend>
                         <div>
                             <label for="name">Project title</label>
-                            <input type="text" id="name" name="title" placeholder="Project title" required autocomplete="name">
+                            <input type="text" id="name" name="title" placeholder="Project title" required maxlength="120" autocomplete="off" aria-describedby="nameHelp">
+                            <p id="nameHelp" class="field-help">Use a clear title (max 120 characters).</p>
                         </div>
                         <div>
                             <label for="summary">Summary</label>
-                            <textarea id="summary" name="summary" rows="3" placeholder="Short project summary" required></textarea>
+                            <textarea id="summary" name="summary" rows="3" placeholder="Short project summary" required maxlength="280" autocomplete="off" spellcheck="true" aria-describedby="summaryHelp"></textarea>
+                            <p id="summaryHelp" class="field-help">Short overview between 5 and 280 characters.</p>
                         </div>
                         <div>
                             <label for="description">Description</label>
-                            <textarea id="description" name="description" rows="5" placeholder="Describe the project in detail" required></textarea>
+                            <textarea id="description" name="description" rows="5" placeholder="Describe the project in detail" required maxlength="500" autocomplete="off" spellcheck="true" aria-describedby="descriptionHelp"></textarea>
+                            <p id="descriptionHelp" class="field-help">Detailed project description between 10 and 500 characters.</p>
                         </div>
                         <div>
                             <label for="visibility">Visibility</label>
@@ -64,15 +69,18 @@
                         </div>
                         <div>
                             <label for="startDate">Start date</label>
-                            <input type="date" id="startDate" name="startDate">
+                            <input type="date" id="startDate" name="startDate" required aria-describedby="startDateHelp">
+                            <p id="startDateHelp" class="field-help">Required. The project start date.</p>
                         </div>
                         <div>
                             <label for="endDate">End date</label>
-                            <input type="date" id="endDate" name="endDate">
+                            <input type="date" id="endDate" name="endDate" aria-describedby="endDateHelp">
+                            <p id="endDateHelp" class="field-help">Optional. Must be on or after start date.</p>
                         </div>
                         <div>
                             <label for="capacity">Capacity</label>
-                            <input type="number" id="capacity" name="capacity" min="1" placeholder="Max participants">
+                            <input type="number" id="capacity" name="capacity" min="1" max="500" step="1" inputmode="numeric" placeholder="Max participants" aria-describedby="capacityHelp">
+                            <p id="capacityHelp" class="field-help">Optional. Enter a whole number from 1 to 500.</p>
                         </div>
                         <div>
                             <label for="statusId">Status</label>
@@ -82,8 +90,9 @@
                                 <option value="archived">Archived</option>
                             </select>
                         </div>
-                </div>
-                <div class="button-row">
+                </fieldset>
+                <div class="button-row button-row--danger" role="group" aria-label="Danger actions">
+                    <p class="danger-note">Danger zone: deleting a project is permanent.</p>
                     <button type="submit" name="intent" value="modify">Modify project</button>
                     <button type="submit" name="intent" value="delete" class="button-danger" formnovalidate>Delete project</button>
                 </div>
