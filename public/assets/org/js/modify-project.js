@@ -593,12 +593,6 @@ document.addEventListener('DOMContentLoaded', function () {
             deleteConfirmed = false;
             showSuccess('Deleting project...');
             setSubmittingState(true);
-            // Add hidden intent input for delete
-            const intentInput = document.createElement('input');
-            intentInput.type = 'hidden';
-            intentInput.name = 'intent';
-            intentInput.value = 'delete';
-            form.appendChild(intentInput);
             return;
         }
 
@@ -640,16 +634,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         showSuccess('Validation passed. Submitting your changes...');
         setSubmittingState(true);
-        
-        // Create a hidden input to capture the intent
-        const intentInput = document.createElement('input');
-        intentInput.type = 'hidden';
-        intentInput.name = 'intent';
-        intentInput.value = event.submitter?.value || activeIntent || 'modify';
-        form.appendChild(intentInput);
-        
-        // Now submit the form
-        form.submit();
     });
 
     loadProjectList();
