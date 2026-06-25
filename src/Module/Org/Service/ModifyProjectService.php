@@ -53,7 +53,7 @@ class ModifyProjectService
         }
 
         if ($dto->hasDescriptionChanged()) {
-            $descriptionLength = strlen((string) ($dto->description ?? ''));
+            $descriptionLength = $this->getCharacterLength((string) ($dto->description ?? ''));
             if ($descriptionLength > 500) {
                 throw new \InvalidArgumentException('Description cannot exceed 500 characters.');
             }
@@ -300,6 +300,15 @@ class ModifyProjectService
                 'capacity' => $item->getCapacity(),
             ];
         }, $projects);
+    }
+
+    private function getCharacterLength(string $value): int
+    {
+        if (function_exists('mb_strlen')) {
+            return mb_strlen($value, 'UTF-8');
+        }
+
+        return strlen($value);
     }
 
     private function findProject(string $projectId): ?Project
