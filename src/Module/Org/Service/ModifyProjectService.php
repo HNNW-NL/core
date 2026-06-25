@@ -299,7 +299,16 @@ class ModifyProjectService
                 'id' => (string) $item->getId(),
                 'ref' => $this->projectRef($item),
                 'title' => $item->getTitle(),
+                'name' => $item->getTitle(),
                 'slug' => $item->getSlug(),
+                'summary' => $item->getSummary(),
+                'description' => $item->getDescription(),
+                'visibility' => $item->getVisibility(),
+                'statusName' => $item->getStatus()?->getName(),
+                'organisationId' => $item->getOwnerOrganisation() ? (string) $item->getOwnerOrganisation()->getId() : null,
+                'startDate' => $item->getStartDate()?->format('Y-m-d'),
+                'endDate' => $item->getEndDate()?->format('Y-m-d'),
+                'capacity' => $item->getCapacity(),
             ];
         }, $projects);
     }
