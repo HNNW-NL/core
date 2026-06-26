@@ -385,11 +385,16 @@ class ModifyProjectService
             return null;
         }
 
-        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $projectId)) {
-            return null;
+        $projectRepository = $this->entityManager->getRepository(Project::class);
+
+        $project = null;
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $projectId)) {
+            $project = $projectRepository->find($projectId);
         }
 
-        $project = $this->entityManager->getRepository(Project::class)->find($projectId);
+        if (!$project instanceof Project) {
+            $project = $projectRepository->findOneBy(['slug' => $projectId]);
+        }
 
         return $project instanceof Project ? $project : null;
     }
