@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("search-text");
     const searchButton = document.getElementById("search-button");
+    const resetButton = document.getElementById("reset-button");
     const app = document.getElementById("projects-app");
     const container = app.querySelector(".projects-container");
     const currentPageSpan = document.getElementById("current-page");
@@ -246,6 +247,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Search button click
     searchButton.addEventListener("click", submitSearch);
+
+    // Reset filters
+    if (resetButton) {
+        resetButton.addEventListener("click", () => {
+            localStorage.removeItem('projects_card_size');
+            localStorage.removeItem('projects_per_page');
+            const url = new URL(window.location);
+            url.searchParams.delete('q');
+            url.searchParams.delete('page');
+            url.searchParams.delete('size');
+            url.searchParams.delete('per_page');
+            url.searchParams.set('page', '1');
+            window.location.href = url.toString();
+        });
+    }
 
     // Search on Enter
     searchInput.addEventListener("keyup", (e) => {
