@@ -19,6 +19,21 @@
     {% include "/core/org/_modify-project-nav.html.twig" %}
     <h2>Projects - Invite Participants</h2>
     <p>Organization panel - invite project ({{ id }}) participants page.</p>
-    <label for="invite-input"></label>
-    <input type="text" name="invite-input" id="invite-input">
+    <div class="page-content">
+        <form method="post" class="invite-form">
+            <label for="invite-input">Invite user</label>
+            <input type="text" name="invite-input" id="invite-input">
+            <input type="submit" value="Invite">
+        </form>
+
+        {% if participants is not empty %}
+            <ul class="participant-list">
+                {% for participant in participants %}
+                    <li>{{ participant.displayName }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-profile">No profile found</p>
+        {% endif %}
+    </div>
 {% endblock %}
