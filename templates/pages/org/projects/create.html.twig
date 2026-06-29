@@ -11,14 +11,13 @@
 {% endblock %}
 
 {% block body %}
-{% include "/core/org/_modify-project-nav.html.twig" %}
 
-<h2>Create project</h2>    
+<h2>Create project</h2>
 
 <form method="post">
 
-    <div>   
-        <label for="name">Project name</label>  
+    <div>
+        <label for="name">Project name</label>
         <input type="text" id="name" name="name" required placeholder="Enter a project name">
         <p id="title-counter">0 characters</p>
     </div>
