@@ -1,4 +1,4 @@
-git status<?php 
+<?php 
 
 namespace App\Module\Org\DTO;
 use App\Entity\Account\Account;
