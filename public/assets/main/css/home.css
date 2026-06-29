@@ -192,8 +192,11 @@ body {
 /* AVATAR */
 .profile-avatar img {
     width: 100px;
+
     height: 100px;
-    border-radius: 50%;
+
+    border-radius: 40%;
+
     object-fit: cover;
 }
 
