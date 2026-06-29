@@ -1,19 +1,15 @@
 {% extends 'layouts/org.base.html.twig' %}
 
-{# Page title meta tag #}
 {% block title %}Create project{% endblock %}
 
-{# CSS #}
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('assets/org/css/create-project.css') }}">
 {% endblock %}
 
-{# JavaScript #}
 {% block javascript %}
     <script src="{{ asset('assets/org/js/create-project.js') }}"></script>
 {% endblock %}
 
-{# Page content #}
 {% block body %}
 
 <h2>Create project</h2>
@@ -22,18 +18,19 @@
 
     <div>
         <label for="name">Project name</label>
-        <input type="text" id="name" name="name" required>
+        <input type="text" id="name" name="name" required placeholder="Enter a project name">
+        <p id="title-counter">0 characters</p>
     </div>
 
     <div>
         <label for="summary">Summary</label>
-        <textarea id="summary" name="summary" required></textarea>
+        <textarea id="summary" name="summary" required placeholder="Write a short summary of your project"></textarea>
         <p id="summary-counter">0 characters</p>
     </div>
 
     <div>
         <label for="description">Description</label>
-        <textarea id="description" name="description" required></textarea>
+        <textarea id="description" name="description" required placeholder="Describe your project in detail"></textarea>
         <p id="description-counter">0 characters</p>
     </div>
 
@@ -45,14 +42,16 @@
     <div>
         <label for="visibility">Visibility</label>
         <select id="visibility" name="visibility" required>
+            <option value="" selected disabled>Choose visibility</option>
             <option value="public">Public</option>
             <option value="private">Private</option>
         </select>
     </div>
 
     <div>
-        <button type="submit" id="submit-btn">Create project</button>
+        <button type="submit" id="submit-btn">Create new project</button>
     </div>
 
 </form>
+
 {% endblock %}

@@ -1,4 +1,4 @@
-git checkout developgit add src/Module/Org/Service/CreateProjectService.php<?php
+<?php
 
 namespace App\Module\Org\Service;
 
