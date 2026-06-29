@@ -60,7 +60,7 @@ class ProjectApplication
     // Reverse FKs
 
     #[ORM\OneToOne(targetEntity: ProjectParticipant::class, mappedBy: 'application')]
-    private Collection $participant;
+    private ?ProjectParticipant $participant;
 
 
     // Functions
@@ -68,8 +68,6 @@ class ProjectApplication
     public function __construct()
     {
         $this->id = Uuid::v7();
-
-        $this->participant = new ArrayCollection();
     }
 
     public function getId(): Uuid

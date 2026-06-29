@@ -2,7 +2,11 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Repository\Project\ProjectParticipantRepository;
+use App\Repository\Project\ProjectRoleRepository;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -43,11 +47,24 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET'])]
-    public function modifyProjectParticipants(string $id): Response
+    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants')]
+    public function modifyProjectParticipants(string $id, Request $request, ProjectParticipantRepository $participantRepository,
+                                              ProjectRoleRepository $projectRoleRepository, ProjectParticipantUpdateRoleHandler $updateRoleHandler ): Response
     {
+        if ($request->isMethod('POST')) {
+            $updateRoleHandler->handle($request->request->all('role'));
+        }
+
+        $participants = $participantRepository
+            ->findByProjectIdWithProfileAndStatus($id);
+
+        $roles = $projectRoleRepository
+            ->findByProjectIdRoles($id);
+
         return $this->render('pages/org/projects/modify-participants.html.twig', [
             'id' => $id,
+            'participants' => $participants,
+            'roles' => $roles,
         ]);
     }
 
