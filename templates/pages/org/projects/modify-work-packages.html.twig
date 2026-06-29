@@ -92,85 +92,54 @@
                         </div>
 
                         <div class="wp-stats" aria-label="Samenvatting">
-                            <div class="wp-stat"><strong>4</strong><span>werkpakketten</span></div>
-                            <div class="wp-stat"><strong>18</strong><span>taken totaal</span></div>
-                            <div class="wp-stat"><strong>61%</strong><span>gemiddeld gereed</span></div>
+                            <div class="wp-stat"><strong>{{ workPackageCount|default(0) }}</strong><span>werkpakketten</span></div>
+                            <div class="wp-stat"><strong>{{ taskCount|default(0) }}</strong><span>taken totaal</span></div>
+                            <div class="wp-stat"><strong>{{ averageProgress|default(0) }}%</strong><span>gemiddeld gereed</span></div>
                         </div>
 
                         <div class="wp-content-grid">
                             <div class="wp-package-grid">
-                                <article class="wp-package">
-                                    <div class="wp-package-head">
-                                        <div>
-                                            <h3>Inventarisatie databronnen</h3>
-                                            <p>5 taken - deadline 18 juni</p>
+                                {% for workPackage in workPackages|default([]) %}
+                                    <article class="wp-package">
+                                        <div class="wp-package-head">
+                                            <div>
+                                                <h3>{{ workPackage.title }}</h3>
+                                                <p>
+                                                    {{ workPackage.taskCount }} taken
+                                                    {% if workPackage.dueDate %}
+                                                        - deadline {{ workPackage.dueDate }}
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+
+                                            <span class="wp-status {{ workPackage.statusClass }}">
+                                                {{ workPackage.status }}
+                                            </span>
                                         </div>
-                                        <span class="wp-status busy">Bezig</span>
-                                    </div>
 
-                                    <div class="wp-progress" aria-label="60 procent gereed"><span style="width: 60%"></span></div>
-
-                                    <div class="wp-task done">
-                                        <span class="wp-check">✓</span>
-                                        <div><strong>Bronnenlijst opschonen</strong><small>toegewezen aan Sara</small></div>
-                                        <span class="wp-avatar-mini">S</span>
-                                    </div>
-
-                                    <div class="wp-task">
-                                        <span class="wp-check"></span>
-                                        <div><strong>API-koppelingen controleren</strong><small>toegewezen aan Jamal</small></div>
-                                        <span class="wp-avatar-mini">J</span>
-                                    </div>
-
-                                    <div class="wp-task">
-                                        <span class="wp-check"></span>
-                                        <div><strong>Risico's noteren</strong><small>nog niet gekoppeld</small></div>
-                                    </div>
-
-                                    <div class="wp-actions">
-                                        <button class="wp-ghost" type="button">+ Taak</button>
-                                        <div class="wp-actions-group">
-                                            <button class="wp-secondary" type="button">Bewerken</button>
-                                            <button class="wp-ghost wp-danger" type="button">Verwijderen</button>
+                                        <div class="wp-progress" aria-label="{{ workPackage.progress }} procent gereed">
+                                            <span style="width: {{ workPackage.progress }}%"></span>
                                         </div>
-                                    </div>
-                                </article>
 
-                                <article class="wp-package">
-                                    <div class="wp-package-head">
-                                        <div>
-                                            <h3>UX validatie</h3>
-                                            <p>4 taken - deadline 24 juni</p>
+                                        {% if workPackage.description %}
+                                            <p>{{ workPackage.description }}</p>
+                                        {% endif %}
+
+                                        <div class="wp-actions">
+                                            <button class="wp-ghost" type="button">+ Taak</button>
+
+                                            <div class="wp-actions-group">
+                                                <button class="wp-secondary" type="button">Bewerken</button>
+                                                <button class="wp-ghost wp-danger" type="button">Verwijderen</button>
+                                            </div>
                                         </div>
-                                        <span class="wp-status open">Open</span>
+                                    </article>
+                                {% else %}
+                                    <div class="wp-empty-state">
+                                        <strong>Nog geen werkpakketten</strong>
+                                        <p>Maak het eerste werkpakket aan met het formulier rechts.</p>
                                     </div>
-
-                                    <div class="wp-progress" aria-label="25 procent gereed"><span style="width: 25%"></span></div>
-
-                                    <div class="wp-task done">
-                                        <span class="wp-check">✓</span>
-                                        <div><strong>Testscript schrijven</strong><small>toegewezen aan Noor</small></div>
-                                        <span class="wp-avatar-mini">N</span>
-                                    </div>
-
-                                    <div class="wp-task">
-                                        <span class="wp-check"></span>
-                                        <div><strong>Gebruikers uitnodigen</strong><small>nog niet gekoppeld</small></div>
-                                    </div>
-
-                                    <div class="wp-task">
-                                        <span class="wp-check"></span>
-                                        <div><strong>Feedback samenvatten</strong><small>nog niet gekoppeld</small></div>
-                                    </div>
-
-                                    <div class="wp-actions">
-                                        <button class="wp-ghost" type="button">+ Taak</button>
-                                        <div class="wp-actions-group">
-                                            <button class="wp-secondary" type="button">Bewerken</button>
-                                            <button class="wp-ghost wp-danger" type="button">Verwijderen</button>
-                                        </div>
-                                    </div>
-                                </article>
+                                {% endfor %}
                             </div>
 
                             <aside class="wp-form-panel">
@@ -313,3 +282,4 @@
         </main>
     </div>
 {% endblock %}
+

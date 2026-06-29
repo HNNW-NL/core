@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Module\Org\Service;
+namespace App\Module\Admin\DTO;
+namespace App\Module\Admin\Handler;
+namespace App\Module\Admin\Service;
+
 
 use App\Entity\Project\WorkPackage;
-use App\Module\Org\DTO\CreateWorkPackageDTO;
+use App\Module\Admin\DTO\CreateWorkPackageDTO;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;

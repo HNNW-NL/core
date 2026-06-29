@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Module\Org\DTO;
+namespace App\Module\Admin\DTO;
 
 class CreateWorkPackageDTO
 {

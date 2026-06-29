@@ -1,4 +1,4 @@
-     body {
+body {
             margin: 0;
             background: #f6f8fb;
             color: #16263a;
@@ -714,3 +714,18 @@
                 grid-template-columns: 1fr;
             }
         }
+
+.wp-empty-state {
+    grid-column: 1 / -1;
+    border: 1px dashed #d9e0ea;
+    border-radius: 8px;
+    padding: 24px;
+    background: #fbfcfe;
+    color: #51627a;
+}
+
+.wp-empty-state strong {
+    display: block;
+    color: #16263a;
+    margin-bottom: 6px;
+}

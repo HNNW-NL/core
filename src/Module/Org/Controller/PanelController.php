@@ -5,9 +5,7 @@ namespace App\Module\Org\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Module\Org\DTO\CreateWorkPackageDTO;
-use App\Module\Org\Handler\CreateWorkPackageHandler;
-use Symfony\Component\HttpFoundation\Request;
+use App\Module\Org\Handler\GetOrgProjectWorkPackagesHandler;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -87,12 +85,20 @@ final class PanelController extends AbstractController
     }
 
     #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
-    public function modifyProjectWorkPackages(string $id): Response
-    {
-        return $this->render('pages/org/projects/modify-work-packages.html.twig', [
-            'id' => $id,
-        ]);
-    }
+    public function modifyProjectWorkPackages(
+       string $id,
+       GetOrgProjectWorkPackagesHandler $handler,
+): Response {
+    $overview = $handler->handle($id);
+
+    return $this->render('pages/org/projects/modify-work-packages.html.twig', [
+        'id' => $id,
+        'workPackages' => $overview['workPackages'],
+        'workPackageCount' => $overview['workPackageCount'],
+        'taskCount' => $overview['taskCount'],
+        'averageProgress' => $overview['averageProgress'],
+    ]);
+}
 
     #[Route('/staff', name: 'staff', methods: ['GET'])]
     public function staff(): Response
