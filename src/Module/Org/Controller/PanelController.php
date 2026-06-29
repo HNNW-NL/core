@@ -34,7 +34,7 @@ final class PanelController extends AbstractController
             'id' => $id,
         ]);
     }
-    
+
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
     public function modifyProjectMatching(string $id): Response
     {
