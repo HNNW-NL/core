@@ -1,7 +1,7 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}My Experience{% endblock %}
+{# Pagina titel meta tag #}
+{% block title %}Mijn Ervaring{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -9,8 +9,69 @@
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
-{# Page content #}
+{# Pagina content #}
 {% block body %}
-    <h2>Experience</h2>
-    <p>Account Centre - experience page.</p>
+    <div id="account-centre-container">
+
+        <a href="/account" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Mijn Ervaring & Vaardigheden</h1>
+            <p>Beheer hier jouw professionele expertise, vaardigheden en gecategoriseerde achtergrondgegevens.</p>
+        </div>
+
+        <div class="account-grid">
+            <h3 class="account-grid-title">Huidige Vaardigheden</h3>
+
+            <div class="account-card">
+                <div class="account-card-content">
+                    <h3>PHP Development</h3>
+                    <p class="account-card-meta">Slug: <code>php-development</code> | Categorie: Backend</p>
+                </div>
+                <button type="button" class="btn-card-cancel">Verwijderen</button>
+            </div>
+        </div>
+
+        <div class="form-divider-row"></div>
+
+        <div class="account-form-container">
+            <div class="form-internal-header">
+                <h2>Nieuwe Vaardigheid / Ervaring Toevoegen</h2>
+                <p>Vul de onderstaande velden in om een nieuwe expertise aan je profiel toe te voegen.</p>
+            </div>
+
+            <form action="" method="POST" class="account-form">
+
+                <div class="form-group">
+                    <label for="exp-name">Naam van vaardigheid</label>
+                    <input type="text" id="exp-name" name="name" placeholder="bijv. Symfony Framework" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="exp-slug">Slug</label>
+                    <input type="text" id="exp-slug" name="slug" placeholder="bijv. symfony-framework" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="exp-category">Categorie</label>
+                    <select id="exp-category" name="category" required>
+                        <option value="" disabled selected>Kies een categorie...</option>
+                        <option value="frontend">Frontend Development</option>
+                        <option value="backend">Backend Development</option>
+                        <option value="design">UI/UX Design</option>
+                        <option value="other">Andere Expertise</option>
+                    </select>
+                </div>
+
+                <div class="form-actions-row">
+                    <button type="submit">Ervaring Opslaan</button>
+                    <a href="#" class="btn-cancel">Annuleren</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
 {% endblock %}

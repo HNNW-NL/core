@@ -94,10 +94,123 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/availability.html.twig');
     }
 
-    #[Route('/experience', name: 'experience', methods: ['GET'])]
-    public function experience(): Response
+    #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
+    public function experience(Request $request, EntityManagerInterface $entityManager): Response
     {
-        return $this->render('pages/account-centre/experience.html.twig');
+        $session = $request->getSession();
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        if (!$account) {
+            $this->addFlash('error', 'Account niet gevonden.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
+        $skillClass = 'App\Entity\Account\Skill';
+
+        if ($request->isMethod('POST')) {
+            $name = trim((string) $request->request->get('name'));
+            $slug = trim((string) $request->request->get('slug'));
+            $category = trim((string) $request->request->get('category'));
+
+            if (empty($name) || empty($slug) || empty($category)) {
+                $this->addFlash('error', 'Vul alstublieft alle verplichte velden in.');
+            } else {
+                if (class_exists($skillClass)) {
+                    $skill = $entityManager->getRepository($skillClass)->findOneBy(['slug' => $slug]);
+
+                    if (!$skill) {
+                        $skill = new $skillClass();
+                        $skill->setName($name);
+                        $skill->setSlug($slug);
+                        $skill->setCategory($category);
+                        $entityManager->persist($skill);
+                    }
+
+                    if (method_exists($profile, 'addSkill')) {
+                        $profile->addSkill($skill);
+                        $entityManager->flush();
+                        $this->addFlash('success', 'Je nieuwe vaardigheid is succesvol toegevoegd!');
+                    } elseif (method_exists($account, 'addSkill')) {
+                        $account->addSkill($skill);
+                        $entityManager->flush();
+                        $this->addFlash('success', 'Je nieuwe vaardigheid is succesvol toegevoegd!');
+                    } else {
+                        $this->addFlash('error', 'Kon de addSkill() methode niet vinden op Profile of Account.');
+                    }
+                } else {
+                    $this->addFlash('error', 'Skill entiteit kon niet worden gevonden.');
+                }
+            }
+
+            return $this->redirectToRoute('account.experience');
+        }
+
+        $skills = [];
+        if (method_exists($profile, 'getSkills')) {
+            $skills = $profile->getSkills();
+        } elseif (method_exists($account, 'getSkills')) {
+            $skills = $account->getSkills();
+        }
+
+        return $this->render('pages/account-centre/experience.html.twig', [
+            'skills'  => $skills,
+        ]);
+    }
+
+    #[Route('/experience/skill/{id}/delete', name: 'experience_skill_delete', methods: ['POST'])]
+    public function deleteSkill(int $id, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $session = $request->getSession();
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $skillClass = 'App\Entity\Account\Skill';
+        $skill = $entityManager->getRepository($skillClass)->find($id);
+
+        if (!$skill) {
+            $this->addFlash('error', 'Vaardigheid niet gevonden.');
+            return $this->redirectToRoute('account.experience');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
+        $csrfToken = $request->request->get('_token');
+        if ($this->isCsrfTokenValid('delete_skill' . $skill->getId(), $csrfToken)) {
+
+            if ($profile && method_exists($profile, 'removeSkill')) {
+                $profile->removeSkill($skill);
+                $entityManager->flush();
+                $this->addFlash('success', 'Vaardigheid succesvol ontkoppeld.');
+            } elseif (method_exists($account, 'removeSkill')) {
+                $account->removeSkill($skill);
+                $entityManager->flush();
+                $this->addFlash('success', 'Vaardigheid succesvol ontkoppeld.');
+            } else {
+                $this->addFlash('error', 'Kon de vaardigheid niet ontkoppelen (methode mist).');
+            }
+
+        } else {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken.');
+        }
+
+        return $this->redirectToRoute('account.experience');
     }
 
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
