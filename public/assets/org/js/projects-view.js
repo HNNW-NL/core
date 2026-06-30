@@ -119,6 +119,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 const card = document.createElement("div");
                 card.className = "project-card";
                 card.dataset.slug = project.slug || '';
+                card.style.cursor = "pointer";
+
+            card.addEventListener("click", () => {
+                if (project.slug) {
+                window.location.href = "/org/projects/" + encodeURIComponent(project.slug);
+                }
+            });
 
                 const imageContainer = document.createElement("div");
                 imageContainer.className = "project-card-image-container";
@@ -144,6 +151,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 const slugEl = document.createElement("a");
                 slugEl.className = "project-slug";
                 slugEl.href = "/org/projects/" + encodeURIComponent(project.slug || '');
+
+                slugEl.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    });
 
                 const detailsEl = document.createElement("div");
                 detailsEl.className = "project-card-details";
