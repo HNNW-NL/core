@@ -21,7 +21,7 @@ class ModifyProjectMapper
         $projectId = $this->getStringFromRequest($request, ['project_id', 'projectId'])
             ?? (isset($extraData['project_id']) ? trim((string) $extraData['project_id']) : null)
             ?? trim((string) $request->attributes->get('id', ''));
-        $organisationId = $this->getStringFromRequest($request, ['organisation_id', 'organisationId'])
+        $organisationId = $this->getStringFromRequest($request, ['organisation_id', 'organization_id', 'organisationId', 'organizationId'])
             ?? (isset($extraData['organisation_id']) ? trim((string) $extraData['organisation_id']) : '')
             ?? '';
 
