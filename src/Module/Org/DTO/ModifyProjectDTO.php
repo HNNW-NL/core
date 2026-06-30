@@ -21,6 +21,8 @@ class ModifyProjectDTO
         public bool $endDateTouched = false,
         public bool $visibilityTouched = false,
         public ?int $capacity = null,
+        public ?\DateTimeImmutable $expectedLastModified = null,
+        public ?string $csrfToken = null,
         public ?Account $modifiedBy = null,
         public ?\DateTimeImmutable $modifiedAt = null,
     ) {

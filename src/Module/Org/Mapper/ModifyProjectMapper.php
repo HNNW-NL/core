@@ -47,6 +47,8 @@ class ModifyProjectMapper
             endDateTouched: $endDateTouched,
             visibilityTouched: $visibilityTouched,
             capacity: $this->getIntFromRequest($request, ['capacity']),
+            expectedLastModified: $this->getDateTimeFromRequest($request, ['last_modified', 'lastModified']),
+            csrfToken: $this->getStringFromRequest($request, ['_token']),
             modifiedBy: $extraData['publisher'] ?? null,
             modifiedAt: new \DateTimeImmutable(),
         );
@@ -164,6 +166,20 @@ class ModifyProjectMapper
             return new \DateTimeImmutable($date);
         } catch (\Throwable) {
             throw new \InvalidArgumentException('Invalid date format provided.');
+        }
+    }
+
+    private function getDateTimeFromRequest(Request $request, array $keys): ?\DateTimeImmutable
+    {
+        $value = $this->getStringFromRequest($request, $keys);
+        if ($value === null) {
+            return null;
+        }
+
+        try {
+            return new \DateTimeImmutable($value);
+        } catch (\Throwable) {
+            throw new \InvalidArgumentException('Invalid datetime format provided.');
         }
     }
 

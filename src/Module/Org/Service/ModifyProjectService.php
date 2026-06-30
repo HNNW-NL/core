@@ -10,6 +10,9 @@ use App\Module\Org\Handler\ModifyProjectHandler;
 use App\Module\Org\Mapper\ModifyProjectMapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ModifyProjectService
 {
@@ -26,6 +29,8 @@ class ModifyProjectService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ModifyProjectMapper $mapper,
+        private TranslatorInterface $translator,
+        private CsrfTokenManagerInterface $csrfTokenManager,
     ) {}
 
     public function modify(ModifyProjectDTO $dto): Project
@@ -35,6 +40,8 @@ class ModifyProjectService
         if ($project === null) {
             throw new \RuntimeException('Project not found');
         }
+
+        $this->assertProjectNotModifiedSinceLoaded($project, $dto);
 
         $this->assertProjectBelongsToOrganisation($project, $dto->organisationId);
 
@@ -69,7 +76,7 @@ class ModifyProjectService
                 'id' => trim($id) === '' ? 'unknown' : $id,
                 'organisationId' => $organisationId,
                 'project' => null,
-                'error' => 'Project met dit ID is niet gevonden in de database.',
+                'error' => $this->translator->trans('org.project.error.not_found_db'),
             ]];
         }
 
@@ -155,6 +162,18 @@ class ModifyProjectService
         ?Project $project = null,
         ?Account $publisher = null
     ): array {
+        if (in_array($intent, ['modify', 'delete'], true)) {
+            if (!$this->isValidCsrfToken($request, $resolvedProjectId)) {
+                return [
+                    'redirectRoute' => 'org.modifyProject',
+                    'id' => $resolvedProjectRef,
+                    self::ORGANISATION_QUERY_KEY => $organisationId,
+                    'status' => 'error',
+                    'message' => $this->translator->trans('org.project.error.invalid_csrf'),
+                ];
+            }
+        }
+
         $actor = $publisher instanceof Account ? $publisher : new Account();
 
         if ($intent === 'delete') {
@@ -169,7 +188,7 @@ class ModifyProjectService
                         'id' => $nextProjectRef,
                         self::ORGANISATION_QUERY_KEY => $organisationId,
                         'status' => 'success',
-                        'message' => 'Project deleted successfully.',
+                        'message' => $this->translator->trans('org.project.deleted_success'),
                     ];
                 }
 
@@ -177,10 +196,11 @@ class ModifyProjectService
                     'redirectRoute' => 'org.projects',
                     self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'success',
-                    'message' => 'Project deleted successfully.',
+                    'message' => $this->translator->trans('org.project.deleted_success'),
                 ];
             } catch (\RuntimeException $e) {
                 return [
+                    'redirectRoute' => 'org.modifyProject',
                     'id' => $resolvedProjectRef,
                     self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'error',
@@ -199,12 +219,13 @@ class ModifyProjectService
         $result = $handler->handle($request, $actor);
 
         return [
+            'redirectRoute' => 'org.modifyProject',
             'id' => $resolvedProjectRef,
             self::ORGANISATION_QUERY_KEY => $organisationId,
             'status' => !empty($result['success']) ? 'success' : 'error',
             'message' => !empty($result['success'])
-                ? 'Project updated successfully.'
-                : ($result['error'] ?? 'Update failed.'),
+            ? $this->translator->trans('org.project.updated_success')
+            : ($result['error'] ?? $this->translator->trans('org.project.update_failed')),
         ];
     }
 
@@ -266,6 +287,7 @@ class ModifyProjectService
         $project = $qb
             ->where('p.ownerOrganisation = :organisationId')
             ->andWhere('p.id <> :excludedProjectId')
+            ->andWhere('p.deletedAt IS NULL')
             ->setParameter('organisationId', $organisationId)
             ->setParameter('excludedProjectId', $excludedProjectId)
             ->orderBy('p.createdAt', 'DESC')
@@ -296,7 +318,32 @@ class ModifyProjectService
             'startDate' => $project->getStartDate()?->format('Y-m-d'),
             'endDate' => $project->getEndDate()?->format('Y-m-d'),
             'capacity' => $project->getCapacity(),
+            'lastModified' => $project->getLastModified()?->format('Y-m-d H:i:s'),
         ];
+    }
+
+    private function assertProjectNotModifiedSinceLoaded(Project $project, ModifyProjectDTO $dto): void
+    {
+        if ($dto->expectedLastModified === null) {
+            return;
+        }
+
+        $current = $project->getLastModified();
+        if ($current === null) {
+            return;
+        }
+
+        if ($current->format('Y-m-d H:i:s') !== $dto->expectedLastModified->format('Y-m-d H:i:s')) {
+            throw new \RuntimeException($this->translator->trans('org.project.error.concurrent_modification'));
+        }
+    }
+
+    private function isValidCsrfToken(Request $request, string $projectId): bool
+    {
+        $tokenValue = trim((string) ($request->request->get('_token') ?? $request->query->get('_token') ?? ''));
+        $tokenId = 'org_modify_project_' . $projectId;
+
+        return $tokenValue !== '' && $this->csrfTokenManager->isTokenValid(new CsrfToken($tokenId, $tokenValue));
     }
 
     private function assertProjectBelongsToOrganisation(Project $project, string $organisationId): void

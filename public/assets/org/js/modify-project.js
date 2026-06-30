@@ -13,7 +13,30 @@ document.addEventListener('DOMContentLoaded', function () {
     const deleteInput = document.getElementById('deleteConfirmInput');
     const deleteHint = document.getElementById('deleteConfirmHint');
     const deleteConfirmButton = document.getElementById('deleteConfirmButton');
+    const initialSnapshot = new FormData(form);
     let deleteConfirmed = false;
+
+    function isDirty() {
+        const current = new FormData(form);
+        const keys = new Set([...initialSnapshot.keys(), ...current.keys()]);
+
+        for (const key of keys) {
+            const before = initialSnapshot.getAll(key).map(String);
+            const after = current.getAll(key).map(String);
+
+            if (before.length !== after.length) {
+                return true;
+            }
+
+            for (let i = 0; i < before.length; i += 1) {
+                if (before[i] !== after[i]) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     function setStatus(kind, text) {
         if (!statusBanner) {
@@ -36,12 +59,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function setSubmitting(isSubmitting) {
+        const submitting = !!isSubmitting;
+        window.__orgModifySubmitting = submitting;
         actionButtons.forEach(function (button) {
             if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
-            button.disabled = isSubmitting;
-            button.textContent = isSubmitting ? (button.value === 'delete' ? 'Deleting...' : 'Updating...') : button.dataset.originalLabel;
+            button.disabled = submitting;
+            button.textContent = submitting ? (button.value === 'delete' ? 'Deleting...' : 'Updating...') : button.dataset.originalLabel;
         });
     }
+
+    window.addEventListener('beforeunload', function (event) {
+        if (window.__orgModifySubmitting || !isDirty()) {
+            return;
+        }
+
+        event.preventDefault();
+        event.returnValue = '';
+    });
 
     if (deleteInput) {
         deleteInput.addEventListener('input', function () {
