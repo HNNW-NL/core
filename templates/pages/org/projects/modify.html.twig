@@ -23,7 +23,7 @@
                 <h1>Modify Project</h1>
                 <p>Update project details and save your changes.</p>
             </section>
-            {% if error %}
+            {% if error is defined and error %}
                 <p class="form-status form-status--error" role="status" aria-live="polite">{{ error }}</p>
             {% endif %}
             {% if queryMessage is not empty %}

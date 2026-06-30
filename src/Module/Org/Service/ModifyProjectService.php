@@ -81,7 +81,7 @@ class ModifyProjectService
         }
 
         if ($intent !== '') {
-            return ['redirect' => $this->handleIntent(
+            $redirect = $this->handleIntent(
                 $intent,
                 $request,
                 $handler,
@@ -90,7 +90,17 @@ class ModifyProjectService
                 $resolvedProjectRef,
                 $project,
                 $publisher
-            )];
+            );
+
+            $redirectRoute = $redirect['redirectRoute'] ?? null;
+            unset($redirect['redirectRoute']);
+
+            $payload = ['redirect' => $redirect];
+            if (is_string($redirectRoute) && $redirectRoute !== '') {
+                $payload['redirectRoute'] = $redirectRoute;
+            }
+
+            return $payload;
         }
 
         if ($id !== $resolvedProjectRef) {
@@ -151,8 +161,20 @@ class ModifyProjectService
             try {
                 $this->delete($resolvedProjectId, $organisationId);
 
+                $nextProjectRef = $this->findAnotherProjectRefForOrganisation($organisationId, $resolvedProjectId);
+
+                if ($nextProjectRef !== null) {
+                    return [
+                        'redirectRoute' => 'org.modifyProject',
+                        'id' => $nextProjectRef,
+                        self::ORGANISATION_QUERY_KEY => $organisationId,
+                        'status' => 'success',
+                        'message' => 'Project deleted successfully.',
+                    ];
+                }
+
                 return [
-                    'id' => $resolvedProjectRef,
+                    'redirectRoute' => 'org.projects',
                     self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'success',
                     'message' => 'Project deleted successfully.',
@@ -232,6 +254,26 @@ class ModifyProjectService
         $project = $projectRepository->findOneBy(['slug' => $identifier]);
 
         return $project instanceof Project ? $project : null;
+    }
+
+    private function findAnotherProjectRefForOrganisation(string $organisationId, string $excludedProjectId): ?string
+    {
+        if ($organisationId === '') {
+            return null;
+        }
+
+        $qb = $this->entityManager->getRepository(Project::class)->createQueryBuilder('p');
+        $project = $qb
+            ->where('p.ownerOrganisation = :organisationId')
+            ->andWhere('p.id <> :excludedProjectId')
+            ->setParameter('organisationId', $organisationId)
+            ->setParameter('excludedProjectId', $excludedProjectId)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $project instanceof Project ? $this->projectRef($project) : null;
     }
 
     private function projectRef(Project $project): string
