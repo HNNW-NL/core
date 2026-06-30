@@ -90,7 +90,8 @@ label[for="invite-input"] {
     padding: 8px;
 }
 
-.profile-item.active {
+#profile-list li.profile-item.active {
     background: #cce5ff;
+    color: black;
 }
 
