@@ -20,26 +20,15 @@
     <h2>Projects - Invite Participants</h2>
     <p>Organization panel - invite project ({{ id }}) participants page.</p>
     <div class="page-content">
-        <form method="post" class="invite-form">
+        <div class="input-content">
             <label for="invite-input">Invite user</label>
             <input type="text" name="invite-input" id="invite-input">
-            <input type="submit" value="Search">
-        </form>
+        </div>
 
-        {% if participants is not empty %}
-            <ul class="participant-list">
-                {% for participant in participants %}
-                    <li class="participant-item"
-                        data-id="{{ participant.id }}"
-                        data-name="{{ participant.displayName }}">
+        <ul id="profile-list">
+            <li class="profile-item active">Test</li>
+        </ul>
 
-                        {{ participant.displayName }} {{ participant.id }}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="no-profile">No profile found</p>
-        {% endif %}
         <div id="selected-list"></div>
     </div>
 

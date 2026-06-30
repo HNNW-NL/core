@@ -12,13 +12,14 @@ class InviteParticipantRepository extends ServiceEntityRepository
         parent::__construct($registry, Profile::class);
     }
 
-    public function searchByDisplayName(string $query): array
+    public function searchByDisplayName(string $query, int $limit = 10): array
     {
         return $this->createQueryBuilder('p')
             ->select('p.id, p.displayName')
             ->andWhere('LOWER(p.displayName) LIKE :query')
             ->setParameter('query', mb_strtolower(trim($query)) . '%')
             ->orderBy('p.displayName', 'ASC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getArrayResult();
     }

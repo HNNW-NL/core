@@ -28,7 +28,7 @@
     box-sizing: border-box;
 }
 
-.invite-form {
+.input-content {
     background-color: var(--header-background);
     padding: 1.5rem;
     border-radius: 12px;
@@ -37,14 +37,14 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.invite-form label {
+label[for="invite-input"] {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--paragraph);
     font-weight: 500;
 }
 
-.invite-form input[type="text"] {
+#invite-input {
     width: 100%;
     padding: 0.75rem;
     margin-bottom: 1rem;
@@ -55,35 +55,21 @@
     box-sizing: border-box;
 }
 
-.invite-form input[type="text"]:focus {
+#invite-input:focus {
     outline: none;
     border-color: var(--hnnw-yellow-500);
     box-shadow: 0 0 0 3px var(--hnnw-yellow-300);
 }
 
-.invite-form input[type="submit"] {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    background-color: var(--hnnw-yellow-500);
-    color: #020617;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
 
-.invite-form input[type="submit"]:hover {
-    background-color: var(--hnnw-yellow-400);
-}
-
-.participant-list {
+#profile-list {
     list-style: none;
     padding: 0;
     margin: 0;
     max-width: 500px;
 }
 
-.participant-list li {
+#profile-list li {
     padding: 0.75rem;
     margin-bottom: 0.5rem;
     background-color: var(--header-background);
@@ -99,11 +85,12 @@
 }
 
 
-.participant-item {
+.profile-item {
     cursor: pointer;
-    padding: 5px;
+    padding: 8px;
 }
 
-.participant-item.active {
+.profile-item.active {
     background: #cce5ff;
 }
+
