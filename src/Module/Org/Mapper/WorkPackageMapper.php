@@ -23,6 +23,7 @@ class WorkPackageMapper
             'taskCount' => $taskCount,
             'completedTaskCount' => $completedTaskCount,
             'progress' => $taskCount > 0 ? (int) round(($completedTaskCount / $taskCount) * 100) : 0,
+            'tasks' => $this->mapTasks($tasks),
         ];
     }
 
@@ -78,5 +79,54 @@ class WorkPackageMapper
         }
 
         return $completed;
+    }
+
+    private function mapTasks(array $tasks): array
+    {
+        return array_map(function ($task): array {
+            $status = method_exists($task, 'getStatus') ? $task->getStatus() : null;
+            $statusName = $status && method_exists($status, 'getName') ? $status->getName() : 'Open';
+
+            return [
+                'title' => method_exists($task, 'getTitle') ? $task->getTitle() : 'Zonder titel',
+                'description' => method_exists($task, 'getDescription') ? $task->getDescription() : null,
+                'status' => $statusName,
+                'statusClass' => $this->getStatusClass($statusName),
+                'isCompleted' => in_array(strtolower($statusName), ['gereed', 'done', 'completed', 'complete'], true),
+                'assignedName' => $this->getAssignedName($task),
+                'assignedInitials' => $this->getAssignedInitials($task),
+            ];
+        }, $tasks);
+    }
+
+    private function getAssignedName(object $task): ?string
+    {
+        if (!method_exists($task, 'getAssignedProfile') || !$task->getAssignedProfile()) {
+            return null;
+        }
+
+        $profile = $task->getAssignedProfile();
+
+        if (method_exists($profile, 'getDisplayName') && $profile->getDisplayName()) {
+            return $profile->getDisplayName();
+        }
+
+        $firstName = method_exists($profile, 'getFirstName') ? $profile->getFirstName() : '';
+        $lastName = method_exists($profile, 'getLastName') ? $profile->getLastName() : '';
+
+        $name = trim($firstName . ' ' . $lastName);
+
+        return $name !== '' ? $name : null;
+    }
+
+    private function getAssignedInitials(object $task): ?string
+    {
+        $name = $this->getAssignedName($task);
+
+        if (!$name) {
+            return null;
+        }
+
+        return strtoupper(substr($name, 0, 1));
     }
 }

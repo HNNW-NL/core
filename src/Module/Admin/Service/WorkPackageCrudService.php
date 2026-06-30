@@ -1,14 +1,11 @@
 <?php
 
-namespace App\Module\Admin\DTO;
-namespace App\Module\Admin\Handler;
 namespace App\Module\Admin\Service;
 
-
+use App\Entity\Common\Status;
+use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreateWorkPackageDTO;
-use App\Repository\Common\StatusRepository;
-use App\Repository\Project\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
 
@@ -16,16 +13,18 @@ class WorkPackageCrudService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly ProjectRepository $projectRepository,
-        private readonly StatusRepository $statusRepository,
     ) {
     }
 
     public function create(CreateWorkPackageDTO $dto): WorkPackage
     {
-        $project = $this->projectRepository->find(Uuid::fromString($dto->projectId));
+        if (!Uuid::isValid($dto->projectId)) {
+            throw new \InvalidArgumentException('Invalid project id.');
+        }
 
-        $status = $this->statusRepository->findOneBy([
+        $project = $this->entityManager->find(Project::class, Uuid::fromString($dto->projectId));
+
+        $status = $this->entityManager->getRepository(Status::class)->findOneBy([
             'name' => 'open',
             'scope' => 'work_package',
         ]);

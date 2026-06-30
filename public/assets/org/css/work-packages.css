@@ -729,3 +729,12 @@ body {
     color: #16263a;
     margin-bottom: 6px;
 }
+
+.wp-package-empty {
+    margin: 12px 0 0;
+    padding: 12px;
+    border: 1px dashed #d9e0ea;
+    border-radius: 6px;
+    color: #607086;
+    background: #fbfcfe;
+}

@@ -6,6 +6,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Module\Org\Handler\GetOrgProjectWorkPackagesHandler;
+use App\Module\Admin\DTO\CreateWorkPackageDTO;
+use App\Module\Admin\Handler\CreateWorkPackageHandler;
+use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -84,11 +87,31 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
+    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET', 'POST'])]
     public function modifyProjectWorkPackages(
-       string $id,
-       GetOrgProjectWorkPackagesHandler $handler,
+    string $id,
+    Request $request,
+    GetOrgProjectWorkPackagesHandler $handler,
+    CreateWorkPackageHandler $createWorkPackageHandler,
 ): Response {
+    if ($request->isMethod('POST')) {
+        $dueDateValue = $request->request->get('dueDate');
+
+        $dto = new CreateWorkPackageDTO(
+            projectId: $id,
+            title: (string) $request->request->get('title'),
+            slug: (string) $request->request->get('slug'),
+            description: $request->request->get('description') ?: null,
+            dueDate: $dueDateValue ? new \DateTimeImmutable($dueDateValue) : null,
+        );
+
+        $createWorkPackageHandler->handle($dto);
+
+        return $this->redirectToRoute('org.modifyProject.workPackages', [
+            'id' => $id,
+        ]);
+    }
+
     $overview = $handler->handle($id);
 
     return $this->render('pages/org/projects/modify-work-packages.html.twig', [

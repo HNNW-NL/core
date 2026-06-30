@@ -10,7 +10,7 @@
 
 {# JavaScript #}
 {% block javascript %}
-<script src="{{ asset('assets/org/js/work-packages.js') }}"></script>
+<script src="{{ asset('assets/org/js/work-packages.js') }}" defer></script>
 {% endblock %}
 
 {# Page content #}
@@ -123,6 +123,30 @@
 
                                         {% if workPackage.description %}
                                             <p>{{ workPackage.description }}</p>
+                                        {% endif %}
+                                        {% if workPackage.tasks is not empty %}
+                                            {% for task in workPackage.tasks %}
+                                                <div class="wp-task{% if task.isCompleted %} done{% endif %}">
+                                                    <span class="wp-check">{% if task.isCompleted %}&#10003;{% endif %}</span>
+
+                                                    <div>
+                                                        <strong>{{ task.title }}</strong>
+                                                        <small>
+                                                            {% if task.assignedName %}
+                                                                toegewezen aan {{ task.assignedName }}
+                                                            {% else %}
+                                                                nog niet gekoppeld
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+
+                                                    {% if task.assignedInitials %}
+                                                        <span class="wp-avatar-mini">{{ task.assignedInitials }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="wp-package-empty">Nog geen taken in dit werkpakket.</p>
                                         {% endif %}
 
                                         <div class="wp-actions">
@@ -282,4 +306,5 @@
         </main>
     </div>
 {% endblock %}
+
 
