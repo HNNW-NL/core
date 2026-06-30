@@ -1,7 +1,9 @@
 {% extends 'layouts/main.base.html.twig' %}
 
+{# Page title #}
 {% block title %}Werkpakketten{% endblock %}
 
+{# Page content #}
 {% block body %}
     {% set workPackageOverviews = hnnw_work_package_overviews(slug) %}
     {% set currentProfile = hnnw_current_profile() %}
@@ -11,6 +13,7 @@
             <h2>Werkpakketten</h2>
             <p>Bekijk de taken binnen dit project en schrijf jezelf in op een beschikbare taak.</p>
         </header>
+
         {% for flashType, flashMessages in app.flashes %}
             {% for flashMessage in flashMessages %}
                 <div class="alert alert-{{ flashType }}">
@@ -39,10 +42,10 @@
                                 <p>Deadline: {{ workPackage.dueDate|date('d-m-Y') }}</p>
                             {% endif %}
                         </header>
+
                         {% if workPackage.description %}
                             <p>{{ workPackage.description }}</p>
                         {% endif %}
-
                         {% if packageTasks is empty %}
                             <p>Er zijn nog geen taken binnen dit werkpakket.</p>
                         {% else %}
@@ -54,10 +57,10 @@
                                     <article class="package-task-card">
                                         <div class="package-task-card__content">
                                             <h4>{{ packageTask.title }}</h4>
+
                                             {% if packageTask.description %}
                                                 <p>{{ packageTask.description }}</p>
                                             {% endif %}
-
                                             <p>
                                                 Prioriteit: {{ packageTask.priority|capitalize }}
                                                 {% if packageTask.dueDate %}
@@ -74,8 +77,8 @@
                                                     <span>Deze taak is al toegewezen.</span>
                                                 {% endif %}
                                             {% elseif currentProfile %}
-                                                <form method="post" action="{{ path('main.projects.workPackages.enrollTask', { slug: slug, taskId: packageTask.id }) }}">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('enroll-package-task-' ~ packageTask.id) }}">
+                                                <form method="post" action="{{ path('main.projects.workPackages.enrollTask', { slug: slug, taskId: packageTask.id.toRfc4122() }) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('enroll-package-task-' ~ packageTask.id.toRfc4122()) }}">
                                                     <button type="submit">Inschrijven</button>
                                                 </form>
                                             {% else %}

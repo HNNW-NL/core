@@ -10,7 +10,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Uid\Uuid;
 
 #[Route('/projects', name: 'main.projects.')]
 final class WorkPackageEnrollmentController extends AbstractController
@@ -35,20 +34,15 @@ final class WorkPackageEnrollmentController extends AbstractController
         if ($project === null) {
             throw $this->createNotFoundException('Project niet gevonden.');
         }
+
         $profile = $currentProfileProvider->getProfile();
 
         if ($profile === null) {
             $this->addFlash('danger', 'Je moet ingelogd zijn met een profiel om je in te schrijven.');
-
             return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
         }
 
-        if (!Uuid::isValid($taskId)) {
-            $this->addFlash('danger', 'Ongeldige taak.');
-
-            return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
-        }
-        $result = $workPackageTaskEnrollmentHandler->handle($project, Uuid::fromString($taskId), $profile);
+        $result = $workPackageTaskEnrollmentHandler->handle($project, $taskId, $profile);
 
         $this->addFlash($result->isSuccessful() ? 'success' : 'warning', $result->message);
 
