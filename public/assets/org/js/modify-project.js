@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (deleteInput) deleteInput.value = '';
                     if (deleteConfirmButton) deleteConfirmButton.disabled = true;
                     deleteDialog.showModal();
+                    if (deleteInput) deleteInput.focus();
                 } else {
                     const typed = window.prompt('Type DELETE to confirm permanent deletion:');
                     if ((typed || '').trim() === 'DELETE') {
