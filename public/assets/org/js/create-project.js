@@ -41,7 +41,7 @@
 
             e.preventDefault();
 
-            button.textContent = "Creating...";
+            button.textContent = "Creating project...";
             button.disabled = true;
             button.classList.add("loading");
 
