@@ -11,11 +11,11 @@ h2 {
 
 form {
     width: 500px;
-    margin: 30px auto;
-    padding: 20px;
+    margin: 40px auto;
+    padding: 30px;
     background-color: var(--header-background);
     border: 1px solid var(--hnnw-yellow-500);
-    border-radius: 8px;
+    border-radius: 12px;
 }
 
 form div {
@@ -55,6 +55,7 @@ textarea#description {
     min-height: 140px;
 }
 
+#title-counter,
 #summary-counter,
 #description-counter {
     font-size: 12px;
@@ -74,4 +75,18 @@ button {
 
 button:hover {
     background-color: var(--hnnw-yellow-400);
+}
+
+button.loading {
+    opacity: 0.7;
+    transform: scale(0.98);
+    transition: all 0.2s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--paragraph);
+    opacity: 0.6;
+    font-style: italic;
+    font-weight: 300;
 }

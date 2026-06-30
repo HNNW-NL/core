@@ -1,5 +1,20 @@
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
+    const nameInput = document.getElementById("name");
+
+    if (nameInput) {
+    nameInput.focus();
+    }
+
+    const title = document.getElementById("name");
+    const titleCounter = document.getElementById("title-counter");
+
+    if (title && titleCounter) {
+        title.addEventListener("input", function () {
+            titleCounter.textContent = title.value.length + " characters";
+        });
+    }
+    
     const summary = document.getElementById("summary");
     const summaryCounter = document.getElementById("summary-counter");
 
@@ -28,6 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             button.textContent = "Creating...";
             button.disabled = true;
+            button.classList.add("loading");
 
             setTimeout(() => {
                 button.textContent = "Create project";

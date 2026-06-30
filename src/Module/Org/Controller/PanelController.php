@@ -2,6 +2,12 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Repository\Project\ProjectParticipantRepository;
+use App\Repository\Project\ProjectRoleRepository;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
+use App\Module\Org\DTO\CreateProjectDTO;
+use App\Module\Org\Service\CreateProjectService;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,9 +27,22 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/projects.html.twig');
     }
 
-    #[Route('/projects/create', name: 'createProject', methods: ['GET'])]
-    public function createProject(): Response
-    {
+    #[Route('/projects/create', name: 'createProject', methods: ['GET', 'POST'])]
+    public function createProject(Request $request, CreateProjectService $service): Response {
+        if ($request->isMethod('POST')) {
+            $dto = new CreateProjectDTO();
+
+            $dto->name = $request->request->get('name');
+            $dto->summary = $request->request->get('summary');
+            $dto->description = $request->request->get('description');
+            $dto->capacity = (int) $request->request->get('capacity');
+            $dto->visibility = $request->request->get('visibility');
+
+            $service->create($dto);
+
+            return $this->redirectToRoute('org.projects');
+        }
+
         return $this->render('pages/org/projects/create.html.twig');
     }
 
@@ -43,11 +62,24 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET'])]
-    public function modifyProjectParticipants(string $id): Response
+    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants')]
+    public function modifyProjectParticipants(string $id, Request $request, ProjectParticipantRepository $participantRepository,
+                                              ProjectRoleRepository $projectRoleRepository, ProjectParticipantUpdateRoleHandler $updateRoleHandler ): Response
     {
+        if ($request->isMethod('POST')) {
+            $updateRoleHandler->handle($request->request->all('role'));
+        }
+
+        $participants = $participantRepository
+            ->findByProjectIdWithProfileAndStatus($id);
+
+        $roles = $projectRoleRepository
+            ->findByProjectIdRoles($id);
+
         return $this->render('pages/org/projects/modify-participants.html.twig', [
             'id' => $id,
+            'participants' => $participants,
+            'roles' => $roles,
         ]);
     }
 

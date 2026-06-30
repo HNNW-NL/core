@@ -12,14 +12,9 @@
     border-collapse: collapse;
 }
 
-.edit-participants-table thead{
-
-}
-
 .edit-participants-table tbody{
     background-color: #0f172ab3;
 }
-
 
 
 .edit-participants-table tbody tr:hover{
@@ -70,7 +65,7 @@
 }
 
 .submit{
-    background-color: #ffd736;
+    background-color: #f4c400;
     color: white;
     border: none;
     cursor: pointer;
