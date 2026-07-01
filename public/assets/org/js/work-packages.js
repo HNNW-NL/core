@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const tabButtons = document.querySelectorAll('[data-wp-view]');
-    const views = document.querySelectorAll('.wp-view');
+    const tabButtons = document.querySelectorAll('[data-work-package-view]');
+    const views = document.querySelectorAll('.work-packages-view');
 
     tabButtons.forEach(function (button) {
         button.addEventListener('click', function () {
-            const targetView = document.getElementById(button.dataset.wpView);
+            const targetView = document.getElementById(button.dataset.workPackageView);
 
             if (!targetView) {
                 return;
