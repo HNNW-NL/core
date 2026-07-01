@@ -2,6 +2,7 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Module\Admin\Service\StatusService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,9 +23,11 @@ final class PanelController extends AbstractController
     }
 
     #[Route('/projects/create', name: 'createProject', methods: ['GET'])]
-    public function createProject(): Response
+     public function createProject(StatusService $statusService): Response
     {
-        return $this->render('pages/org/projects/create.html.twig');
+    return $this->render('pages/org/projects/create.html.twig', [
+        'statuses' => $statusService->getStatusesByScope('project'),
+    ]);
     }
 
     #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET'])]
