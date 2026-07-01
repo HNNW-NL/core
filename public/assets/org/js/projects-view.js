@@ -241,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
         url.searchParams.set("page", page);
         window.history.pushState({}, "", url);
         renderPage();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Submit search
