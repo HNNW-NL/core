@@ -15,23 +15,24 @@
 {% block body %}
     {% set queryStatus = app.request.query.get('status')|default('') %}
     {% set queryMessage = app.request.query.get('message')|default('') %}
+    {% set queryIsError = queryStatus == 'error' %}
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="content content--single">
-        <main id="main-content">
+        <section id="main-content" aria-label="Modify project">
             <section class="modify-banner" aria-label="Modification notice">
                 <p class="eyebrow">Modify</p>
                 <h1>Modify Project</h1>
                 <p>Update project details and save your changes.</p>
             </section>
             {% if error is defined and error %}
-                <p class="form-status form-status--error" role="status" aria-live="polite">{{ error }}</p>
+                <p class="form-status form-status--error" role="alert" aria-live="assertive">{{ error }}</p>
             {% endif %}
             {% if queryMessage is not empty %}
-                <p class="form-status {{ queryStatus == 'error' ? 'form-status--error' : 'form-status--success' }}" role="status" aria-live="polite">{{ queryMessage }}</p>
+                <p class="form-status {{ queryIsError ? 'form-status--error' : 'form-status--success' }}" role="{{ queryIsError ? 'alert' : 'status' }}" aria-live="{{ queryIsError ? 'assertive' : 'polite' }}">{{ queryMessage }}</p>
             {% endif %}
 
             {% if project %}
-                <form method="post" action="{{ path('org.modifyProject', { id: id }) }}">
+                <form id="modifyProjectForm" data-modify-project-form method="post" action="{{ path('org.modifyProject', { id: id }) }}">
                     <p class="form-status" role="status" aria-live="polite" hidden></p>
                     <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ project.id) }}">
                     <input type="hidden" id="organisationId" name="organisation_id" value="{{ project.organisationId|default(organisationId|default('')) }}">
@@ -97,20 +98,20 @@
                         </div>
                     </div>
                 </form>
+                <dialog id="deleteConfirmDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
+                    <form method="dialog" class="delete-dialog__form">
+                        <h2 id="deleteDialogTitle">Confirm permanent deletion</h2>
+                        <p>Type <strong>DELETE</strong> to permanently remove <strong>{{ project.title|default('this project') }}</strong>. This cannot be undone.</p>
+                        <label for="deleteConfirmInput">Confirmation</label>
+                        <input id="deleteConfirmInput" type="text" autocomplete="off" placeholder="Type DELETE">
+                        <p id="deleteConfirmHint" class="field-help">Type DELETE (all caps) to enable the button.</p>
+                        <div class="delete-dialog__actions">
+                            <button value="cancel">Cancel</button>
+                            <button id="deleteConfirmButton" value="confirm" class="button-danger" disabled>Delete permanently</button>
+                        </div>
+                    </form>
+                </dialog>
             {% endif %}
-        </main>
+        </section>
     </div>
-    <dialog id="deleteConfirmDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
-        <form method="dialog" class="delete-dialog__form">
-            <h2 id="deleteDialogTitle">Confirm permanent deletion</h2>
-            <p>Type <strong>DELETE</strong> to permanently remove this project. This cannot be undone.</p>
-            <label for="deleteConfirmInput">Confirmation</label>
-            <input id="deleteConfirmInput" type="text" autocomplete="off" placeholder="Type DELETE">
-            <p id="deleteConfirmHint" class="field-help">Type DELETE (all caps) to enable the button.</p>
-            <div class="delete-dialog__actions">
-                <button value="cancel">Cancel</button>
-                <button id="deleteConfirmButton" value="confirm" class="button-danger" disabled>Delete permanently</button>
-            </div>
-        </form>
-    </dialog>
 {% endblock %}

@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    document.body.classList.add('page-ready');
-
-    const form = document.querySelector('form[action*="/org/projects/modify/"]');
+    const form = document.querySelector('[data-modify-project-form]');
     if (!form) {
         return;
     }
@@ -13,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const deleteInput = document.getElementById('deleteConfirmInput');
     const deleteHint = document.getElementById('deleteConfirmHint');
     const deleteConfirmButton = document.getElementById('deleteConfirmButton');
+    const startDateInput = form.querySelector('#startDate');
+    const endDateInput = form.querySelector('#endDate');
     const initialSnapshot = new FormData(form);
     let deleteConfirmed = false;
 
@@ -43,19 +43,25 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         statusBanner.className = 'form-status ' + (kind === 'error' ? 'form-status--error' : 'form-status--success');
+        statusBanner.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+        statusBanner.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
         statusBanner.textContent = text;
         statusBanner.hidden = false;
     }
 
-    function ensureIntent(intent) {
-        let input = form.querySelector('input[name="intent"][type="hidden"]');
-        if (!input) {
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'intent';
-            form.appendChild(input);
+    function syncDateConstraints() {
+        if (!startDateInput || !endDateInput) {
+            return;
         }
-        input.value = intent;
+
+        const startValue = startDateInput.value;
+        endDateInput.min = startValue || '';
+
+        if (startValue && endDateInput.value && endDateInput.value < startValue) {
+            endDateInput.setCustomValidity('End date must be on or after start date.');
+        } else {
+            endDateInput.setCustomValidity('');
+        }
     }
 
     function setSubmitting(isSubmitting) {
@@ -76,6 +82,12 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
         event.returnValue = '';
     });
+
+    syncDateConstraints();
+    startDateInput?.addEventListener('change', syncDateConstraints);
+    startDateInput?.addEventListener('input', syncDateConstraints);
+    endDateInput?.addEventListener('change', syncDateConstraints);
+    endDateInput?.addEventListener('input', syncDateConstraints);
 
     if (deleteInput) {
         deleteInput.addEventListener('input', function () {
@@ -102,7 +114,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const intent = event.submitter?.value || 'modify';
-        ensureIntent(intent);
 
         if (intent === 'delete') {
             if (!deleteConfirmed) {
@@ -128,6 +139,8 @@ document.addEventListener('DOMContentLoaded', function () {
             setSubmitting(true);
             return;
         }
+
+        syncDateConstraints();
 
         setSubmitting(true);
     });
