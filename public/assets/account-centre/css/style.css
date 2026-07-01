@@ -1,3 +1,7 @@
+/* ==========================================
+   LAYOUT & CONTAINER STYLES
+   ========================================== */
+
 #account-centre-container {
     padding: 3rem 1.5rem;
     max-width: 900px;
@@ -14,14 +18,14 @@
     margin-bottom: 0.5rem;
 }
 
-/* Aangepast naar flex-direction column zodat de brede kaarten strak onder elkaar staan */
+/* Flex-direction column zodat de brede kaarten strak onder elkaar staan */
 .account-grid {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
 }
 
-/* Aangepast naar row-layout zodat de knop naast de tekst komt te staan */
+/* Row-layout zodat de knop naast de tekst komt te staan */
 .account-card {
     padding: 2rem;
     border-radius: 12px;
@@ -51,11 +55,21 @@
     margin: 0;
 }
 
-/* Breedte naar auto gezet en marge aan de onderkant verwijderd */
 .account-card-content {
     width: auto;
     margin-bottom: 0;
 }
+
+.account-card-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* ==========================================
+   BUTTONS & ACTIONS
+   ========================================== */
 
 .btn-card-cancel {
     background: transparent;
@@ -75,6 +89,87 @@
     background-color: #ef4444;
     color: #ffffff;
 }
+
+.btn-cancel {
+    text-decoration: none;
+    font-size: 0.9rem;
+    color: #64748b;
+    transition: color 0.2s ease;
+}
+
+.btn-cancel:hover {
+    color: #0f172a;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+    color: #0f172a;
+    border-color: #0f172a;
+    transform: translateX(-2px);
+}
+
+.button {
+    display: inline-block;
+    padding: 8px 16px;
+    cursor: pointer;
+    background-color: transparent;
+    color: #cdcdcd;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.5s ease;
+    font-family: inter, sans-serif;
+}
+
+.button:hover {
+    color: #f4c400;
+}
+
+/* ==========================================
+   FORMS & INPUTS
+   ========================================== */
+
+#account-centre-container .form-group select {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+#account-centre-container .form-group select:focus {
+    outline: none;
+    border-color: #94a3b8;
+}
+
+.form-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+}
+
+/* ==========================================
+   ALERTS & FLASHES
+   ========================================== */
 
 .alert {
     padding: 1rem;
@@ -108,40 +203,46 @@
     border: 1px solid transparent;
 }
 
-#account-centre-container .form-group select {
-    width: 100%;
-    padding: 0.85rem 1rem;
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    color: #0f172a;
-    font-family: inherit;
-    font-size: 0.95rem;
+/* ==========================================
+   GLOBAL DESIGN ELEMENTS
+   ========================================== */
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 3px;
+}
+
+header nav ul {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    list-style: none;
+    gap: 5px;
+    padding: 0;
+    margin: 0 20px 0 0;
+}
+
+header nav ul li a {
+    text-decoration: none;
+    display: inline-block;
+}
+
+header nav ul svg:first-of-type {
+    margin-left: 50px;
+    margin-right: 15px;
+}
+
+header nav ul svg {
     cursor: pointer;
 }
 
-#account-centre-container .form-group select:focus {
-    outline: none;
-    border-color: #94a3b8;
+header nav ul svg:hover path {
+    fill: #f4c400;
+    transition: fill 0.5s ease;
 }
 
-.form-actions-row {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-top: 2.5rem;
-}
-
-.btn-cancel {
-    text-decoration: none;
-    font-size: 0.9rem;
-    color: #64748b;
-    transition: color 0.2s ease;
-}
-
-.btn-cancel:hover {
-    color: #0f172a;
-}
 
 /* ==========================================
    DARK THEME STYLES
@@ -380,84 +481,6 @@ body[data-theme="dark"] #account-centre-container .form-footer-link a:hover {
     text-decoration: underline !important;
 }
 
-/* ==========================================
-   GLOBAL DESIGN ELEMENTS
-   ========================================== */
-
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 3px;
-}
-
-header nav ul {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    list-style: none;
-    gap: 5px;
-    padding: 0;
-    margin: 0 20px 0 0;
-}
-
-header nav ul li a {
-    text-decoration: none;
-    display: inline-block;
-}
-
-header nav ul svg:first-of-type {
-    margin-left: 50px;
-    margin-right: 15px;
-}
-
-header nav ul svg {
-    cursor: pointer;
-}
-
-header nav ul svg:hover path {
-    fill: #f4c400;
-    transition: fill 0.5s ease;
-}
-
-.button {
-    display: inline-block;
-    padding: 8px 16px;
-    cursor: pointer;
-    background-color: transparent;
-    color: #cdcdcd;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: all 0.5s ease;
-    font-family: inter, sans-serif;
-}
-
-.button:hover {
-    color: #f4c400;
-}
-
-.btn-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    border: 1px solid #cbd5e1;
-    color: #64748b;
-    margin-bottom: 1.5rem;
-    transition: all 0.2s ease;
-}
-
-.btn-back:hover {
-    color: #0f172a;
-    border-color: #0f172a;
-    transform: translateX(-2px);
-}
-
 body[data-theme="dark"] #account-centre-container .btn-back {
     color: var(--hnnw-secondary-text) !important;
     border: 1px solid #2d3748 !important;
@@ -468,11 +491,4 @@ body[data-theme="dark"] #account-centre-container .btn-back:hover {
     color: var(--hnnw-yellow-400) !important;
     border-color: var(--hnnw-yellow-400) !important;
     background-color: rgba(244, 196, 0, 0.05);
-}
-
-.account-card-empty {
-    grid-column: 1 / -1;
-    text-align: center;
-    pointer-events: none;
-    opacity: 0.7;
 }

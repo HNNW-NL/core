@@ -5,12 +5,14 @@ namespace App\Module\AccountCentre\Controller;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
+use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -71,7 +73,6 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
 
-            // Updates de 'deleted_at' kolom in plaats van een harde database delete
             if (method_exists($application, 'softDelete')) {
                 $application->softDelete();
             } else {
@@ -117,60 +118,71 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        $skillClass = 'App\Entity\Account\Skill';
-
         if ($request->isMethod('POST')) {
-            $name = trim((string) $request->request->get('name'));
-            $slug = trim((string) $request->request->get('slug'));
-            $category = trim((string) $request->request->get('category'));
+            $jobTitle = trim((string) $request->request->get('job_title'));
+            $organisationName = trim((string) $request->request->get('organisation_name'));
+            $startDateStr = trim((string) $request->request->get('start_date'));
+            $endDateStr = trim((string) $request->request->get('end_date'));
+            $isCurrent = (bool) $request->request->get('is_current', false);
+            $description = trim((string) $request->request->get('description'));
 
-            if (empty($name) || empty($slug) || empty($category)) {
+            if (empty($jobTitle) || empty($organisationName) || empty($startDateStr)) {
                 $this->addFlash('error', 'Vul alstublieft alle verplichte velden in.');
             } else {
-                if (class_exists($skillClass)) {
-                    $skill = $entityManager->getRepository($skillClass)->findOneBy(['slug' => $slug]);
+                try {
+                    $experience = new ProfileExperience();
 
-                    if (!$skill) {
-                        $skill = new $skillClass();
-                        $skill->setName($name);
-                        $skill->setSlug($slug);
-                        $skill->setCategory($category);
-                        $entityManager->persist($skill);
+                    if (method_exists($experience, 'setId')) {
+                        $experience->setId(Uuid::v4());
                     }
 
-                    if (method_exists($profile, 'addSkill')) {
-                        $profile->addSkill($skill);
-                        $entityManager->flush();
-                        $this->addFlash('success', 'Je nieuwe vaardigheid is succesvol toegevoegd!');
-                    } elseif (method_exists($account, 'addSkill')) {
-                        $account->addSkill($skill);
-                        $entityManager->flush();
-                        $this->addFlash('success', 'Je nieuwe vaardigheid is succesvol toegevoegd!');
+                    $experience->setJobTitle($jobTitle);
+                    $experience->setOrganisationName($organisationName);
+                    $experience->setStartDate(new \DateTimeImmutable($startDateStr));
+
+                    // OPGESCHOOND: Stuurt nu direct de boolean (true of false) naar de Entity
+                    $experience->setIsCurrent($isCurrent);
+
+                    if ($isCurrent) {
+                        $experience->setEndDate(null);
                     } else {
-                        $this->addFlash('error', 'Kon de addSkill() methode niet vinden op Profile of Account.');
+                        $experience->setEndDate(!empty($endDateStr) ? new \DateTimeImmutable($endDateStr) : null);
                     }
-                } else {
-                    $this->addFlash('error', 'Skill entiteit kon niet worden gevonden.');
+
+                    $experience->setDescription(!empty($description) ? $description : null);
+                    $experience->setProfile($profile);
+
+                    if (method_exists($experience, 'setCreatedAt')) {
+                        $experience->setCreatedAt(new \DateTimeImmutable());
+                    }
+                    if (method_exists($experience, 'setLastModified')) {
+                        $experience->setLastModified(new \DateTimeImmutable());
+                    }
+
+                    $entityManager->persist($experience);
+                    $entityManager->flush();
+
+                    $this->addFlash('success', 'Je werkervaring is succesvol toegevoegd!');
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Fout bij het verwerken van de gegevens: ' . $e->getMessage());
                 }
             }
 
             return $this->redirectToRoute('account.experience');
         }
 
-        $skills = [];
-        if (method_exists($profile, 'getSkills')) {
-            $skills = $profile->getSkills();
-        } elseif (method_exists($account, 'getSkills')) {
-            $skills = $account->getSkills();
-        }
+        $experiences = $entityManager->getRepository(ProfileExperience::class)->findBy(
+            ['profile' => $profile, 'deletedAt' => null],
+            ['startDate' => 'DESC']
+        );
 
         return $this->render('pages/account-centre/experience.html.twig', [
-            'skills'  => $skills,
+            'experiences' => $experiences,
         ]);
     }
 
-    #[Route('/experience/skill/{id}/delete', name: 'experience_skill_delete', methods: ['POST'])]
-    public function deleteSkill(int $id, Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
+    public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
         $session = $request->getSession();
         $accountId = $session->get('account_id');
@@ -180,32 +192,31 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('auth.login');
         }
 
-        $skillClass = 'App\Entity\Account\Skill';
-        $skill = $entityManager->getRepository($skillClass)->find($id);
+        $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
 
-        if (!$skill) {
-            $this->addFlash('error', 'Vaardigheid niet gevonden.');
+        if (!$experience) {
+            $this->addFlash('error', 'Ervaring niet gevonden.');
             return $this->redirectToRoute('account.experience');
         }
 
         $account = $entityManager->getRepository(Account::class)->find($accountId);
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
-        $csrfToken = $request->request->get('_token');
-        if ($this->isCsrfTokenValid('delete_skill' . $skill->getId(), $csrfToken)) {
+        if (!$profile || $experience->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze ervaring.');
+        }
 
-            if ($profile && method_exists($profile, 'removeSkill')) {
-                $profile->removeSkill($skill);
-                $entityManager->flush();
-                $this->addFlash('success', 'Vaardigheid succesvol ontkoppeld.');
-            } elseif (method_exists($account, 'removeSkill')) {
-                $account->removeSkill($skill);
-                $entityManager->flush();
-                $this->addFlash('success', 'Vaardigheid succesvol ontkoppeld.');
+        $csrfToken = $request->request->get('_token');
+        if ($this->isCsrfTokenValid('delete_experience' . $experience->getId(), $csrfToken)) {
+
+            if (method_exists($experience, 'softDelete')) {
+                $experience->softDelete();
             } else {
-                $this->addFlash('error', 'Kon de vaardigheid niet ontkoppelen (methode mist).');
+                $experience->setDeletedAt(new \DateTimeImmutable());
             }
 
+            $entityManager->flush();
+            $this->addFlash('success', 'Werkervaring succesvol verwijderd.');
         } else {
             $this->addFlash('error', 'Ongeldig veiligheidstoken.');
         }

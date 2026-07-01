@@ -1,7 +1,7 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
 {# Pagina titel meta tag #}
-{% block title %}Mijn Ervaring{% endblock %}
+{% block title %}Mijn Werkervaring{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -13,62 +13,111 @@
 {% block body %}
     <div id="account-centre-container">
 
-        <a href="/account" class="btn-back">
+        <a href="{{ path('account.home') }}" class="btn-back">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Terug naar dashboard
         </a>
 
         <div class="dashboard-header">
-            <h1>Mijn Ervaring & Vaardigheden</h1>
-            <p>Beheer hier jouw professionele expertise, vaardigheden en gecategoriseerde achtergrondgegevens.</p>
+            <h1>Mijn Werkervaring</h1>
+            <p>Beheer hier jouw professionele loopbaan, rollen en werkgeschiedenis.</p>
         </div>
 
-        <div class="account-grid">
-            <h3 class="account-grid-title">Huidige Vaardigheden</h3>
-
-            <div class="account-card">
-                <div class="account-card-content">
-                    <h3>PHP Development</h3>
-                    <p class="account-card-meta">Slug: <code>php-development</code> | Categorie: Backend</p>
+        {# Flash meldingen tonen #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash-alert alert-{{ label }}">
+                    {{ message }}
                 </div>
-                <button type="button" class="btn-card-cancel">Verwijderen</button>
-            </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="account-grid">
+            <h3 class="account-grid-title">Toegevoegde Ervaringen</h3>
+
+            {% if experiences is empty %}
+                <div class="account-card account-card-empty">
+                    <div class="account-card-content">
+                        <p>Je hebt nog geen werkervaring toegevoegd.</p>
+                    </div>
+                </div>
+            {% else %}
+                {% for experience in experiences %}
+                    <div class="account-card">
+                        <div class="account-card-content">
+                            <h3>{{ experience.jobTitle }}</h3>
+                            <p class="account-card-meta">
+                                <strong>Bedrijf:</strong> {{ experience.organisationName }} |
+                                <strong>Periode:</strong>
+                                {{ experience.startDate|date('M Y') }} -
+                                {% if experience.isCurrent %}
+                                    <em>Heden</em>
+                                {% else %}
+                                    {{ experience.endDate ? experience.endDate|date('M Y') : 'Onbekend' }}
+                                {% endif %}
+                            </p>
+                            {% if experience.description %}
+                                <p class="account-card-description">
+                                    {{ experience.description }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        {# Veilige POST-methode via formulier voor de delete actie #}
+                        <form action="{{ path('account.experience_delete', {'id': experience.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze ervaring wilt verwijderen?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_experience' ~ experience.id) }}">
+                            <button type="submit" class="btn-card-cancel">Verwijderen</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% endif %}
         </div>
 
         <div class="form-divider-row"></div>
 
         <div class="account-form-container">
             <div class="form-internal-header">
-                <h2>Nieuwe Vaardigheid / Ervaring Toevoegen</h2>
-                <p>Vul de onderstaande velden in om een nieuwe expertise aan je profiel toe te voegen.</p>
+                <h2>Nieuwe Werkervaring Toevoegen</h2>
+                <p>Vul de onderstaande velden in om een werkgever of project toe te voegen aan je profiel.</p>
             </div>
 
-            <form action="" method="POST" class="account-form">
+            <form action="{{ path('account.experience') }}" method="POST" class="account-form">
 
                 <div class="form-group">
-                    <label for="exp-name">Naam van vaardigheid</label>
-                    <input type="text" id="exp-name" name="name" placeholder="bijv. Symfony Framework" required>
+                    <label for="exp-job-title">Functietitel</label>
+                    <input type="text" id="exp-job-title" name="job_title" placeholder="bijv. Full Stack Developer" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="exp-slug">Slug</label>
-                    <input type="text" id="exp-slug" name="slug" placeholder="bijv. symfony-framework" required>
+                    <label for="exp-organisation">Organisatie / Bedrijfsnaam</label>
+                    <input type="text" id="exp-organisation" name="organisation_name" placeholder="bijv. Uw Bedrijf B.V." required>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="exp-start-date">Begindatum</label>
+                        <input type="date" id="exp-start-date" name="start_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exp-end-date">Einddatum</label>
+                        <input type="date" id="exp-end-date" name="end_date">
+                    </div>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="exp-is-current" name="is_current" value="1">
+                    <label for="exp-is-current">Ik werk hier momenteel</label>
                 </div>
 
                 <div class="form-group">
-                    <label for="exp-category">Categorie</label>
-                    <select id="exp-category" name="category" required>
-                        <option value="" disabled selected>Kies een categorie...</option>
-                        <option value="frontend">Frontend Development</option>
-                        <option value="backend">Backend Development</option>
-                        <option value="design">UI/UX Design</option>
-                        <option value="other">Andere Expertise</option>
-                    </select>
+                    <label for="exp-description">Beschrijving van werkzaamheden</label>
+                    <textarea id="exp-description" name="description" rows="4" placeholder="Vertel kort wat je verantwoordelijkheden en prestaties waren..."></textarea>
                 </div>
 
                 <div class="form-actions-row">
                     <button type="submit">Ervaring Opslaan</button>
-                    <a href="#" class="btn-cancel">Annuleren</a>
+                    <a href="{{ path('account.home') }}" class="btn-cancel">Annuleren</a>
                 </div>
             </form>
         </div>
