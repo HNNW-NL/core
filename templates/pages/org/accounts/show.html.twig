@@ -1,0 +1,35 @@
+{% extends 'layouts/admin.base.html.twig' %}
+
+{% block title %}Account {{ account.id }}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/accounts.css') }}">
+{% endblock %}
+
+{% block body %}
+    <h2>Account #{{ account.id }}</h2>
+
+    <dl class="details">
+        <dt>Email</dt>
+        <dd>{{ account.email }}</dd>
+        
+        <dt>First Name</dt>
+        <dd>{{ account.firstName }}</dd>
+        
+        <dt>Last Name</dt>
+        <dd>{{ account.lastName }}</dd>
+        
+        <dt>Status</dt>
+        <dd>{{ account.active ? '✓ Active' : '✗ Inactive' }}</dd>
+    </dl>
+
+    <div class="actions">
+        <a href="{{ path('org_accounts_edit', {'id': account.id}) }}" class="button">Edit</a>
+        <a href="{{ path('org_accounts_index') }}" class="button button-secondary">Back to List</a>
+        
+        <form method="post" action="{{ path('org_accounts_delete', {'id': account.id}) }}" class="delete-form" onsubmit="return confirm('Are you sure you want to delete this account?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ account.id) }}">
+            <button type="submit" style="background-color: #cc3333; border-color: #cc3333;">Delete</button>
+        </form>
+    </div>
+{% endblock %}

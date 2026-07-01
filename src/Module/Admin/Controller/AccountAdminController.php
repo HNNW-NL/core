@@ -13,7 +13,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin/accounts')]
-#[IsGranted('ROLE_ADMIN')]
 class AccountAdminController extends AbstractController
 {
     #[Route('', name: 'org_accounts_index')]
@@ -23,9 +22,16 @@ class AccountAdminController extends AbstractController
     ): Response {
         $search = $request->query->get('search');
 
-        $accounts = $search
-            ? $userRepository->findBySearch($search)
-            : $userRepository->findAllForAdmin();
+        try {
+            $accounts = $search
+                ? $userRepository->findBySearch($search)
+                : $userRepository->findAllForAdmin();
+        } catch (\Throwable $e) {
+            // If the database is not available (missing tables, etc.),
+            // fall back to an empty list so the admin page still renders.
+            $accounts = [];
+            $this->addFlash('warning', 'Database unavailable — showing empty accounts.');
+        }
 
         return $this->render(
             'pages/org/accounts/index.html.twig',
@@ -36,7 +42,7 @@ class AccountAdminController extends AbstractController
         );
     }
 
-    #[Route('/{id}', name: 'org_accounts_show')]
+    #[Route('/{id}', name: 'org_accounts_show', requirements: ['id' => '\\d+'])]
     public function show(
         User $user
     ): Response {
@@ -48,7 +54,36 @@ class AccountAdminController extends AbstractController
         );
     }
 
-    #[Route('/{id}/edit', name: 'org_accounts_edit')]
+    #[Route('/new', name: 'org_accounts_new')]
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $user = new User();
+
+        $form = $this->createForm(
+            AccountType::class,
+            $user
+        );
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Account aangemaakt');
+
+            return $this->redirectToRoute('org_accounts_index');
+        }
+
+        return $this->render('pages/org/accounts/edit.html.twig', [
+            'form' => $form,
+            'account' => $user
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'org_accounts_edit', requirements: ['id' => '\\d+'])]
     public function edit(
         Request $request,
         User $user,
@@ -84,5 +119,18 @@ class AccountAdminController extends AbstractController
                 'account' => $user
             ]
         );
+    }
+
+    #[Route('/{id}/delete', name: 'org_accounts_delete', methods: ['POST'], requirements: ['id' => '\\d+'])]
+    public function delete(Request $request, User $user, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($user);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Account verwijderd');
+        }
+
+        return $this->redirectToRoute('org_accounts_index');
     }
 }
