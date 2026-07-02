@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function setSubmitting(isSubmitting) {
-        const submitting = !!isSubmitting;
+    function setSubmitting(submittingState) {
+        const submitting = !!submittingState;
         isSubmitting = submitting;
         actionButtons.forEach(function (button) {
             if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;

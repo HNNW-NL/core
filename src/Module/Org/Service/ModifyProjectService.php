@@ -84,7 +84,7 @@ class ModifyProjectService
         try {
             $project = $this->findProjectByIdentifier($id);
             if (!$project instanceof Project) {
-                throw new NotFoundHttpException($this->translator->trans('org.project.error.not_found_db'));
+                throw new NotFoundHttpException($this->translateOrFallback('org.project.error.not_found_db', 'Project not found.'));
             }
 
             $resolvedProjectId = (string) $project->getId();
@@ -143,12 +143,7 @@ class ModifyProjectService
                 ];
             }
 
-            return ['view' => [
-                'id' => $fallbackId,
-                'organisationId' => $organisationId,
-                'project' => null,
-                'error' => $e->getMessage(),
-            ]];
+            throw $e;
         }
     }
 
@@ -196,7 +191,7 @@ class ModifyProjectService
                     'id' => $resolvedProjectRef,
                     self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'error',
-                    'message' => $this->translator->trans('org.project.error.invalid_csrf'),
+                    'message' => $this->translateOrFallback('org.project.error.invalid_csrf', 'Invalid form token.'),
                 ];
             }
         }
@@ -213,7 +208,7 @@ class ModifyProjectService
                         'id' => $nextProjectRef,
                         self::ORGANISATION_QUERY_KEY => $organisationId,
                         'status' => 'success',
-                        'message' => $this->translator->trans('org.project.deleted_success'),
+                        'message' => $this->translateOrFallback('org.project.deleted_success', 'Project deleted successfully.'),
                     ];
                 }
 
@@ -221,7 +216,7 @@ class ModifyProjectService
                     'redirectRoute' => 'org.projects',
                     self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'success',
-                    'message' => $this->translator->trans('org.project.deleted_success'),
+                    'message' => $this->translateOrFallback('org.project.deleted_success', 'Project deleted successfully.'),
                 ];
             } catch (HttpExceptionInterface $e) {
                 return [
@@ -231,19 +226,18 @@ class ModifyProjectService
                     'status' => 'error',
                     'message' => $e->getMessage(),
                 ];
-            } catch (\RuntimeException $e) {
+            } catch (\Throwable) {
                 return [
                     'redirectRoute' => 'org.modifyProject',
                     'id' => $resolvedProjectRef,
                     self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'error',
-                    'message' => $e->getMessage(),
+                    'message' => 'Failed to delete project.',
                 ];
             }
         }
 
         $request->request->set('project_id', $resolvedProjectId);
-        $request->query->set('project_id', $resolvedProjectId);
 
         if ($project instanceof Project) {
             $request->attributes->set('_current_project', $project);
@@ -257,8 +251,8 @@ class ModifyProjectService
             self::ORGANISATION_QUERY_KEY => $organisationId,
             'status' => !empty($result['success']) ? 'success' : 'error',
             'message' => !empty($result['success'])
-            ? $this->translator->trans('org.project.updated_success')
-            : ($result['error'] ?? $this->translator->trans('org.project.update_failed')),
+            ? $this->translateOrFallback('org.project.updated_success', 'Project updated successfully.')
+            : ($result['error'] ?? $this->translateOrFallback('org.project.update_failed', 'Failed to update project.')),
         ];
     }
 
@@ -367,7 +361,7 @@ class ModifyProjectService
         }
 
         if ($current->format('Y-m-d H:i:s') !== $dto->expectedLastModified->format('Y-m-d H:i:s')) {
-            throw new \RuntimeException($this->translator->trans('org.project.error.concurrent_modification'));
+            throw new \RuntimeException($this->translateOrFallback('org.project.error.concurrent_modification', 'Project was modified by another request. Please reload and try again.'));
         }
     }
 
@@ -512,5 +506,15 @@ class ModifyProjectService
         }
 
         return $status;
+    }
+
+    private function translateOrFallback(string $key, string $fallback): string
+    {
+        $translated = $this->translator->trans($key);
+        if ($translated === '' || $translated === $key) {
+            return $fallback;
+        }
+
+        return $translated;
     }
 }
