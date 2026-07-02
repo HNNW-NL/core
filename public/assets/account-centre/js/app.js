@@ -1,16 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const isCurrentCheckbox = document.getElementById('exp-is-current');
+    const currentCheckbox = document.getElementById('exp-is-current');
     const endDateInput = document.getElementById('exp-end-date');
 
-    if (isCurrentCheckbox && endDateInput) {
-        isCurrentCheckbox.addEventListener('change', function() {
+    if (currentCheckbox && endDateInput) {
+        currentCheckbox.addEventListener('change', function() {
+            endDateInput.disabled = this.checked;
             if (this.checked) {
                 endDateInput.value = '';
-                endDateInput.disabled = true;
-                endDateInput.removeAttribute('required');
-            } else {
-                endDateInput.disabled = false;
             }
         });
+
+        if (currentCheckbox.checked) {
+            endDateInput.disabled = true;
+        }
     }
 });

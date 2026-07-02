@@ -492,3 +492,9 @@ body[data-theme="dark"] #account-centre-container .btn-back:hover {
     border-color: var(--hnnw-yellow-400) !important;
     background-color: rgba(244, 196, 0, 0.05);
 }
+.form-group label .form-note {
+    font-size: 0.85em;
+    font-weight: normal;
+    color: #6c757d;
+    margin-left: 4px;
+}
