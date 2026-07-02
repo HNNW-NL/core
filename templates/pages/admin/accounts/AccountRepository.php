@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Repository;
+namespace Templates\Pages\Admin\Accounts\Repository;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-class UserRepository extends ServiceEntityRepository
+class AccountRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
