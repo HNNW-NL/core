@@ -15,6 +15,12 @@
 {% block body %}
     <h2>Accounts</h2>
 
+    {% if dbConnected is defined and not dbConnected %}
+        <div class="alert alert-warning" style="margin-bottom: 16px; padding: 12px; border: 1px solid #f1c40f; background: #fef9e7; color: #b9770e;">
+            Database connection failed. Account data may be unavailable.
+        </div>
+    {% endif %}
+
     <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center;">
         <form method="get" action="" class="search-form" style="margin-bottom: 0; display: flex; gap: 8px; align-items: center;">
             <input type="search" name="search" value="{{ search }}" placeholder="Search email, first or last name" />
