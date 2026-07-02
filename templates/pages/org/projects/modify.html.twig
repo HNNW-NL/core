@@ -16,6 +16,11 @@
     {% set queryStatus = app.request.query.get('status')|default('') %}
     {% set queryMessage = app.request.query.get('message')|default('') %}
     {% set queryIsError = queryStatus == 'error' %}
+    {% set queryMessageLooksLikeKey = queryMessage matches '/^[A-Za-z0-9_.-]+$/' and '.' in queryMessage %}
+    {% set displayQueryMessage = queryMessageLooksLikeKey
+        ? (queryIsError ? 'Something went wrong.' : 'Changes saved.')
+        : queryMessage
+    %}
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="content content--single">
         <section id="main-content" aria-label="Modify project">
@@ -28,7 +33,7 @@
                 <p class="form-status form-status--error" role="alert" aria-live="assertive">{{ error }}</p>
             {% endif %}
             {% if queryMessage is not empty %}
-                <p class="form-status {{ queryIsError ? 'form-status--error' : 'form-status--success' }}" role="{{ queryIsError ? 'alert' : 'status' }}" aria-live="{{ queryIsError ? 'assertive' : 'polite' }}">{{ queryMessage }}</p>
+                <p class="form-status {{ queryIsError ? 'form-status--error' : 'form-status--success' }}" role="{{ queryIsError ? 'alert' : 'status' }}" aria-live="{{ queryIsError ? 'assertive' : 'polite' }}">{{ displayQueryMessage }}</p>
             {% endif %}
 
             {% if project %}

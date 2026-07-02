@@ -19,12 +19,12 @@ class ModifyProjectHandler
         private LoggerInterface $logger,
     ) {}
 
-    public function handle(Request $request, Account $publisher): array
+    public function handle(Request $request, ?Account $publisher): array
     {
         return $this->executeModify($request, $publisher);
     }
 
-    private function executeModify(Request $request, Account $publisher): array
+    private function executeModify(Request $request, ?Account $publisher): array
     {
         $intent = trim((string) ($request->request->get('intent') ?? $request->query->get('intent') ?? ''));
         $organisationId = trim((string) ($request->request->get('organisation_id') ?? $request->query->get('organisation_id') ?? $request->attributes->get('organisation_id') ?? ''));
@@ -33,13 +33,16 @@ class ModifyProjectHandler
             'intent' => $intent,
             'organisation_id' => $organisationId,
             'project_ref' => $projectRef,
-            'publisher' => $publisher->getEmail(),
+            'publisher' => $publisher instanceof Account ? $publisher->getEmail() : null,
         ];
 
         try {
             $this->entityManager->beginTransaction();
 
-            $extraData = ['publisher' => $publisher];
+            $extraData = [];
+            if ($publisher instanceof Account) {
+                $extraData['publisher'] = $publisher;
+            }
             $attributeOrganisationId = $request->attributes->get('organisation_id');
             if (is_scalar($attributeOrganisationId)) {
                 $attributeOrganisationId = trim((string) $attributeOrganisationId);

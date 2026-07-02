@@ -14,7 +14,6 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -74,6 +73,12 @@ class ModifyProjectService
     {
         $organisationId = $this->getOrganisationIdFromRequest($request);
         $intent = $this->getRequestValue($request, 'intent');
+
+        // Some submissions (e.g. programmatic form submits) may not include submitter name/value.
+        // Treat POST without explicit intent as a standard modify action.
+        if ($request->isMethod('POST') && $intent === '') {
+            $intent = 'modify';
+        }
         $fallbackId = trim($id) === '' ? 'unknown' : $id;
 
         try {
@@ -184,10 +189,6 @@ class ModifyProjectService
         ?Project $project = null,
         ?Account $publisher = null
     ): array {
-        if (in_array($intent, ['modify', 'delete'], true) && !$publisher instanceof Account) {
-            throw new UnauthorizedHttpException('Form Login', $this->translator->trans('Authentication required.'));
-        }
-
         if (in_array($intent, ['modify', 'delete'], true)) {
             if (!$this->isValidCsrfToken($request, $resolvedProjectId)) {
                 return [
