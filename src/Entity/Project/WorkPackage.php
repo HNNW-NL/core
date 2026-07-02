@@ -2,6 +2,8 @@
 namespace App\Entity\Project;
 
 use App\Entity\Common\Status;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -51,7 +53,8 @@ class WorkPackage
 
     // Reverse FKs
 
-    /* Insert reverse FKs here */
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'workPackage')]
+    private Collection $packageTasks;
 
 
     // Functions
@@ -59,6 +62,7 @@ class WorkPackage
     public function __construct()
     {
         $this->id = Uuid::v7();
+        $this->packageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -184,5 +188,11 @@ class WorkPackage
     public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
+    }
+
+    /** @return Collection<int, PackageTask> */
+    public function getPackageTasks(): Collection
+    {
+        return $this->packageTasks;
     }
 }

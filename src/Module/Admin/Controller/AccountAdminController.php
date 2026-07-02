@@ -21,6 +21,7 @@ class AccountAdminController extends AbstractController
         UserRepository $userRepository
     ): Response {
         $search = $request->query->get('search');
+        $dbConnected = true;
 
         try {
             $accounts = $search
@@ -30,6 +31,7 @@ class AccountAdminController extends AbstractController
             // If the database is not available (missing tables, etc.),
             // fall back to an empty list so the admin page still renders.
             $accounts = [];
+            $dbConnected = false;
             $this->addFlash('warning', 'Database unavailable — showing empty accounts.');
         }
 
@@ -37,7 +39,8 @@ class AccountAdminController extends AbstractController
             'pages/org/accounts/index.html.twig',
             [
                 'accounts' => $accounts,
-                'search' => $search
+                'search' => $search,
+                'dbConnected' => $dbConnected,
             ]
         );
     }
