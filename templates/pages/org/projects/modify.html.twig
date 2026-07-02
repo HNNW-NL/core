@@ -103,7 +103,7 @@
                         <h2 id="deleteDialogTitle">Confirm permanent deletion</h2>
                         <p>Type <strong>DELETE</strong> to permanently remove <strong>{{ project.title|default('this project') }}</strong>. This cannot be undone.</p>
                         <label for="deleteConfirmInput">Confirmation</label>
-                        <input id="deleteConfirmInput" type="text" autocomplete="off" placeholder="Type DELETE">
+                        <input id="deleteConfirmInput" type="text" autocomplete="off" placeholder="Type DELETE" aria-describedby="deleteConfirmHint">
                         <p id="deleteConfirmHint" class="field-help">Type DELETE (all caps) to enable the button.</p>
                         <div class="delete-dialog__actions">
                             <button value="cancel">Cancel</button>

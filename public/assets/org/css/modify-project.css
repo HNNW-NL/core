@@ -95,11 +95,6 @@ select:focus-visible {
     font-weight: 700;
 }
 
-main {
-    display: grid;
-    gap: 18px;
-}
-
 form {
     position: relative;
     width: 100%;
@@ -109,7 +104,6 @@ form {
     border: 1px solid var(--border);
     border-radius: 22px;
     box-shadow: var(--shadow);
-    backdrop-filter: blur(14px);
     display: grid;
     gap: 18px;
     overflow: hidden;
@@ -118,9 +112,6 @@ form {
 .modify-fields {
     display: grid;
     gap: 16px;
-}
-
-.modify-fields {
     border: 0;
     margin: 0;
     padding: 0;
@@ -167,9 +158,14 @@ form {
 }
 
 
-.modify-fields > div,
-.button-row > .button-cell {
+.modify-fields > div {
     margin-bottom: 16px;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+    form {
+        backdrop-filter: blur(14px);
+    }
 }
 
 label {

@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const endDateInput = form.querySelector('#endDate');
     const initialSnapshot = new FormData(form);
     let deleteConfirmed = false;
+    let isSubmitting = false;
 
     function isDirty() {
         const current = new FormData(form);
@@ -66,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function setSubmitting(isSubmitting) {
         const submitting = !!isSubmitting;
-        window.__orgModifySubmitting = submitting;
+        isSubmitting = submitting;
         actionButtons.forEach(function (button) {
             if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
             button.disabled = submitting;
@@ -75,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.addEventListener('beforeunload', function (event) {
-        if (window.__orgModifySubmitting || !isDirty()) {
+        if (isSubmitting || !isDirty()) {
             return;
         }
 
