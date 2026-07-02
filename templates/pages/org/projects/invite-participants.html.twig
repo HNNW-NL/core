@@ -23,11 +23,16 @@
         <div class="input-content">
             <label for="invite-input">Invite user</label>
             <input type="text" name="invite-input" id="invite-input">
+            <ul id="profile-list"></ul>
         </div>
 
-        <ul id="profile-list"></ul>
 
-        <div id="selected-list"></div>
+        <form id="invite-form" method="post">
+            <h3 id="h3-selected">Selected users</h3>
+            <ul id="selected-list"></ul>
+            <input id="submit-users" type="submit" value="Invite users">
+        </form>
+
     </div>
 
 {% endblock %}

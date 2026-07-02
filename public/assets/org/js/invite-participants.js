@@ -1,19 +1,28 @@
 const input = document.getElementById("invite-input");
 const list = document.getElementById("profile-list");
-const listItems = document.querySelectorAll(".profile-item");
 const output = document.getElementById("selected-list");
+const post = document.getElementById("invite-form");
 
-let selected = JSON.parse(localStorage.getItem("selectedParticipants")) || [];
+let selected = JSON.parse(sessionStorage.getItem("selectedParticipants")) || [];
 let timeout;
 
+document.querySelector("form").addEventListener("submit", () => {
+    sessionStorage.setItem("clearList", "1");
+});
+
 function save() {
-    localStorage.setItem("selectedParticipants", JSON.stringify(selected));
+    sessionStorage.setItem("selectedParticipants", JSON.stringify(selected));
 }
 
 function renderSelected() {
     output.innerHTML = selected
-        .map(p => `<div>${p.name} (${p.id})</div>`)
-        .join("");
+        .map((p, i) => `
+            <li class="profile-item" data-id="${p.id}" data-name="${p.displayName}">
+                <input type="hidden" name="items[${i}][id]" value="${p.id}">
+                <input type="hidden" name="items[${i}][displayName]" value="${p.displayName}">
+                ${p.displayName} (${p.id})
+            </li>
+        `).join("");
 }
 
 function updateUI() {
@@ -52,6 +61,15 @@ input.addEventListener("input", () => {
 
         const data = await res.json();
 
+        if (data.length === 0) {
+            list.innerHTML = `
+                <li class="no-results">
+                    No profiles found
+                </li>
+            `;
+            return;
+        }
+
         list.innerHTML = data.map(p => `
             <li class="profile-item"
                 data-id="${p.id}"
@@ -62,7 +80,7 @@ input.addEventListener("input", () => {
 
         updateUI();
 
-    }, 250);
+    }, 200);
 });
 
 
@@ -71,18 +89,25 @@ list.addEventListener("click", (e) => {
     if (!item) return;
 
     const id = item.dataset.id;
-    const name = item.dataset.name;
+    const displayName = item.dataset.name;
 
     const exists = selected.find(p => p.id === id);
 
     if (exists) {
         selected = selected.filter(p => p.id !== id);
     } else {
-        selected.push({ id, name });
+        selected.push({ id, displayName });
     }
 
     save();
     updateUI();
 });
+
+
+if (sessionStorage.getItem("clearList") === "1") {
+    selected.length = 0;
+    sessionStorage.removeItem("clearList");
+    console.log("List cleared after POST");
+}
 
 updateUI();
