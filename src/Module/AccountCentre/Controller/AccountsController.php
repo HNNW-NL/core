@@ -5,12 +5,14 @@ namespace App\Module\AccountCentre\Controller;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
+use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -71,7 +73,6 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
 
-            // Updates de 'deleted_at' kolom in plaats van een harde database delete
             if (method_exists($application, 'softDelete')) {
                 $application->softDelete();
             } else {
@@ -94,10 +95,133 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/availability.html.twig');
     }
 
-    #[Route('/experience', name: 'experience', methods: ['GET'])]
-    public function experience(): Response
+    #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
+    public function experience(Request $request, EntityManagerInterface $entityManager): Response
     {
-        return $this->render('pages/account-centre/experience.html.twig');
+        $session = $request->getSession();
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        if (!$account) {
+            $this->addFlash('error', 'Account niet gevonden.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
+        if ($request->isMethod('POST')) {
+            $jobTitle = trim((string) $request->request->get('job_title'));
+            $organisationName = trim((string) $request->request->get('organisation_name'));
+            $startDateStr = trim((string) $request->request->get('start_date'));
+            $endDateStr = trim((string) $request->request->get('end_date'));
+            $isCurrent = (bool) $request->request->get('is_current', false);
+            $description = trim((string) $request->request->get('description'));
+
+            if (empty($jobTitle) || empty($organisationName) || empty($startDateStr)) {
+                $this->addFlash('error', 'Vul alstublieft alle verplichte velden in.');
+            } else {
+                try {
+                    $experience = new ProfileExperience();
+
+                    if (method_exists($experience, 'setId')) {
+                        $experience->setId(Uuid::v4());
+                    }
+
+                    $experience->setJobTitle($jobTitle);
+                    $experience->setOrganisationName($organisationName);
+                    $experience->setStartDate(new \DateTimeImmutable($startDateStr));
+
+                    // OPGESCHOOND: Stuurt nu direct de boolean (true of false) naar de Entity
+                    $experience->setIsCurrent($isCurrent);
+
+                    if ($isCurrent) {
+                        $experience->setEndDate(null);
+                    } else {
+                        $experience->setEndDate(!empty($endDateStr) ? new \DateTimeImmutable($endDateStr) : null);
+                    }
+
+                    $experience->setDescription(!empty($description) ? $description : null);
+                    $experience->setProfile($profile);
+
+                    if (method_exists($experience, 'setCreatedAt')) {
+                        $experience->setCreatedAt(new \DateTimeImmutable());
+                    }
+                    if (method_exists($experience, 'setLastModified')) {
+                        $experience->setLastModified(new \DateTimeImmutable());
+                    }
+
+                    $entityManager->persist($experience);
+                    $entityManager->flush();
+
+                    $this->addFlash('success', 'Je werkervaring is succesvol toegevoegd!');
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Fout bij het verwerken van de gegevens: ' . $e->getMessage());
+                }
+            }
+
+            return $this->redirectToRoute('account.experience');
+        }
+
+        $experiences = $entityManager->getRepository(ProfileExperience::class)->findBy(
+            ['profile' => $profile, 'deletedAt' => null],
+            ['startDate' => 'DESC']
+        );
+
+        return $this->render('pages/account-centre/experience.html.twig', [
+            'experiences' => $experiences,
+        ]);
+    }
+
+    #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
+    public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $session = $request->getSession();
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
+
+        if (!$experience) {
+            $this->addFlash('error', 'Ervaring niet gevonden.');
+            return $this->redirectToRoute('account.experience');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
+        if (!$profile || $experience->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze ervaring.');
+        }
+
+        $csrfToken = $request->request->get('_token');
+        if ($this->isCsrfTokenValid('delete_experience' . $experience->getId(), $csrfToken)) {
+
+            if (method_exists($experience, 'softDelete')) {
+                $experience->softDelete();
+            } else {
+                $experience->setDeletedAt(new \DateTimeImmutable());
+            }
+
+            $entityManager->flush();
+            $this->addFlash('success', 'Werkervaring succesvol verwijderd.');
+        } else {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken.');
+        }
+
+        return $this->redirectToRoute('account.experience');
     }
 
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]

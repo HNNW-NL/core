@@ -1,16 +1,175 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}My Experience{% endblock %}
+{% block title %}Mijn Werkervaring{% endblock %}
 
-{# CSS #}
 {% block stylesheets %}{% endblock %}
 
-{# JavaScript #}
 {% block javascript %}{% endblock %}
 
-{# Page content #}
 {% block body %}
-    <h2>Experience</h2>
-    <p>Account Centre - experience page.</p>
+    <div id="account-centre-container">
+
+        <a href="{{ path('account.home') }}" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Mijn Werkervaring</h1>
+            <p>Beheer hier jouw professionele loopbaan, rollen en werkgeschiedenis.</p>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash-alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="account-grid">
+            <h3 class="account-grid-title">Toegevoegde Ervaringen</h3>
+
+            {% if experiences is empty %}
+                <div class="account-card account-card-empty">
+                    <div class="account-card-content">
+                        <p>Je hebt nog geen werkervaring toegevoegd.</p>
+                    </div>
+                </div>
+            {% else %}
+                {% for experience in experiences %}
+                    <div class="account-card">
+                        <div class="account-card-content">
+                            <h3>{{ experience.jobTitle }}</h3>
+                            <p class="account-card-meta">
+                                <strong>Bedrijf:</strong> {{ experience.organisationName }} |
+                                <strong>Type:</strong> {{ experience.employmentType|default('Onbekend') }} |
+                                <strong>Periode:</strong>
+                                {{ experience.startDate|date('M Y') }} -
+                                {% if experience.isCurrent %}
+                                    <em>Heden</em>
+                                {% else %}
+                                    {{ experience.endDate ? experience.endDate|date('M Y') : 'Onbekend' }}
+                                {% endif %}
+                            </p>
+                            {% if experience.description %}
+                                <p class="account-card-description">
+                                    {{ experience.description }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <form action="{{ path('account.experience_delete', {'id': experience.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze ervaring wilt verwijderen?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_experience' ~ experience.id) }}">
+                            <button type="submit" class="btn-card-cancel">Verwijderen</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="form-divider-row"></div>
+
+        <div class="account-form-container">
+            <div class="form-internal-header">
+                <h2>Nieuwe Werkervaring Toevoegen</h2>
+                <p>Vul de onderstaande velden in om een werkgever of project toe te voegen aan je profiel.</p>
+            </div>
+
+            <form action="{{ path('account.experience') }}" method="POST" class="account-form">
+
+                <div class="form-group">
+                    <label for="exp-job-title">Titel / Functietitel</label>
+                    <input type="text" id="exp-job-title" name="job_title" placeholder="bijv. Full Stack Developer" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="exp-employment-type">Type Dienstverband</label>
+                    <select id="exp-employment-type" name="employment_type" required>
+                        <option value="" disabled selected>Kies een optie...</option>
+                        <option value="vast">Vast dienstverband (onbepaalde tijd)</option>
+                        <option value="tijdelijk">Tijdelijk dienstverband (bepaalde tijd)</option>
+                        <option value="oproep">Oproepcontract (nuluren / min-max)</option>
+                        <option value="uitzend_detachering">Uitzendbasis / Detachering</option>
+                        <option value="zzp_freelance">Zelfstandige zonder personeel (zzp / freelance)</option>
+                        <option value="stage_afstuderen">Stage / Afstuderen</option>
+                        <option value="payroll">Payroll</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="exp-organisation">Bedrijf of Organisatie</label>
+                    <input type="text" id="exp-organisation" name="organisation_name" placeholder="bijv. Uw Bedrijf B.V." required>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="exp-is-current" name="is_current" value="1">
+                    <label for="exp-is-current">Ik ben momenteel werkzaam in deze functie</label>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="exp-start-date">Startdatum</label>
+                        <input type="date" id="exp-start-date" name="start_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exp-end-date">Einddatum</label>
+                        <input type="date" id="exp-end-date" name="end_date">
+                    </div>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="exp-location">Locatie</label>
+                        <input type="text" id="exp-location" name="location" placeholder="bijv. Amsterdam, NL">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exp-location-type">Locatie type</label>
+                        <select id="exp-location-type" name="location_type">
+                            <option value="onsite">On-site</option>
+                            <option value="hybrid">Hybride</option>
+                            <option value="remote">Remote</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="exp-headline">Profiel headline <span class="form-note">(Dit update je user profile tagline)</span></label>
+                    <input type="text" id="exp-headline" name="profile_headline" placeholder="bijv. Ervaren Developer gespecialiseerd in Symfony">
+                </div>
+
+                <div class="form-group">
+                    <label for="exp-source">Waar heb je de vacature gevonden?</label>
+                    <select id="exp-source" name="vacancy_source">
+                        <option value="hier">Hier</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="website_organisatie">Website organisatie</option>
+                        <option value="indeed">Indeed</option>
+                        <option value="andere_vacaturesites">Andere vacature websites</option>
+                        <option value="aanbeveling">Aanbeveling</option>
+                        <option value="recruiter">Via een recruiter</option>
+                        <option value="anders">Anders</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="exp-skills">Skills <span class="form-note">(Gescheiden door komma's)</span></label>
+                    <input type="text" id="exp-skills" name="skills" placeholder="bijv. PHP, Symfony, Git, SQL">
+                </div>
+
+                <div class="form-group">
+                    <label for="exp-description">Beschrijving</label>
+                    <textarea id="exp-description" name="description" rows="5" placeholder="Vertel kort wat je verantwoordelijkheden en prestaties waren..."></textarea>
+                </div>
+
+                <div class="form-actions-row">
+                    <button type="submit">Ervaring Opslaan</button>
+                    <a href="{{ path('account.home') }}" class="btn-cancel">Annuleren</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
 {% endblock %}
