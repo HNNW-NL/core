@@ -17,7 +17,7 @@ class ModifyProjectMapper
         $endDateTouched = false;
         $visibilityTouched = false;
 
-        $title = $this->getStringFromRequest($request, ['title', 'name']);
+        $title = $this->getStringFromPost($request, ['title', 'name']);
         $projectId = $this->getStringFromRequest($request, ['project_id', 'projectId'])
             ?? (isset($extraData['project_id']) ? trim((string) $extraData['project_id']) : null)
             ?? trim((string) $request->attributes->get('id', ''));
@@ -25,7 +25,7 @@ class ModifyProjectMapper
             ?? (isset($extraData['organisation_id']) ? trim((string) $extraData['organisation_id']) : '')
             ?? '';
 
-        $submittedVisibility = $this->getStringFromRequest($request, ['visibility']);
+        $submittedVisibility = $this->getStringFromPost($request, ['visibility']);
         $currentProject = $request->attributes->get('_current_project');
         $currentVisibility = $currentProject instanceof Project ? $currentProject->getVisibility() : null;
         
@@ -37,18 +37,18 @@ class ModifyProjectMapper
             projectId: $projectId,
             organisationId: $organisationId,
             title: $title,
-            summary: $this->getStringFromRequest($request, ['summary']),
-            description: $this->getStringFromRequest($request, ['description']),
+            summary: $this->getStringFromPost($request, ['summary']),
+            description: $this->getStringFromPost($request, ['description']),
             visibility: $submittedVisibility,
-            statusName: $this->normalizeStatusName($this->getStringFromRequest($request, ['status', 'status_name'])),
-            startDate: $this->getDateFromRequest($request, ['start_date', 'startDate'], $startDateTouched),
-            endDate: $this->getDateFromRequest($request, ['end_date', 'endDate'], $endDateTouched),
+            statusName: $this->normalizeStatusName($this->getStringFromPost($request, ['status', 'status_name'])),
+            startDate: $this->getDateFromPost($request, ['start_date', 'startDate'], $startDateTouched),
+            endDate: $this->getDateFromPost($request, ['end_date', 'endDate'], $endDateTouched),
             startDateTouched: $startDateTouched,
             endDateTouched: $endDateTouched,
             visibilityTouched: $visibilityTouched,
-            capacity: $this->getIntFromRequest($request, ['capacity']),
-            expectedLastModified: $this->getDateTimeFromRequest($request, ['last_modified', 'lastModified']),
-            csrfToken: $this->getStringFromRequest($request, ['_token']),
+            capacity: $this->getIntFromPost($request, ['capacity']),
+            expectedLastModified: $this->getDateTimeFromPost($request, ['last_modified', 'lastModified']),
+            csrfToken: $this->getStringFromPost($request, ['_token']),
             modifiedBy: $extraData['publisher'] ?? null,
             modifiedAt: new \DateTimeImmutable(),
         );
@@ -150,9 +150,25 @@ class ModifyProjectMapper
         return $request->attributes->get($key);
     }
 
-    private function getDateFromRequest(Request $request, array $keys, bool &$touched = false): ?\DateTimeImmutable
+    private function getStringFromPost(Request $request, array $keys): ?string
     {
-        [$rawValue, $touched] = $this->getRawInputFromRequest($request, $keys);
+        foreach ($keys as $key) {
+            if (!$request->request->has($key)) {
+                continue;
+            }
+
+            $value = trim((string) $request->request->get($key));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    private function getDateFromPost(Request $request, array $keys, bool &$touched = false): ?\DateTimeImmutable
+    {
+        [$rawValue, $touched] = $this->getRawInputFromPost($request, $keys);
         if (!$touched) {
             return null;
         }
@@ -169,9 +185,9 @@ class ModifyProjectMapper
         }
     }
 
-    private function getDateTimeFromRequest(Request $request, array $keys): ?\DateTimeImmutable
+    private function getDateTimeFromPost(Request $request, array $keys): ?\DateTimeImmutable
     {
-        $value = $this->getStringFromRequest($request, $keys);
+        $value = $this->getStringFromPost($request, $keys);
         if ($value === null) {
             return null;
         }
@@ -183,33 +199,25 @@ class ModifyProjectMapper
         }
     }
 
-    private function getRawInputFromRequest(Request $request, array $keys): array
+    private function getRawInputFromPost(Request $request, array $keys): array
     {
         foreach ($keys as $key) {
             if ($request->request->has($key)) {
                 return [$request->request->get($key), true];
-            }
-
-            if ($request->query->has($key)) {
-                return [$request->query->get($key), true];
-            }
-
-            if ($request->attributes->has($key)) {
-                return [$request->attributes->get($key), true];
             }
         }
 
         return [null, false];
     }
 
-    private function getIntFromRequest(Request $request, array $keys): ?int
+    private function getIntFromPost(Request $request, array $keys): ?int
     {
-        $value = $this->getStringFromRequest($request, $keys);
+        $value = $this->getStringFromPost($request, $keys);
         if ($value === null) {
             return null;
         }
 
-        return is_numeric($value) ? (int) $value : null;
+        return preg_match('/^-?\d+$/', $value) ? (int) $value : null;
     }
 
     private function normalizeStatusName(?string $statusName): ?string

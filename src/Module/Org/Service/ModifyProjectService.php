@@ -10,6 +10,9 @@ use App\Module\Org\Handler\ModifyProjectHandler;
 use App\Module\Org\Mapper\ModifyProjectMapper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -38,7 +41,7 @@ class ModifyProjectService
         $project = $this->findProjectByIdentifier($dto->projectId);
 
         if ($project === null) {
-            throw new \RuntimeException('Project not found');
+            throw new NotFoundHttpException('Project not found');
         }
 
         $this->assertProjectNotModifiedSinceLoaded($project, $dto);
@@ -130,7 +133,7 @@ class ModifyProjectService
         $project = $this->findProjectByIdentifier($projectIdentifier);
 
         if ($project === null) {
-            throw new \RuntimeException('Project not found');
+            throw new NotFoundHttpException('Project not found');
         }
 
         if ($organisationId === '' && $project->getOwnerOrganisation() !== null) {
@@ -138,12 +141,12 @@ class ModifyProjectService
         }
 
         if ($project->getOwnerOrganisation() === null) {
-            throw new \RuntimeException('Project does not belong to an organisation');
+            throw new AccessDeniedHttpException('Project does not belong to an organisation');
         }
 
         $projectOrganisationId = (string) $project->getOwnerOrganisation()->getId();
         if ($projectOrganisationId !== $organisationId) {
-            throw new \RuntimeException('Project does not belong to the selected organisation');
+            throw new AccessDeniedHttpException('Project does not belong to the selected organisation');
         }
 
         $this->entityManager->remove($project);
@@ -162,6 +165,16 @@ class ModifyProjectService
         ?Project $project = null,
         ?Account $publisher = null
     ): array {
+        if (in_array($intent, ['modify', 'delete'], true) && !$publisher instanceof Account) {
+            return [
+                'redirectRoute' => 'org.modifyProject',
+                'id' => $resolvedProjectRef,
+                self::ORGANISATION_QUERY_KEY => $organisationId,
+                'status' => 'error',
+                'message' => 'Authentication required.',
+            ];
+        }
+
         if (in_array($intent, ['modify', 'delete'], true)) {
             if (!$this->isValidCsrfToken($request, $resolvedProjectId)) {
                 return [
@@ -173,8 +186,6 @@ class ModifyProjectService
                 ];
             }
         }
-
-        $actor = $publisher instanceof Account ? $publisher : new Account();
 
         if ($intent === 'delete') {
             try {
@@ -216,7 +227,7 @@ class ModifyProjectService
             $request->attributes->set('_current_project', $project);
         }
 
-        $result = $handler->handle($request, $actor);
+        $result = $handler->handle($request, $publisher);
 
         return [
             'redirectRoute' => 'org.modifyProject',
@@ -349,12 +360,12 @@ class ModifyProjectService
     private function assertProjectBelongsToOrganisation(Project $project, string $organisationId): void
     {
         if ($project->getOwnerOrganisation() === null) {
-            throw new \RuntimeException('Project does not belong to an organisation');
+            throw new AccessDeniedHttpException('Project does not belong to an organisation');
         }
 
         $projectOrganisationId = (string) $project->getOwnerOrganisation()->getId();
         if ($projectOrganisationId !== $organisationId) {
-            throw new \RuntimeException('Project does not belong to the selected organisation');
+            throw new AccessDeniedHttpException('Project does not belong to the selected organisation');
         }
     }
 
@@ -475,7 +486,7 @@ class ModifyProjectService
         ]);
 
         if (!$status instanceof Status) {
-            throw new \RuntimeException('Unknown project status: ' . $statusName);
+            throw new BadRequestHttpException('Unknown project status: ' . $statusName);
         }
 
         return $status;

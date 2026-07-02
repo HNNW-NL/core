@@ -8,6 +8,7 @@ use App\Module\Org\Service\ModifyProjectService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class ModifyProjectHandler
 {
@@ -20,25 +21,30 @@ class ModifyProjectHandler
 
     public function handle(Request $request, Account $publisher): array
     {
-        return $this->executeModify($request, $publisher, '');
+        return $this->executeModify($request, $publisher);
     }
 
-    public function quickHandle(Request $request, Account $publisher): array
+    private function executeModify(Request $request, Account $publisher): array
     {
-        return $this->executeModify($request, $publisher, ' (quick handle)');
-    }
+        $intent = trim((string) ($request->request->get('intent') ?? $request->query->get('intent') ?? ''));
+        $organisationId = trim((string) ($request->request->get('organisation_id') ?? $request->query->get('organisation_id') ?? $request->attributes->get('organisation_id') ?? ''));
+        $projectRef = trim((string) ($request->request->get('project_id') ?? $request->query->get('project_id') ?? $request->attributes->get('id') ?? ''));
+        $logContext = [
+            'intent' => $intent,
+            'organisation_id' => $organisationId,
+            'project_ref' => $projectRef,
+            'publisher' => $publisher->getEmail(),
+        ];
 
-    private function executeModify(Request $request, Account $publisher, string $logContext = ''): array
-    {
         try {
             $this->entityManager->beginTransaction();
 
             $extraData = ['publisher' => $publisher];
-            $organisationId = $request->attributes->get('organisation_id');
-            if (is_scalar($organisationId)) {
-                $organisationId = trim((string) $organisationId);
-                if ($organisationId !== '') {
-                    $extraData['organisation_id'] = $organisationId;
+            $attributeOrganisationId = $request->attributes->get('organisation_id');
+            if (is_scalar($attributeOrganisationId)) {
+                $attributeOrganisationId = trim((string) $attributeOrganisationId);
+                if ($attributeOrganisationId !== '') {
+                    $extraData['organisation_id'] = $attributeOrganisationId;
                 }
             }
 
@@ -48,26 +54,26 @@ class ModifyProjectHandler
 
             $this->entityManager->commit();
 
-            $this->logger->info('Project modified' . $logContext, [
+            $this->logger->info('Project modified', [
                 'project_id' => (string) $project->getId(),
-                'publisher' => $publisher->getEmail(),
+                ...$logContext,
             ]);
 
             return $this->mapper->toResponse($project);
 
         } catch (\InvalidArgumentException $e) {
             $this->safeRollback();
-            $this->logger->warning($e->getMessage());
+            $this->logger->warning($e->getMessage(), $logContext);
             return $this->mapper->toErrorResponse($e->getMessage(), 400);
 
         } catch (\RuntimeException $e) {
             $this->safeRollback();
-            $this->logger->error($e->getMessage());
+            $this->logger->error($e->getMessage(), $logContext);
             return $this->mapper->toErrorResponse($e->getMessage(), $this->resolveRuntimeStatusCode($e));
 
         } catch (\Exception $e) {
             $this->safeRollback();
-            $this->logger->critical('Unexpected error: ' . $e->getMessage());
+            $this->logger->critical('Unexpected error: ' . $e->getMessage(), $logContext);
             return $this->mapper->toErrorResponse('Internal server error', 500);
         }
     }
@@ -85,18 +91,8 @@ class ModifyProjectHandler
 
     private function resolveRuntimeStatusCode(\RuntimeException $exception): int
     {
-        $message = strtolower($exception->getMessage());
-
-        if (str_contains($message, 'not found')) {
-            return 404;
-        }
-
-        if (str_contains($message, 'does not belong')) {
-            return 403;
-        }
-
-        if (str_contains($message, 'unknown project status')) {
-            return 400;
+        if ($exception instanceof HttpExceptionInterface) {
+            return $exception->getStatusCode();
         }
 
         return 400;
