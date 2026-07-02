@@ -188,15 +188,22 @@ body {
     align-items: center;
     gap: 18px;
 }
+/* LOCATION POPUP */
+#new-location {
+    color: black;
+    background-color: white;
+}
 
+#new-location option {
+    color: black;
+    background-color: white;
+}
 /* AVATAR */
 
 .profile-avatar {
     width: 100px;
 
     height: 100px;
-
-    background: var(--accent-yellow);
 
     border-radius: 12px;
 

@@ -9,131 +9,145 @@
 {% endblock %}
 
 {% block body %}
-	<div class="page">
+<div class="page">
 
-		<div class="header">
-			<div class="profile">
-				<div class="profile-avatar"></div>
+	<div class="header">
+		<div class="profile">
+			<div class="profile-avatar">
+				<img id="preview" src="default-profile.png" alt="Profile Picture">
+				<input type="file" id="upload" accept="image/*">
+			</div>
+			 <script>
+			                const upload = document.getElementById("upload");
+			                const preview = document.getElementById("preview"); 
+			                upload.addEventListener("change", function () {
+			                const file = this.files[0];
+			
+			                if (file) {
+			               preview.src = URL.createObjectURL(file);
+			                }
+			               });
+			                </script>
 
-				<div class="profile-text">
-					<h1>Naam</h1>
-					<p>@username</p>
+			<div class="profile-text">
+				<h1>Naam</h1>
+				<p>@username</p>
 
-					{% if app and app.user %}
-						<p>Status:
-							{% if app.user.status and app.user.status.id == 1 %}
-								Online
-							{% elseif app.user.status and app.user.status.id == 2 %}
-								Afwezig
-							{% else %}
-								Offline
-							{% endif %}
-						</p>
-
-						<p>
-							{% if app.user.lastLoginAt %}
-								Laatst actief:
-								{{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
-							{% else %}
-								Laatst actief: Onbekend
-							{% endif %}
-						</p>
-					{% else %}
-						<p>Occupation / Status</p>
-						<p>Laatst actief: Onbekend</p>
-					{% endif %}
-
-					<p onclick="openLocationPopup()" style="cursor: pointer;">
-						Locatie:
-						<span id="current-location">
-							{% if profile is defined and profile and profile.location %}
-								{{ profile.location }}
-							{% elseif guest_location is defined and guest_location %}
-								{{ guest_location }}
-							{% else %}
-								Niet ingesteld
-							{% endif %}
-						</span>
-						<span style="font-size: 12px;">✏️</span>
+				{% if app and app.user %}
+					<p>Status:
+						{% if app.user.status and app.user.status.id == 1 %}
+							Online
+						{% elseif app.user.status and app.user.status.id == 2 %}
+							Afwezig
+						{% else %}
+							Offline
+						{% endif %}
 					</p>
-				</div>
 
-				<div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
-					<h3>Locatie aanpassen</h3>
-					<select id="new-location">
-						<option value="">-- Kies een stad --</option>
-						<option value="Den Haag">Den Haag</option>
-						<option value="Amsterdam">Amsterdam</option>
-						<option value="Rotterdam">Rotterdam</option>
-						<option value="Utrecht">Utrecht</option>
-						<option value="Eindhoven">Eindhoven</option>
-						<option value="Groningen">Groningen</option>
-						<option value="Maastricht">Maastricht</option>
-					</select>
-					<button onclick="saveLocation()">Opslaan</button>
-					<button onclick="closePopup()">Annuleren</button>
-				</div>
+					<p>
+						{% if app.user.lastLoginAt %}
+							Laatst actief:
+							{{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
+						{% else %}
+							Laatst actief: Onbekend
+						{% endif %}
+					</p>
+				{% else %}
+					<p>Occupation / Status</p>
+					<p>Laatst actief: Onbekend</p>
+				{% endif %}
 
-				<div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
+				<p onclick="openLocationPopup()" style="cursor: pointer;">
+					Locatie:
+					<span id="current-location">
+						{% if profile is defined and profile and profile.location %}
+							{{ profile.location }}
+						{% elseif guest_location is defined and guest_location %}
+							{{ guest_location }}
+						{% else %}
+							Niet ingesteld
+						{% endif %}
+					</span>
+					<span style="font-size: 12px;">✏️</span>
+				</p>
+			</div>
+
+			<div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #030e19; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
+				<h3>Locatie aanpassen</h3>
+				<select id="new-location">
+					<option value="">-- Kies een stad --</option>
+					<option value="Den Haag">Den Haag</option>
+					<option value="Amsterdam">Amsterdam</option>
+					<option value="Rotterdam">Rotterdam</option>
+					<option value="Utrecht">Utrecht</option>
+					<option value="Eindhoven">Eindhoven</option>
+					<option value="Groningen">Groningen</option>
+					<option value="Maastricht">Maastricht</option>
+				</select>
+				<button onclick="saveLocation()">Opslaan</button>
+				<button onclick="closePopup()">Annuleren</button>
+			</div>
+
+			<div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
+		</div>
+	</div>
+
+	<div class="main-grid">
+
+		<div class="card-about-me">
+			<h2 class="about-me">Over mij</h2>
+			<p class="text-muted">This is an example text.</p>
+
+			<h2 class="expertise" style="margin-top: 40px;">Expertise</h2>
+			<div class="expertise-container">
+				<div class="bubble">Expertise 1</div>
+				<div class="bubble">Expertise 2</div>
+				<div class="bubble">Expertise 3</div>
 			</div>
 		</div>
 
-		<div class="main-grid">
-
-			<div class="card-about-me">
-				<h2 class="about-me">Over mij</h2>
-				<p class="text-muted">This is an example text.</p>
-
-				<h2 class="expertise" style="margin-top: 40px;">Expertise</h2>
-				<div class="expertise-container">
-					<div class="bubble">Expertise 1</div>
-					<div class="bubble">Expertise 2</div>
-					<div class="bubble">Expertise 3</div>
-				</div>
+		<div class="card">
+			<div class="action-buttons">
+				<a href="#" class="btn-outline">Edit Profile</a>
+				<a href="#" class="btn-outline">Projects</a>
 			</div>
+		</div>
 
-			<div class="card">
-				<div class="action-buttons">
-					<a href="#" class="btn-outline">Edit Profile</a>
-					<a href="#" class="btn-outline">Projects</a>
-				</div>
+		<div class="tech-stack">
+			<div class="tech-icon">
+				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JS">
 			</div>
-
-			<div class="tech-stack">
-				<div class="tech-icon">
-					<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JS">
-				</div>
-				<div class="tech-icon">
-					<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5">
-				</div>
-				<div class="tech-icon">
-					<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3">
-				</div>
-				<div class="tech-icon">
-					<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL">
-				</div>
-				<div class="tech-icon">
-					<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP">
-				</div>
+			<div class="tech-icon">
+				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5">
 			</div>
-
-			<div class="achievements-bar">
-				<div class="circle"></div>
-				<div class="circle"></div>
-				<div class="circle"></div>
-				<div class="circle"></div>
-				<div class="circle"></div>
+			<div class="tech-icon">
+				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3">
 			</div>
+			<div class="tech-icon">
+				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL">
+			</div>
+			<div class="tech-icon">
+				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP">
+			</div>
+		</div>
 
+		<div class="achievements-bar">
+			<div class="circle"></div>
+			<div class="circle"></div>
+			<div class="circle"></div>
+			<div class="circle"></div>
+			<div class="circle"></div>
 		</div>
 
 	</div>
 
-	<script>
-		function openLocationPopup() {
-			document.getElementById('location-popup').style.display = 'block';
-			document.getElementById('popup-overlay').style.display = 'block';
-		}
+</div>
+
+ <script>
+        function openLocationPopup() {
+            document.getElementById('location-popup').style.display = 'block';
+            document.getElementById('popup-overlay').style.display = 'block';
+        }
 
 		function closePopup() {
 			document.getElementById('location-popup').style.display = 'none';
@@ -166,6 +180,7 @@
 				console.error('Fetch error:', error);
 			});
 		}
-	</script>
+	   </script> 
 
-{% endblock %}
+    {% endblock %}
+
