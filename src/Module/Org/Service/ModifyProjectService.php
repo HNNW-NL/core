@@ -12,7 +12,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -72,60 +74,77 @@ class ModifyProjectService
     {
         $organisationId = $this->getOrganisationIdFromRequest($request);
         $intent = $this->getRequestValue($request, 'intent');
+        $fallbackId = trim($id) === '' ? 'unknown' : $id;
 
-        $project = $this->findProjectByIdentifier($id);
-        if (!$project instanceof Project) {
-            return ['view' => [
-                'id' => trim($id) === '' ? 'unknown' : $id,
-                'organisationId' => $organisationId,
-                'project' => null,
-                'error' => $this->translator->trans('org.project.error.not_found_db'),
-            ]];
-        }
-
-        $resolvedProjectId = (string) $project->getId();
-        $resolvedProjectRef = $this->projectRef($project);
-
-        if ($organisationId === '' && $project->getOwnerOrganisation() !== null) {
-            $organisationId = (string) $project->getOwnerOrganisation()->getId();
-        }
-
-        if ($intent !== '') {
-            $redirect = $this->handleIntent(
-                $intent,
-                $request,
-                $handler,
-                $organisationId,
-                $resolvedProjectId,
-                $resolvedProjectRef,
-                $project,
-                $publisher
-            );
-
-            $redirectRoute = $redirect['redirectRoute'] ?? null;
-            unset($redirect['redirectRoute']);
-
-            $payload = ['redirect' => $redirect];
-            if (is_string($redirectRoute) && $redirectRoute !== '') {
-                $payload['redirectRoute'] = $redirectRoute;
+        try {
+            $project = $this->findProjectByIdentifier($id);
+            if (!$project instanceof Project) {
+                throw new NotFoundHttpException($this->translator->trans('org.project.error.not_found_db'));
             }
 
-            return $payload;
-        }
+            $resolvedProjectId = (string) $project->getId();
+            $resolvedProjectRef = $this->projectRef($project);
 
-        if ($id !== $resolvedProjectRef) {
-            return ['redirect' => [
+            if ($organisationId === '' && $project->getOwnerOrganisation() !== null) {
+                $organisationId = (string) $project->getOwnerOrganisation()->getId();
+            }
+
+            if ($intent !== '') {
+                $redirect = $this->handleIntent(
+                    $intent,
+                    $request,
+                    $handler,
+                    $organisationId,
+                    $resolvedProjectId,
+                    $resolvedProjectRef,
+                    $project,
+                    $publisher
+                );
+
+                $redirectRoute = $redirect['redirectRoute'] ?? null;
+                unset($redirect['redirectRoute']);
+
+                $payload = ['redirect' => $redirect];
+                if (is_string($redirectRoute) && $redirectRoute !== '') {
+                    $payload['redirectRoute'] = $redirectRoute;
+                }
+
+                return $payload;
+            }
+
+            if ($id !== $resolvedProjectRef) {
+                return ['redirect' => [
+                    'id' => $resolvedProjectRef,
+                    self::ORGANISATION_QUERY_KEY => $organisationId,
+                ]];
+            }
+
+            return ['view' => [
                 'id' => $resolvedProjectRef,
-                self::ORGANISATION_QUERY_KEY => $organisationId,
+                'organisationId' => $organisationId,
+                'project' => $this->mapProject($project, $organisationId),
+                'error' => null,
+            ]];
+        } catch (HttpExceptionInterface $e) {
+            if ($intent !== '') {
+                return [
+                    'redirectRoute' => 'org.modifyProject',
+                    'redirect' => [
+                        'id' => $fallbackId,
+                        self::ORGANISATION_QUERY_KEY => $organisationId,
+                        'status' => 'error',
+                        'message' => $e->getMessage(),
+                    ],
+                ];
+            }
+
+            return ['view' => [
+                'id' => $fallbackId,
+                'organisationId' => $organisationId,
+                'project' => null,
+                'error' => $e->getMessage(),
             ]];
         }
-
-        return ['view' => [
-            'id' => $resolvedProjectRef,
-            'organisationId' => $organisationId,
-            'project' => $this->mapProject($project, $organisationId),
-            'error' => null,
-        ]];
     }
 
     public function delete(string $projectIdentifier, string $organisationId): Project
@@ -166,13 +185,7 @@ class ModifyProjectService
         ?Account $publisher = null
     ): array {
         if (in_array($intent, ['modify', 'delete'], true) && !$publisher instanceof Account) {
-            return [
-                'redirectRoute' => 'org.modifyProject',
-                'id' => $resolvedProjectRef,
-                self::ORGANISATION_QUERY_KEY => $organisationId,
-                'status' => 'error',
-                'message' => 'Authentication required.',
-            ];
+            throw new UnauthorizedHttpException('Form Login', $this->translator->trans('Authentication required.'));
         }
 
         if (in_array($intent, ['modify', 'delete'], true)) {
@@ -208,6 +221,14 @@ class ModifyProjectService
                     self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'success',
                     'message' => $this->translator->trans('org.project.deleted_success'),
+                ];
+            } catch (HttpExceptionInterface $e) {
+                return [
+                    'redirectRoute' => 'org.modifyProject',
+                    'id' => $resolvedProjectRef,
+                    self::ORGANISATION_QUERY_KEY => $organisationId,
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
                 ];
             } catch (\RuntimeException $e) {
                 return [

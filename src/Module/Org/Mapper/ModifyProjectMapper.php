@@ -5,6 +5,7 @@ namespace App\Module\Org\Mapper;
 use App\Entity\Project\Project;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ModifyProjectMapper
 {
@@ -181,7 +182,7 @@ class ModifyProjectMapper
         try {
             return new \DateTimeImmutable($date);
         } catch (\Throwable) {
-            throw new \InvalidArgumentException('Invalid date format provided.');
+            throw new BadRequestHttpException('Invalid date format provided.');
         }
     }
 
@@ -195,7 +196,7 @@ class ModifyProjectMapper
         try {
             return new \DateTimeImmutable($value);
         } catch (\Throwable) {
-            throw new \InvalidArgumentException('Invalid datetime format provided.');
+            throw new BadRequestHttpException('Invalid datetime format provided.');
         }
     }
 
