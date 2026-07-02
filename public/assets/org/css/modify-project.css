@@ -9,6 +9,10 @@
     --ring: #f8fafc;
     --ring-shadow: rgba(244, 196, 0, 0.55);
     --shadow: 0 18px 45px rgba(2, 6, 23, 0.35);
+    --control-min-height: 44px;
+    --radius-button: 12px;
+    --radius-control: 14px;
+    --radius-panel: 16px;
 }
 
 * {
@@ -23,7 +27,7 @@
     z-index: 1000;
     padding: 10px 14px;
     transform: translateY(-120%);
-    border-radius: 0 0 12px 0;
+    border-radius: 0 0 var(--radius-button) 0;
     background: #f8fafc;
     color: #0f172a;
     font-weight: 700;
@@ -71,7 +75,7 @@ select:focus-visible {
 .modify-banner {
     padding: 20px 20px 18px;
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: var(--radius-panel);
     background: rgba(255, 255, 255, 0.05);
 }
 
@@ -148,7 +152,7 @@ form {
 .button-cell--danger {
     /* Visually separates the delete action so destructive controls are easy to spot before clicking. */
     border: 1px solid rgba(239, 68, 68, 0.25);
-    border-radius: 14px;
+    border-radius: var(--radius-control);
     padding: 12px;
     background: rgba(127, 29, 29, 0.14);
 }
@@ -191,7 +195,7 @@ label {
     margin: 0 0 16px;
     padding: 12px 15px;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius-button);
     font-size: 0.95rem;
     font-weight: 600;
 }
@@ -214,13 +218,13 @@ input,
 textarea,
 select {
     width: 100%;
-    min-height: 44px;
+    min-height: var(--control-min-height);
     padding: 11px 13px;
     font: inherit;
     color: var(--text);
     background-color: rgba(15, 23, 42, 0.92);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: var(--radius-control);
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease,
     transform 0.18s ease;
 }
@@ -263,9 +267,9 @@ textarea#description {
 
 button {
     width: 100%;
-    min-height: 44px;
+    min-height: var(--control-min-height);
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--radius-button);
     padding: 12px 16px;
     font: inherit;
     font-weight: 700;
@@ -313,7 +317,7 @@ button[disabled] {
     /* Modal shell that holds the permanent-delete confirmation content and actions. */
     width: min(480px, calc(100% - 24px));
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: var(--radius-panel);
     padding: 0;
     color: var(--text);
     background: #0b1225;

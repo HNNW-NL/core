@@ -12,6 +12,9 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class ModifyProjectHandler
 {
+    private const HTTP_BAD_REQUEST = 400;
+    private const HTTP_INTERNAL_SERVER_ERROR = 500;
+
     public function __construct(
         private ModifyProjectService $service,
         private ModifyProjectMapper $mapper,
@@ -70,7 +73,7 @@ class ModifyProjectHandler
             // Input problems become 400 responses because the request data itself is invalid.
             $this->safeRollback();
             $this->logger->warning($e->getMessage(), $logContext);
-            return $this->mapper->toErrorResponse($e->getMessage(), 400);
+            return $this->mapper->toErrorResponse($e->getMessage(), self::HTTP_BAD_REQUEST);
 
         } catch (\RuntimeException $e) {
             // Domain errors may carry a more specific HTTP status, such as 404 or 403.
@@ -82,7 +85,7 @@ class ModifyProjectHandler
             // Any unexpected exception is treated as a server-side failure.
             $this->safeRollback();
             $this->logger->critical('Unexpected error: ' . $e->getMessage(), $logContext);
-            return $this->mapper->toErrorResponse('Internal server error', 500);
+            return $this->mapper->toErrorResponse('Internal server error', self::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -105,6 +108,6 @@ class ModifyProjectHandler
             return $exception->getStatusCode();
         }
 
-        return 400;
+        return self::HTTP_BAD_REQUEST;
     }
 }

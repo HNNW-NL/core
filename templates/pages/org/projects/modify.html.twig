@@ -16,6 +16,13 @@
     {% set queryStatus = app.request.query.get('status')|default('') %}
     {% set queryMessage = app.request.query.get('message')|default('') %}
     {% set queryIsError = queryStatus == 'error' %}
+    {% set titleMaxLength = 120 %}
+    {% set summaryMinLength = 5 %}
+    {% set summaryMaxLength = 280 %}
+    {% set descriptionMinLength = 10 %}
+    {% set descriptionMaxLength = 500 %}
+    {% set capacityMin = 1 %}
+    {% set capacityMax = 500 %}
     {# Detects response messages that look like translation keys or internal codes instead of user text. #}
     {% set queryMessageLooksLikeKey = queryMessage matches '/^[A-Za-z0-9_.-]+$/' and '.' in queryMessage %}
     {# Shows a safe generic message for internal keys, and the original message when it is already readable. #}
@@ -51,18 +58,18 @@
                             <legend>Project details</legend>
                             <div>
                                 <label for="name">Project title</label>
-                                <input type="text" id="name" name="title" placeholder="Project title" required maxlength="120" autocomplete="off" aria-describedby="nameHelp" value="{{ project.title|default('') }}">
-                                <p id="nameHelp" class="field-help">Use a clear title (max 120 characters).</p>
+                                <input type="text" id="name" name="title" placeholder="Project title" required maxlength="{{ titleMaxLength }}" autocomplete="off" aria-describedby="nameHelp" value="{{ project.title|default('') }}">
+                                <p id="nameHelp" class="field-help">Use a clear title (max {{ titleMaxLength }} characters).</p>
                             </div>
                             <div>
                                 <label for="summary">Summary</label>
-                                <textarea id="summary" name="summary" rows="3" placeholder="Short project summary" required maxlength="280" autocomplete="off" spellcheck="true" aria-describedby="summaryHelp">{{ project.summary|default('') }}</textarea>
-                                <p id="summaryHelp" class="field-help">Short overview between 5 and 280 characters.</p>
+                                <textarea id="summary" name="summary" rows="3" placeholder="Short project summary" required maxlength="{{ summaryMaxLength }}" autocomplete="off" spellcheck="true" aria-describedby="summaryHelp">{{ project.summary|default('') }}</textarea>
+                                <p id="summaryHelp" class="field-help">Short overview between {{ summaryMinLength }} and {{ summaryMaxLength }} characters.</p>
                             </div>
                             <div>
                                 <label for="description">Description</label>
-                                <textarea id="description" name="description" rows="5" placeholder="Describe the project in detail" required maxlength="500" autocomplete="off" spellcheck="true" aria-describedby="descriptionHelp">{{ project.description|default('') }}</textarea>
-                                <p id="descriptionHelp" class="field-help">Detailed project description between 10 and 500 characters.</p>
+                                <textarea id="description" name="description" rows="5" placeholder="Describe the project in detail" required maxlength="{{ descriptionMaxLength }}" autocomplete="off" spellcheck="true" aria-describedby="descriptionHelp">{{ project.description|default('') }}</textarea>
+                                <p id="descriptionHelp" class="field-help">Detailed project description between {{ descriptionMinLength }} and {{ descriptionMaxLength }} characters.</p>
                             </div>
                             <div>
                                 <label for="visibility">Visibility</label>
@@ -84,8 +91,8 @@
                             </div>
                             <div>
                                 <label for="capacity">Capacity</label>
-                                <input type="number" id="capacity" name="capacity" min="1" max="500" step="1" inputmode="numeric" placeholder="Max participants" aria-describedby="capacityHelp" value="{{ project.capacity is not null ? project.capacity : '' }}">
-                                <p id="capacityHelp" class="field-help">Enter a whole number from 1 to 500.</p>
+                                <input type="number" id="capacity" name="capacity" min="{{ capacityMin }}" max="{{ capacityMax }}" step="1" inputmode="numeric" placeholder="Max participants" aria-describedby="capacityHelp" value="{{ project.capacity is not null ? project.capacity : '' }}">
+                                <p id="capacityHelp" class="field-help">Enter a whole number from {{ capacityMin }} to {{ capacityMax }}.</p>
                             </div>
                             <div>
                                 <label for="statusId">Status</label>

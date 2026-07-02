@@ -21,6 +21,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ModifyProjectService
 {
     private const ORGANISATION_QUERY_KEY = 'organisation_id';
+    private const DATE_FORMAT = 'Y-m-d';
+    private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+    private const NEXT_PROJECT_LIMIT = 1;
     private const TITLE_MAX_LENGTH = 120;
     private const SUMMARY_MIN_LENGTH = 5;
     private const SUMMARY_MAX_LENGTH = 280;
@@ -326,7 +329,7 @@ class ModifyProjectService
             ->setParameter('organisationId', $organisationId)
             ->setParameter('excludedProjectId', $excludedProjectId)
             ->orderBy('p.createdAt', 'DESC')
-            ->setMaxResults(1)
+            ->setMaxResults(self::NEXT_PROJECT_LIMIT)
             ->getQuery()
             ->getOneOrNullResult();
 
@@ -350,10 +353,10 @@ class ModifyProjectService
             'ref' => $this->projectRef($project),
             'statusName' => $project->getStatus()?->getName(),
             'organisationId' => $project->getOwnerOrganisation() ? (string) $project->getOwnerOrganisation()->getId() : $organisationId,
-            'startDate' => $project->getStartDate()?->format('Y-m-d'),
-            'endDate' => $project->getEndDate()?->format('Y-m-d'),
+            'startDate' => $project->getStartDate()?->format(self::DATE_FORMAT),
+            'endDate' => $project->getEndDate()?->format(self::DATE_FORMAT),
             'capacity' => $project->getCapacity(),
-            'lastModified' => $project->getLastModified()?->format('Y-m-d H:i:s'),
+            'lastModified' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
         ];
     }
 
@@ -369,7 +372,7 @@ class ModifyProjectService
             return;
         }
 
-        if ($current->format('Y-m-d H:i:s') !== $dto->expectedLastModified->format('Y-m-d H:i:s')) {
+        if ($current->format(self::DATE_TIME_FORMAT) !== $dto->expectedLastModified->format(self::DATE_TIME_FORMAT)) {
             throw new \RuntimeException($this->translateOrFallback('org.project.error.concurrent_modification', 'Project was modified by another request. Please reload and try again.'));
         }
     }

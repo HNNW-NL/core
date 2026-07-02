@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
+    const deleteConfirmKeyword = 'DELETE';
+    const submittingDeleteLabel = 'Deleting...';
+    const submittingModifyLabel = 'Updating...';
+
     const statusBanner = form.querySelector('.form-status');
     const deleteButton = form.querySelector('button[name="intent"][value="delete"]');
     const actionButtons = form.querySelectorAll('button[name="intent"]');
@@ -76,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
         actionButtons.forEach(function (button) {
             if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
             button.disabled = submitting;
-            button.textContent = submitting ? (button.value === 'delete' ? 'Deleting...' : 'Updating...') : button.dataset.originalLabel;
+            button.textContent = submitting ? (button.value === 'delete' ? submittingDeleteLabel : submittingModifyLabel) : button.dataset.originalLabel;
         });
     }
 
@@ -98,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (deleteInput) {
         deleteInput.addEventListener('input', function () {
-            const ok = deleteInput.value.trim() === 'DELETE';
+            const ok = deleteInput.value.trim() === deleteConfirmKeyword;
             if (deleteConfirmButton) deleteConfirmButton.disabled = !ok;
             if (deleteHint) deleteHint.textContent = ok ? 'Confirmed. You can delete permanently.' : 'Type DELETE (all caps) to enable the button.';
         });
@@ -106,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     deleteDialog?.addEventListener('close', function () {
         // Proceed only when the modal was confirmed and the user typed the exact required word.
-        if (deleteDialog.returnValue !== 'confirm' || (deleteInput && deleteInput.value.trim() !== 'DELETE')) {
+        if (deleteDialog.returnValue !== 'confirm' || (deleteInput && deleteInput.value.trim() !== deleteConfirmKeyword)) {
             deleteConfirmed = false;
             setSubmitting(false);
             return;
@@ -134,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (deleteInput) deleteInput.focus();
                 } else {
                     const typed = window.prompt('Type DELETE to confirm permanent deletion:');
-                    if ((typed || '').trim() === 'DELETE') {
+                    if ((typed || '').trim() === deleteConfirmKeyword) {
                         deleteConfirmed = true;
                         form.requestSubmit(deleteButton || undefined);
                     } else {

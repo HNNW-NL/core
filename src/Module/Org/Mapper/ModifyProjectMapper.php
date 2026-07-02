@@ -11,6 +11,16 @@ class ModifyProjectMapper
 {
     private const DATE_FORMAT = 'Y-m-d';
     private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+    private const STATUS_NAME_ALIASES = [
+        '1' => 'draft',
+        'draft' => 'draft',
+        '2' => 'published',
+        'published' => 'published',
+        'active' => 'published',
+        '3' => 'archived',
+        'archived' => 'archived',
+        'closed' => 'archived',
+    ];
 
     public function fromRequest(Request $request, array $extraData = []): ModifyProjectDTO
     {
@@ -235,11 +245,6 @@ class ModifyProjectMapper
         // Convert numeric or alias status inputs into the canonical names used by the domain model.
         $statusName = trim(strtolower($statusName));
 
-        return match ($statusName) {
-            '1', 'draft' => 'draft',
-            '2', 'published', 'active' => 'published',
-            '3', 'archived', 'closed' => 'archived',
-            default => $statusName === '' ? null : $statusName,
-        };
+        return self::STATUS_NAME_ALIASES[$statusName] ?? ($statusName === '' ? null : $statusName);
     }
 }
