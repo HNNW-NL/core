@@ -115,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setSubmitting(false);
             return;
         }
+
         deleteConfirmed = true;
         form.requestSubmit(deleteButton || undefined);
     });
