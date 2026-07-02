@@ -90,3 +90,22 @@ textarea::placeholder {
     font-style: italic;
     font-weight: 300;
 }
+
+select {
+    background: var(--background);
+    color: var(--paragraph);
+}
+
+select:required:invalid {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+select:valid {
+    background: var(--hnnw-yellow-500);
+    color: #020617;
+}
+
+select option {
+    background: var(--background);
+    color: var(--paragraph);
+}
