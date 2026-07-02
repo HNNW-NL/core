@@ -2,6 +2,7 @@
 
 namespace App\Module\Admin\Controller;
 
+use App\Module\Admin\Service\AuditLogService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -37,5 +38,23 @@ final class DashboardController extends AbstractController
     public function socialManageStaff(): Response
     {
         return $this->render('pages/admin/social-staff.html.twig');
+    }
+
+    // Tijdelijke testroute
+    #[Route('/test-audit-log', name: 'test.audit.log', methods: ['GET'])]
+    public function testAuditLog(AuditLogService $auditLogService): Response
+    {
+        $auditLogService->log(
+            null,
+            'Admin Test',
+            'admin@test.nl',
+            'TEST',
+            'System',
+            '1',
+            [],
+            ['message' => 'Audit log test werkt']
+        );
+
+        return new Response('Audit log aangemaakt');
     }
 }

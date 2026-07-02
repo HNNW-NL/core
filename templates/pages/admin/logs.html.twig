@@ -1,16 +1,105 @@
 {% extends 'layouts/admin.base.html.twig' %}
 
-{# Page title meta tag #}
 {% block title %}Logs{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block javascript %}
+<script>
+    fetch('/admin/api/logs/audit')
+        .then(response => response.json())
+        .then(logs => {
+            const table = document.getElementById('auditLogsTable');
+            table.innerHTML = '';
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
+            if (logs.length === 0) {
+                table.innerHTML = '<tr><td colspan="7">Geen audit logs gevonden.</td></tr>';
+                return;
+            }
 
-{# Page content #}
+            logs.forEach(log => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${log.createdAt ?? ''}</td>
+                        <td>${log.actorUsername ?? ''}</td>
+                        <td>${log.actorEmail ?? ''}</td>
+                        <td>${log.action ?? ''}</td>
+                        <td>${log.entityType ?? ''}</td>
+                        <td>${log.entityId ?? ''}</td>
+                        <td>${log.requestIp ?? ''}</td>
+                    </tr>
+                `;
+            });
+        });
+
+    fetch('/admin/api/logs/system')
+        .then(response => response.json())
+        .then(logs => {
+            const table = document.getElementById('systemLogsTable');
+            table.innerHTML = '';
+
+            if (logs.length === 0) {
+                table.innerHTML = '<tr><td colspan="7">Geen system logs gevonden.</td></tr>';
+                return;
+            }
+
+            logs.forEach(log => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${log.createdAt ?? ''}</td>
+                        <td>${log.code ?? ''}</td>
+                        <td>${log.level ?? ''}</td>
+                        <td>${log.message ?? ''}</td>
+                        <td>${log.route ?? ''}</td>
+                        <td>${log.method ?? ''}</td>
+                        <td>${log.requestIp ?? ''}</td>
+                    </tr>
+                `;
+            });
+        });
+</script>
+{% endblock %}
+
 {% block body %}
-    <h2>Logs</h2>
-    <p>Admin dashboard - logs page.</p>
+    <h2>Audit Logs</h2>
+
+    <table border="1" cellpadding="8">
+        <thead>
+        <tr>
+            <th>Datum</th>
+            <th>Gebruiker</th>
+            <th>Email</th>
+            <th>Actie</th>
+            <th>Onderdeel</th>
+            <th>Entity ID</th>
+            <th>IP</th>
+        </tr>
+        </thead>
+        <tbody id="auditLogsTable">
+        <tr>
+            <td colspan="7">Laden...</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <br><br>
+
+    <h2>System Logs</h2>
+
+    <table border="1" cellpadding="8">
+        <thead>
+        <tr>
+            <th>Datum</th>
+            <th>Code</th>
+            <th>Level</th>
+            <th>Bericht</th>
+            <th>Route</th>
+            <th>Methode</th>
+            <th>IP</th>
+        </tr>
+        </thead>
+        <tbody id="systemLogsTable">
+        <tr>
+            <td colspan="7">Laden...</td>
+        </tr>
+        </tbody>
+    </table>
 {% endblock %}
