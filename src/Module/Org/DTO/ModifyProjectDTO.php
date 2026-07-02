@@ -26,6 +26,7 @@ class ModifyProjectDTO
         public ?Account $modifiedBy = null,
         public ?\DateTimeImmutable $modifiedAt = null,
     ) {
+        // A modify request is only valid when it points to exactly one project inside one organisation.
         if ($projectId === '' || $organisationId === '') {
             throw new \InvalidArgumentException('Project ID and Organisation ID cannot be empty');
         }
@@ -48,6 +49,7 @@ class ModifyProjectDTO
 
     public function hasVisibilityChanged(): bool
     {
+        // Visibility uses the touched flag because the backend needs to know whether the field was submitted at all.
         return $this->visibilityTouched;
     }
 
@@ -58,6 +60,7 @@ class ModifyProjectDTO
 
     public function hasStartDateChanged(): bool
     {
+        // Start-date changes use a touched flag so an intentionally cleared field still counts as a change.
         return $this->startDateTouched;
     }
 

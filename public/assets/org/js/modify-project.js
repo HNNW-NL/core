@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Only attach this behavior when the modify-project form is actually rendered.
     const form = document.querySelector('[data-modify-project-form]');
     if (!form) {
         return;
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const current = new FormData(form);
         const keys = new Set([...initialSnapshot.keys(), ...current.keys()]);
 
+        // Compare the original form data with the current form data to detect unsaved edits.
         for (const key of keys) {
             const before = initialSnapshot.getAll(key).map(String);
             const after = current.getAll(key).map(String);
@@ -43,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!statusBanner) {
             return;
         }
+        // Update a single banner instead of rendering separate success and error messages.
         statusBanner.className = 'form-status ' + (kind === 'error' ? 'form-status--error' : 'form-status--success');
         statusBanner.setAttribute('role', kind === 'error' ? 'alert' : 'status');
         statusBanner.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
@@ -55,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        // Keep the end date from going before the start date and clear the warning when valid again.
         const startValue = startDateInput.value;
         endDateInput.min = startValue || '';
 
@@ -68,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function setSubmitting(submittingState) {
         const submitting = !!submittingState;
         isSubmitting = submitting;
+        // Lock all intent buttons during submit so the form cannot be sent twice.
         actionButtons.forEach(function (button) {
             if (!button.dataset.originalLabel) button.dataset.originalLabel = button.textContent;
             button.disabled = submitting;
@@ -76,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     window.addEventListener('beforeunload', function (event) {
+        // Warn about unsaved work only when the user is leaving with edits that were not submitted.
         if (isSubmitting || !isDirty()) {
             return;
         }
@@ -99,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     deleteDialog?.addEventListener('close', function () {
+        // Proceed only when the modal was confirmed and the user typed the exact required word.
         if (deleteDialog.returnValue !== 'confirm' || (deleteInput && deleteInput.value.trim() !== 'DELETE')) {
             deleteConfirmed = false;
             setSubmitting(false);
@@ -117,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const intent = event.submitter?.value || 'modify';
 
         if (intent === 'delete') {
+            // The first delete click opens the dialog; the second confirmed submit actually deletes.
             if (!deleteConfirmed) {
                 event.preventDefault();
                 if (deleteDialog?.showModal) {
@@ -135,6 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 return;
             }
+            // Reset the confirmation flag so the next delete action must be verified again.
             deleteConfirmed = false;
             setStatus('success', 'Deleting project...');
             setSubmitting(true);

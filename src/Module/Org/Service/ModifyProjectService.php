@@ -39,6 +39,7 @@ class ModifyProjectService
 
     public function modify(ModifyProjectDTO $dto): Project
     {
+        // Load the target project before validation so all checks run against the current persisted entity.
         $project = $this->findProjectByIdentifier($dto->projectId);
 
         if ($project === null) {
@@ -53,6 +54,7 @@ class ModifyProjectService
             $project->setStatus($this->resolveStatus($dto->statusName));
         }
 
+        // Run all business-rule checks before copying form data onto the project entity.
         $this->validateModifyConstraints($dto, $project);
 
         $project = $this->mapper->toEntity($project, $dto);
@@ -117,6 +119,7 @@ class ModifyProjectService
                 return $payload;
             }
 
+            // Normalize route param to slug when available so URLs remain canonical.
             if ($id !== $resolvedProjectRef) {
                 return ['redirect' => [
                     'id' => $resolvedProjectRef,
@@ -184,6 +187,7 @@ class ModifyProjectService
         ?Project $project = null,
         ?Account $publisher = null
     ): array {
+        // The modify and delete actions both require a project-scoped CSRF token.
         if (in_array($intent, ['modify', 'delete'], true)) {
             if (!$this->isValidCsrfToken($request, $resolvedProjectId)) {
                 return [
@@ -200,6 +204,7 @@ class ModifyProjectService
             try {
                 $this->delete($resolvedProjectId, $organisationId);
 
+                // After deletion, send the user to the next project in the organisation or back to the list.
                 $nextProjectRef = $this->findAnotherProjectRefForOrganisation($organisationId, $resolvedProjectId);
 
                 if ($nextProjectRef !== null) {
@@ -237,6 +242,7 @@ class ModifyProjectService
             }
         }
 
+        // Replace any slug or route alias with the stored project id before the handler reads the request.
         $request->request->set('project_id', $resolvedProjectId);
 
         if ($project instanceof Project) {
@@ -292,6 +298,7 @@ class ModifyProjectService
 
         $projectRepository = $this->entityManager->getRepository(Project::class);
 
+        // Accept both UUIDs and slugs so the route can be called with either the canonical id or the readable alias.
         if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $identifier)) {
             $project = $projectRepository->find($identifier);
             if ($project instanceof Project) {
@@ -310,6 +317,7 @@ class ModifyProjectService
             return null;
         }
 
+        // Find the newest remaining project in the same organisation so delete redirects stay inside the project area.
         $qb = $this->entityManager->getRepository(Project::class)->createQueryBuilder('p');
         $project = $qb
             ->where('p.ownerOrganisation = :organisationId')
@@ -351,6 +359,7 @@ class ModifyProjectService
 
     private function assertProjectNotModifiedSinceLoaded(Project $project, ModifyProjectDTO $dto): void
     {
+        // Stop the update when the database version changed after the form was loaded.
         if ($dto->expectedLastModified === null) {
             return;
         }
@@ -368,6 +377,7 @@ class ModifyProjectService
     private function isValidCsrfToken(Request $request, string $projectId): bool
     {
         $tokenValue = trim((string) ($request->request->get('_token') ?? $request->query->get('_token') ?? ''));
+        // Scope the CSRF token to the project id so a token from another project cannot be replayed here.
         $tokenId = 'org_modify_project_' . $projectId;
 
         return $tokenValue !== '' && $this->csrfTokenManager->isTokenValid(new CsrfToken($tokenId, $tokenValue));

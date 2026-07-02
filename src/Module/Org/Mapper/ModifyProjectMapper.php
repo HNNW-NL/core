@@ -14,6 +14,7 @@ class ModifyProjectMapper
 
     public function fromRequest(Request $request, array $extraData = []): ModifyProjectDTO
     {
+        // Touched flags let the service distinguish a submitted empty field from a field that was never sent.
         $startDateTouched = false;
         $endDateTouched = false;
         $visibilityTouched = false;
@@ -29,7 +30,8 @@ class ModifyProjectMapper
         $submittedVisibility = $this->getStringFromPost($request, ['visibility']);
         $currentProject = $request->attributes->get('_current_project');
         $currentVisibility = $currentProject instanceof Project ? $currentProject->getVisibility() : null;
-        
+
+        // Mark visibility as touched only when the submitted value is different from what the project already has.
         if ($submittedVisibility !== null && $submittedVisibility !== $currentVisibility) {
             $visibilityTouched = true;
         }
@@ -57,6 +59,7 @@ class ModifyProjectMapper
 
     public function toEntity(Project $project, ModifyProjectDTO $dto): Project
     {
+        // Copy only the fields that were actually changed so untouched values stay on the entity.
         if ($dto->hasTitleChanged()) {
             $project->setTitle($dto->title);
         }
@@ -153,6 +156,7 @@ class ModifyProjectMapper
 
     private function getStringFromPost(Request $request, array $keys): ?string
     {
+        // For updates, read only the submitted form body so query parameters cannot accidentally override it.
         foreach ($keys as $key) {
             if (!$request->request->has($key)) {
                 continue;
@@ -202,6 +206,7 @@ class ModifyProjectMapper
 
     private function getRawInputFromPost(Request $request, array $keys): array
     {
+        // Returns [value, wasSubmitted] so callers know whether the field was omitted or intentionally cleared.
         foreach ($keys as $key) {
             if ($request->request->has($key)) {
                 return [$request->request->get($key), true];
@@ -227,6 +232,7 @@ class ModifyProjectMapper
             return null;
         }
 
+        // Convert numeric or alias status inputs into the canonical names used by the domain model.
         $statusName = trim(strtolower($statusName));
 
         return match ($statusName) {

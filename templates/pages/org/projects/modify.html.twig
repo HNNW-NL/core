@@ -16,7 +16,9 @@
     {% set queryStatus = app.request.query.get('status')|default('') %}
     {% set queryMessage = app.request.query.get('message')|default('') %}
     {% set queryIsError = queryStatus == 'error' %}
+    {# Detects response messages that look like translation keys or internal codes instead of user text. #}
     {% set queryMessageLooksLikeKey = queryMessage matches '/^[A-Za-z0-9_.-]+$/' and '.' in queryMessage %}
+    {# Shows a safe generic message for internal keys, and the original message when it is already readable. #}
     {% set displayQueryMessage = queryMessageLooksLikeKey
         ? (queryIsError ? 'Something went wrong.' : 'Changes saved.')
         : queryMessage
@@ -37,8 +39,10 @@
             {% endif %}
 
             {% if project %}
+                {# This one form handles both edit and delete actions; the button value tells the backend which path to take. #}
                 <form id="modifyProjectForm" data-modify-project-form method="post" action="{{ path('org.modifyProject', { id: id }) }}">
                     <p class="form-status" role="status" aria-live="polite" hidden></p>
+                    {# Hidden fields send the security token, the current organisation, the project id, and the last-loaded timestamp. #}
                     <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ project.id) }}">
                     <input type="hidden" id="organisationId" name="organisation_id" value="{{ project.organisationId|default(organisationId|default('')) }}">
                     <input type="hidden" name="project_id" value="{{ project.id|default('') }}">
@@ -103,6 +107,7 @@
                         </div>
                     </div>
                 </form>
+                {# This modal forces a second confirmation step before the permanent delete request is submitted. #}
                 <dialog id="deleteConfirmDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
                     <form method="dialog" class="delete-dialog__form">
                         <h2 id="deleteDialogTitle">Confirm permanent deletion</h2>

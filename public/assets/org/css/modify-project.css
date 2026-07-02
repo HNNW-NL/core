@@ -1,5 +1,5 @@
 :root {
-    /* Color theme */
+    /* Shared design values for this page: colors, borders, focus ring, and shadow levels. */
     --bg: #020617;
     --card-strong: #0f172a;
     --text: #f1f5f9;
@@ -16,6 +16,7 @@
 }
 
 .skip-link {
+    /* Hidden shortcut that appears on focus so keyboard users can jump straight to the main content. */
     position: absolute;
     top: 0;
     left: 0;
@@ -145,6 +146,7 @@ form {
 }
 
 .button-cell--danger {
+    /* Visually separates the delete action so destructive controls are easy to spot before clicking. */
     border: 1px solid rgba(239, 68, 68, 0.25);
     border-radius: 14px;
     padding: 12px;
@@ -162,6 +164,7 @@ form {
     margin-bottom: 16px;
 }
 
+/* Uses backdrop blur only in browsers that support it; otherwise the solid background stays in place. */
 @supports (backdrop-filter: blur(1px)) {
     form {
         backdrop-filter: blur(14px);
@@ -184,6 +187,7 @@ label {
 }
 
 .form-status {
+    /* Shared banner style for any message shown above the form, whether it is success or error text. */
     margin: 0 0 16px;
     padding: 12px 15px;
     border: 1px solid var(--border);
@@ -193,12 +197,14 @@ label {
 }
 
 .form-status--success {
+    /* Green-tinted state used when the save or delete action finished successfully. */
     color: #d1fae5;
     background: rgba(16, 185, 129, 0.18);
     border-color: rgba(16, 185, 129, 0.38);
 }
 
 .form-status--error {
+    /* Red-tinted state used when validation or server processing fails. */
     color: #fee2e2;
     background: rgba(239, 68, 68, 0.18);
     border-color: rgba(239, 68, 68, 0.38);
@@ -304,6 +310,7 @@ button[disabled] {
 }
 
 .delete-dialog {
+    /* Modal shell that holds the permanent-delete confirmation content and actions. */
     width: min(480px, calc(100% - 24px));
     border: 1px solid var(--border);
     border-radius: 16px;

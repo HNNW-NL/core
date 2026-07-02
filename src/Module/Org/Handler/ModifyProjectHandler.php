@@ -26,6 +26,7 @@ class ModifyProjectHandler
 
     private function executeModify(Request $request, ?Account $publisher): array
     {
+        // Capture the request intent and ids once so every log entry and error response has the same context.
         $intent = trim((string) ($request->request->get('intent') ?? $request->query->get('intent') ?? ''));
         $organisationId = trim((string) ($request->request->get('organisation_id') ?? $request->query->get('organisation_id') ?? $request->attributes->get('organisation_id') ?? ''));
         $projectRef = trim((string) ($request->request->get('project_id') ?? $request->query->get('project_id') ?? $request->attributes->get('id') ?? ''));
@@ -37,6 +38,7 @@ class ModifyProjectHandler
         ];
 
         try {
+            // Begin a transaction so request parsing, validation, and persistence succeed or fail together.
             $this->entityManager->beginTransaction();
 
             $extraData = [];
@@ -65,16 +67,19 @@ class ModifyProjectHandler
             return $this->mapper->toResponse($project);
 
         } catch (\InvalidArgumentException $e) {
+            // Input problems become 400 responses because the request data itself is invalid.
             $this->safeRollback();
             $this->logger->warning($e->getMessage(), $logContext);
             return $this->mapper->toErrorResponse($e->getMessage(), 400);
 
         } catch (\RuntimeException $e) {
+            // Domain errors may carry a more specific HTTP status, such as 404 or 403.
             $this->safeRollback();
             $this->logger->error($e->getMessage(), $logContext);
             return $this->mapper->toErrorResponse($e->getMessage(), $this->resolveRuntimeStatusCode($e));
 
         } catch (\Exception $e) {
+            // Any unexpected exception is treated as a server-side failure.
             $this->safeRollback();
             $this->logger->critical('Unexpected error: ' . $e->getMessage(), $logContext);
             return $this->mapper->toErrorResponse('Internal server error', 500);
@@ -84,6 +89,7 @@ class ModifyProjectHandler
     private function safeRollback(): void
     {
         try {
+            // Roll back only if a transaction is active, and never let rollback errors hide the original one.
             if ($this->entityManager->getConnection()->isTransactionActive()) {
                 $this->entityManager->rollback();
             }
@@ -94,6 +100,7 @@ class ModifyProjectHandler
 
     private function resolveRuntimeStatusCode(\RuntimeException $exception): int
     {
+        // Keep the status code from HttpException; otherwise fall back to 400 for generic runtime failures.
         if ($exception instanceof HttpExceptionInterface) {
             return $exception->getStatusCode();
         }
