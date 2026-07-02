@@ -12,9 +12,16 @@
 {# Page content #}
 {% block body %}
     <div id="account-centre-container">
-        <header class="dashboard-header">
+
+        <a href="{{ path('account.home') }}" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
             <h1>Profiel Wijzigen</h1>
-        </header>
+            <p>Wijzig hier uw gegevens en uw zichtbaarheid van de profiel.</p>
+        </div>
 
         {% for message in app.flashes('success') %}
             <div class="account-flash-success">
