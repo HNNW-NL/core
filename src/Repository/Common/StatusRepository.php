@@ -3,61 +3,41 @@
 namespace App\Repository\Common;
 
 use App\Entity\Common\Status;
-use Doctrine\ORM\EntityManagerInterface;
-
-final class StatusRepository
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+/**
+ * @extends ServiceEntityRepository<Status>
+ */
+class StatusRepository extends ServiceEntityRepository
 {
-    public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-    ) {
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Status::class);
     }
 
-    public function findAll(): array
+    public function findOneByScopeAndName(string $scope, string $name): ?Status
     {
-        return $this->entityManager
-            ->getRepository(Status::class)
-            ->findAll();
+        return $this->createQueryBuilder('status')
+            ->andWhere('LOWER(status.scope) = LOWER(:scope)')
+            ->andWhere('LOWER(status.name) = LOWER(:name)')
+            ->setParameter('scope', $scope)
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
-    public function findById(string $id): ?Status
+    /**
+     * @param list<string> $names
+     */
+    public function findFirstByScopeAndNames(string $scope, array $names): ?Status
     {
-        return $this->entityManager
-            ->getRepository(Status::class)
-            ->find($id);
-    }
+        foreach ($names as $name) {
+            $status = $this->findOneByScopeAndName($scope, $name);
+            if ($status !== null) {
+                return $status;
+            }
+        }
 
-    public function findByScope(string $scope): array
-    {
-        return $this->entityManager
-            ->getRepository(Status::class)
-            ->findBy([
-                'scope' => $scope,
-            ]);
+        return null;
     }
-
-    public function findOneByNameAndScope(string $name, string $scope): ?Status
-    {
-        return $this->entityManager
-            ->getRepository(Status::class)
-            ->findOneBy([
-                'name' => $name,
-                'scope' => $scope,
-            ]);
-    }
-
-    public function save(Status $status): void
-    {
-        $this->entityManager->persist($status);
-        $this->entityManager->flush();
-    }
-
-    public function flush(): void
-    {
-        $this->entityManager->flush();
-    }
-    public function remove(Status $status): void
-    {
-    $this->entityManager->remove($status);
-    $this->entityManager->flush();
-  }
 }
