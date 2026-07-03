@@ -1,16 +1,117 @@
 {% extends 'layouts/admin.base.html.twig' %}
 
-{# Page title meta tag #}
 {% block title %}Home{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+<style>
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
+    .card {
+        background: #1e1e1e;
+        border-radius: 10px;
+        padding: 20px;
+        color: #fff;
+    }
 
-{# Page content #}
+    .card h3 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 18px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+    }
+
+    .card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .card li {
+        padding: 10px 0;
+        border-bottom: 1px solid #2a2a2a;
+        font-size: 14px;
+    }
+
+    .card li small {
+        display: block;
+        color: #aaa;
+        font-size: 12px;
+    }
+
+    .empty {
+        color: #888;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
 {% block body %}
-    <h2>Home</h2>
-    <p>Admin dashboard - home page.</p>
+
+<h2>Dashboard</h2>
+<p>Overzicht van de nieuwste data in het systeem.</p>
+
+<div class="dashboard">
+
+    <!-- Logs -->
+    <div class="card">
+        <h3>Nieuwste logs</h3>
+
+        {% if logs is not empty %}
+            <ul>
+                {% for log in logs %}
+                    <li>
+                        {{ log.message }}
+                        <small>{{ log.createdAt|date('d-m-Y H:i') }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty">Geen logs gevonden.</p>
+        {% endif %}
+    </div>
+
+    <!-- Accounts -->
+    <div class="card">
+        <h3>Laatst bijgewerkte accounts</h3>
+
+        {% if accounts is not empty %}
+            <ul>
+                {% for account in accounts %}
+                    <li>
+                        {{ account.name }}
+                        <small>{{ account.updatedAt|date('d-m-Y H:i') }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty">Geen accounts gevonden.</p>
+        {% endif %}
+    </div>
+
+    <!-- Profiles -->
+    <div class="card">
+        <h3>Laatst bijgewerkte profielen</h3>
+
+        {% if profiles is not empty %}
+            <ul>
+                {% for profile in profiles %}
+                    <li>
+                        {{ profile.fullName }}
+                        <small>{{ profile.updatedAt|date('d-m-Y H:i') }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="empty">Geen profielen gevonden.</p>
+        {% endif %}
+    </div>
+
+</div>
+
 {% endblock %}
