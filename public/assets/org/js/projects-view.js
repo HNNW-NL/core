@@ -144,9 +144,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // Clicking card navigates to project detail page
                 card.addEventListener("click", () => {
-                    const projectRef = project.slug || project.id;
-                    if (projectRef) {
-                        window.location.href = "/org/projects/modify/" + encodeURIComponent(projectRef);
+                    if (project.slug) {
+                        window.location.href = "/org/projects/" + encodeURIComponent(project.slug);
                     }
                 });
 
@@ -175,8 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 summaryEl.className = "project-summary";
                 const slugEl = document.createElement("a");
                 slugEl.className = "project-slug";
-                const projectRef = project.slug || project.id || '';
-                slugEl.href = projectRef ? "/org/projects/modify/" + encodeURIComponent(projectRef) : "#";
+                slugEl.href = "/org/projects/" + encodeURIComponent(project.slug || '');
 
                 // Stop card click when slug link is clicked
                 slugEl.addEventListener("click", (e) => {
