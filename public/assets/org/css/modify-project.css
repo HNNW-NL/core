@@ -1,0 +1,388 @@
+:root {
+    /* Shared design values for this page: colors, borders, focus ring, and shadow levels. */
+    --bg: #020617;
+    --card-strong: #0f172a;
+    --text: #f1f5f9;
+    --muted: #cbd5e1;
+    --border: rgba(255, 255, 255, 0.1);
+    --accent: #f4c400;
+    --ring: #f8fafc;
+    --ring-shadow: rgba(244, 196, 0, 0.55);
+    --shadow: 0 18px 45px rgba(2, 6, 23, 0.35);
+    --control-min-height: 44px;
+    --radius-button: 12px;
+    --radius-control: 14px;
+    --radius-panel: 16px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.skip-link {
+    /* Hidden shortcut that appears on focus so keyboard users can jump straight to the main content. */
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    padding: 10px 14px;
+    transform: translateY(-120%);
+    border-radius: 0 0 var(--radius-button) 0;
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.28);
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+    outline: 3px solid #0f172a;
+    outline-offset: 2px;
+}
+
+body {
+    /* Page background and base text */
+    margin: 0;
+    min-height: 100vh;
+    font-family: Inter, "Segoe UI", "Trebuchet MS", sans-serif;
+    line-height: 1.5;
+    color: var(--text);
+    background:
+        radial-gradient(circle at top left, rgba(255, 227, 111, 0.08), transparent 32%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 28%),
+        linear-gradient(180deg, #0f172a 0%, var(--bg) 100%);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--ring-shadow);
+}
+
+.content {
+    padding: 0;
+}
+
+.content--single {
+    width: min(1040px, calc(100% - 32px));
+    margin: 24px auto 32px;
+}
+
+.modify-banner {
+    padding: 20px 20px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.modify-banner h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 4.2vw, 2.2rem);
+    line-height: 1.1;
+}
+
+.modify-banner p {
+    margin: 10px 0 0;
+    color: var(--muted);
+    max-width: 62ch;
+}
+
+.eyebrow {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+form {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 26px;
+    background: var(--card-strong);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 18px;
+    overflow: hidden;
+}
+
+.modify-fields {
+    display: grid;
+    gap: 16px;
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.modify-fields legend {
+    margin: 0 0 6px;
+    padding: 0;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.button-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 2px;
+}
+
+.button-cell {
+    display: grid;
+    align-content: end;
+}
+
+.button-cell--delete {
+    gap: 8px;
+    align-content: start;
+}
+
+.button-cell--danger {
+    /* Visually separates the delete action so destructive controls are easy to spot before clicking. */
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: var(--radius-control);
+    padding: 12px;
+    background: rgba(127, 29, 29, 0.14);
+}
+
+.danger-note {
+    margin: 0;
+    font-size: 0.86rem;
+    color: #fecaca;
+}
+
+
+.modify-fields > div {
+    margin-bottom: 16px;
+}
+
+/* Uses backdrop blur only in browsers that support it; otherwise the solid background stays in place. */
+@supports (backdrop-filter: blur(1px)) {
+    form {
+        backdrop-filter: blur(14px);
+    }
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.field-help {
+    margin: 8px 0 0;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+.form-status {
+    /* Shared banner style for any message shown above the form, whether it is success or error text. */
+    margin: 0 0 16px;
+    padding: 12px 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-button);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.form-status--success {
+    /* Green-tinted state used when the save or delete action finished successfully. */
+    color: #d1fae5;
+    background: rgba(16, 185, 129, 0.18);
+    border-color: rgba(16, 185, 129, 0.38);
+}
+
+.form-status--error {
+    /* Red-tinted state used when validation or server processing fails. */
+    color: #fee2e2;
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.38);
+}
+
+input,
+textarea,
+select {
+    width: 100%;
+    min-height: var(--control-min-height);
+    padding: 11px 13px;
+    font: inherit;
+    color: var(--text);
+    background-color: rgba(15, 23, 42, 0.92);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-control);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+textarea {
+    resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #d7deea;
+    opacity: 1;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(248, 250, 252, 0.14);
+    background-color: rgba(15, 23, 42, 0.98);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+    background-color: rgba(15, 23, 42, 0.4);
+    color: #64748b;
+    border-color: rgba(255, 255, 255, 0.05);
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+textarea#summary {
+    min-height: 90px;
+}
+
+textarea#description {
+    min-height: 140px;
+}
+
+button {
+    width: 100%;
+    min-height: var(--control-min-height);
+    border: 0;
+    border-radius: var(--radius-button);
+    padding: 12px 16px;
+    font: inherit;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    color: #0f172a;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+button:hover {
+    background: #f8fafc;
+    box-shadow: 0 16px 30px rgba(2, 6, 23, 0.28);
+    transform: translateY(-1px);
+}
+
+button:focus-visible {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 18px rgba(14, 40, 92, 0.4);
+}
+
+button:disabled,
+button[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.button-danger {
+    color: #fee2e2;
+    background: rgba(185, 28, 28, 0.55);
+    box-shadow: 0 12px 28px rgba(127, 29, 29, 0.35);
+}
+
+.button-danger:hover {
+    background: rgba(220, 38, 38, 0.65);
+}
+
+.delete-dialog {
+    /* Modal shell that holds the permanent-delete confirmation content and actions. */
+    width: min(480px, calc(100% - 24px));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-panel);
+    padding: 0;
+    color: var(--text);
+    background: #0b1225;
+    box-shadow: 0 24px 50px rgba(2, 6, 23, 0.55);
+}
+
+.delete-dialog::backdrop {
+    background: rgba(2, 6, 23, 0.7);
+    backdrop-filter: blur(2px);
+}
+
+.delete-dialog__form {
+    margin: 0;
+    padding: 20px;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+}
+
+.delete-dialog__form h2 {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+}
+
+.delete-dialog__form p {
+    margin: 0 0 14px;
+    color: var(--muted);
+}
+
+.delete-dialog__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.delete-dialog__actions button[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+
+@media (max-width: 640px) {
+    form {
+        padding: 16px;
+        border-radius: 18px;
+    }
+
+    .button-row {
+        grid-template-columns: 1fr;
+    }
+
+    .delete-dialog__actions {
+        grid-template-columns: 1fr;
+    }
+}

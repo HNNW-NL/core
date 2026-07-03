@@ -4,13 +4,35 @@
 {% block title %}Invite project {{ id }} participants{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/org/css/invite-participants.css") }}">
+{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    {{ parent() }}
+    <script src="{{ asset('assets/org/js/invite-participants.js') }}" defer></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
+    {% include "/core/org/_modify-project-nav.html.twig" %}
     <h2>Projects - Invite Participants</h2>
     <p>Organization panel - invite project ({{ id }}) participants page.</p>
+    <div class="page-content">
+        <div class="input-content">
+            <label for="invite-input">Invite user</label>
+            <input type="text" name="invite-input" id="invite-input">
+            <ul id="profile-list"></ul>
+        </div>
+
+
+        <form id="invite-form" method="post">
+            <h3 id="h3-selected">Selected users</h3>
+            <ul id="selected-list"></ul>
+            <input id="submit-users" type="submit" value="Invite users">
+        </form>
+
+    </div>
+
 {% endblock %}

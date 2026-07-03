@@ -5,10 +5,10 @@
     <h2>Dashboard</h2>
 
     <ul>
-        <li><a href="#" class="active">Tasks</a></li>
-        <li><a href="#">Edit Visibility</a></li>
-        <li><a href="#">Reviews</a></li>
-        <li><a href="#">Participants</a></li>
-        <li><a href="#">Invite Participants</a></li>
+        <li><a href="{{ path('org.modifyProject.tasks', {'id': id}) }}" class="active">Tasks</a></li>
+        <li><a href="{{ path('org.modifyProject', {'id': id}) }}">Edit Visibility</a></li>
+        <li><a href="{{ path('org.modifyProject.reviews', {'id': id}) }}">Reviews</a></li>
+        <li><a href="{{ path('org.modifyProject.participants', {'id': id}) }}">Participants</a></li>
+        <li><a href="{{ path('org.modifyProject.inviteParticipants', {'id': id}) }}">Invite Participants</a></li>
     </ul>
 </nav>
