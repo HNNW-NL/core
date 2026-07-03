@@ -10,10 +10,12 @@ document.querySelector("form").addEventListener("submit", () => {
     sessionStorage.setItem("clearList", "1");
 });
 
+// selected in session storage
 function save() {
     sessionStorage.setItem("selectedParticipants", JSON.stringify(selected));
 }
 
+// render selected in html
 function renderSelected() {
     output.innerHTML = selected
         .map((p, i) => `
@@ -25,6 +27,7 @@ function renderSelected() {
         `).join("");
 }
 
+// highlight selected profiles in search
 function updateUI() {
     const items = list.querySelectorAll(".profile-item");
 
@@ -39,6 +42,8 @@ function updateUI() {
     renderSelected();
 }
 
+
+// check for input and send ajax request to the controller to search for profiles
 input.addEventListener("input", () => {
     clearTimeout(timeout);
 
@@ -84,6 +89,8 @@ input.addEventListener("input", () => {
 });
 
 
+
+// check for click on highlighted profiles and remove from selected
 list.addEventListener("click", (e) => {
     const item = e.target.closest(".profile-item");
     if (!item) return;
@@ -104,6 +111,8 @@ list.addEventListener("click", (e) => {
 });
 
 
+
+// clear selected state after post
 if (sessionStorage.getItem("clearList") === "1") {
     selected.length = 0;
     sessionStorage.removeItem("clearList");
