@@ -20,7 +20,7 @@ class PackageTask
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
     private Uuid $id;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: "workPackageTasks")]
     #[ORM\JoinColumn(name: 'work_package_id', nullable: false)]
     private ?WorkPackage $workPackage = null;
 
