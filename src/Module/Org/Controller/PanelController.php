@@ -2,15 +2,19 @@
 
 namespace App\Module\Org\Controller;
 
-use App\Entity\Common\Status;
 use App\Entity\Project\Project;
-use App\Entity\Project\WorkPackage;
-use App\Repository\Project\WorkPackageRepository;
+use App\Module\Admin\DTO\CreatePackageTaskDTO;
+use App\Module\Admin\DTO\CreateWorkPackageDTO;
+use App\Module\Admin\Handler\CreatePackageTaskHandler;
+use App\Module\Admin\Handler\CreateWorkPackageHandler;
+use App\Module\Admin\Handler\DeleteWorkPackageHandler;
+use App\Module\Org\Handler\GetOrgProjectWorkPackagesHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -58,7 +62,7 @@ final class PanelController extends AbstractController
     }
 
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
-    public function InviteProjectParticipants(string $id): Response
+    public function inviteProjectParticipants(string $id): Response
     {
         return $this->render('pages/org/projects/invite-participants.html.twig', [
             'id' => $id,
@@ -81,51 +85,86 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route(
-        '/projects/modify/{id}/work-packages',
-        name: 'modifyProject.workPackages',
-        requirements: ['id' => '[0-9a-fA-F-]{36}'],
-        methods: ['GET', 'POST']
-    )]
+    #[Route('/projects/modify/{id}/updates', name: 'modifyProject.updates', methods: ['GET'])]
+    public function modifyProjectUpdates(string $id): Response
+    {
+        return $this->render('pages/org/projects/modify-updates.html.twig', [
+            'id' => $id,
+        ]);
+    }
+
+    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET', 'POST'])]
     public function modifyProjectWorkPackages(
         string $id,
         Request $request,
+        GetOrgProjectWorkPackagesHandler $handler,
+        CreateWorkPackageHandler $createWorkPackageHandler,
+        DeleteWorkPackageHandler $deleteWorkPackageHandler,
+        CreatePackageTaskHandler $createPackageTaskHandler,
         EntityManagerInterface $entityManager,
-        WorkPackageRepository $workPackageRepository
     ): Response {
         if ($request->isMethod('POST')) {
-            $project = $entityManager->getRepository(Project::class)->find($id);
-            $status = $entityManager->getRepository(Status::class)->findOneBy([]);
+            $action = (string) $request->request->get('_action');
 
-            if ($project !== null && $status !== null) {
-                $title = (string) $request->request->get('title', '');
-                $description = (string) $request->request->get('description', '');
+            if ($action === 'delete_work_package') {
+                $deleteWorkPackageHandler->handle((string) $request->request->get('workPackageId'));
 
-                $slug = strtolower(trim($title));
-                $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
-                $slug = trim((string) $slug, '-');
-
-                $workPackage = new WorkPackage();
-                $workPackage->setProject($project);
-                $workPackage->setStatus($status);
-                $workPackage->setTitle($title);
-                $workPackage->setSlug($slug);
-                $workPackage->setDescription($description);
-
-                $entityManager->persist($workPackage);
-                $entityManager->flush();
+                return $this->redirectToRoute('org.modifyProject.workPackages', [
+                    'id' => $id,
+                ]);
             }
 
-            return $this->redirectToRoute('org.modifyProject.workPackages', [
-                'id' => $id,
-            ]);
+            if ($action === 'create_package_task') {
+                $dueDateValue = $request->request->get('taskDueDate');
+
+                $dto = new CreatePackageTaskDTO(
+                    workPackageId: (string) $request->request->get('workPackageId'),
+                    title: (string) $request->request->get('taskTitle'),
+                    slug: (string) $request->request->get('taskSlug'),
+                    description: $request->request->get('taskDescription') ?: null,
+                    dueDate: $dueDateValue ? new \DateTimeImmutable($dueDateValue) : null,
+                    priority: (string) ($request->request->get('taskPriority') ?: 'normal'),
+                );
+
+                $createPackageTaskHandler->handle($dto);
+
+                return $this->redirectToRoute('org.modifyProject.workPackages', [
+                    'id' => $id,
+                ]);
+            }
+
+            if ($action === 'create_work_package') {
+                $dueDateValue = $request->request->get('dueDate');
+
+                $dto = new CreateWorkPackageDTO(
+                    projectId: $id,
+                    title: (string) $request->request->get('title'),
+                    slug: (string) $request->request->get('slug'),
+                    description: $request->request->get('description') ?: null,
+                    dueDate: $dueDateValue ? new \DateTimeImmutable($dueDateValue) : null,
+                );
+
+                $createWorkPackageHandler->handle($dto);
+
+                return $this->redirectToRoute('org.modifyProject.workPackages', [
+                    'id' => $id,
+                ]);
+            }
         }
 
-        $workPackages = $workPackageRepository->findActiveByProjectId($id);
+        $overview = $handler->handle($id);
+        $project = Uuid::isValid($id)
+            ? $entityManager->find(Project::class, Uuid::fromString($id))
+            : null;
 
         return $this->render('pages/org/projects/modify-work-packages.html.twig', [
             'id' => $id,
-            'workPackages' => $workPackages,
+            'projectTitle' => $project?->getTitle(),
+            'projectMemberCount' => 0,
+            'workPackages' => $overview['workPackages'],
+            'workPackageCount' => $overview['workPackageCount'],
+            'taskCount' => $overview['taskCount'],
+            'averageProgress' => $overview['averageProgress'],
         ]);
     }
 

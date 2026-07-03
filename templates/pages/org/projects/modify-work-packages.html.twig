@@ -1,45 +1,361 @@
 {% extends 'layouts/org.base.html.twig' %}
 
-{% block title %}Modify project {{ id }} work packages{% endblock %}
+{% block title %}Werkpakketten beheren{% endblock %}
 
-{% block stylesheets %}{% endblock %}
-{% block javascript %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/org/css/work-packages.css') }}">
+{% endblock %}
+
+{% block javascript %}
+    <script src="{{ asset('assets/org/js/work-packages.js') }}" defer></script>
+{% endblock %}
 
 {% block body %}
-    <h2>Werkpakketten koppelen</h2>
-    <p>Project ID: {{ id }}</p>
-
-    <form method="post">
-        <div>
-            <label for="title">Titel</label>
-            <input id="title" type="text" name="title" required>
-        </div>
-
-        <div>
-            <label for="description">Beschrijving</label>
-            <textarea id="description" name="description"></textarea>
-        </div>
-
-        <button type="submit">Werkpakket toevoegen</button>
-    </form>
-
-    <hr>
-
-    <h3>Gekoppelde werkpakketten</h3>
-
-    {% if workPackages is defined and workPackages is not empty %}
-        {% for workPackage in workPackages %}
-            <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px;">
-                <h4>{{ workPackage.title }}</h4>
-
-                {% if workPackage.description is defined and workPackage.description is not empty %}
-                    <p>{{ workPackage.description }}</p>
-                {% else %}
-                    <p>Geen beschrijving ingevuld.</p>
-                {% endif %}
+    <div class="work-packages-page">
+        <header class="work-packages-header">
+            <div class="work-packages-header-inner">
+                <div class="work-packages-brand">
+                    <div class="work-packages-brand-logo">H</div>
+                    <div>
+                        Het Nieuwe&sup2; Werken
+                        <small>Projecten, mensen en taken</small>
+                    </div>
+                </div>
             </div>
-        {% endfor %}
-    {% else %}
-        <p>Er zijn nog geen werkpakketten gekoppeld aan dit project.</p>
-    {% endif %}
+        </header>
+
+        <main class="work-packages-main">
+            <section class="work-packages-page-heading">
+                <div>
+                    <h1>Werkpakketten</h1>
+                    <p>Maak werk behapbaar per project: beheer pakketten en taken in het organisatiepaneel, en laat projectleden hun eigen voortgang bijwerken in het projectoverzicht.</p>
+                </div>
+
+                <div class="work-packages-view-tabs" aria-label="Scherm kiezen">
+                    <button type="button" aria-pressed="true" data-work-package-view="work-packages-admin-view">Organisatiebeheer</button>
+                    <button type="button" aria-pressed="false" data-work-package-view="project-overview-view">Projectoverzicht</button>
+                </div>
+            </section>
+
+            <section class="work-packages-toolbar">
+                <select class="work-packages-project-select" aria-label="Project selecteren">
+                    {% if projectTitle is defined and projectTitle %}
+                        <option>{{ projectTitle }}</option>
+                    {% else %}
+                        <option>Geen project geopend</option>
+                    {% endif %}
+                </select>
+  
+            </section>
+
+            <section id="work-packages-admin-view" class="work-packages-view active" aria-label="Organisatiebeheer">
+                <div class="work-packages-management-layout">
+                    <aside class="work-packages-project-sidebar" aria-label="Projecten">
+                        <h3>Projecten</h3>
+
+                        {% if projectTitle is defined and projectTitle %}
+                            <a class="work-packages-project-link active" href="{{ path('org.modifyProject.workPackages', { id: id }) }}">
+                                <strong>{{ projectTitle }}</strong>
+                                <span>
+                                    {{ projectMemberCount|default(0) }} leden -
+                                    {{ workPackageCount|default(0) }} pakketten
+                                </span>
+                            </a>
+                        {% else %}
+                            <div class="work-package-list-empty-state">
+                                <strong>Geen project geopend</strong>
+                                <p>Open eerst een project uit de database.</p>
+                            </div>
+                        {% endif %}
+                    </aside>
+
+                    <section class="work-packages-management-panel" aria-label="Werkpakketten beheren">
+                        <div class="work-packages-management-panel-header">
+                            <div>
+                                <h2>{{ projectTitle|default('Project') }}</h2>
+                                <p>Organisatiebeheerders kunnen pakketten aanmaken, taken toevoegen, leden koppelen en statussen beheren.</p>
+                            </div>
+
+                            
+                        </div>
+
+                        <div class="work-packages-stat-grid" aria-label="Samenvatting">
+                            <div class="work-packages-stat-card"><strong>{{ workPackageCount|default(0) }}</strong><span>werkpakketten</span></div>
+                            <div class="work-packages-stat-card"><strong>{{ taskCount|default(0) }}</strong><span>taken totaal</span></div>
+                            <div class="work-packages-stat-card"><strong>{{ averageProgress|default(0) }}%</strong><span>gemiddeld gereed</span></div>
+                        </div>
+
+                        <div class="work-packages-management-content">
+                            <div class="work-package-card-grid">
+                                {% for workPackage in workPackages|default([]) %}
+                                    <article class="work-package-card">
+                                        <div class="work-package-card-header">
+                                            <div>
+                                                <h3>{{ workPackage.title }}</h3>
+                                                <p>
+                                                    {{ workPackage.taskCount }} taken
+                                                    {% if workPackage.dueDate %}
+                                                        - deadline {{ workPackage.dueDate }}
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+
+                                            <span class="work-packages-stat-cardus {{ workPackage.statusClass }}">
+                                                {{ workPackage.status }}
+                                            </span>
+                                        </div>
+
+                                        <div class="work-package-progress" aria-label="{{ workPackage.progress }} procent gereed">
+                                            <span style="width: {{ workPackage.progress }}%"></span>
+                                        </div>
+
+                                        {% if workPackage.description %}
+                                            <p>{{ workPackage.description }}</p>
+                                        {% endif %}
+                                        {% if workPackage.tasks is not empty %}
+                                            {% for task in workPackage.tasks %}
+                                                <div class="work-package-task-row{% if task.isCompleted %} done{% endif %}">
+                                                    <span class="work-package-task-check">{% if task.isCompleted %}&#10003;{% endif %}</span>
+
+                                                    <div>
+                                                        <strong>{{ task.title }}</strong>
+                                                        <small>
+                                                            {% if task.assignedName %}
+                                                                toegewezen aan {{ task.assignedName }}
+                                                            {% else %}
+                                                                nog niet gekoppeld
+                                                            {% endif %}
+                                                        </small>
+                                                    </div>
+
+                                                    {% if task.assignedInitials %}
+                                                        <span class="work-package-assignee-avatar">{{ task.assignedInitials }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="work-package-tasks-empty-state">Nog geen taken in dit werkpakket.</p>
+                                        {% endif %}
+                                        <div class="work-package-task-create-box">
+                                            <h4>Nieuwe taak toevoegen</h4>
+
+                                            <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-create-form">
+                                                <input type="hidden" name="_action" value="create_package_task">
+                                                <input type="hidden" name="workPackageId" value="{{ workPackage.id }}">
+
+                                                <div class="work-package-form-field">
+                                                    <label for="taskTitle-{{ workPackage.id }}">Taak titel</label>
+                                                    <input id="taskTitle-{{ workPackage.id }}" name="taskTitle" type="text" placeholder="Bijvoorbeeld: Bronnen controleren" required>
+                                                </div>
+
+                                                <div class="work-package-form-field">
+                                                    <label for="taskSlug-{{ workPackage.id }}">Taak slug</label>
+                                                    <input id="taskSlug-{{ workPackage.id }}" name="taskSlug" type="text" placeholder="bronnen-controleren" required>
+                                                </div>
+
+                                                <div class="work-package-form-field">
+                                                    <label for="taskDescription-{{ workPackage.id }}">Omschrijving</label>
+                                                    <textarea id="taskDescription-{{ workPackage.id }}" name="taskDescription" placeholder="Beschrijf kort wat deze taak is."></textarea>
+                                                </div>
+
+                                                <div class="work-package-form-field">
+                                                    <label for="taskDueDate-{{ workPackage.id }}">Deadline</label>
+                                                    <input id="taskDueDate-{{ workPackage.id }}" name="taskDueDate" type="date">
+                                                </div>
+
+                                                <input type="hidden" name="taskPriority" value="normal">
+
+                                                <button class="work-packages-primary-button" type="submit">Taak opslaan</button>
+                                            </form>
+                                        </div>
+
+                                        <div class="work-package-card-actions">
+                                            <div class="work-package-card-action-group">
+
+                                                <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-delete-form">
+                                                    <input type="hidden" name="_action" value="delete_work_package">
+                                                    <input type="hidden" name="workPackageId" value="{{ workPackage.id }}">
+
+                                                    <button class="work-packages-text-button work-packages-danger-action" type="submit">
+                                                        Verwijderen
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </article>
+                                {% else %}
+                                    <div class="work-package-list-empty-state">
+                                        <strong>Nog geen werkpakketten</strong>
+                                        <p>Maak het eerste werkpakket aan met het formulier rechts.</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="work-package-side-panel-stack">
+                                <aside id="work-package-edit-panel" class="work-package-edit-preview-panel">
+                                    <div class="work-package-edit-preview-header">
+                                        <span>Bewerk werkpakket</span>
+                                        <h3>Werkpakket aanpassen</h3>
+                                    </div>
+
+                                
+                                </aside>
+
+                                <aside class="work-package-create-panel">
+                                    <h3>Nieuw werkpakket</h3>
+
+                                    <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-create-form">
+                                        <input type="hidden" name="_action" value="create_work_package">
+
+                                        <div class="work-package-form-field">
+                                            <label for="title">Titel</label>
+                                            <input id="title" name="title" type="text" placeholder="Bijvoorbeeld: Inventarisatie databronnen" required>
+                                        </div>
+
+                                        <div class="work-package-form-field">
+                                            <label for="slug">Slug</label>
+                                            <input id="slug" name="slug" type="text" placeholder="inventarisatie-databronnen" required>
+                                        </div>
+
+                                        <div class="work-package-form-field">
+                                            <label for="description">Omschrijving</label>
+                                            <textarea id="description" name="description" placeholder="Beschrijf kort wat er binnen dit werkpakket moet gebeuren."></textarea>
+                                        </div>
+
+                                        <div class="work-package-form-field">
+                                            <label for="dueDate">Deadline</label>
+                                            <input id="dueDate" name="dueDate" type="date">
+                                        </div>
+
+                                        <button class="work-packages-primary-button" type="submit">Werkpakket opslaan</button>
+                                    </form>
+                                </aside>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section id="project-overview-view" class="work-packages-view" aria-label="Projectoverzicht">
+                {% set openTasks = [] %}
+                {% set busyTasks = [] %}
+                {% set doneTasks = [] %}
+
+                {% for workPackage in workPackages|default([]) %}
+                    {% for task in workPackage.tasks|default([]) %}
+                        {% set taskData = task|merge({ 'workPackageTitle': workPackage.title }) %}
+
+                        {% if task.isCompleted %}
+                            {% set doneTasks = doneTasks|merge([taskData]) %}
+                        {% elseif task.assignedName|default(null) %}
+                            {% set busyTasks = busyTasks|merge([taskData]) %}
+                        {% else %}
+                            {% set openTasks = openTasks|merge([taskData]) %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+
+                <div class="project-overview-layout">
+                    <aside class="project-overview-summary" aria-label="Projectinformatie">
+                        <div class="project-overview-hero">
+                            <h2>{{ projectTitle|default('Project') }}</h2>
+                            <p>Gekoppelde projectleden kunnen hun taken bekijken, zichzelf koppelen en voortgang bijwerken.</p>
+                            <div class="project-overview-stat-grid">
+                                <div><strong>{{ taskCount|default(0) }}</strong><span>taken</span></div>
+                                <div><strong>{{ averageProgress|default(0) }}%</strong><span>gereed</span></div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <section class="project-overview-task-board" aria-label="Takenbord">
+                        <div class="project-overview-task-column">
+                            <div class="project-overview-column-header">
+                                <h3>Open</h3>
+                                <span class="project-overview-column-count">{{ openTasks|length }}</span>
+                            </div>
+
+                            {% for task in openTasks %}
+                                <article class="project-overview-task-card">
+                                    <h4>{{ task.title }}</h4>
+
+                                    {% if task.description|default(null) %}
+                                        <p>{{ task.description }}</p>
+                                    {% else %}
+                                        <p>Geen omschrijving toegevoegd.</p>
+                                    {% endif %}
+
+                                    <div class="project-overview-task-card-footer">
+                                        <span class="project-overview-task-tag">{{ task.workPackageTitle }}</span>
+                                    </div>
+                                </article>
+                            {% else %}
+                                <div class="work-package-list-empty-state">
+                                    <strong>Geen open taken</strong>
+                                    <p>Er zijn geen open taken aangemaakt.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="project-overview-task-column">
+                            <div class="project-overview-column-header">
+                                <h3>Bezig</h3>
+                                <span class="project-overview-column-count">{{ busyTasks|length }}</span>
+                            </div>
+
+                            {% for task in busyTasks %}
+                                <article class="project-overview-task-card busy">
+                                    <h4>{{ task.title }}</h4>
+
+                                    {% if task.description|default(null) %}
+                                        <p>{{ task.description }}</p>
+                                    {% else %}
+                                        <p>Geen omschrijving toegevoegd.</p>
+                                    {% endif %}
+
+                                    <div class="project-overview-task-card-footer">
+                                        <span class="project-overview-task-tag">{{ task.assignedName|default('Toegewezen') }}</span>
+                                        <button class="work-packages-primary-button" type="button">Gereed melden</button>
+                                    </div>
+                                </article>
+                            {% else %}
+                                <div class="work-package-list-empty-state">
+                                    <strong>Geen taken bezig</strong>
+                                    <p>Er zijn geen toegewezen taken bezig.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="project-overview-task-column">
+                            <div class="project-overview-column-header">
+                                <h3>Gereed</h3>
+                                <span class="project-overview-column-count">{{ doneTasks|length }}</span>
+                            </div>
+
+                            {% for task in doneTasks %}
+                                <article class="project-overview-task-card done">
+                                    <h4>{{ task.title }}</h4>
+
+                                    {% if task.description|default(null) %}
+                                        <p>{{ task.description }}</p>
+                                    {% else %}
+                                        <p>Geen omschrijving toegevoegd.</p>
+                                    {% endif %}
+
+                                    <div class="project-overview-task-card-footer">
+                                        <span class="project-overview-task-tag">{{ task.assignedName|default(task.workPackageTitle) }}</span>
+                                        <button class="work-packages-secondary-button" type="button">Heropenen</button>
+                                    </div>
+                                </article>
+                            {% else %}
+                                <div class="work-package-list-empty-state">
+                                    <strong>Geen gereed taken</strong>
+                                    <p>Er zijn nog geen taken afgerond.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
+    </div>
 {% endblock %}
