@@ -338,7 +338,8 @@ class ModifyProjectService
 
     private function projectRef(Project $project): string
     {
-        return (string) ($project->getSlug() ?: $project->getId());
+        // Keep modify URLs canonical on UUID to avoid mixed slug/id navigation.
+        return (string) $project->getId();
     }
 
     private function mapProject(Project $project, string $organisationId): array
