@@ -1,11 +1,13 @@
-    document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
 
+    // Focus automatisch op het naamveld bij het laden van de pagina
     const nameInput = document.getElementById("name");
 
     if (nameInput) {
-    nameInput.focus();
+        nameInput.focus();
     }
 
+    // Character counter voor projectnaam
     const title = document.getElementById("name");
     const titleCounter = document.getElementById("title-counter");
 
@@ -14,7 +16,8 @@
             titleCounter.textContent = title.value.length + " characters";
         });
     }
-    
+
+    // Character counter voor summary
     const summary = document.getElementById("summary");
     const summaryCounter = document.getElementById("summary-counter");
 
@@ -24,6 +27,7 @@
         });
     }
 
+    // Character counter voor description
     const description = document.getElementById("description");
     const descriptionCounter = document.getElementById("description-counter");
 
@@ -41,17 +45,18 @@
 
             e.preventDefault();
 
-            button.textContent = "Creating...";
+            // UI feedback tijdens het aanmaken van het project
+            button.textContent = "Creating project...";
             button.disabled = true;
             button.classList.add("loading");
 
             setTimeout(() => {
+                // Reset knop na loading delay (1.5 seconden)
                 button.textContent = "Create project";
                 button.disabled = false;
 
                 form.submit();
-            }, 1500);
-
+            }, 1500); // 1.5 seconden loading delay
         });
     }
 
