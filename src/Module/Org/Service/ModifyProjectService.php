@@ -133,6 +133,7 @@ class ModifyProjectService
                 'id' => $resolvedProjectRef,
                 'organisationId' => $organisationId,
                 'project' => $this->mapProject($project, $organisationId),
+                'visibilityOptions' => $this->buildVisibilityOptions(),
                 'error' => null,
             ]];
         } catch (HttpExceptionInterface $e) {
@@ -487,6 +488,18 @@ class ModifyProjectService
         if ($statusName === 'draft' || $statusName === 'archived') {
             $project->unpublish();
         }
+    }
+
+    private function buildVisibilityOptions(): array
+    {
+        // TODO: Replace this placeholder with DB-backed visibility options.
+        // For now we expose ALLOWED_VISIBILITY so UI values and validation stay in sync.
+        return array_map(static function (string $value): array {
+            return [
+                'value' => $value,
+                'label' => ucfirst($value),
+            ];
+        }, self::ALLOWED_VISIBILITY);
     }
 
     private function getCharacterLength(string $value): int

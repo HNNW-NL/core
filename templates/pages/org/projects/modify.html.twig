@@ -73,10 +73,17 @@
                             </div>
                             <div>
                                 <label for="visibility">Visibility</label>
+                                {% set currentVisibility = project.visibility|default('public') %}
+                                {# TODO: Remove fallback once visibilityOptions is always provided by backend/DB source. #}
+                                {% set visibilityOptions = visibilityOptions|default([
+                                    { value: 'public', label: 'Public' },
+                                    { value: 'private', label: 'Private' },
+                                    { value: 'unlisted', label: 'Unlisted' }
+                                ]) %}
                                 <select id="visibility" name="visibility" required>
-                                    <option value="public" {% if project.visibility|default('public') == 'public' %}selected{% endif %}>Public</option>
-                                    <option value="private" {% if project.visibility|default('public') == 'private' %}selected{% endif %}>Private</option>
-                                    <option value="unlisted" {% if project.visibility|default('public') == 'unlisted' %}selected{% endif %}>Unlisted</option>
+                                    {% for option in visibilityOptions %}
+                                        <option value="{{ option.value }}" {% if currentVisibility == option.value %}selected{% endif %}>{{ option.label }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div>
