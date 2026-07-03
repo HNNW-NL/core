@@ -196,8 +196,6 @@ body {
 
     height: 100px;
 
-    background: var(--accent-yellow);
-
     border-radius: 12px;
 
     flex-shrink: 0;
@@ -392,7 +390,6 @@ body {
 .achievements-bar {
 
     grid-column: span 2;
-
 
     background: var(--card-bg);
 
