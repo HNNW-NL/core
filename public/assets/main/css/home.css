@@ -183,31 +183,25 @@ body {
 }
 
 /* PROFILE */
-.profile {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-}
 
-/* AVATAR */
 .profile-avatar img {
-    width: 100px;
-
-    height: 100px;
-
-    border-radius: 40%;
+    width: 80px;
+    height: 80px;
+    border-radius: 20%;
 
     object-fit: cover;
 }
 
 .upload-btn {
-    display: inline-block;
+    display: block;
     padding: 5px 10px;
     background: white;
     color: black;
+    align-items: center;
     border-radius: 10px;
     cursor: pointer;
     margin-top: 10px;
+    gap: 4px;
 }
 
 .upload-btn:hover {
