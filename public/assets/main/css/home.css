@@ -188,7 +188,16 @@ body {
     align-items: center;
     gap: 18px;
 }
+/* LOCATION POPUP */
+#new-location {
+    color: black;
+    background-color: white;
+}
 
+#new-location option {
+    color: black;
+    background-color: white;
+}
 /* AVATAR */
 
 .profile-avatar {
@@ -313,7 +322,7 @@ body {
 
     gap: 10px;
     margin-top: 10px;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
 }
 
 .bubble {
@@ -389,7 +398,7 @@ body {
 
 .achievements-bar {
 
-    grid-column: span 2;
+    grid-column: span 1;
 
     background: var(--card-bg);
 
