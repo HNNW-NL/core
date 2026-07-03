@@ -1,14 +1,17 @@
+/* Algemene pagina styling */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
 }
 
+/* Titel */
 h2 {
     text-align: center;
     margin-top: 40px;
     color: var(--paragraph);
 }
 
+/* Formulier container */
 form {
     width: 500px;
     margin: 40px auto;
@@ -18,16 +21,19 @@ form {
     border-radius: 12px;
 }
 
+/* Formuliervelden layout */
 form div {
     margin-bottom: 15px;
 }
 
+/* Labels */
 label {
     color: var(--paragraph);
     display: block;
     margin-bottom: 5px;
 }
 
+/* Input, textarea en select styling */
 input,
 textarea,
 select {
@@ -40,6 +46,7 @@ select {
     border-radius: 4px;
 }
 
+/* Focus state van inputs */
 input:focus,
 textarea:focus,
 select:focus {
@@ -47,6 +54,7 @@ select:focus {
     border-color: var(--hnnw-yellow-500);
 }
 
+/* Tekstareas grootte */
 textarea#summary {
     min-height: 80px;
 }
@@ -55,6 +63,7 @@ textarea#description {
     min-height: 140px;
 }
 
+/* Character counters */
 #title-counter,
 #summary-counter,
 #description-counter {
@@ -63,6 +72,7 @@ textarea#description {
     margin-top: 5px;
 }
 
+/* Submit knop */
 button {
     width: 100%;
     padding: 10px;
@@ -73,16 +83,19 @@ button {
     border-radius: 6px;
 }
 
+/* Hover effect knop */
 button:hover {
     background-color: var(--hnnw-yellow-400);
 }
 
+/* Loading state knop */
 button.loading {
     opacity: 0.7;
     transform: scale(0.98);
     transition: all 0.2s ease;
 }
 
+/* Placeholder styling */
 input::placeholder,
 textarea::placeholder {
     color: var(--paragraph);
@@ -91,20 +104,24 @@ textarea::placeholder {
     font-weight: 300;
 }
 
+/* Select dropdown basis */
 select {
     background: var(--background);
     color: var(--paragraph);
 }
 
+/* Placeholder state van select */
 select:required:invalid {
     color: rgba(255, 255, 255, 0.5);
 }
 
+/* Geldige selectie */
 select:valid {
     background: var(--hnnw-yellow-500);
     color: #020617;
 }
 
+/* Opties in dropdown */
 select option {
     background: var(--background);
     color: var(--paragraph);
