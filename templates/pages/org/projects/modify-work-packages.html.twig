@@ -25,13 +25,6 @@
                         <small>Projecten, mensen en taken</small>
                     </div>
                 </div>
-
-                <nav class="work-packages-navigation" aria-label="Navigatie">
-                    <span>Projecten</span>
-                    <span>Organisatie</span>
-                    <span>Notificaties</span>
-                    <div class="work-packages-user-avatar">SK</div>
-                </nav>
             </div>
         </header>
 
@@ -56,8 +49,7 @@
                         <option>Geen project geopend</option>
                     {% endif %}
                 </select>
-
-                <button class="work-packages-primary-button" type="button">+ Werkpakket</button>
+  
             </section>
 
             <section id="work-packages-admin-view" class="work-packages-view active" aria-label="Organisatiebeheer">
@@ -88,7 +80,7 @@
                                 <p>Organisatiebeheerders kunnen pakketten aanmaken, taken toevoegen, leden koppelen en statussen beheren.</p>
                             </div>
 
-                            <button class="work-packages-secondary-button" type="button">Projectleden beheren</button>
+                            
                         </div>
 
                         <div class="work-packages-stat-grid" aria-label="Samenvatting">
@@ -183,9 +175,6 @@
 
                                         <div class="work-package-card-actions">
                                             <div class="work-package-card-action-group">
-                                                <a class="work-packages-secondary-button" href="#work-package-edit-panel">
-                                                    Bewerken
-                                                </a>
 
                                                 <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-delete-form">
                                                     <input type="hidden" name="_action" value="delete_work_package">
@@ -301,7 +290,6 @@
 
                                     <div class="project-overview-task-card-footer">
                                         <span class="project-overview-task-tag">{{ task.workPackageTitle }}</span>
-                                        <button class="work-packages-primary-button" type="button">Zelf nemen</button>
                                     </div>
                                 </article>
                             {% else %}

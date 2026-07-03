@@ -51,29 +51,6 @@ body {
             margin-top: 2px;
         }
 
-        .work-packages-navigation {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .work-packages-navigation span {
-            border: 1px solid rgba(255, 255, 255, .22);
-            border-radius: 6px;
-            padding: 9px 12px;
-        }
-
-        .work-packages-user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            background: #fff;
-            color: #16263a;
-            font-weight: 900;
-        }
-
         .work-packages-main {
             max-width: 1180px;
             margin: 28px auto 48px;
