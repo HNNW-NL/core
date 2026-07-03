@@ -1,43 +1,56 @@
-{% extends 'layouts/org.base.html.twig' %}
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisaties beheren</title>
+</head>
+<body>
 
-{% block title %}Accounts{% endblock %}
+<h1>Organisaties beheren</h1>
 
-{% block body %}
-    <h2>Accounts</h2>
+<nav>
+    <a href="{{ path('organisatie_nieuw') }}">Nieuwe organisatie toevoegen</a>
+</nav><br>
 
-    <form method="get" action="" class="search-form">
-        <input type="search" name="q" placeholder="Search email, first or last name" value="{{ app.request.query.get('q') }}">
-        <button type="submit">Search</button>
-        <a class="button" href="{{ path('org_account_create') }}">Create</a>
-    </form>
+{# Flash berichten #}
+{% for bericht in app.flashes('success') %}
+    <p style="color: green;">{{ bericht }}</p>
+{% endfor %}
+{% for bericht in app.flashes('error') %}
+    <p style="color: red;">{{ bericht }}</p>
+{% endfor %}
 
-    <table class="accounts">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Active</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for u in users %}
-            <tr>
-                <td>{{ u.id }}</td>
-                <td>{{ u.firstName }} {{ u.lastName }}</td>
-                <td>{{ u.email }}</td>
-                <td>{{ u.active ? 'Yes' : 'No' }}</td>
-                <td>
-                    <a href="{{ path('org_account_show', {'id': u.id}) }}">View</a>
-                    <a href="{{ path('org_account_edit', {'id': u.id}) }}">Edit</a>
-                    <a href="{{ path('org_account_delete', {'id': u.id}) }}" onclick="return confirm('Delete this account?');">Delete</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="5">No accounts found.</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Naam</th>
+        <th>Adres</th>
+        <th>Stad</th>
+        <th colspan="2">Actie</th>
+    </tr>
+    {% for organisatie in organisaties %}
+    <tr>
+        <td>{{ organisatie.id }}</td>
+        <td>{{ organisatie.naam }}</td>
+        <td>{{ organisatie.adres }}</td>
+        <td>{{ organisatie.stad }}</td>
+        <td>
+            <a href="{{ path('organisatie_wijzig', { id: organisatie.id }) }}">Wijzig</a>
+        </td>
+        <td>
+            <form method="post" action="{{ path('organisatie_verwijder', { id: organisatie.id }) }}"
+                  onsubmit="return confirm('Weet je zeker dat je deze organisatie wilt verwijderen?')">
+                <button type="submit">Verwijder</button>
+            </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="6">Geen organisaties gevonden</td>
+    </tr>
+    {% endfor %}
+</table>
 
-{% endblock %}
+</body>
+</html>
