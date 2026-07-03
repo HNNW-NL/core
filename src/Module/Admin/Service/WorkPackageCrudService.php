@@ -8,6 +8,7 @@ use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreateWorkPackageDTO;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Uuid;
+use App\Module\Admin\DTO\UpdateWorkPackageDTO;
 
 class WorkPackageCrudService
 {
@@ -50,4 +51,40 @@ class WorkPackageCrudService
 
         return $workPackage;
     }
+    public function update(UpdateWorkPackageDTO $dto): WorkPackage
+{
+    $workPackage = $this->findWorkPackage($dto->workPackageId);
+
+    $workPackage->setTitle($dto->title);
+    $workPackage->setSlug($dto->slug);
+    $workPackage->setDescription($dto->description);
+    $workPackage->setDueDate($dto->dueDate);
+
+    $this->entityManager->flush();
+
+    return $workPackage;
+}
+
+public function delete(string $workPackageId): void
+{
+    $workPackage = $this->findWorkPackage($workPackageId);
+    $workPackage->softDelete();
+
+    $this->entityManager->flush();
+}
+
+private function findWorkPackage(string $workPackageId): WorkPackage
+{
+    if (!Uuid::isValid($workPackageId)) {
+        throw new \InvalidArgumentException('Invalid work package id.');
+    }
+
+    $workPackage = $this->entityManager->find(WorkPackage::class, Uuid::fromString($workPackageId));
+
+    if (!$workPackage) {
+        throw new \InvalidArgumentException('Work package not found.');
+    }
+
+    return $workPackage;
+}
 }

@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Module\Org\DTO;
+namespace App\Module\Admin\DTO;
 
-class CreateWorkPackageDTO
+class CreatePackageTaskDTO
 {
     public function __construct(
-        public readonly string $projectId,
+        public readonly string $workPackageId,
         public readonly string $title,
         public readonly string $slug,
         public readonly ?string $description,
         public readonly ?\DateTimeImmutable $dueDate,
+        public readonly string $priority,
     ) {
     }
 }

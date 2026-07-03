@@ -610,6 +610,7 @@ body {
         .project-overview-column-header h3 {
             margin: 0;
             font-size: 18px;
+            color: black;
         }
 
         .project-overview-column-count {
@@ -645,6 +646,7 @@ body {
         .project-overview-task-card h4 {
             margin: 0 0 7px;
             font-size: 16px;
+            color: black;
         }
 
         .project-overview-task-card p {
@@ -737,4 +739,127 @@ body {
     border-radius: 6px;
     color: #607086;
     background: #fbfcfe;
+}
+/* Polished task form inside work package cards */
+.work-package-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.work-package-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.work-package-card > p {
+    line-height: 1.45;
+}
+
+.work-package-task-create-box {
+    margin-top: 4px;
+    padding: 14px;
+    border: 1px solid #d9e0ea;
+    border-radius: 8px;
+    background: #f8fbfd;
+}
+
+.work-package-task-create-box > h4 {
+    margin: 0 0 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e4eaf2;
+    color: #16263a;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.work-package-task-create-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e4eaf2;
+}
+
+.work-package-task-create-heading h4 {
+    margin: 0;
+    color: #16263a;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.work-package-task-create-heading span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    border-radius: 999px;
+    padding: 3px 9px;
+    background: #dff2e7;
+    color: #2d8b57;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.work-package-task-create-box .work-package-create-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.work-package-task-create-box .work-package-form-field {
+    gap: 5px;
+}
+
+.work-package-task-create-box .work-package-form-field:nth-of-type(3) {
+    grid-column: 1 / -1;
+}
+
+.work-package-task-create-box .work-package-form-field label {
+    font-size: 13px;
+}
+
+.work-package-task-create-box .work-package-form-field input,
+.work-package-task-create-box .work-package-form-field textarea {
+    min-height: 40px;
+    background: #fff;
+}
+
+.work-package-task-create-box .work-package-form-field textarea {
+    min-height: 82px;
+}
+
+.work-package-task-create-box .work-packages-primary-button {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 42px;
+}
+
+.work-package-card-actions {
+    margin-top: 0;
+}
+
+.work-package-card-action-group {
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.work-packages-danger-action {
+    min-height: 42px;
+    border-radius: 6px;
+    padding: 9px 12px;
+    background: #fff5f5;
+    color: #b3261e;
+}
+
+.work-packages-danger-action:hover {
+    background: #ffe8e8;
+}
+
+@media (max-width: 720px) {
+    .work-package-task-create-box .work-package-create-form {
+        grid-template-columns: 1fr;
+    }
 }

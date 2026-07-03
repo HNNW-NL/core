@@ -14,6 +14,7 @@ class WorkPackageMapper
             'slug' => $workPackage->getSlug(),
             'description' => $workPackage->getDescription(),
             'dueDate' => $workPackage->getDueDate()?->format('Y-m-d'),
+            'dueDateInput' => $workPackage->getDueDate()?->format('Y-m-d'),
             'status' => $workPackage->getStatus()?->getName(),
         ];
     }
