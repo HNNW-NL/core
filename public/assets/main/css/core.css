@@ -131,3 +131,34 @@ header nav ul svg:hover path {
         font-size: 0.65rem;
     }
 }
+
+.logo-name {
+    margin-left: 100px;
+}
+
+.logo-name-het {
+    color: #ffd400;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 28px;
+}
+
+.logo-name-nieuwe {
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 28px;
+}
+
+.logo-name-two {
+    color: #ffe36f;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.logo-name-werken {
+    color: #626E81;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 28px;
+}
