@@ -140,6 +140,7 @@ class ModifyProjectService
                 'organisationId' => $organisationId,
                 'project' => $this->mapProject($project, $organisationId),
                 'visibilityOptions' => $this->buildVisibilityOptions(),
+                'statusOptions' => $this->buildStatusOptions(),
                 'error' => null,
             ]];
         } catch (HttpExceptionInterface $e) {
@@ -353,6 +354,7 @@ class ModifyProjectService
             'visibility' => $project->getVisibility(),
             'ref' => $this->projectRef($project),
             'statusName' => $project->getStatus()?->getName(),
+            'statusId' => $project->getStatus() ? (string) $project->getStatus()->getId() : null,
             'organisationId' => $project->getOwnerOrganisation() ? (string) $project->getOwnerOrganisation()->getId() : $organisationId,
             'startDate' => $project->getStartDate()?->format(self::DATE_FORMAT),
             'endDate' => $project->getEndDate()?->format(self::DATE_FORMAT),
@@ -486,7 +488,7 @@ class ModifyProjectService
             return;
         }
 
-        $statusName = $dto->statusName ?? '';
+        $statusName = strtolower((string) ($project->getStatus()?->getName() ?? ''));
         if ($statusName === 'published' && $project->getPublishedAt() === null) {
             $project->publish();
         }
@@ -508,6 +510,26 @@ class ModifyProjectService
         }, self::ALLOWED_VISIBILITY);
     }
 
+    private function buildStatusOptions(): array
+    {
+        $statuses = $this->entityManager
+            ->getRepository(Status::class)
+            ->createQueryBuilder('s')
+            ->where('s.scope = :scope')
+            ->setParameter('scope', 'project')
+            ->orderBy('s.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static function (Status $status): array {
+            return [
+                'value' => (string) $status->getId(),
+                'label' => ucfirst((string) $status->getName()),
+                'name' => strtolower((string) $status->getName()),
+            ];
+        }, $statuses);
+    }
+
     private function getCharacterLength(string $value): int
     {
         if (function_exists('mb_strlen')) {
@@ -517,12 +539,23 @@ class ModifyProjectService
         return strlen($value);
     }
 
-    private function resolveStatus(?string $statusName): Status
+    private function resolveStatus(?string $statusRef): Status
     {
-        $statusName = strtolower(trim((string) $statusName));
-        if ($statusName === '') {
+        $statusRef = trim((string) $statusRef);
+        if ($statusRef === '') {
             throw new \InvalidArgumentException('Status is required');
         }
+
+        try {
+            $statusById = $this->entityManager->getRepository(Status::class)->find($statusRef);
+            if ($statusById instanceof Status && $statusById->getScope() === 'project') {
+                return $statusById;
+            }
+        } catch (\Throwable) {
+            // Not an id value for this platform/type: continue with name-based lookup.
+        }
+
+        $statusName = strtolower($statusRef);
 
         $status = $this->entityManager
             ->getRepository(Status::class)
@@ -536,7 +569,7 @@ class ModifyProjectService
             ->getOneOrNullResult();
 
         if (!$status instanceof Status) {
-            throw new BadRequestHttpException('Unknown project status: ' . $statusName);
+            throw new BadRequestHttpException('Unknown project status: ' . $statusRef);
         }
 
         return $status;

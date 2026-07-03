@@ -54,7 +54,7 @@ class ModifyProjectMapper
             summary: $this->getStringFromPost($request, ['summary']),
             description: $this->getStringFromPost($request, ['description']),
             visibility: $submittedVisibility,
-            statusName: $this->normalizeStatusName($this->getStringFromPost($request, ['status', 'status_name'])),
+            statusName: $this->normalizeStatusName($this->getStringFromPost($request, ['status_id', 'status', 'status_name'])),
             startDate: $this->getDateFromPost($request, ['start_date', 'startDate'], $startDateTouched),
             endDate: $this->getDateFromPost($request, ['end_date', 'endDate'], $endDateTouched),
             startDateTouched: $startDateTouched,
