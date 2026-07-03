@@ -113,41 +113,87 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        // POST: Rechtstreeks inserten in de `availabilities` tabel zonder Entity klasse
+        // POST: Schema opslaan in de `availabilities` tabel
         if ($request->isMethod('POST')) {
-            $type = trim((string) $request->request->get('type'));
-            $hours = (int) $request->request->get('hours');
-            $startDate = $request->request->get('start_date');
+            $startDate = $request->request->get('start_date') ?: (new \DateTimeImmutable())->format('Y-m-d');
             $endDate = $request->request->get('end_date') ?: null;
 
-            if (empty($type) || $hours <= 0 || empty($startDate)) {
-                $this->addFlash('error', 'Vul alstublieft alle verplichte velden in.');
-            } else {
-                try {
-                    $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+            // Haal de TidyCal dagschema's op uit het formulier
+            $daysInput = $request->request->all('days_config');
 
-                    $connection->insert('availabilities', [
-                        'id' => Uuid::v4()->toString(),
-                        'availability_type' => $type,
-                        'hours_per_week' => $hours,
-                        'start_date' => $startDate,
-                        'end_date' => $endDate,
-                        'profile_id' => $profile->getId()->toString(),
-                        'created_at' => $now,
-                        'last_modified' => $now, // <-- Deze kolom nu toegevoegd om de Not Null constraint op te lossen!
-                        'deleted_at' => null
-                    ]);
+            $activeDays = [];
+            $startTime = '08:00';
+            $endTime = '17:00';
+            $totalHours = 0;
 
-                    $this->addFlash('success', 'Beschikbaarheid succesvol opgeslagen in de database!');
-                } catch (\Exception $e) {
-                    $this->addFlash('error', 'Databasefout bij opslaan: ' . $e->getMessage());
+            // Let op: Frontend stuurt mogelijk nog 1-7, dus we mappen of loopen van 0-6 gebaseerd op je nieuwe array structuur.
+            // Als je HTML formulier name="days_config[0][enabled]" gebruikt (0=Ma, 1=Di...), werkt dit direct:
+            foreach (range(0, 6) as $dayNum) {
+                $dayConfig = $daysInput[$dayNum] ?? [];
+
+                // Fallback voor als de frontend stiekem toch nog 1-7 stuurt (schuif index 1 naar links)
+                if (empty($dayConfig) && isset($daysInput[$dayNum + 1])) {
+                    $dayConfig = $daysInput[$dayNum + 1];
                 }
+
+                if (isset($dayConfig['enabled'])) {
+                    $activeDays[] = $dayNum;
+
+                    $start = $dayConfig['start'] ?? '08:00';
+                    $end = $dayConfig['end'] ?? '17:00';
+
+                    $startTime = $start;
+                    $endTime = $end;
+
+                    // Urenberekening
+                    try {
+                        $timeStart = new \DateTime($start);
+                        $timeEnd = new \DateTime($end);
+                        if ($timeEnd > $timeStart) {
+                            $diff = $timeStart->diff($timeEnd);
+                            $totalHours += $diff->h + ($diff->i / 60);
+                        } else {
+                            $totalHours += 8;
+                        }
+                    } catch (\Exception $e) {
+                        $totalHours += 8;
+                    }
+                }
+            }
+
+            $hours = (int) round($totalHours);
+
+            // Type bepalen op basis van het aantal uren (boven de 32 uur = Full-Time, anders Part-Time)
+            $typeCode = ($hours >= 32) ? 'FT' : 'PT';
+
+            // Bouw compacte string: {day_numbers}|{start_time}-{end_time}|{type} -> bijv "01234|08:00-17:00|FT"
+            $compactType = implode('', $activeDays) . '|' . $startTime . '-' . $endTime . '|' . $typeCode;
+            $compactType = substr($compactType, 0, 25);
+
+            try {
+                $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+
+                $connection->insert('availabilities', [
+                    'id' => Uuid::v4()->toString(),
+                    'availability_type' => $compactType,
+                    'hours_per_week' => $hours,
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'profile_id' => $profile->getId()->toString(),
+                    'created_at' => $now,
+                    'last_modified' => $now,
+                    'deleted_at' => null
+                ]);
+
+                $this->addFlash('success', 'Beschikbaarheidsschema succesvol opgeslagen!');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Databasefout bij opslaan: ' . $e->getMessage());
             }
 
             return $this->redirectToRoute('account.availability');
         }
 
-        // GET: Haal actieve rijen op via native SQL waar deleted_at IS NULL
+        // GET: Haal actieve rijen op via native SQL
         try {
             $rows = $connection->fetchAllAssociative(
                 'SELECT * FROM availabilities WHERE profile_id = :profileId AND deleted_at IS NULL ORDER BY start_date DESC',
@@ -157,21 +203,89 @@ final class AccountsController extends AbstractController
             $rows = [];
         }
 
-        // Maak er objecten van zodat je Twig-code (`availability.type`) gewoon blijft werken
         $availabilities = [];
+        // Mapping op basis van 0 = Monday t/m 6 = Sunday
+        $daysMapping = [0 => 'Ma', 1 => 'Di', 2 => 'Wo', 3 => 'Do', 4 => 'Vr', 5 => 'Za', 6 => 'Zo'];
+        $typeMapping = ['FT' => 'Full-Time', 'PT' => 'Part-Time'];
+
         foreach ($rows as $row) {
+            $rawValue = $row['availability_type'] ?? '';
+
+            // Standaard structuur initialiseren voor Twig view compatibility (0 t/m 6)
+            $structuredDays = [];
+            foreach (range(0, 6) as $d) {
+                $structuredDays[$d] = ['enabled' => false, 'start' => '08:00', 'end' => '17:00'];
+            }
+
+            $baseType = 'Standaard';
+
+            // Ontleed de short-hand string (bijv: "01234|08:00-17:00|FT")
+            if (str_contains($rawValue, '|')) {
+                $parts = explode('|', $rawValue);
+                $daysPart = $parts[0] ?? '';
+                $timePart = $parts[1] ?? '08:00-17:00';
+                $typePart = $parts[2] ?? 'FT';
+
+                [$start, $end] = str_contains($timePart, '-') ? explode('-', $timePart, 2) : ['08:00', '17:00'];
+                $baseType = $typeMapping[$typePart] ?? 'Standaard';
+
+                $activeDaysArray = str_split($daysPart);
+                foreach ($activeDaysArray as $dayNum) {
+                    $dayNum = (int)$dayNum;
+                    if ($dayNum >= 0 && $dayNum <= 6) {
+                        $structuredDays[$dayNum] = [
+                            'enabled' => true,
+                            'start' => $start,
+                            'end' => $end
+                        ];
+                    }
+                }
+            } else {
+                // Generieke fallback voor legacy data
+                foreach (range(0, 4) as $d) {
+                    $structuredDays[$d]['enabled'] = true;
+                }
+                $baseType = !empty($rawValue) ? $rawValue : 'Standaard';
+            }
+
+            // Bouw de samenvatting (Ma, Di, Wo...) voor de tabel
+            $activeDaysText = [];
+            foreach ($structuredDays as $dayNum => $meta) {
+                if ($meta['enabled']) {
+                    $activeDaysText[] = $daysMapping[$dayNum];
+                }
+            }
+            $daysSummary = !empty($activeDaysText) ? ' (' . implode(', ', $activeDaysText) . ')' : ' (Geen werkdagen)';
+
+            // Zorg dat exceptions (blocked dates) netjes als array meegegeven worden (klaar voor uitbreiding)
             $availabilities[] = (object) [
                 'id' => $row['id'],
-                'type' => $row['availability_type'],
+                'baseType' => $baseType,
+                'daysSummary' => $daysSummary,
+                'daysDetails' => $structuredDays,
+                'blockedDates' => [],
                 'hoursPerWeek' => $row['hours_per_week'],
                 'startDate' => new \DateTimeImmutable($row['start_date']),
                 'endDate' => $row['end_date'] ? new \DateTimeImmutable($row['end_date']) : null
             ];
         }
 
+        // Genereer de default-staat voor het formulier (0 t/m 6 indexering!)
+        $defaultSchedule = [];
+        $fullNames = [0 => 'Monday', 1 => 'Tuesday', 2 => 'Wednesday', 3 => 'Thursday', 4 => 'Friday', 5 => 'Saturday', 6 => 'Sunday'];
+        foreach ($fullNames as $num => $name) {
+            $defaultSchedule[$num] = [
+                'name' => $name,
+                'enabled' => $num <= 4, // Standaard Maandag t/m Vrijdag aan
+                'start' => '08:00',
+                'end' => '17:00'
+            ];
+        }
+
         return $this->render('pages/account-centre/availability.html.twig', [
             'profile' => $profile,
             'availabilities' => $availabilities,
+            'defaultSchedule' => $defaultSchedule
         ]);
     }
 
@@ -187,7 +301,6 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
             try {
-                // Voer de soft-delete uit door deleted_at op de huidige tijd te zetten
                 $connection->update(
                     'availabilities',
                     ['deleted_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],

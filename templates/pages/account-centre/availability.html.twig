@@ -1,33 +1,22 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{# Pagina titel meta tag #}
 {% block title %}Mijn Beschikbaarheid{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Pagina inhoud #}
 {% block body %}
     <div id="account-centre-container">
 
-        {# Terug-knop (maakt gebruik van je .btn-back styling) #}
-        <a href="#" class="btn-back">
+        <a href="/account" class="btn-back">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
             Terug naar Account
         </a>
 
-        {# Header Sectie #}
         <div class="dashboard-header">
             <h1>Mijn Beschikbaarheid</h1>
-            <p>Beheer je wekelijkse uren, je huidige beschikbaarheidsstatus en toekomstige planningen.</p>
+            <p>Stel je wekelijkse uren in per dag.</p>
         </div>
 
-        {# Flash meldingen (Success / Error alerts) #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
                 <div class="alert alert-{{ label == 'error' ? 'error' : 'success' }}">
@@ -36,101 +25,81 @@
             {% endfor %}
         {% endfor %}
 
-        {# Toevoeg Formulier Container #}
-        <div class="account-form-container" style="max-width: 100% !important; margin-bottom: 2.5rem;">
-            <div class="form-internal-header" style="margin-bottom: 1.5rem;">
-                <h2>Nieuwe Periode Toevoegen</h2>
-            </div>
+        <form action="{{ path('account.availability') }}" method="POST" id="tidycal-schedule-form">
 
-            <form action="{{ path('account.availability') }}" method="POST">
-                <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+            <input type="hidden" name="type" value="TidyCal Schema">
+            <input type="hidden" name="hours" id="calculated_hours" value="40">
+            <input type="hidden" name="start_date" value="{{ 'now'|date('Y-m-d') }}">
 
-                    <div class="form-group">
-                        <label for="type">Dienstverband / Type</label>
-                        <select name="type" id="type" required>
-                            <option value="Full-Time">Full-Time</option>
-                            <option value="Part-Time" selected>Part-Time</option>
-                            <option value="Freelance">Freelance</option>
-                            <option value="Interim">Interim</option>
-                        </select>
-                    </div>
+            {# WEEKELIJKSE DIENSTREGELING CONTAINER #}
+            <div class="tidycal-container">
+                <div class="tidycal-header">
+                    <span class="tidycal-title">Beschikbaarheid:</span>
+                </div>
 
-                    <div class="form-group">
-                        <label for="hours">Uren per week</label>
-                        <input type="number" name="hours" id="hours" min="1" max="168" value="32" required>
-                    </div>
+                <div class="tidycal-days-list">
+                    {% for key, day in defaultSchedule %}
+                        <div class="day-row" data-day="{{ key }}">
 
-                    <div style="display: flex; gap: 1rem; width: 100%;">
-                        <div class="form-group" style="flex: 1;">
-                            <label for="start_date">Begindatum</label>
-                            <input type="date" name="start_date" id="start_date" required>
+                            <div class="day-meta">
+                                <label class="switch">
+                                    <input type="checkbox" name="days_config[{{ key }}][enabled]" class="day-toggle" value="1" {% if day.enabled %}checked{% endif %}>
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="day-name">
+                                    {% if day.name == 'Monday' %}Maandag
+                                    {% elseif day.name == 'Tuesday' %}Dinsdag
+                                    {% elseif day.name == 'Wednesday' %}Woensdag
+                                    {% elseif day.name == 'Thursday' %}Donderdag
+                                    {% elseif day.name == 'Friday' %}Vrijdag
+                                    {% elseif day.name == 'Saturday' %}Zaterdag
+                                    {% elseif day.name == 'Sunday' %}Zondag{% endif %}
+                                </span>
+                            </div>
+
+                            <div class="time-controls-container">
+                                <div class="time-inputs">
+                                    <input type="time" name="days_config[{{ key }}][start]" value="{{ day.start }}">
+                                    <span>-</span>
+                                    <input type="time" name="days_config[{{ key }}][end]" value="{{ day.end }}">
+                                </div>
+                                <div class="unavailable-text">
+                                    Niet beschikbaar op {% if day.name == 'Monday' %}maandag{% elseif day.name == 'Tuesday' %}dinsdag{% elseif day.name == 'Wednesday' %}woensdag{% elseif day.name == 'Thursday' %}donderdag{% elseif day.name == 'Friday' %}vrijdag{% elseif day.name == 'Saturday' %}zaterdag{% elseif day.name == 'Sunday' %}zondag{% endif %}
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label for="end_date">Einddatum <span class="form-note">(Optioneel)</span></label>
-                            <input type="date" name="end_date" id="end_date">
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="form-actions-row">
-                    <button type="submit" class="btn-primary">Beschikbaarheid toevoegen</button>
-                </div>
-            </form>
-        </div>
-
-        {# Huidige Status Kaarten (Pakt dynamisch de meest recente periode) #}
-        <div class="account-grid" style="margin-bottom: 2.5rem;">
-
-            <div class="account-card">
-                <div class="account-card-content">
-                    <h3>Wekelijkse Inzet</h3>
-                    <p>{% if availabilities|length > 0 %}{{ availabilities[0].hoursPerWeek }} Uur{% else %}-- Uur{% endif %}</p>
+                    {% endfor %}
                 </div>
             </div>
 
-            <div class="account-card">
-                <div class="account-card-content">
-                    <h3>Huidige Vorm</h3>
-                    <p>{% if availabilities|length > 0 %}{{ availabilities[0].type }}{% else %}Geen actieve status{% endif %}</p>
-                </div>
+            <div class="form-actions-container">
+                <button type="submit" class="btn-primary">Schema Opslaan</button>
             </div>
+        </form>
 
-            <div class="account-card">
-                <div class="account-card-content">
-                    <h3>Actieve Periode Tot</h3>
-                    <p>{% if availabilities|length > 0 and availabilities[0].endDate %}{{ availabilities[0].endDate|date('d M Y') }}{% else %}Doorlopend / Onbepaald{% endif %}</p>
-                </div>
+        {# HISTORIE OVERZICHT #}
+        <div class="tidycal-container history-container">
+            <div class="tidycal-header">
+                <span class="tidycal-title">Opgeslagen beschikbaarheidsschema's</span>
             </div>
-
-        </div>
-
-        {# Formulier of tabel sectie (Gecombineerd met jouw .account-form-container) #}
-        <div class="account-form-container history-container">
-            <div class="form-internal-header">
-                <h2>Beschikbaarheidshistorie</h2>
-            </div>
-
             <div class="table-container">
-                <table class="custom-table">
+                <table class="custom-table dark-table">
                     <thead>
                     <tr>
-                        <th>Type</th>
-                        <th>Uren / Week</th>
-                        <th>Begindatum</th>
-                        <th>Einddatum</th>
-                        <th class="text-right">Acties</th>
+                        <th>Actieve Dagen</th>
+                        <th>Aangemaakt op</th>
+                        <th class="text-right">Actie</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for availability in availabilities %}
                         <tr>
-                            <td>{{ availability.type }}</td>
-                            <td>{{ availability.hoursPerWeek }} uur</td>
-                            <td>{{ availability.startDate|date('d M Y') }}</td>
-                            <td>{{ availability.endDate ? availability.endDate|date('d M Y') : 'Doorlopend' }}</td>
+                            <td>
+                                <strong class="text-light">{{ availability.daysSummary }}</strong>
+                            </td>
+                            <td class="text-light">{{ availability.startDate|date('d-m-Y') }}</td>
                             <td class="text-right">
-                                <form action="{{ path('account.availability_delete', {'id': availability.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze periode wilt verwijderen?');" style="display: inline;">
+                                <form action="{{ path('account.availability_delete', {'id': availability.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je dit schema wilt verwijderen?');">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete_availability' ~ availability.id) }}">
                                     <button type="submit" class="btn-card-cancel">Verwijderen</button>
                                 </form>
@@ -138,15 +107,12 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 2rem; color: #94a3b8;">
-                                Nog geen beschikbaarheidsperiodes ingesteld. Vul het bovenstaande formulier in.
-                            </td>
+                            <td colspan="3" class="text-center text-muted-dark">Nog geen schema's opgeslagen.</td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-
     </div>
 {% endblock %}
