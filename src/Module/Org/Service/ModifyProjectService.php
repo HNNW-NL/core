@@ -3,18 +3,27 @@
 namespace App\Module\Org\Service;
 
 use App\Entity\Account\Account;
-use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use App\Module\Org\Handler\ModifyProjectHandler;
 use App\Module\Org\Mapper\ModifyProjectMapper;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ObjectRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ModifyProjectService
 {
+    private const ORGANISATION_QUERY_KEY = 'organisation_id';
+    private const DATE_FORMAT = 'Y-m-d';
+    private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+    private const NEXT_PROJECT_LIMIT = 1;
     private const TITLE_MAX_LENGTH = 120;
     private const SUMMARY_MIN_LENGTH = 5;
     private const SUMMARY_MAX_LENGTH = 280;
@@ -27,15 +36,20 @@ class ModifyProjectService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ModifyProjectMapper $mapper,
+        private TranslatorInterface $translator,
+        private CsrfTokenManagerInterface $csrfTokenManager,
     ) {}
 
     public function modify(ModifyProjectDTO $dto): Project
     {
-        $project = $this->findProject($dto->projectId);
+        // Load the target project before validation so all checks run against the current persisted entity.
+        $project = $this->findProjectByIdentifier($dto->projectId);
 
         if ($project === null) {
-            throw new \RuntimeException('Project not found');
+            throw new NotFoundHttpException('Project not found');
         }
+
+        $this->assertProjectNotModifiedSinceLoaded($project, $dto);
 
         $this->assertProjectBelongsToOrganisation($project, $dto->organisationId);
 
@@ -43,6 +57,7 @@ class ModifyProjectService
             $project->setStatus($this->resolveStatus($dto->statusName));
         }
 
+        // Run all business-rule checks before copying form data onto the project entity.
         $this->validateModifyConstraints($dto, $project);
 
         $project = $this->mapper->toEntity($project, $dto);
@@ -61,66 +76,102 @@ class ModifyProjectService
         ?Account $publisher = null
     ): array
     {
-        $organisationId = $this->getRequestValue($request, 'organisation_id');
+        $organisationId = $this->getOrganisationIdFromRequest($request);
         $intent = $this->getRequestValue($request, 'intent');
 
-        $projectRepository = $this->entityManager->getRepository(Project::class);
-        $project = $this->resolveProjectReference($projectRepository, $id);
-
-        $resolvedProjectId = $project instanceof Project ? (string) $project->getId() : $id;
-        $resolvedProjectRef = $project instanceof Project ? $this->projectRef($project) : $id;
-
-        if ($intent !== '') {
-            return ['redirect' => $this->handleIntent(
-                $intent,
-                $request,
-                $handler,
-                $organisationId,
-                $resolvedProjectId,
-                $resolvedProjectRef,
-                $project,
-                $publisher
-            )];
+        // Some submissions (e.g. programmatic form submits) may not include submitter name/value.
+        // Treat POST without explicit intent as a standard modify action.
+        if ($request->isMethod('POST') && $intent === '') {
+            $intent = 'modify';
         }
+        $fallbackId = trim($id) === '' ? 'unknown' : $id;
 
-        $projects = $this->loadOrganisationProjects($organisationId);
+        try {
+            $project = $this->findProjectByIdentifier($id);
+            if (!$project instanceof Project) {
+                throw new NotFoundHttpException($this->translateOrFallback('org.project.error.not_found_db', 'Project not found.'));
+            }
 
-        if (!$project instanceof Project && !empty($projects)) {
-            $project = $projects[0];
-        }
+            $resolvedProjectId = (string) $project->getId();
+            $resolvedProjectRef = $this->projectRef($project);
 
-        $currentRef = $project instanceof Project ? $this->projectRef($project) : $id;
+            if ($organisationId === '' && $project->getOwnerOrganisation() !== null) {
+                $organisationId = (string) $project->getOwnerOrganisation()->getId();
+            }
 
-        if ($project instanceof Project && $id !== $currentRef) {
-            return ['redirect' => [
-                'id' => $currentRef,
-                'organisation_id' => $organisationId,
+            if ($intent !== '') {
+                $redirect = $this->handleIntent(
+                    $intent,
+                    $request,
+                    $handler,
+                    $organisationId,
+                    $resolvedProjectId,
+                    $resolvedProjectRef,
+                    $project,
+                    $publisher
+                );
+
+                $redirectRoute = $redirect['redirectRoute'] ?? null;
+                unset($redirect['redirectRoute']);
+
+                $payload = ['redirect' => $redirect];
+                if (is_string($redirectRoute) && $redirectRoute !== '') {
+                    $payload['redirectRoute'] = $redirectRoute;
+                }
+
+                return $payload;
+            }
+
+            // Normalize route param to slug when available so URLs remain canonical.
+            if ($id !== $resolvedProjectRef) {
+                return ['redirect' => [
+                    'id' => $resolvedProjectRef,
+                    self::ORGANISATION_QUERY_KEY => $organisationId,
+                ]];
+            }
+
+            return ['view' => [
+                'id' => $resolvedProjectRef,
+                'organisationId' => $organisationId,
+                'project' => $this->mapProject($project, $organisationId),
+                'error' => null,
             ]];
-        }
+        } catch (HttpExceptionInterface $e) {
+            if ($intent !== '') {
+                return [
+                    'redirectRoute' => 'org.modifyProject',
+                    'redirect' => [
+                        'id' => $fallbackId,
+                        self::ORGANISATION_QUERY_KEY => $organisationId,
+                        'status' => 'error',
+                        'message' => $e->getMessage(),
+                    ],
+                ];
+            }
 
-        return ['view' => [
-            'id' => $currentRef,
-            'organisationId' => $organisationId,
-            'project' => $project instanceof Project ? $this->mapProject($project, $organisationId) : null,
-            'projects' => $this->mapProjects($projects),
-        ]];
+            throw $e;
+        }
     }
 
-    public function delete(string $projectId, string $organisationId): Project
+    public function delete(string $projectIdentifier, string $organisationId): Project
     {
-        $project = $this->findProject($projectId);
+        $project = $this->findProjectByIdentifier($projectIdentifier);
 
         if ($project === null) {
-            throw new \RuntimeException('Project not found');
+            throw new NotFoundHttpException('Project not found');
+        }
+
+        if ($organisationId === '' && $project->getOwnerOrganisation() !== null) {
+            $organisationId = (string) $project->getOwnerOrganisation()->getId();
         }
 
         if ($project->getOwnerOrganisation() === null) {
-            throw new \RuntimeException('Project does not belong to an organisation');
+            throw new AccessDeniedHttpException('Project does not belong to an organisation');
         }
 
         $projectOrganisationId = (string) $project->getOwnerOrganisation()->getId();
         if ($projectOrganisationId !== $organisationId) {
-            throw new \RuntimeException('Project does not belong to the selected organisation');
+            throw new AccessDeniedHttpException('Project does not belong to the selected organisation');
         }
 
         $this->entityManager->remove($project);
@@ -139,45 +190,89 @@ class ModifyProjectService
         ?Project $project = null,
         ?Account $publisher = null
     ): array {
-        $actor = $publisher instanceof Account ? $publisher : new Account();
+        // The modify and delete actions both require a project-scoped CSRF token.
+        if (in_array($intent, ['modify', 'delete'], true)) {
+            if (!$this->isValidCsrfToken($request, $resolvedProjectId)) {
+                return [
+                    'redirectRoute' => 'org.modifyProject',
+                    'id' => $resolvedProjectRef,
+                    self::ORGANISATION_QUERY_KEY => $organisationId,
+                    'status' => 'error',
+                    'message' => $this->translateOrFallback('org.project.error.invalid_csrf', 'Invalid form token.'),
+                ];
+            }
+        }
 
         if ($intent === 'delete') {
             try {
                 $this->delete($resolvedProjectId, $organisationId);
 
+                // After deletion, send the user to the next project in the organisation or back to the list.
+                $nextProjectRef = $this->findAnotherProjectRefForOrganisation($organisationId, $resolvedProjectId);
+
+                if ($nextProjectRef !== null) {
+                    return [
+                        'redirectRoute' => 'org.modifyProject',
+                        'id' => $nextProjectRef,
+                        self::ORGANISATION_QUERY_KEY => $organisationId,
+                        'status' => 'success',
+                        'message' => $this->translateOrFallback('org.project.deleted_success', 'Project deleted successfully.'),
+                    ];
+                }
+
                 return [
-                    'id' => $resolvedProjectRef,
-                    'organisation_id' => $organisationId,
+                    'redirectRoute' => 'org.projects',
+                    self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'success',
-                    'message' => 'Project deleted successfully.',
+                    'message' => $this->translateOrFallback('org.project.deleted_success', 'Project deleted successfully.'),
                 ];
-            } catch (\RuntimeException $e) {
+            } catch (HttpExceptionInterface $e) {
                 return [
+                    'redirectRoute' => 'org.modifyProject',
                     'id' => $resolvedProjectRef,
-                    'organisation_id' => $organisationId,
+                    self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'error',
                     'message' => $e->getMessage(),
+                ];
+            } catch (\Throwable) {
+                return [
+                    'redirectRoute' => 'org.modifyProject',
+                    'id' => $resolvedProjectRef,
+                    self::ORGANISATION_QUERY_KEY => $organisationId,
+                    'status' => 'error',
+                    'message' => 'Failed to delete project.',
                 ];
             }
         }
 
+        // Replace any slug or route alias with the stored project id before the handler reads the request.
         $request->request->set('project_id', $resolvedProjectId);
-        $request->query->set('project_id', $resolvedProjectId);
 
         if ($project instanceof Project) {
             $request->attributes->set('_current_project', $project);
         }
 
-        $result = $handler->handle($request, $actor);
+        $result = $handler->handle($request, $publisher);
 
         return [
+            'redirectRoute' => 'org.modifyProject',
             'id' => $resolvedProjectRef,
-            'organisation_id' => $organisationId,
+            self::ORGANISATION_QUERY_KEY => $organisationId,
             'status' => !empty($result['success']) ? 'success' : 'error',
             'message' => !empty($result['success'])
-                ? 'Project updated successfully.'
-                : ($result['error'] ?? 'Update failed.'),
+            ? $this->translateOrFallback('org.project.updated_success', 'Project updated successfully.')
+            : ($result['error'] ?? $this->translateOrFallback('org.project.update_failed', 'Failed to update project.')),
         ];
+    }
+
+    private function getOrganisationIdFromRequest(Request $request): string
+    {
+        return $this->getRequestValueFromAliases($request, [
+            self::ORGANISATION_QUERY_KEY,
+            'organization_id',
+            'organisationId',
+            'organizationId',
+        ]);
     }
 
     private function getRequestValue(Request $request, string $key): string
@@ -185,42 +280,65 @@ class ModifyProjectService
         return trim((string) ($request->request->get($key) ?? $request->query->get($key) ?? ''));
     }
 
-    private function resolveProjectReference(ObjectRepository $projectRepository, string $reference): ?Project
+    private function getRequestValueFromAliases(Request $request, array $keys): string
     {
-        $reference = trim($reference);
-        if ($reference === '') {
+        foreach ($keys as $key) {
+            $value = $this->getRequestValue($request, $key);
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return '';
+    }
+
+    private function findProjectByIdentifier(string $identifier): ?Project
+    {
+        $identifier = trim($identifier);
+        if ($identifier === '') {
             return null;
         }
 
-        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $reference)) {
-            $project = $projectRepository->find($reference);
-            return $project instanceof Project ? $project : null;
+        $projectRepository = $this->entityManager->getRepository(Project::class);
+
+        // Accept both UUIDs and slugs so the route can be called with either the canonical id or the readable alias.
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $identifier)) {
+            $project = $projectRepository->find($identifier);
+            if ($project instanceof Project) {
+                return $project;
+            }
         }
 
-        $project = $projectRepository->findOneBy(['slug' => $reference]);
+        $project = $projectRepository->findOneBy(['slug' => $identifier]);
+
         return $project instanceof Project ? $project : null;
+    }
+
+    private function findAnotherProjectRefForOrganisation(string $organisationId, string $excludedProjectId): ?string
+    {
+        if ($organisationId === '') {
+            return null;
+        }
+
+        // Find the newest remaining project in the same organisation so delete redirects stay inside the project area.
+        $qb = $this->entityManager->getRepository(Project::class)->createQueryBuilder('p');
+        $project = $qb
+            ->where('p.ownerOrganisation = :organisationId')
+            ->andWhere('p.id <> :excludedProjectId')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('organisationId', $organisationId)
+            ->setParameter('excludedProjectId', $excludedProjectId)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults(self::NEXT_PROJECT_LIMIT)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $project instanceof Project ? $this->projectRef($project) : null;
     }
 
     private function projectRef(Project $project): string
     {
         return (string) ($project->getSlug() ?: $project->getId());
-    }
-
-    private function loadOrganisationProjects(string $organisationId): array
-    {
-        if ($organisationId === '') {
-            return [];
-        }
-
-        $organisation = $this->entityManager->getRepository(Organisation::class)->find($organisationId);
-        if (!$organisation instanceof Organisation) {
-            return [];
-        }
-
-        return $this->entityManager->getRepository(Project::class)->findBy(
-            ['ownerOrganisation' => $organisation],
-            ['createdAt' => 'DESC']
-        );
     }
 
     private function mapProject(Project $project, string $organisationId): array
@@ -235,42 +353,48 @@ class ModifyProjectService
             'ref' => $this->projectRef($project),
             'statusName' => $project->getStatus()?->getName(),
             'organisationId' => $project->getOwnerOrganisation() ? (string) $project->getOwnerOrganisation()->getId() : $organisationId,
-            'startDate' => $project->getStartDate()?->format('Y-m-d'),
-            'endDate' => $project->getEndDate()?->format('Y-m-d'),
+            'startDate' => $project->getStartDate()?->format(self::DATE_FORMAT),
+            'endDate' => $project->getEndDate()?->format(self::DATE_FORMAT),
             'capacity' => $project->getCapacity(),
+            'lastModified' => $project->getLastModified()?->format(self::DATE_TIME_FORMAT),
         ];
     }
 
-    private function mapProjects(array $projects): array
+    private function assertProjectNotModifiedSinceLoaded(Project $project, ModifyProjectDTO $dto): void
     {
-        return array_map(function (Project $item): array {
-            return [
-                'id' => (string) $item->getId(),
-                'ref' => $this->projectRef($item),
-                'title' => $item->getTitle(),
-                'name' => $item->getTitle(),
-                'slug' => $item->getSlug(),
-                'summary' => $item->getSummary(),
-                'description' => $item->getDescription(),
-                'visibility' => $item->getVisibility(),
-                'statusName' => $item->getStatus()?->getName(),
-                'organisationId' => $item->getOwnerOrganisation() ? (string) $item->getOwnerOrganisation()->getId() : null,
-                'startDate' => $item->getStartDate()?->format('Y-m-d'),
-                'endDate' => $item->getEndDate()?->format('Y-m-d'),
-                'capacity' => $item->getCapacity(),
-            ];
-        }, $projects);
+        // Stop the update when the database version changed after the form was loaded.
+        if ($dto->expectedLastModified === null) {
+            return;
+        }
+
+        $current = $project->getLastModified();
+        if ($current === null) {
+            return;
+        }
+
+        if ($current->format(self::DATE_TIME_FORMAT) !== $dto->expectedLastModified->format(self::DATE_TIME_FORMAT)) {
+            throw new \RuntimeException($this->translateOrFallback('org.project.error.concurrent_modification', 'Project was modified by another request. Please reload and try again.'));
+        }
+    }
+
+    private function isValidCsrfToken(Request $request, string $projectId): bool
+    {
+        $tokenValue = trim((string) ($request->request->get('_token') ?? $request->query->get('_token') ?? ''));
+        // Scope the CSRF token to the project id so a token from another project cannot be replayed here.
+        $tokenId = 'org_modify_project_' . $projectId;
+
+        return $tokenValue !== '' && $this->csrfTokenManager->isTokenValid(new CsrfToken($tokenId, $tokenValue));
     }
 
     private function assertProjectBelongsToOrganisation(Project $project, string $organisationId): void
     {
         if ($project->getOwnerOrganisation() === null) {
-            throw new \RuntimeException('Project does not belong to an organisation');
+            throw new AccessDeniedHttpException('Project does not belong to an organisation');
         }
 
         $projectOrganisationId = (string) $project->getOwnerOrganisation()->getId();
         if ($projectOrganisationId !== $organisationId) {
-            throw new \RuntimeException('Project does not belong to the selected organisation');
+            throw new AccessDeniedHttpException('Project does not belong to the selected organisation');
         }
     }
 
@@ -378,22 +502,6 @@ class ModifyProjectService
         return strlen($value);
     }
 
-    private function findProject(string $projectId): ?Project
-    {
-        $projectId = trim($projectId);
-        if ($projectId === '') {
-            return null;
-        }
-
-        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $projectId)) {
-            return null;
-        }
-
-        $project = $this->entityManager->getRepository(Project::class)->find($projectId);
-
-        return $project instanceof Project ? $project : null;
-    }
-
     private function resolveStatus(?string $statusName): Status
     {
         $statusName = trim((string) $statusName);
@@ -407,9 +515,19 @@ class ModifyProjectService
         ]);
 
         if (!$status instanceof Status) {
-            throw new \RuntimeException('Unknown project status: ' . $statusName);
+            throw new BadRequestHttpException('Unknown project status: ' . $statusName);
         }
 
         return $status;
+    }
+
+    private function translateOrFallback(string $key, string $fallback): string
+    {
+        $translated = $this->translator->trans($key);
+        if ($translated === '' || $translated === $key) {
+            return $fallback;
+        }
+
+        return $translated;
     }
 }

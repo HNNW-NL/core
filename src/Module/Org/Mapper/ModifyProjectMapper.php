@@ -5,30 +5,43 @@ namespace App\Module\Org\Mapper;
 use App\Entity\Project\Project;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ModifyProjectMapper
 {
     private const DATE_FORMAT = 'Y-m-d';
     private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+    private const STATUS_NAME_ALIASES = [
+        '1' => 'draft',
+        'draft' => 'draft',
+        '2' => 'published',
+        'published' => 'published',
+        'active' => 'published',
+        '3' => 'archived',
+        'archived' => 'archived',
+        'closed' => 'archived',
+    ];
 
     public function fromRequest(Request $request, array $extraData = []): ModifyProjectDTO
     {
+        // Touched flags let the service distinguish a submitted empty field from a field that was never sent.
         $startDateTouched = false;
         $endDateTouched = false;
         $visibilityTouched = false;
 
-        $title = $this->getStringFromRequest($request, ['title', 'name']);
+        $title = $this->getStringFromPost($request, ['title', 'name']);
         $projectId = $this->getStringFromRequest($request, ['project_id', 'projectId'])
             ?? (isset($extraData['project_id']) ? trim((string) $extraData['project_id']) : null)
             ?? trim((string) $request->attributes->get('id', ''));
-        $organisationId = $this->getStringFromRequest($request, ['organisation_id', 'organisationId'])
+        $organisationId = $this->getStringFromRequest($request, ['organisation_id', 'organization_id', 'organisationId', 'organizationId'])
             ?? (isset($extraData['organisation_id']) ? trim((string) $extraData['organisation_id']) : '')
             ?? '';
 
-        $submittedVisibility = $this->getStringFromRequest($request, ['visibility']);
+        $submittedVisibility = $this->getStringFromPost($request, ['visibility']);
         $currentProject = $request->attributes->get('_current_project');
         $currentVisibility = $currentProject instanceof Project ? $currentProject->getVisibility() : null;
-        
+
+        // Mark visibility as touched only when the submitted value is different from what the project already has.
         if ($submittedVisibility !== null && $submittedVisibility !== $currentVisibility) {
             $visibilityTouched = true;
         }
@@ -37,16 +50,18 @@ class ModifyProjectMapper
             projectId: $projectId,
             organisationId: $organisationId,
             title: $title,
-            summary: $this->getStringFromRequest($request, ['summary']),
-            description: $this->getStringFromRequest($request, ['description']),
+            summary: $this->getStringFromPost($request, ['summary']),
+            description: $this->getStringFromPost($request, ['description']),
             visibility: $submittedVisibility,
-            statusName: $this->normalizeStatusName($this->getStringFromRequest($request, ['status', 'status_name'])),
-            startDate: $this->getDateFromRequest($request, ['start_date', 'startDate'], $startDateTouched),
-            endDate: $this->getDateFromRequest($request, ['end_date', 'endDate'], $endDateTouched),
+            statusName: $this->normalizeStatusName($this->getStringFromPost($request, ['status', 'status_name'])),
+            startDate: $this->getDateFromPost($request, ['start_date', 'startDate'], $startDateTouched),
+            endDate: $this->getDateFromPost($request, ['end_date', 'endDate'], $endDateTouched),
             startDateTouched: $startDateTouched,
             endDateTouched: $endDateTouched,
             visibilityTouched: $visibilityTouched,
-            capacity: $this->getIntFromRequest($request, ['capacity']),
+            capacity: $this->getIntFromPost($request, ['capacity']),
+            expectedLastModified: $this->getDateTimeFromPost($request, ['last_modified', 'lastModified']),
+            csrfToken: $this->getStringFromPost($request, ['_token']),
             modifiedBy: $extraData['publisher'] ?? null,
             modifiedAt: new \DateTimeImmutable(),
         );
@@ -54,6 +69,7 @@ class ModifyProjectMapper
 
     public function toEntity(Project $project, ModifyProjectDTO $dto): Project
     {
+        // Copy only the fields that were actually changed so untouched values stay on the entity.
         if ($dto->hasTitleChanged()) {
             $project->setTitle($dto->title);
         }
@@ -148,9 +164,26 @@ class ModifyProjectMapper
         return $request->attributes->get($key);
     }
 
-    private function getDateFromRequest(Request $request, array $keys, bool &$touched = false): ?\DateTimeImmutable
+    private function getStringFromPost(Request $request, array $keys): ?string
     {
-        [$rawValue, $touched] = $this->getRawInputFromRequest($request, $keys);
+        // For updates, read only the submitted form body so query parameters cannot accidentally override it.
+        foreach ($keys as $key) {
+            if (!$request->request->has($key)) {
+                continue;
+            }
+
+            $value = trim((string) $request->request->get($key));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    private function getDateFromPost(Request $request, array $keys, bool &$touched = false): ?\DateTimeImmutable
+    {
+        [$rawValue, $touched] = $this->getRawInputFromPost($request, $keys);
         if (!$touched) {
             return null;
         }
@@ -163,37 +196,44 @@ class ModifyProjectMapper
         try {
             return new \DateTimeImmutable($date);
         } catch (\Throwable) {
-            throw new \InvalidArgumentException('Invalid date format provided.');
+            throw new BadRequestHttpException('Invalid date format provided.');
         }
     }
 
-    private function getRawInputFromRequest(Request $request, array $keys): array
+    private function getDateTimeFromPost(Request $request, array $keys): ?\DateTimeImmutable
     {
+        $value = $this->getStringFromPost($request, $keys);
+        if ($value === null) {
+            return null;
+        }
+
+        try {
+            return new \DateTimeImmutable($value);
+        } catch (\Throwable) {
+            throw new BadRequestHttpException('Invalid datetime format provided.');
+        }
+    }
+
+    private function getRawInputFromPost(Request $request, array $keys): array
+    {
+        // Returns [value, wasSubmitted] so callers know whether the field was omitted or intentionally cleared.
         foreach ($keys as $key) {
             if ($request->request->has($key)) {
                 return [$request->request->get($key), true];
-            }
-
-            if ($request->query->has($key)) {
-                return [$request->query->get($key), true];
-            }
-
-            if ($request->attributes->has($key)) {
-                return [$request->attributes->get($key), true];
             }
         }
 
         return [null, false];
     }
 
-    private function getIntFromRequest(Request $request, array $keys): ?int
+    private function getIntFromPost(Request $request, array $keys): ?int
     {
-        $value = $this->getStringFromRequest($request, $keys);
+        $value = $this->getStringFromPost($request, $keys);
         if ($value === null) {
             return null;
         }
 
-        return is_numeric($value) ? (int) $value : null;
+        return preg_match('/^-?\d+$/', $value) ? (int) $value : null;
     }
 
     private function normalizeStatusName(?string $statusName): ?string
@@ -202,13 +242,9 @@ class ModifyProjectMapper
             return null;
         }
 
+        // Convert numeric or alias status inputs into the canonical names used by the domain model.
         $statusName = trim(strtolower($statusName));
 
-        return match ($statusName) {
-            '1', 'draft' => 'draft',
-            '2', 'published', 'active' => 'published',
-            '3', 'archived', 'closed' => 'archived',
-            default => $statusName === '' ? null : $statusName,
-        };
+        return self::STATUS_NAME_ALIASES[$statusName] ?? ($statusName === '' ? null : $statusName);
     }
 }

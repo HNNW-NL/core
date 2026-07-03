@@ -1,19 +1,18 @@
 :root {
-    /* Color theme */
+    /* Shared design values for this page: colors, borders, focus ring, and shadow levels. */
     --bg: #020617;
-    --bg-soft: rgba(15, 23, 42, 0.7);
-    --card: rgba(15, 23, 42, 0.7);
     --card-strong: #0f172a;
     --text: #f1f5f9;
     --muted: #cbd5e1;
     --border: rgba(255, 255, 255, 0.1);
-    --field: rgba(15, 23, 42, 0.55);
     --accent: #f4c400;
-    --accent-hover: #e6b800;
-    --accent-soft: rgba(255, 227, 111, 0.12);
     --ring: #f8fafc;
     --ring-shadow: rgba(244, 196, 0, 0.55);
     --shadow: 0 18px 45px rgba(2, 6, 23, 0.35);
+    --control-min-height: 44px;
+    --radius-button: 12px;
+    --radius-control: 14px;
+    --radius-panel: 16px;
 }
 
 * {
@@ -21,13 +20,14 @@
 }
 
 .skip-link {
+    /* Hidden shortcut that appears on focus so keyboard users can jump straight to the main content. */
     position: absolute;
     top: 0;
     left: 0;
     z-index: 1000;
     padding: 10px 14px;
     transform: translateY(-120%);
-    border-radius: 0 0 12px 0;
+    border-radius: 0 0 var(--radius-button) 0;
     background: #f8fafc;
     color: #0f172a;
     font-weight: 700;
@@ -57,8 +57,7 @@ body {
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
-select:focus-visible,
-input[type="file"]::file-selector-button:focus-visible {
+select:focus-visible {
     outline: 3px solid var(--ring);
     outline-offset: 2px;
     box-shadow: 0 0 0 6px var(--ring-shadow);
@@ -70,52 +69,14 @@ input[type="file"]::file-selector-button:focus-visible {
 
 .content--single {
     width: min(1040px, calc(100% - 32px));
-    margin: 20px auto 28px;
-}
-
-.unsaved-badge {
-    position: fixed;
-    right: 18px;
-    bottom: 18px;
-    z-index: 900;
-    margin: 0;
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(234, 179, 8, 0.45);
-    background: rgba(234, 179, 8, 0.2);
-    color: #fef3c7;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.4);
-}
-
-.reveal-up {
-    opacity: 0;
-    transform: translateY(14px);
-}
-
-body.page-ready .reveal-up {
-    animation: reveal-up 560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    animation-delay: var(--reveal-delay, 0ms);
-}
-
-@keyframes reveal-up {
-    from {
-        opacity: 0;
-        transform: translateY(14px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    margin: 24px auto 32px;
 }
 
 .modify-banner {
-    padding: 18px 18px 16px;
+    padding: 20px 20px 18px;
     border: 1px solid var(--border);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-panel);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .modify-banner h1 {
@@ -127,6 +88,7 @@ body.page-ready .reveal-up {
 .modify-banner p {
     margin: 10px 0 0;
     color: var(--muted);
+    max-width: 62ch;
 }
 
 .eyebrow {
@@ -138,45 +100,28 @@ body.page-ready .reveal-up {
     font-weight: 700;
 }
 
-main {
-    display: grid;
-    gap: 18px;
-}
-
 form {
     position: relative;
     width: 100%;
     margin: 0;
-    padding: 24px;
+    padding: 26px;
     background: var(--card-strong);
     border: 1px solid var(--border);
     border-radius: 22px;
     box-shadow: var(--shadow);
-    backdrop-filter: blur(14px);
     display: grid;
     gap: 18px;
     overflow: hidden;
 }
 
-.modify-meta {
-    display: grid;
-    gap: 14px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .modify-fields {
     display: grid;
-    gap: 14px;
-}
-
-.modify-meta,
-.modify-fields {
+    gap: 16px;
     border: 0;
     margin: 0;
     padding: 0;
 }
 
-.modify-meta legend,
 .modify-fields legend {
     margin: 0 0 6px;
     padding: 0;
@@ -190,12 +135,8 @@ form {
 .button-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 14px;
     margin-top: 2px;
-}
-
-.button-row > div {
-    margin-bottom: 0;
 }
 
 .button-cell {
@@ -209,8 +150,9 @@ form {
 }
 
 .button-cell--danger {
+    /* Visually separates the delete action so destructive controls are easy to spot before clicking. */
     border: 1px solid rgba(239, 68, 68, 0.25);
-    border-radius: 14px;
+    border-radius: var(--radius-control);
     padding: 12px;
     background: rgba(127, 29, 29, 0.14);
 }
@@ -222,14 +164,21 @@ form {
 }
 
 
-form div {
+.modify-fields > div {
     margin-bottom: 16px;
+}
+
+/* Uses backdrop blur only in browsers that support it; otherwise the solid background stays in place. */
+@supports (backdrop-filter: blur(1px)) {
+    form {
+        backdrop-filter: blur(14px);
+    }
 }
 
 label {
     display: block;
     margin-bottom: 8px;
-    font-size: 0.93rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: var(--text);
 }
@@ -237,40 +186,29 @@ label {
 .field-help {
     margin: 8px 0 0;
     font-size: 0.88rem;
+    line-height: 1.4;
     color: var(--muted);
-}
-
-.field-feedback {
-    margin: 8px 0 0;
-    font-size: 0.85rem;
-    min-height: 1.1em;
-    color: var(--muted);
-}
-
-.field-feedback--error {
-    color: #fecaca;
-}
-
-.field-feedback--success {
-    color: #bbf7d0;
 }
 
 .form-status {
+    /* Shared banner style for any message shown above the form, whether it is success or error text. */
     margin: 0 0 16px;
-    padding: 12px 14px;
+    padding: 12px 15px;
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: var(--radius-button);
     font-size: 0.95rem;
     font-weight: 600;
 }
 
 .form-status--success {
+    /* Green-tinted state used when the save or delete action finished successfully. */
     color: #d1fae5;
     background: rgba(16, 185, 129, 0.18);
     border-color: rgba(16, 185, 129, 0.38);
 }
 
 .form-status--error {
+    /* Red-tinted state used when validation or server processing fails. */
     color: #fee2e2;
     background: rgba(239, 68, 68, 0.18);
     border-color: rgba(239, 68, 68, 0.38);
@@ -280,13 +218,13 @@ input,
 textarea,
 select {
     width: 100%;
-    min-height: 44px;
+    min-height: var(--control-min-height);
     padding: 11px 13px;
     font: inherit;
     color: var(--text);
-    background-color: rgba(15, 23, 42, 0.9);
+    background-color: rgba(15, 23, 42, 0.92);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: var(--radius-control);
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease,
     transform 0.18s ease;
 }
@@ -297,7 +235,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-    color: #cbd5e1;
+    color: #d7deea;
     opacity: 1;
 }
 
@@ -307,18 +245,6 @@ select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 4px rgba(248, 250, 252, 0.14);
     background-color: rgba(15, 23, 42, 0.98);
-}
-
-input:readonly {
-    background-color: rgba(15, 23, 42, 0.5);
-    color: #94a3b8;
-    cursor: default;
-}
-
-input:readonly:focus {
-    border-color: var(--border);
-    box-shadow: none;
-    outline: none;
 }
 
 input:disabled,
@@ -331,28 +257,6 @@ select:disabled {
     opacity: 0.65;
 }
 
-div.is-invalid input:focus,
-div.is-invalid textarea:focus,
-div.is-invalid select:focus {
-    border-color: rgba(239, 68, 68, 0.85);
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
-}
-
-div.is-dirty label::after {
-    content: "Changed";
-    display: inline-block;
-    margin-left: 8px;
-    padding: 1px 8px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    border-radius: 999px;
-    color: #fef9c3;
-    background: rgba(234, 179, 8, 0.25);
-    border: 1px solid rgba(234, 179, 8, 0.35);
-    vertical-align: middle;
-}
-
 textarea#summary {
     min-height: 90px;
 }
@@ -361,41 +265,14 @@ textarea#description {
     min-height: 140px;
 }
 
-input[type="file"] {
-    /* File input row */
-    padding: 8px;
-    border-radius: 12px;
-    background-color: rgba(255, 255, 255, 0.03);
-    color: var(--muted);
-    cursor: pointer;
-}
-
-input[type="file"]::file-selector-button {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 12px;
-    margin-right: 10px;
-    font: inherit;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #0f172a;
-    background: #ffffff;
-    cursor: pointer;
-    min-height: 44px;
-}
-
-input[type="file"]::file-selector-button:hover {
-    background: #f8fafc;
-}
-
 button {
     width: 100%;
-    min-height: 44px;
+    min-height: var(--control-min-height);
     border: 0;
-    border-radius: 12px;
+    border-radius: var(--radius-button);
     padding: 12px 16px;
     font: inherit;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.01em;
     cursor: pointer;
     color: #0f172a;
@@ -410,8 +287,7 @@ button:hover {
     transform: translateY(-1px);
 }
 
-button:focus-visible,
-input[type="file"]::file-selector-button:focus-visible {
+button:focus-visible {
     background: #f8fafc;
     color: #0f172a;
 }
@@ -419,11 +295,6 @@ input[type="file"]::file-selector-button:focus-visible {
 button:active {
     transform: translateY(0);
     box-shadow: 0 8px 18px rgba(14, 40, 92, 0.4);
-}
-
-button[aria-busy="true"] {
-    cursor: wait;
-    opacity: 0.85;
 }
 
 button:disabled,
@@ -442,27 +313,11 @@ button[disabled] {
     background: rgba(220, 38, 38, 0.65);
 }
 
-.button-secondary {
-    margin-top: 10px;
-    min-height: 38px;
-    padding: 8px 12px;
-    font-size: 0.86rem;
-    font-weight: 600;
-    color: #dbeafe;
-    background: rgba(30, 64, 175, 0.35);
-    border: 1px solid rgba(96, 165, 250, 0.45);
-    box-shadow: none;
-}
-
-.button-secondary:hover {
-    background: rgba(37, 99, 235, 0.45);
-    box-shadow: none;
-}
-
 .delete-dialog {
-    width: min(460px, calc(100% - 24px));
+    /* Modal shell that holds the permanent-delete confirmation content and actions. */
+    width: min(480px, calc(100% - 24px));
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: var(--radius-panel);
     padding: 0;
     color: var(--text);
     background: #0b1225;
@@ -515,25 +370,12 @@ button[disabled] {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
     }
-
-    .reveal-up {
-        opacity: 1;
-        transform: none;
-    }
 }
 
 @media (max-width: 640px) {
-    .content {
-        padding: 0;
-    }
-
     form {
-        padding: 18px;
+        padding: 16px;
         border-radius: 18px;
-    }
-
-    .modify-meta {
-        grid-template-columns: 1fr;
     }
 
     .button-row {
@@ -542,10 +384,5 @@ button[disabled] {
 
     .delete-dialog__actions {
         grid-template-columns: 1fr;
-    }
-
-    .unsaved-badge {
-        right: 12px;
-        bottom: 12px;
     }
 }
