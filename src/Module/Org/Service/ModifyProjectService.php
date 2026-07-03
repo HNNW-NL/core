@@ -54,7 +54,13 @@ class ModifyProjectService
         $this->assertProjectBelongsToOrganisation($project, $dto->organisationId);
 
         if ($dto->hasStatusNameChanged()) {
-            $project->setStatus($this->resolveStatus($dto->statusName));
+            $requestedStatusName = strtolower(trim((string) ($dto->statusName ?? '')));
+            $currentStatusName = strtolower(trim((string) ($project->getStatus()?->getName() ?? '')));
+
+            // Resolve and set status only when user actually changed it.
+            if ($requestedStatusName !== '' && $requestedStatusName !== $currentStatusName) {
+                $project->setStatus($this->resolveStatus($requestedStatusName));
+            }
         }
 
         // Run all business-rule checks before copying form data onto the project entity.
@@ -513,15 +519,21 @@ class ModifyProjectService
 
     private function resolveStatus(?string $statusName): Status
     {
-        $statusName = trim((string) $statusName);
+        $statusName = strtolower(trim((string) $statusName));
         if ($statusName === '') {
             throw new \InvalidArgumentException('Status is required');
         }
 
-        $status = $this->entityManager->getRepository(Status::class)->findOneBy([
-            'name' => $statusName,
-            'scope' => 'project',
-        ]);
+        $status = $this->entityManager
+            ->getRepository(Status::class)
+            ->createQueryBuilder('s')
+            ->where('LOWER(s.name) = :name')
+            ->andWhere('s.scope = :scope')
+            ->setParameter('name', $statusName)
+            ->setParameter('scope', 'project')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
 
         if (!$status instanceof Status) {
             throw new BadRequestHttpException('Unknown project status: ' . $statusName);
