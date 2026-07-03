@@ -126,12 +126,9 @@ final class AccountsController extends AbstractController
             $endTime = '17:00';
             $totalHours = 0;
 
-            // Let op: Frontend stuurt mogelijk nog 1-7, dus we mappen of loopen van 0-6 gebaseerd op je nieuwe array structuur.
-            // Als je HTML formulier name="days_config[0][enabled]" gebruikt (0=Ma, 1=Di...), werkt dit direct:
             foreach (range(0, 6) as $dayNum) {
                 $dayConfig = $daysInput[$dayNum] ?? [];
 
-                // Fallback voor als de frontend stiekem toch nog 1-7 stuurt (schuif index 1 naar links)
                 if (empty($dayConfig) && isset($daysInput[$dayNum + 1])) {
                     $dayConfig = $daysInput[$dayNum + 1];
                 }
@@ -145,7 +142,6 @@ final class AccountsController extends AbstractController
                     $startTime = $start;
                     $endTime = $end;
 
-                    // Urenberekening
                     try {
                         $timeStart = new \DateTime($start);
                         $timeEnd = new \DateTime($end);
@@ -162,11 +158,8 @@ final class AccountsController extends AbstractController
             }
 
             $hours = (int) round($totalHours);
-
-            // Type bepalen op basis van het aantal uren (boven de 32 uur = Full-Time, anders Part-Time)
             $typeCode = ($hours >= 32) ? 'FT' : 'PT';
 
-            // Bouw compacte string: {day_numbers}|{start_time}-{end_time}|{type} -> bijv "01234|08:00-17:00|FT"
             $compactType = implode('', $activeDays) . '|' . $startTime . '-' . $endTime . '|' . $typeCode;
             $compactType = substr($compactType, 0, 25);
 
@@ -193,7 +186,6 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.availability');
         }
 
-        // GET: Haal actieve rijen op via native SQL
         try {
             $rows = $connection->fetchAllAssociative(
                 'SELECT * FROM availabilities WHERE profile_id = :profileId AND deleted_at IS NULL ORDER BY start_date DESC',
@@ -204,14 +196,12 @@ final class AccountsController extends AbstractController
         }
 
         $availabilities = [];
-        // Mapping op basis van 0 = Monday t/m 6 = Sunday
         $daysMapping = [0 => 'Ma', 1 => 'Di', 2 => 'Wo', 3 => 'Do', 4 => 'Vr', 5 => 'Za', 6 => 'Zo'];
         $typeMapping = ['FT' => 'Full-Time', 'PT' => 'Part-Time'];
 
         foreach ($rows as $row) {
             $rawValue = $row['availability_type'] ?? '';
 
-            // Standaard structuur initialiseren voor Twig view compatibility (0 t/m 6)
             $structuredDays = [];
             foreach (range(0, 6) as $d) {
                 $structuredDays[$d] = ['enabled' => false, 'start' => '08:00', 'end' => '17:00'];
@@ -219,7 +209,6 @@ final class AccountsController extends AbstractController
 
             $baseType = 'Standaard';
 
-            // Ontleed de short-hand string (bijv: "01234|08:00-17:00|FT")
             if (str_contains($rawValue, '|')) {
                 $parts = explode('|', $rawValue);
                 $daysPart = $parts[0] ?? '';
@@ -241,14 +230,12 @@ final class AccountsController extends AbstractController
                     }
                 }
             } else {
-                // Generieke fallback voor legacy data
                 foreach (range(0, 4) as $d) {
                     $structuredDays[$d]['enabled'] = true;
                 }
                 $baseType = !empty($rawValue) ? $rawValue : 'Standaard';
             }
 
-            // Bouw de samenvatting (Ma, Di, Wo...) voor de tabel
             $activeDaysText = [];
             foreach ($structuredDays as $dayNum => $meta) {
                 if ($meta['enabled']) {
@@ -257,7 +244,6 @@ final class AccountsController extends AbstractController
             }
             $daysSummary = !empty($activeDaysText) ? ' (' . implode(', ', $activeDaysText) . ')' : ' (Geen werkdagen)';
 
-            // Zorg dat exceptions (blocked dates) netjes als array meegegeven worden (klaar voor uitbreiding)
             $availabilities[] = (object) [
                 'id' => $row['id'],
                 'baseType' => $baseType,
@@ -270,13 +256,12 @@ final class AccountsController extends AbstractController
             ];
         }
 
-        // Genereer de default-staat voor het formulier (0 t/m 6 indexering!)
         $defaultSchedule = [];
         $fullNames = [0 => 'Monday', 1 => 'Tuesday', 2 => 'Wednesday', 3 => 'Thursday', 4 => 'Friday', 5 => 'Saturday', 6 => 'Sunday'];
         foreach ($fullNames as $num => $name) {
             $defaultSchedule[$num] = [
                 'name' => $name,
-                'enabled' => $num <= 4, // Standaard Maandag t/m Vrijdag aan
+                'enabled' => $num <= 4,
                 'start' => '08:00',
                 'end' => '17:00'
             ];
@@ -359,7 +344,10 @@ final class AccountsController extends AbstractController
                     }
 
                     $experience->setJobTitle($jobTitle);
-                    $experience->setOrganizationName($organisationName);
+
+                    // Fixed spelling from setOrganizationName to setOrganisationName
+                    $experience->setOrganisationName($organisationName);
+
                     $experience->setStartDate(new \DateTimeImmutable($startDateStr));
                     $experience->setIsCurrent($isCurrent);
 
