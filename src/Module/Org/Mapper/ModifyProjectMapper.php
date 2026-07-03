@@ -28,6 +28,7 @@ class ModifyProjectMapper
         $startDateTouched = false;
         $endDateTouched = false;
         $visibilityTouched = false;
+        $capacityTouched = false;
 
         $title = $this->getStringFromPost($request, ['title', 'name']);
         $projectId = $this->getStringFromRequest($request, ['project_id', 'projectId'])
@@ -53,13 +54,14 @@ class ModifyProjectMapper
             summary: $this->getStringFromPost($request, ['summary']),
             description: $this->getStringFromPost($request, ['description']),
             visibility: $submittedVisibility,
-            statusName: $this->normalizeStatusName($this->getStringFromPost($request, ['status', 'status_name'])),
+            statusName: $this->normalizeStatusName($this->getStringFromPost($request, ['status_id', 'status', 'status_name'])),
             startDate: $this->getDateFromPost($request, ['start_date', 'startDate'], $startDateTouched),
             endDate: $this->getDateFromPost($request, ['end_date', 'endDate'], $endDateTouched),
             startDateTouched: $startDateTouched,
             endDateTouched: $endDateTouched,
             visibilityTouched: $visibilityTouched,
-            capacity: $this->getIntFromPost($request, ['capacity']),
+            capacity: $this->getIntFromPost($request, ['capacity'], $capacityTouched),
+            capacityTouched: $capacityTouched,
             expectedLastModified: $this->getDateTimeFromPost($request, ['last_modified', 'lastModified']),
             csrfToken: $this->getStringFromPost($request, ['_token']),
             modifiedBy: $extraData['publisher'] ?? null,
@@ -226,14 +228,23 @@ class ModifyProjectMapper
         return [null, false];
     }
 
-    private function getIntFromPost(Request $request, array $keys): ?int
+    private function getIntFromPost(Request $request, array $keys, bool &$touched = false): ?int
     {
-        $value = $this->getStringFromPost($request, $keys);
-        if ($value === null) {
+        [$rawValue, $touched] = $this->getRawInputFromPost($request, $keys);
+        if (!$touched) {
             return null;
         }
 
-        return preg_match('/^-?\d+$/', $value) ? (int) $value : null;
+        $value = trim((string) ($rawValue ?? ''));
+        if ($value === '') {
+            return null;
+        }
+
+        if (!preg_match('/^-?\d+$/', $value)) {
+            throw new BadRequestHttpException('Invalid number format provided.');
+        }
+
+        return (int) $value;
     }
 
     private function normalizeStatusName(?string $statusName): ?string

@@ -22,6 +22,27 @@ document.addEventListener('DOMContentLoaded', function () {
     let deleteConfirmed = false;
     let isSubmitting = false;
 
+    function setForcedIntent(value) {
+        let forcedIntentInput = form.querySelector('input[data-forced-intent="true"]');
+
+        if (!value) {
+            if (forcedIntentInput) {
+                forcedIntentInput.remove();
+            }
+            return;
+        }
+
+        if (!forcedIntentInput) {
+            forcedIntentInput = document.createElement('input');
+            forcedIntentInput.type = 'hidden';
+            forcedIntentInput.name = 'intent';
+            forcedIntentInput.setAttribute('data-forced-intent', 'true');
+            form.appendChild(forcedIntentInput);
+        }
+
+        forcedIntentInput.value = value;
+    }
+
     function isDirty() {
         const current = new FormData(form);
         const keys = new Set([...initialSnapshot.keys(), ...current.keys()]);
@@ -112,11 +133,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Proceed only when the modal was confirmed and the user typed the exact required word.
         if (deleteDialog.returnValue !== 'confirm' || (deleteInput && deleteInput.value.trim() !== deleteConfirmKeyword)) {
             deleteConfirmed = false;
+            setForcedIntent(null);
             setSubmitting(false);
             return;
         }
 
         deleteConfirmed = true;
+        setForcedIntent('delete');
         form.requestSubmit(deleteButton || undefined);
     });
 
@@ -126,12 +149,14 @@ document.addEventListener('DOMContentLoaded', function () {
             statusBanner.textContent = '';
         }
 
-        const intent = event.submitter?.value || 'modify';
+        const forcedIntent = form.querySelector('input[data-forced-intent="true"]')?.value;
+        const intent = event.submitter?.value || forcedIntent || 'modify';
 
         if (intent === 'delete') {
             // The first delete click opens the dialog; the second confirmed submit actually deletes.
             if (!deleteConfirmed) {
                 event.preventDefault();
+                setForcedIntent(null);
                 if (deleteDialog?.showModal) {
                     if (deleteInput) deleteInput.value = '';
                     if (deleteConfirmButton) deleteConfirmButton.disabled = true;
@@ -141,8 +166,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     const typed = window.prompt('Type DELETE to confirm permanent deletion:');
                     if ((typed || '').trim() === deleteConfirmKeyword) {
                         deleteConfirmed = true;
+                        setForcedIntent('delete');
                         form.requestSubmit(deleteButton || undefined);
                     } else {
+                        setForcedIntent(null);
                         setStatus('error', 'Deletion cancelled.');
                     }
                 }
@@ -155,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        setForcedIntent(null);
         syncDateConstraints();
 
         setSubmitting(true);

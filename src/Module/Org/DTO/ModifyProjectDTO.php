@@ -21,6 +21,7 @@ class ModifyProjectDTO
         public bool $endDateTouched = false,
         public bool $visibilityTouched = false,
         public ?int $capacity = null,
+        public bool $capacityTouched = false,
         public ?\DateTimeImmutable $expectedLastModified = null,
         public ?string $csrfToken = null,
         public ?Account $modifiedBy = null,
@@ -71,6 +72,7 @@ class ModifyProjectDTO
 
     public function hasCapacityChanged(): bool
     {
-        return $this->capacity !== null;
+        // Capacity changes use a touched flag so an intentionally cleared field is persisted.
+        return $this->capacityTouched;
     }
 }

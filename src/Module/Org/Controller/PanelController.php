@@ -7,6 +7,9 @@ use App\Repository\Project\ProjectRoleRepository;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use App\Module\Org\DTO\CreateProjectDTO;
 use App\Module\Org\Service\CreateProjectService;
+use App\Entity\Account\Account;
+use App\Module\Org\Handler\ModifyProjectHandler;
+use App\Module\Org\Service\ModifyProjectService;
 use App\Repository\Project\InviteParticipantRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -48,12 +51,28 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/projects/create.html.twig');
     }
 
-    #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET'])]
-    public function modifyProject(string $id): Response
+    #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET', 'POST'])]
+    public function modifyProject(
+        string $id,
+        Request $request,
+        ModifyProjectService $projectService,
+        ModifyProjectHandler $handler
+    ): Response
     {
-        return $this->render('pages/org/projects/modify.html.twig', [
-            'id' => $id,
-        ]);
+        $publisher = $this->getUser();
+
+        $payload = $projectService->buildResponsePayload(
+            $id,
+            $request,
+            $handler,
+            $publisher instanceof Account ? $publisher : null
+        );
+
+        if (isset($payload['redirect'])) {
+            return $this->redirectToRoute($payload['redirectRoute'] ?? 'org.modifyProject', $payload['redirect']);
+        }
+
+        return $this->render('pages/org/projects/modify.html.twig', $payload['view']);
     }
 
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]

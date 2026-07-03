@@ -54,7 +54,13 @@ class ModifyProjectService
         $this->assertProjectBelongsToOrganisation($project, $dto->organisationId);
 
         if ($dto->hasStatusNameChanged()) {
-            $project->setStatus($this->resolveStatus($dto->statusName));
+            $requestedStatusName = strtolower(trim((string) ($dto->statusName ?? '')));
+            $currentStatusName = strtolower(trim((string) ($project->getStatus()?->getName() ?? '')));
+
+            // Resolve and set status only when user actually changed it.
+            if ($requestedStatusName !== '' && $requestedStatusName !== $currentStatusName) {
+                $project->setStatus($this->resolveStatus($requestedStatusName));
+            }
         }
 
         // Run all business-rule checks before copying form data onto the project entity.
@@ -126,7 +132,6 @@ class ModifyProjectService
             if ($id !== $resolvedProjectRef) {
                 return ['redirect' => [
                     'id' => $resolvedProjectRef,
-                    self::ORGANISATION_QUERY_KEY => $organisationId,
                 ]];
             }
 
@@ -134,6 +139,8 @@ class ModifyProjectService
                 'id' => $resolvedProjectRef,
                 'organisationId' => $organisationId,
                 'project' => $this->mapProject($project, $organisationId),
+                'visibilityOptions' => $this->buildVisibilityOptions(),
+                'statusOptions' => $this->buildStatusOptions(),
                 'error' => null,
             ]];
         } catch (HttpExceptionInterface $e) {
@@ -142,7 +149,6 @@ class ModifyProjectService
                     'redirectRoute' => 'org.modifyProject',
                     'redirect' => [
                         'id' => $fallbackId,
-                        self::ORGANISATION_QUERY_KEY => $organisationId,
                         'status' => 'error',
                         'message' => $e->getMessage(),
                     ],
@@ -214,7 +220,6 @@ class ModifyProjectService
                     return [
                         'redirectRoute' => 'org.modifyProject',
                         'id' => $nextProjectRef,
-                        self::ORGANISATION_QUERY_KEY => $organisationId,
                         'status' => 'success',
                         'message' => $this->translateOrFallback('org.project.deleted_success', 'Project deleted successfully.'),
                     ];
@@ -222,7 +227,6 @@ class ModifyProjectService
 
                 return [
                     'redirectRoute' => 'org.projects',
-                    self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'success',
                     'message' => $this->translateOrFallback('org.project.deleted_success', 'Project deleted successfully.'),
                 ];
@@ -230,7 +234,6 @@ class ModifyProjectService
                 return [
                     'redirectRoute' => 'org.modifyProject',
                     'id' => $resolvedProjectRef,
-                    self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'error',
                     'message' => $e->getMessage(),
                 ];
@@ -238,7 +241,6 @@ class ModifyProjectService
                 return [
                     'redirectRoute' => 'org.modifyProject',
                     'id' => $resolvedProjectRef,
-                    self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'error',
                     'message' => 'Failed to delete project.',
                 ];
@@ -257,7 +259,6 @@ class ModifyProjectService
         return [
             'redirectRoute' => 'org.modifyProject',
             'id' => $resolvedProjectRef,
-            self::ORGANISATION_QUERY_KEY => $organisationId,
             'status' => !empty($result['success']) ? 'success' : 'error',
             'message' => !empty($result['success'])
             ? $this->translateOrFallback('org.project.updated_success', 'Project updated successfully.')
@@ -338,7 +339,8 @@ class ModifyProjectService
 
     private function projectRef(Project $project): string
     {
-        return (string) ($project->getSlug() ?: $project->getId());
+        // Keep modify URLs canonical on UUID to avoid mixed slug/id navigation.
+        return (string) $project->getId();
     }
 
     private function mapProject(Project $project, string $organisationId): array
@@ -352,6 +354,7 @@ class ModifyProjectService
             'visibility' => $project->getVisibility(),
             'ref' => $this->projectRef($project),
             'statusName' => $project->getStatus()?->getName(),
+            'statusId' => $project->getStatus() ? (string) $project->getStatus()->getId() : null,
             'organisationId' => $project->getOwnerOrganisation() ? (string) $project->getOwnerOrganisation()->getId() : $organisationId,
             'startDate' => $project->getStartDate()?->format(self::DATE_FORMAT),
             'endDate' => $project->getEndDate()?->format(self::DATE_FORMAT),
@@ -454,12 +457,14 @@ class ModifyProjectService
 
     private function validateCapacity(ModifyProjectDTO $dto): void
     {
-        if ($dto->hasCapacityChanged() && $dto->capacity !== null) {
-            if ($dto->capacity < self::CAPACITY_MIN || $dto->capacity > self::CAPACITY_MAX) {
-                throw new \InvalidArgumentException(
-                    'Capacity must be between ' . self::CAPACITY_MIN . ' and ' . self::CAPACITY_MAX . '.'
-                );
-            }
+        if (!$dto->hasCapacityChanged() || $dto->capacity === null) {
+            return;
+        }
+
+        if ($dto->capacity < self::CAPACITY_MIN || $dto->capacity > self::CAPACITY_MAX) {
+            throw new \InvalidArgumentException(
+                'Capacity must be between ' . self::CAPACITY_MIN . ' and ' . self::CAPACITY_MAX . '.'
+            );
         }
     }
 
@@ -483,7 +488,7 @@ class ModifyProjectService
             return;
         }
 
-        $statusName = $dto->statusName ?? '';
+        $statusName = strtolower((string) ($project->getStatus()?->getName() ?? ''));
         if ($statusName === 'published' && $project->getPublishedAt() === null) {
             $project->publish();
         }
@@ -491,6 +496,40 @@ class ModifyProjectService
         if ($statusName === 'draft' || $statusName === 'archived') {
             $project->unpublish();
         }
+    }
+
+    private function buildVisibilityOptions(): array
+    {
+        // TODO: Replace this placeholder with DB-backed visibility options.
+        // For now we expose ALLOWED_VISIBILITY so UI values and validation stay in sync.
+        return array_map(static function (string $value): array {
+            return [
+                'value' => $value,
+                'label' => ucfirst($value),
+            ];
+        }, self::ALLOWED_VISIBILITY);
+    }
+
+    private function buildStatusOptions(): array
+    {
+        $statuses = $this->entityManager
+            ->getRepository(Status::class)
+            ->createQueryBuilder('s')
+            ->where('s.scope = :scope')
+            ->andWhere('LOWER(s.name) != :excludedStatusName')
+            ->setParameter('scope', 'project')
+            ->setParameter('excludedStatusName', 'active')
+            ->orderBy('s.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static function (Status $status): array {
+            return [
+                'value' => (string) $status->getId(),
+                'label' => ucfirst((string) $status->getName()),
+                'name' => strtolower((string) $status->getName()),
+            ];
+        }, $statuses);
     }
 
     private function getCharacterLength(string $value): int
@@ -502,20 +541,37 @@ class ModifyProjectService
         return strlen($value);
     }
 
-    private function resolveStatus(?string $statusName): Status
+    private function resolveStatus(?string $statusRef): Status
     {
-        $statusName = trim((string) $statusName);
-        if ($statusName === '') {
+        $statusRef = trim((string) $statusRef);
+        if ($statusRef === '') {
             throw new \InvalidArgumentException('Status is required');
         }
 
-        $status = $this->entityManager->getRepository(Status::class)->findOneBy([
-            'name' => $statusName,
-            'scope' => 'project',
-        ]);
+        try {
+            $statusById = $this->entityManager->getRepository(Status::class)->find($statusRef);
+            if ($statusById instanceof Status && $statusById->getScope() === 'project') {
+                return $statusById;
+            }
+        } catch (\Throwable) {
+            // Not an id value for this platform/type: continue with name-based lookup.
+        }
+
+        $statusName = strtolower($statusRef);
+
+        $status = $this->entityManager
+            ->getRepository(Status::class)
+            ->createQueryBuilder('s')
+            ->where('LOWER(s.name) = :name')
+            ->andWhere('s.scope = :scope')
+            ->setParameter('name', $statusName)
+            ->setParameter('scope', 'project')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
 
         if (!$status instanceof Status) {
-            throw new BadRequestHttpException('Unknown project status: ' . $statusName);
+            throw new BadRequestHttpException('Unknown project status: ' . $statusRef);
         }
 
         return $status;
