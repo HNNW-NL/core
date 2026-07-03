@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+    
     const searchInput = document.getElementById("search-text");
     const searchButton = document.getElementById("search-button");
     const resetButton = document.getElementById("reset-button");
@@ -11,9 +12,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const countEndSpan = document.getElementById("projects-count-end");
     const countTotalSpan = document.getElementById("projects-count-total");
 
+    // Parse project data from server-rendered JSON
     const allProjects = JSON.parse(app.dataset.projects || "[]");
     const searchQuery = app.dataset.search || "";
 
+    // Initialize state from URL params and localStorage
     const urlParams = new URLSearchParams(window.location.search);
     const perPageSelect = document.getElementById('per-page-select');
     let perPage = parseInt(urlParams.get('per_page')) || parseInt(localStorage.getItem('projects_per_page')) || 8;
@@ -21,17 +24,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentPage = parseInt(urlParams.get("page")) || 1;
 
+    // Pre-fill search input if query was provided
     if (searchQuery) {
         searchInput.value = searchQuery;
     }
 
+    // Calculate total pages based on items and per-page count
     let totalPages = Math.max(1, Math.ceil(allProjects.length / perPage));
 
+    // Clamp current page to valid range
     if (currentPage > totalPages) {
         currentPage = totalPages;
     }
 
     // Card size handling (small | medium | large)
+    // Updates CSS class on container to resize cards via media queries
     const sizeSelect = document.getElementById("card-size-select");
     function applySize(size) {
         app.classList.remove('size-small', 'size-medium', 'size-large');
@@ -40,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (sizeSelect) sizeSelect.value = normalized;
         renderPage();
     }
+    // Load size from URL or localStorage, apply defaults
     const urlSize = urlParams.get('size');
     const savedSize = urlSize || localStorage.getItem('projects_card_size') || 'medium';
     applySize(savedSize);
@@ -54,7 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // per-page selector handling
+    // Per-page selector: controls how many items to show per page
+    // Re-paginates and re-renders when changed
     if (perPageSelect) {
         perPageSelect.addEventListener('change', (e) => {
             const val = parseInt(e.target.value) || 8;
@@ -69,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    //  highlight search terms
+    // Helper: safely escape HTML special characters to prevent XSS
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
         return String(str).replace(/[&<>"']/g, function (s) {
@@ -77,10 +86,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Helper: escape special regex characters for safe pattern matching
     function escapeRegExp(s) {
         return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
+    // Highlight search terms in text by wrapping matches in <mark> tags
+    // Performs case-insensitive search and handles multiple terms
     function highlightText(text, query) {
         text = text || '';
         if (!query) return escapeHtml(text);
@@ -96,30 +108,48 @@ document.addEventListener("DOMContentLoaded", () => {
         }).join('');
     }
 
-    // Render current page of projects
+    /**
+     * Render the current page of projects
+     * - Clears and repopulates the container with paginated cards
+     * - Updates count display
+     * - Regenerates pagination controls
+     */
     function renderPage() {
         container.innerHTML = "";
 
         if (allProjects.length === 0) {
+            // No projects to display
             container.innerHTML = "<div>No projects found.</div>";
             countStartSpan.textContent = 0;
             countEndSpan.textContent = 0;
             countTotalSpan.textContent = 0;
         } else {
+            // Calculate slice bounds for current page
             const offset = (currentPage - 1) * perPage;
             const pageItems = allProjects.slice(offset, offset + perPage);
             const displayStart = offset + 1;
             const displayEnd = offset + pageItems.length;
 
+            // Update count display
             countStartSpan.textContent = displayStart;
             countEndSpan.textContent = displayEnd;
             countTotalSpan.textContent = allProjects.length;
 
+            // Render each project as a card
             pageItems.forEach(project => {
                 const card = document.createElement("div");
                 card.className = "project-card";
                 card.dataset.slug = project.slug || '';
+                card.style.cursor = "pointer";
 
+                // Clicking card navigates to project detail page
+                card.addEventListener("click", () => {
+                    if (project.slug) {
+                        window.location.href = "/org/projects/" + encodeURIComponent(project.slug);
+                    }
+                });
+
+                // Create and populate image container (or show placeholder)
                 const imageContainer = document.createElement("div");
                 imageContainer.className = "project-card-image-container";
                 const imageUrl = project.image || project.image_url || project.imageUrl || '';
@@ -137,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     imageContainer.appendChild(missingImage);
                 }
 
+                // Create text content elements
                 const titleEl = document.createElement("div");
                 titleEl.className = "project-title";
                 const summaryEl = document.createElement("div");
@@ -145,15 +176,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 slugEl.className = "project-slug";
                 slugEl.href = "/org/projects/" + encodeURIComponent(project.slug || '');
 
+                // Stop card click when slug link is clicked
+                slugEl.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                });
+
+                // Wrapper for text content (maintains layout with image background)
                 const detailsEl = document.createElement("div");
                 detailsEl.className = "project-card-details";
 
+                // Get active search query and apply highlighting
                 const hq = (searchInput && (searchInput.value || '').trim()) || searchQuery || '';
 
                 titleEl.innerHTML = highlightText(project.title || "Untitled", hq);
                 summaryEl.innerHTML = highlightText(project.summary || "", hq);
                 slugEl.innerHTML = highlightText(project.slug || "", hq);
 
+                // Build card structure
                 detailsEl.appendChild(titleEl);
                 detailsEl.appendChild(summaryEl);
                 detailsEl.appendChild(slugEl);
@@ -165,12 +204,13 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
+        // Update pagination display
         currentPageSpan.textContent = currentPage;
         totalPagesSpan.textContent = totalPages;
 
         paginationControls.innerHTML = "";
 
-        // Prev button
+        // Previous button
         if (currentPage > 1) {
             const prevLink = document.createElement("a");
             prevLink.href = "#";
@@ -187,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
             paginationControls.appendChild(span);
         }
 
-        // Page numbers
+        // Page number buttons
         for (let i = 1; i <= totalPages; i++) {
             if (i === currentPage) {
                 const strong = document.createElement("strong");
@@ -223,16 +263,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Navigate to page (updates URL and re-renders)
+    /**
+     * Navigate to a specific page
+     * Updates URL, re-renders cards, and smoothly scrolls to top
+     */
     function goToPage(page) {
         currentPage = page;
         const url = new URL(window.location);
         url.searchParams.set("page", page);
         window.history.pushState({}, "", url);
         renderPage();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Submit search
+    /**
+     * Submit search form
+     * Saves search query to URL and reloads page with new results
+     */
     function submitSearch() {
         const q = (searchInput.value || "").trim();
         const url = new URL(window.location);
@@ -245,10 +292,14 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = url;
     }
 
-    // Search button click
+    // Search button click handler
     searchButton.addEventListener("click", submitSearch);
 
-    // Reset filters
+    /**
+     * Reset all filters and preferences
+     * Clears search, page, size, per_page, and localStorage
+     * Reloads page with defaults
+     */
     if (resetButton) {
         resetButton.addEventListener("click", () => {
             localStorage.removeItem('projects_card_size');
@@ -263,12 +314,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Search on Enter
+    // Allow Enter key to submit search
     searchInput.addEventListener("keyup", (e) => {
         if (e.key === "Enter") {
             submitSearch();
         }
     });
 
+    // Initial render
     renderPage();
 });
