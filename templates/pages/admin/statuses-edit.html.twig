@@ -1,0 +1,42 @@
+{% extends 'layouts/admin.base.html.twig' %}
+
+{% block title %}Status Bewerken{% endblock %}
+
+{% block body %}
+    <h2>Status Bewerken</h2>
+
+    <form method="post">
+        <div>
+            <label>Naam</label>
+            <input
+                type="text"
+                name="name"
+                value="{{ status.name }}"
+                required
+            >
+        </div>
+
+        <div>
+            <label>Scope</label>
+            <input
+                type="text"
+                name="scope"
+                value="{{ status.scope }}"
+                required
+            >
+        </div>
+
+        <div>
+            <label>Kleur</label>
+            <input
+                type="color"
+                name="colourHex"
+                value="{{ status.colourHex }}"
+            >
+        </div>
+
+        <button type="submit">
+            Opslaan
+        </button>
+    </form>
+{% endblock %}

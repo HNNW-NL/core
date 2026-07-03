@@ -1,25 +1,19 @@
 {% extends 'layouts/org.base.html.twig' %}
 
-{# Page title meta tag #}
 {% block title %}Create project{% endblock %}
 
-{# CSS #}
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('assets/org/css/create-project.css') }}">
 {% endblock %}
 
-{# JavaScript #}
 {% block javascript %}
     <script src="{{ asset('assets/org/js/create-project.js') }}"></script>
 {% endblock %}
 
-{# Page content #}
 {% block body %}
-
 <h2>Create project</h2>
 
 <form method="post">
-
     <div>
         <label for="name">Project name</label>
         <input type="text" id="name" name="name" required>
@@ -51,8 +45,17 @@
     </div>
 
     <div>
-        <button type="submit" id="submit-btn">Create project</button>
+        <label for="status">Status</label>
+
+        {% include 'components/status-autocomplete.html.twig' with {
+            statuses: statuses|default([]),
+            name: 'status',
+            id: 'status'
+        } %}
     </div>
 
+    <div>
+        <button type="submit" id="submit-btn">Create project</button>
+    </div>
 </form>
 {% endblock %}

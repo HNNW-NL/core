@@ -2,7 +2,13 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Entity\Common\Status;
+use App\Entity\Project\Project;
+use App\Entity\Project\WorkPackage;
+use App\Repository\Project\WorkPackageRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -21,7 +27,7 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/projects.html.twig');
     }
 
-    #[Route('/projects/create', name: 'createProject', methods: ['GET'])]
+    #[Route('/projects/create', name: 'createProject', methods: ['GET', 'POST'])]
     public function createProject(): Response
     {
         return $this->render('pages/org/projects/create.html.twig');
@@ -34,7 +40,7 @@ final class PanelController extends AbstractController
             'id' => $id,
         ]);
     }
-    
+
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
     public function modifyProjectMatching(string $id): Response
     {
@@ -75,19 +81,51 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/updates', name: 'modifyProject.updates', methods: ['GET'])]
-    public function modifyProjectUpdates(string $id): Response
-    {
-        return $this->render('pages/org/projects/modify-updates.html.twig', [
-            'id' => $id,
-        ]);
-    }
+    #[Route(
+        '/projects/modify/{id}/work-packages',
+        name: 'modifyProject.workPackages',
+        requirements: ['id' => '[0-9a-fA-F-]{36}'],
+        methods: ['GET', 'POST']
+    )]
+    public function modifyProjectWorkPackages(
+        string $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        WorkPackageRepository $workPackageRepository
+    ): Response {
+        if ($request->isMethod('POST')) {
+            $project = $entityManager->getRepository(Project::class)->find($id);
+            $status = $entityManager->getRepository(Status::class)->findOneBy([]);
 
-    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
-    public function modifyProjectWorkPackages(string $id): Response
-    {
+            if ($project !== null && $status !== null) {
+                $title = (string) $request->request->get('title', '');
+                $description = (string) $request->request->get('description', '');
+
+                $slug = strtolower(trim($title));
+                $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+                $slug = trim((string) $slug, '-');
+
+                $workPackage = new WorkPackage();
+                $workPackage->setProject($project);
+                $workPackage->setStatus($status);
+                $workPackage->setTitle($title);
+                $workPackage->setSlug($slug);
+                $workPackage->setDescription($description);
+
+                $entityManager->persist($workPackage);
+                $entityManager->flush();
+            }
+
+            return $this->redirectToRoute('org.modifyProject.workPackages', [
+                'id' => $id,
+            ]);
+        }
+
+        $workPackages = $workPackageRepository->findActiveByProjectId($id);
+
         return $this->render('pages/org/projects/modify-work-packages.html.twig', [
             'id' => $id,
+            'workPackages' => $workPackages,
         ]);
     }
 

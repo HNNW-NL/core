@@ -1,0 +1,28 @@
+{% extends 'layouts/admin.base.html.twig' %}
+
+{% block title %}Nieuwe Status{% endblock %}
+
+{% block body %}
+    <h2>Nieuwe Status</h2>
+
+    <form method="post" action="{{ path('admin.statuses.create') }}">
+        <div>
+            <label>Naam</label>
+            <input type="text" name="name" required>
+        </div>
+
+        <div>
+            <label>Scope</label>
+            <input type="text" name="scope" required>
+        </div>
+
+        <div>
+            <label>Kleur</label>
+            <input type="color" name="colourHex" value="#3B82F6">
+        </div>
+
+        <button type="submit">
+            Opslaan
+        </button>
+    </form>
+{% endblock %}

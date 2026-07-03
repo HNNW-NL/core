@@ -1,9 +1,14 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{# Page title #}
-{% block title %}Werkpakketten{% endblock %}
+{% block title %}Project {{ slug }} Werkpakketten{% endblock %}
 
-{# Page content #}
+{% block seoKeywords %}{% endblock %}
+{% block seoDescription %}{% endblock %}
+{% block seoAuthor %}HNNW{% endblock %}
+
+{% block stylesheets %}{% endblock %}
+{% block javascript %}{% endblock %}
+
 {% block body %}
     {% set workPackageOverviews = hnnw_work_package_overviews(slug) %}
     {% set currentProfile = hnnw_current_profile() %}
@@ -21,7 +26,6 @@
                 </div>
             {% endfor %}
         {% endfor %}
-
         {% if currentProfile is null %}
             <p>Log in met een profiel om jezelf in te schrijven op taken.</p>
         {% endif %}
@@ -45,7 +49,10 @@
 
                         {% if workPackage.description %}
                             <p>{{ workPackage.description }}</p>
+                        {% else %}
+                            <p>Geen beschrijving beschikbaar.</p>
                         {% endif %}
+
                         {% if packageTasks is empty %}
                             <p>Er zijn nog geen taken binnen dit werkpakket.</p>
                         {% else %}
@@ -61,6 +68,7 @@
                                             {% if packageTask.description %}
                                                 <p>{{ packageTask.description }}</p>
                                             {% endif %}
+
                                             <p>
                                                 Prioriteit: {{ packageTask.priority|capitalize }}
                                                 {% if packageTask.dueDate %}
