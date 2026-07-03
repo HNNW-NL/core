@@ -1,7 +1,7 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Notifications{% endblock %}
+{% block title %}Notificaties{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -11,6 +11,61 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Notifications</h2>
-    <p>Account Centre - notifications page.</p>
+    <div id="account-centre-container">
+
+        <a href="{{ path('account.home') }}" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Notificaties</h1>
+            <p>Bepaal zelf welke updates en nieuwsbrieven je van HNNW wilt ontvangen.</p>
+        </div>
+
+        {# Flash messages for success and error state alerts #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="account-form-container">
+            <form action="{{ path('account.notifications') }}" method="POST">
+
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="notify_projects" name="notify_projects" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
+                    <label for="notify_projects">
+                        <strong>Nieuwe Projecten</strong>
+                        <span>Ontvang direct een melding zodra er een nieuw project start dat matcht met jouw skills.</span>
+                    </label>
+                </div>
+
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="notify_newsletter" name="notify_newsletter" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
+                    <label for="notify_newsletter">
+                        <strong>Maandelijkse Nieuwsbrief</strong>
+                        <span>Blijf op de hoogte van algemeen nieuws, updates en verhalen binnen de community.</span>
+                    </label>
+                </div>
+
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="notify_security" name="notify_security" checked disabled>
+                    <label for="notify_security">
+                        <strong>Beveiliging & Account (Verplicht)</strong>
+                        <span>Belangrijke updates over je wachtwoord, privacywijzigingen en inlogpogingen.</span>
+                    </label>
+                </div>
+
+                <div class="form-actions-row">
+                    <button type="submit" class="btn-primary">Voorkeuren Opslaan</button>
+                    <a href="{{ path('account.home') }}" class="btn-cancel">
+                        Annuleren
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}

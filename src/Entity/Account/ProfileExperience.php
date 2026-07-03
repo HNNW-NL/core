@@ -194,4 +194,14 @@ class ProfileExperience
     {
         return $this->deletedAt;
     }
+
+    /**
+     * Gecorrigeerde setter: accepteert een bool en werkt de property daadwerkelijk bij.
+     */
+    public function setIsCurrent(bool $isCurrent): static
+    {
+        $this->isCurrent = $isCurrent;
+
+        return $this;
+    }
 }

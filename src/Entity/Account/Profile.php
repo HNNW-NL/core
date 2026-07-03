@@ -99,8 +99,6 @@ class Profile
     private Collection $assignedWorkPackageTasks;
 
 
-    // Functions
-
     public function __construct()
     {
         $this->id = Uuid::v7();
@@ -124,13 +122,10 @@ class Profile
         return $this->id;
     }
 
-    // Functions
-
     #[ORM\PrePersist]
     public function onCreate(): void
     {
         $now = new \DateTimeImmutable();
-
         $this->createdAt = $now;
         $this->lastModified = $now;
     }
@@ -172,7 +167,6 @@ class Profile
     public function setAccount(?Account $account): static
     {
         $this->account = $account;
-
         return $this;
     }
 
@@ -184,7 +178,6 @@ class Profile
     public function setFirstName(?string $firstName): static
     {
         $this->firstName = $firstName;
-
         return $this;
     }
 
@@ -196,7 +189,6 @@ class Profile
     public function setLastName(?string $lastName): static
     {
         $this->lastName = $lastName;
-
         return $this;
     }
 
@@ -208,7 +200,6 @@ class Profile
     public function setDisplayName(?string $displayName): static
     {
         $this->displayName = $displayName;
-
         return $this;
     }
 
@@ -220,7 +211,6 @@ class Profile
     public function setAvatarUrl(?string $avatarUrl): static
     {
         $this->avatarUrl = $avatarUrl;
-
         return $this;
     }
 
@@ -232,7 +222,6 @@ class Profile
     public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -244,7 +233,6 @@ class Profile
     public function setLocation(?string $location): static
     {
         $this->location = $location;
-
         return $this;
     }
 
@@ -261,7 +249,6 @@ class Profile
     public function setPoints(?int $points): static
     {
         $this->points = $points;
-
         return $this;
     }
 
@@ -278,5 +265,13 @@ class Profile
     public function getDeletedAt(): ?\DateTimeImmutable
     {
         return $this->deletedAt;
+    }
+
+    /**
+     * @return Collection<int, ProjectApplication>
+     */
+    public function getProjectApplications(): Collection
+    {
+        return $this->projectApplications;
     }
 }

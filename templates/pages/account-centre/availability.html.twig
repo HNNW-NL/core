@@ -1,16 +1,118 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}My Availability{% endblock %}
+{% block title %}Mijn Beschikbaarheid{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <h2>Availability</h2>
-    <p>Account Centre - availability page.</p>
+    <div id="account-centre-container">
+
+        <a href="/account" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Terug naar Account
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Mijn Beschikbaarheid</h1>
+            <p>Stel je wekelijkse uren in per dag.</p>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'error' : 'success' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <form action="{{ path('account.availability') }}" method="POST" id="tidycal-schedule-form">
+
+            <input type="hidden" name="type" value="TidyCal Schema">
+            <input type="hidden" name="hours" id="calculated_hours" value="40">
+            <input type="hidden" name="start_date" value="{{ 'now'|date('Y-m-d') }}">
+
+            {# WEEKELIJKSE DIENSTREGELING CONTAINER #}
+            <div class="tidycal-container">
+                <div class="tidycal-header">
+                    <span class="tidycal-title">Beschikbaarheid:</span>
+                </div>
+
+                <div class="tidycal-days-list">
+                    {% for key, day in defaultSchedule %}
+                        <div class="day-row" data-day="{{ key }}">
+
+                            <div class="day-meta">
+                                <label class="switch">
+                                    <input type="checkbox" name="days_config[{{ key }}][enabled]" class="day-toggle" value="1" {% if day.enabled %}checked{% endif %}>
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="day-name">
+                                    {% if day.name == 'Monday' %}Maandag
+                                    {% elseif day.name == 'Tuesday' %}Dinsdag
+                                    {% elseif day.name == 'Wednesday' %}Woensdag
+                                    {% elseif day.name == 'Thursday' %}Donderdag
+                                    {% elseif day.name == 'Friday' %}Vrijdag
+                                    {% elseif day.name == 'Saturday' %}Zaterdag
+                                    {% elseif day.name == 'Sunday' %}Zondag{% endif %}
+                                </span>
+                            </div>
+
+                            <div class="time-controls-container">
+                                <div class="time-inputs">
+                                    <input type="time" name="days_config[{{ key }}][start]" value="{{ day.start }}">
+                                    <span>-</span>
+                                    <input type="time" name="days_config[{{ key }}][end]" value="{{ day.end }}">
+                                </div>
+                                <div class="unavailable-text">
+                                    Niet beschikbaar op {% if day.name == 'Monday' %}maandag{% elseif day.name == 'Tuesday' %}dinsdag{% elseif day.name == 'Wednesday' %}woensdag{% elseif day.name == 'Thursday' %}donderdag{% elseif day.name == 'Friday' %}vrijdag{% elseif day.name == 'Saturday' %}zaterdag{% elseif day.name == 'Sunday' %}zondag{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-actions-container">
+                <button type="submit" class="btn-primary">Schema Opslaan</button>
+            </div>
+        </form>
+
+        {# HISTORIE OVERZICHT #}
+        <div class="tidycal-container history-container">
+            <div class="tidycal-header">
+                <span class="tidycal-title">Opgeslagen beschikbaarheidsschema's</span>
+            </div>
+            <div class="table-container">
+                <table class="custom-table dark-table">
+                    <thead>
+                    <tr>
+                        <th>Actieve Dagen</th>
+                        <th>Aangemaakt op</th>
+                        <th class="text-right">Actie</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for availability in availabilities %}
+                        <tr>
+                            <td>
+                                <strong class="text-light">{{ availability.daysSummary }}</strong>
+                            </td>
+                            <td class="text-light">{{ availability.startDate|date('d-m-Y') }}</td>
+                            <td class="text-right">
+                                <form action="{{ path('account.availability_delete', {'id': availability.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je dit schema wilt verwijderen?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_availability' ~ availability.id) }}">
+                                    <button type="submit" class="btn-card-cancel">Verwijderen</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted-dark">Nog geen schema's opgeslagen.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}
