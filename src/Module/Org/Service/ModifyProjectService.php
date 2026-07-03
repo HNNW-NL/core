@@ -126,7 +126,6 @@ class ModifyProjectService
             if ($id !== $resolvedProjectRef) {
                 return ['redirect' => [
                     'id' => $resolvedProjectRef,
-                    self::ORGANISATION_QUERY_KEY => $organisationId,
                 ]];
             }
 
@@ -142,7 +141,6 @@ class ModifyProjectService
                     'redirectRoute' => 'org.modifyProject',
                     'redirect' => [
                         'id' => $fallbackId,
-                        self::ORGANISATION_QUERY_KEY => $organisationId,
                         'status' => 'error',
                         'message' => $e->getMessage(),
                     ],
@@ -214,7 +212,6 @@ class ModifyProjectService
                     return [
                         'redirectRoute' => 'org.modifyProject',
                         'id' => $nextProjectRef,
-                        self::ORGANISATION_QUERY_KEY => $organisationId,
                         'status' => 'success',
                         'message' => $this->translateOrFallback('org.project.deleted_success', 'Project deleted successfully.'),
                     ];
@@ -222,7 +219,6 @@ class ModifyProjectService
 
                 return [
                     'redirectRoute' => 'org.projects',
-                    self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'success',
                     'message' => $this->translateOrFallback('org.project.deleted_success', 'Project deleted successfully.'),
                 ];
@@ -230,7 +226,6 @@ class ModifyProjectService
                 return [
                     'redirectRoute' => 'org.modifyProject',
                     'id' => $resolvedProjectRef,
-                    self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'error',
                     'message' => $e->getMessage(),
                 ];
@@ -238,7 +233,6 @@ class ModifyProjectService
                 return [
                     'redirectRoute' => 'org.modifyProject',
                     'id' => $resolvedProjectRef,
-                    self::ORGANISATION_QUERY_KEY => $organisationId,
                     'status' => 'error',
                     'message' => 'Failed to delete project.',
                 ];
@@ -257,7 +251,6 @@ class ModifyProjectService
         return [
             'redirectRoute' => 'org.modifyProject',
             'id' => $resolvedProjectRef,
-            self::ORGANISATION_QUERY_KEY => $organisationId,
             'status' => !empty($result['success']) ? 'success' : 'error',
             'message' => !empty($result['success'])
             ? $this->translateOrFallback('org.project.updated_success', 'Project updated successfully.')
