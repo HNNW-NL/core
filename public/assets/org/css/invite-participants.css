@@ -1,4 +1,134 @@
+:root {
+    --background: #020617;
+    --header-background: #0f172ab3;
+    --paragraph: #FFFFFF;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
+}
+
+[data-theme="light"] {
+    --background: #FFFFFF;
+    --header-background: #0f172ab3;
+    --paragraph: #020617;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
+}
+
+
+.page-content {
+    margin-left: 260px;
+    padding: 2rem;
+    background-color: var(--background);
+    min-height: 100vh;
+    color: var(--paragraph);
+    box-sizing: border-box;
+    display: flex;
+    gap: 8vw;
+    align-items: flex-start;
+}
+
+.input-content {
+    background-color: var(--header-background);
+    padding: 1.5rem;
+    border-radius: 12px;
+    max-width: 500px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    flex: 1;
+}
+
+.page-content form{
+    flex: 1;
+}
+
+
+label[for="invite-input"] {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--paragraph);
+    font-weight: 500;
+}
+
+input[type="submit"]{
+    padding: 1vh 1vw;
+    background-color: var(--hnnw-yellow-400);
+    border: none;
+    border-radius: 6px;
+}
+
+input[type="submit"]:hover{
+    background-color: var(--hnnw-yellow-500);
+    cursor: pointer;
+}
+
 #invite-input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 2px solid var(--hnnw-yellow-400);
+    border-radius: 8px;
+    background-color: transparent;
+    color: var(--paragraph);
+    box-sizing: border-box;
+}
+
+#invite-input:focus {
+    outline: none;
+    border-color: var(--hnnw-yellow-500);
+    box-shadow: 0 0 0 3px var(--hnnw-yellow-300);
+}
+
+
+#profile-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: 500px;
+}
+
+#profile-list li {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background-color: var(--header-background);
+    color: var(--paragraph);
+    border-left: 4px solid var(--hnnw-yellow-500);
+    border-radius: 6px;
+}
+
+#selected-list{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: 500px;
+}
+
+#selected-list li{
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background-color: var(--header-background);
+    color: var(--paragraph);
+    border-left: 4px solid var(--hnnw-yellow-500);
+    border-radius: 6px;
+}
+
+.no-profile {
+    color: var(--paragraph);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+
+.profile-item {
+    cursor: pointer;
+    padding: 8px;
+}
+
+#profile-list li.profile-item.active {
+    background: #cce5ff;
     color: black;
 }
 

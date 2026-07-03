@@ -7,10 +7,12 @@ use App\Repository\Project\ProjectRoleRepository;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use App\Module\Org\DTO\CreateProjectDTO;
 use App\Module\Org\Service\CreateProjectService;
+use App\Repository\Project\InviteParticipantRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -83,9 +85,32 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
-    public function InviteProjectParticipants(string $id): Response
+    #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET', 'POST'])]
+    public function InviteProjectParticipants(string $id, Request $request, InviteParticipantRepository $inviteParticipantRepository): Response
     {
+        $query = $request->query->get('q');
+
+        $participants = [];
+
+        if ($request->isXmlHttpRequest() && $query) {
+            $participants = $inviteParticipantRepository->searchByDisplayName($query, 20);
+
+            return new JsonResponse(array_map(fn($p) => [
+                'id' => $p['id'],
+                'displayName' => $p['displayName'],
+            ], $participants));
+        }
+
+        if ($request->isMethod('POST')) {
+
+            $items = $request->request->all('items');
+
+            foreach ($items as $item) {
+                $profileId = $item['id'] ?? null;
+                $displayName = $item['displayName'] ?? null;
+            }
+        }
+
         return $this->render('pages/org/projects/invite-participants.html.twig', [
             'id' => $id,
         ]);
