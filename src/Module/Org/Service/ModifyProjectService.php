@@ -454,12 +454,14 @@ class ModifyProjectService
 
     private function validateCapacity(ModifyProjectDTO $dto): void
     {
-        if ($dto->hasCapacityChanged() && $dto->capacity !== null) {
-            if ($dto->capacity < self::CAPACITY_MIN || $dto->capacity > self::CAPACITY_MAX) {
-                throw new \InvalidArgumentException(
-                    'Capacity must be between ' . self::CAPACITY_MIN . ' and ' . self::CAPACITY_MAX . '.'
-                );
-            }
+        if (!$dto->hasCapacityChanged() || $dto->capacity === null) {
+            return;
+        }
+
+        if ($dto->capacity < self::CAPACITY_MIN || $dto->capacity > self::CAPACITY_MAX) {
+            throw new \InvalidArgumentException(
+                'Capacity must be between ' . self::CAPACITY_MIN . ' and ' . self::CAPACITY_MAX . '.'
+            );
         }
     }
 
