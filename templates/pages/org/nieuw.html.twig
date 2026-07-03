@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisatie toevoegen</title>
+</head>
+<body>
+
+<h1>Organisatie toevoegen</h1>
+
+<form method="post">
+
+    <label for="naam">Naam organisatie:</label>
+    <input type="text" id="naam" name="naam" required><br>
+
+    <label for="adres">Adres:</label>
+    <input type="text" id="adres" name="adres" required><br>
+
+    <label for="stad">Stad:</label>
+    <input type="text" id="stad" name="stad" required><br>
+
+    <button type="submit">Toevoegen</button>
+
+</form>
+
+<br><br>
+<a href="{{ path('organisatie_index') }}">Terug naar overzicht</a>
+
+</body>
+</html>
