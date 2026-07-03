@@ -516,7 +516,9 @@ class ModifyProjectService
             ->getRepository(Status::class)
             ->createQueryBuilder('s')
             ->where('s.scope = :scope')
+            ->andWhere('LOWER(s.name) != :excludedStatusName')
             ->setParameter('scope', 'project')
+            ->setParameter('excludedStatusName', 'active')
             ->orderBy('s.name', 'ASC')
             ->getQuery()
             ->getResult();
