@@ -498,3 +498,56 @@ body[data-theme="dark"] #account-centre-container .btn-back:hover {
     color: #6c757d;
     margin-left: 4px;
 }
+/* ==========================================
+   AVAILABILITY PAGE CUSTOM STYLES
+   ========================================== */
+
+.action-bar-right {
+    margin-bottom: 2rem;
+    text-align: right;
+}
+
+/* Forceert de container breed over het grid heen */
+#account-centre-container .history-container {
+    max-width: 100% !important;
+    margin-top: 3rem !important;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    color: inherit;
+}
+
+.custom-table thead tr {
+    border-bottom: 1px solid #1e293b;
+    color: #94a3b8;
+}
+
+.custom-table th,
+.custom-table td {
+    padding: 1rem 0.5rem;
+}
+
+.custom-table tbody tr {
+    border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+}
+
+.custom-table .text-right {
+    text-align: right;
+}
+
+/* Aanpassingen specifiek voor het donkere thema */
+body[data-theme="dark"] .custom-table thead tr {
+    border-bottom-color: #1e293b;
+    color: #94a3b8;
+}
+
+body[data-theme="dark"] .custom-table tbody tr {
+    border-bottom-color: rgba(30, 41, 59, 0.4);
+}

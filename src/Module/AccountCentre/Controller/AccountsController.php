@@ -7,6 +7,7 @@ use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -89,10 +90,118 @@ final class AccountsController extends AbstractController
         return $this->redirectToRoute('account.applications');
     }
 
-    #[Route('/availability', name: 'availability', methods: ['GET'])]
-    public function availability(): Response
+    #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
+    public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
     {
-        return $this->render('pages/account-centre/availability.html.twig');
+        $session = $request->getSession();
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om je beschikbaarheid te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        if (!$account) {
+            $this->addFlash('error', 'Account niet gevonden.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
+        // POST: Rechtstreeks inserten in de `availabilities` tabel zonder Entity klasse
+        if ($request->isMethod('POST')) {
+            $type = trim((string) $request->request->get('type'));
+            $hours = (int) $request->request->get('hours');
+            $startDate = $request->request->get('start_date');
+            $endDate = $request->request->get('end_date') ?: null;
+
+            if (empty($type) || $hours <= 0 || empty($startDate)) {
+                $this->addFlash('error', 'Vul alstublieft alle verplichte velden in.');
+            } else {
+                try {
+                    $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+
+                    $connection->insert('availabilities', [
+                        'id' => Uuid::v4()->toString(),
+                        'availability_type' => $type,
+                        'hours_per_week' => $hours,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'profile_id' => $profile->getId()->toString(),
+                        'created_at' => $now,
+                        'last_modified' => $now, // <-- Deze kolom nu toegevoegd om de Not Null constraint op te lossen!
+                        'deleted_at' => null
+                    ]);
+
+                    $this->addFlash('success', 'Beschikbaarheid succesvol opgeslagen in de database!');
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Databasefout bij opslaan: ' . $e->getMessage());
+                }
+            }
+
+            return $this->redirectToRoute('account.availability');
+        }
+
+        // GET: Haal actieve rijen op via native SQL waar deleted_at IS NULL
+        try {
+            $rows = $connection->fetchAllAssociative(
+                'SELECT * FROM availabilities WHERE profile_id = :profileId AND deleted_at IS NULL ORDER BY start_date DESC',
+                ['profileId' => $profile->getId()->toString()]
+            );
+        } catch (\Exception $e) {
+            $rows = [];
+        }
+
+        // Maak er objecten van zodat je Twig-code (`availability.type`) gewoon blijft werken
+        $availabilities = [];
+        foreach ($rows as $row) {
+            $availabilities[] = (object) [
+                'id' => $row['id'],
+                'type' => $row['availability_type'],
+                'hoursPerWeek' => $row['hours_per_week'],
+                'startDate' => new \DateTimeImmutable($row['start_date']),
+                'endDate' => $row['end_date'] ? new \DateTimeImmutable($row['end_date']) : null
+            ];
+        }
+
+        return $this->render('pages/account-centre/availability.html.twig', [
+            'profile' => $profile,
+            'availabilities' => $availabilities,
+        ]);
+    }
+
+    #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
+    public function deleteAvailability(string $id, Request $request, Connection $connection): Response
+    {
+        $session = $request->getSession();
+        if (!$session->get('account_id')) {
+            $this->addFlash('error', 'Je moet ingelogd zijn.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $csrfToken = $request->request->get('_token');
+        if ($this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
+            try {
+                // Voer de soft-delete uit door deleted_at op de huidige tijd te zetten
+                $connection->update(
+                    'availabilities',
+                    ['deleted_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
+                    ['id' => $id]
+                );
+                $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd (soft delete).');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Fout bij verwijderen: ' . $e->getMessage());
+            }
+        } else {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken.');
+        }
+
+        return $this->redirectToRoute('account.availability');
     }
 
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
@@ -137,10 +246,8 @@ final class AccountsController extends AbstractController
                     }
 
                     $experience->setJobTitle($jobTitle);
-                    $experience->setOrganisationName($organisationName);
+                    $experience->setOrganizationName($organisationName);
                     $experience->setStartDate(new \DateTimeImmutable($startDateStr));
-
-                    // OPGESCHOOND: Stuurt nu direct de boolean (true of false) naar de Entity
                     $experience->setIsCurrent($isCurrent);
 
                     if ($isCurrent) {
