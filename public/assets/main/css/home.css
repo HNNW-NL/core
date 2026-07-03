@@ -394,6 +394,40 @@ body {
 
 }
 
+.socials  {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 10px;
+
+    border: 2px solid var(--accent-yellow);
+
+    color: var(--accent-yellow);
+
+    padding: 10px;
+
+    border-radius: 8px;
+
+    font-weight: bold;
+
+    transition: 0.3s;
+
+}
+
+.socials-icons {
+    display: flex;
+
+    flex-direction: row;
+
+    gap: 15px;
+
+    justify-content: center;
+}
+
 /* ACHIEVEMENTS */
 
 .achievements-bar {
