@@ -15,10 +15,10 @@ class AuditLogRepository extends ServiceEntityRepository
 
     public function findLatest(int $limit = 100): array
     {
-        return $this->findBy(
-            [],
-            ['createdAt' => 'DESC'],
-            $limit
-        );
+        return $this->createQueryBuilder('auditLog')
+            ->orderBy('auditLog.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 }
