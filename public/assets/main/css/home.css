@@ -183,10 +183,25 @@ body {
 }
 
 /* PROFILE */
-.profile {
-    display: flex;
+
+.profile-avatar img {
+    width: 80px;
+    height: 80px;
+    border-radius: 20%;
+
+    object-fit: cover;
+}
+
+.upload-btn {
+    display: block;
+    padding: 5px 10px;
+    background: white;
+    color: black;
     align-items: center;
-    gap: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+    gap: 4px;
 }
 /* LOCATION POPUP */
 #new-location {
@@ -208,6 +223,8 @@ body {
     border-radius: 12px;
 
     flex-shrink: 0;
+.upload-btn:hover {
+    background: #ddd;
 }
 
 /* TEXT */
