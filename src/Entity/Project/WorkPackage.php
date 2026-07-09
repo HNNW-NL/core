@@ -3,13 +3,19 @@ namespace App\Entity\Project;
 
 use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
+use App\Repository\Project\WorkPackageRepository;
 
-#[ORM\Entity]
-#[ORM\Table(name: 'work_packages', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: "uniq_project_work_package_scope", columns: ["project_id", "slug"])
-])]
+#[ORM\Entity(repositoryClass: WorkPackageRepository::class)]
+#[ORM\Table(name: 'work_packages')]
+#[ORM\UniqueConstraint(
+    name: 'uniq_project_work_package_scope',
+    columns: ['project_id', 'slug']
+)]
+
 #[ORM\HasLifecycleCallbacks]
 class WorkPackage
 {
@@ -51,7 +57,10 @@ class WorkPackage
 
     // Reverse FKs
 
-    /* Insert reverse FKs here */
+
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'workPackage')]
+    private Collection $workPackageTasks;
+
 
 
     // Functions
@@ -59,6 +68,8 @@ class WorkPackage
     public function __construct()
     {
         $this->id = Uuid::v7();
+
+        $this->workPackageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -185,4 +196,33 @@ class WorkPackage
     {
         return $this->deletedAt;
     }
+
+/**
+ * @return Collection<int, PackageTask>
+ */
+public function getWorkPackageTasks(): Collection
+{
+    return $this->workPackageTasks;
+}
+
+public function addWorkPackageTask(PackageTask $workPackageTask): static
+{
+    if (!$this->workPackageTasks->contains($workPackageTask)) {
+        $this->workPackageTasks->add($workPackageTask);
+        $workPackageTask->setWorkPackage($this);
+    }
+
+    return $this;
+}
+
+public function removeWorkPackageTask(PackageTask $workPackageTask): static
+{
+    if ($this->workPackageTasks->removeElement($workPackageTask)) {
+        if ($workPackageTask->getWorkPackage() === $this) {
+            $workPackageTask->setWorkPackage(null);
+        }
+    }
+
+    return $this;
+}
 }

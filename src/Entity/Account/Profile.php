@@ -95,7 +95,7 @@ class Profile
     #[ORM\OneToMany(targetEntity: ProjectUpdate::class, mappedBy: 'author')]
     private Collection $authoredProjectUpdates;
 
-    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'status')]
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'assignedProfile')]
     private Collection $assignedWorkPackageTasks;
 
 
