@@ -5,6 +5,7 @@ namespace App\Module\Admin\Controller;
 use App\Module\Admin\DTO\StatusDTO;
 use App\Module\Admin\Handler\CreateStatusHandler;
 use App\Module\Admin\Service\StatusService;
+use App\Module\Admin\Service\AuditLogService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -98,10 +99,28 @@ final class DashboardController extends AbstractController
             return $this->redirectToRoute('admin.statuses');
         }
 
+    // Tijdelijke testroute
+    #[Route('/test-audit-log', name: 'test.audit.log', methods: ['GET'])]
+    public function testAuditLog(AuditLogService $auditLogService): Response
+    {
+        $auditLogService->log(
+            null,
+            'Admin Test',
+            'admin@test.nl',
+            'TEST',
+            'System',
+            '1',
+            [],
+            ['message' => 'Audit log test werkt']
+        );
+
+        return new Response('Audit log aangemaakt');
+    }
         return $this->render('pages/admin/statuses-edit.html.twig', [
             'status' => $status,
         ]);
     }
+
     #[Route('/statuses/{id}/delete', name: 'statuses.delete', methods: ['POST'])]
      public function deleteStatus(
     string $id,
