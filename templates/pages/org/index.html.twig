@@ -1,16 +1,56 @@
-{% extends 'layouts/org.base.html.twig' %}
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organisaties beheren</title>
+</head>
+<body>
 
-{# Page title meta tag #}
-{% block title %}Home{% endblock %}
+<h1>Organisaties beheren</h1>
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
+<nav>
+    <a href="{{ path('organisatie_nieuw') }}">Nieuwe organisatie toevoegen</a>
+</nav><br>
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
+{# Flash berichten #}
+{% for bericht in app.flashes('success') %}
+    <p style="color: green;">{{ bericht }}</p>
+{% endfor %}
+{% for bericht in app.flashes('error') %}
+    <p style="color: red;">{{ bericht }}</p>
+{% endfor %}
 
-{# Page content #}
-{% block body %}
-    <h2>Home</h2>
-    <p>Organization panel - home page.</p>
-{% endblock %}
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Naam</th>
+        <th>Adres</th>
+        <th>Stad</th>
+        <th colspan="2">Actie</th>
+    </tr>
+    {% for organisatie in organisaties %}
+    <tr>
+        <td>{{ organisatie.id }}</td>
+        <td>{{ organisatie.naam }}</td>
+        <td>{{ organisatie.adres }}</td>
+        <td>{{ organisatie.stad }}</td>
+        <td>
+            <a href="{{ path('organisatie_wijzig', { id: organisatie.id }) }}">Wijzig</a>
+        </td>
+        <td>
+            <form method="post" action="{{ path('organisatie_verwijder', { id: organisatie.id }) }}"
+                  onsubmit="return confirm('Weet je zeker dat je deze organisatie wilt verwijderen?')">
+                <button type="submit">Verwijder</button>
+            </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="6">Geen organisaties gevonden</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>

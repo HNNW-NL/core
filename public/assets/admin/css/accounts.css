@@ -37,6 +37,7 @@ h2 {
     background-color: var(--dark-secondary);
     border-radius: 8px;
     overflow: hidden;
+    margin: 1.5rem 0;
 }
 
 .accounts th, .accounts td {
@@ -59,9 +60,26 @@ h2 {
     color: var(--accent-yellow);
     text-decoration: none;
     transition: color 0.2s;
+    margin-right: 12px;
 }
 
 .accounts a:hover {
+    text-decoration: underline;
+}
+
+.accounts button[type="submit"] {
+    background: none;
+    border: none;
+    color: var(--accent-yellow);
+    cursor: pointer;
+    padding: 0;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+    margin-right: 12px;
+}
+
+.accounts button[type="submit"]:hover {
     text-decoration: underline;
 }
 
@@ -99,6 +117,7 @@ h2 {
     padding: 16px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
+    margin: 1.5rem 0;
 }
 
 .details dt {
@@ -130,6 +149,7 @@ textarea {
     font-size: 14px;
     border-radius: 6px;
     transition: all 0.2s;
+    width: 100%;
 }
 
 input[type="text"]::placeholder,
@@ -199,16 +219,19 @@ a.button:hover {
 }
 
 /* Secondary button */
-.button-secondary {
+.button-secondary,
+a.button-secondary {
     background-color: transparent;
     color: var(--text-light);
     border: 1px solid var(--border-color);
 }
 
-.button-secondary:hover {
+.button-secondary:hover,
+a.button-secondary:hover {
     background-color: rgba(255, 255, 255, 0.1);
     border-color: var(--accent-yellow);
     color: var(--accent-yellow);
+    transform: translateY(-2px);
 }
 
 /* Links */
@@ -222,7 +245,7 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Form group spacing */
+/* Form styling */
 form {
     max-width: 600px;
 }
@@ -235,9 +258,78 @@ form p a {
     margin-left: 8px;
 }
 
+/* Form groups */
+form > div {
+    margin-bottom: 16px;
+}
+
 /* Footer or smaller text */
 small, .text-secondary {
     color: var(--text-secondary);
     font-size: 13px;
 }
 
+/* Action buttons container */
+.actions {
+    display: flex;
+    gap: 8px;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+}
+
+.delete-form {
+    display: inline;
+}
+
+/* Add button style */
+.button {
+    background-color: var(--accent-yellow);
+    color: #000000;
+    border: 1px solid var(--accent-yellow);
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+}
+
+.button:hover {
+    background-color: #e6a500;
+    border-color: #e6a500;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253, 185, 19, 0.3);
+}
+
+@media (max-width: 768px) {
+    .accounts {
+        font-size: 0.9rem;
+    }
+
+    .accounts th,
+    .accounts td {
+        padding: 8px;
+    }
+
+    .search-form {
+        flex-direction: column;
+    }
+
+    .search-form input[type="search"] {
+        width: 100%;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+
+    button,
+    input[type="submit"],
+    a.button,
+    .button-secondary {
+        width: 100%;
+    }
+}

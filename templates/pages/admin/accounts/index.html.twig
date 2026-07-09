@@ -4,13 +4,62 @@
 {% block title %}Accounts{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/accounts.css') }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Accounts Home</h2>
-    <p>Admin dashboard - accounts home page.</p>
+    <h2>Accounts</h2>
+
+    {% if dbConnected is defined and not dbConnected %}
+        <div class="alert alert-warning" style="margin-bottom: 16px; padding: 12px; border: 1px solid #f1c40f; background: #fef9e7; color: #b9770e;">
+            Database connection failed. Account data may be unavailable.
+        </div>
+    {% endif %}
+
+    <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center;">
+        <form method="get" action="" class="search-form" style="margin-bottom: 0; display: flex; gap: 8px; align-items: center;">
+            <input type="search" name="search" value="{{ search }}" placeholder="Search email, first or last name" />
+            <button type="submit" style="padding: 10px 20px;">Search</button>
+        </form>
+        <a href="{{ path('org_accounts_new') }}" class="button" style="margin-bottom: 0;">Create</a>
+    </div>
+
+    {% if accounts is not empty %}
+        <table class="accounts">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                    <tr>
+                        <td>{{ account.id }}</td>
+                        <td>{{ account.firstName }} {{ account.lastName }}</td>
+                        <td>{{ account.email }}</td>
+                        <td>{{ account.active ? 'Yes' : 'No' }}</td>
+                        <td>
+                            <a href="{{ path('org_accounts_show', {'id': account.id}) }}">View</a>
+                            <a href="{{ path('org_accounts_edit', {'id': account.id}) }}">Edit</a>
+                            <form method="post" action="{{ path('org_accounts_delete', {'id': account.id}) }}" style="display: inline;" onsubmit="return confirm('Are you sure?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ account.id) }}">
+                                <button type="submit" style="background: none; border: none; color: var(--accent-yellow); cursor: pointer; padding: 0; text-decoration: none; font-weight: 600;">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="text-align: center; padding: 2rem; font-style: italic;">No accounts found. <a href="{{ path('org_accounts_new') }}">Create one</a>?</p>
+    {% endif %}
 {% endblock %}

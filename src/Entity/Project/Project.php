@@ -359,10 +359,4 @@ class Project
     {
         return $this->workPackages;
     }
-
-    /** @return Collection<int, PackageTask> */
-    public function getWorkPackageTasks(): Collection
-    {
-        return $this->workPackageTasks;
-    }
 }
