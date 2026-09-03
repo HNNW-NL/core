@@ -1,16 +1,56 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}My Application{% endblock %}
+{% block title %}Mijn Aanmeldingen | Account Centre{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <h2>Applications</h2>
-    <p>Account Centre - applications page.</p>
+    <div id="account-centre-container">
+
+        <div class="dashboard-header">
+            <a href="/account" class="btn-back">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Terug naar Account
+            </a>
+
+            <h1>Mijn Aanmeldingen</h1>
+            <p>Bekijk de status van je lopende aanmeldingen voor projecten.</p>
+        </div>
+
+        <div class="account-grid">
+            {% if profile %}
+
+                {% set has_active_applications = false %}
+
+                {% for application in profile.projectApplications %}
+                    {% if application.deletedAt is null %}
+                        {% set has_active_applications = true %}
+                        <div class="account-card">
+                            <div class="account-card-content">
+                                <h3>{{ application.project.title|default('Naamloze aanmelding') }}</h3>
+                                <p>Status: <strong>{{ application.status.name|default('In behandeling') }}</strong></p>
+                            </div>
+
+                            {% if application.status.name == 'In behandeling' %}
+                                <form action="{{ path('account.applications_cancel', {'id': application.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze aanmelding wilt annuleren?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('cancel_application' ~ application.id) }}">
+                                    <button type="submit" class="btn-card-cancel">Aanmelding annuleren</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                {% if profile.projectApplications|length == 0 or not has_active_applications %}
+                    <div class="account-card account-card-empty">
+                        <h3>Geen aanmeldingen</h3>
+                        <p>Je hebt je op dit moment nog niet aangemeld voor een project.</p>
+                    </div>
+                {% endif %}
+
+            {% endif %}
+        </div>
+
+    </div>
 {% endblock %}

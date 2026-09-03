@@ -4,13 +4,62 @@
 {% block title %}Projects{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="../../../assets/org/css/projects-view.css">
+{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    <script src="../../../assets/org/js/projects-view.js"></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Overview</h2>
-    <p>Organization panel - projects overview page.</p>
+    <div class="projects-main">
+        <h2>Projects - Overview</h2>
+        <p>Organization panel - projects overview page.</p>
+
+        <div class="projects-current-text"><h2>Current projects</h2></div>
+        <div class="search-bar-projects">
+            <input type="text" id="search-text" placeholder="Search projects...">
+            <button id="search-button">Search</button>
+            <button id="reset-button" type="button" class="reset-button">Reset</button>
+            <label for="card-size-select" class="card-size-label">Size</label>
+            <div class="card-size-wrapper">
+                <select id="card-size-select" aria-label="Card size" class="card-size-select">
+                <option value="small">Small</option>
+                <option value="medium" selected>Medium</option>
+                <option value="large">Large</option>
+                </select>
+            </div>
+            <label for="per-page-select" class="per-page-label">Items</label>
+            <div class="card-size-wrapper">
+                <select id="per-page-select" class="card-size-select" aria-label="Items per page">
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                </select>
+            </div>
+        </div>
+
+        {% set q = app.request.query.get('q')|default('') %}
+        {% set data = org_projects(q) %}
+        
+        <div id="projects-app" data-projects="{{ data.items|json_encode|escape('html_attr') }}" data-search="{{ q|escape('html_attr') }}">
+            <div class="projects-container">
+                {# JS will populate this #}
+            </div>
+
+            <div class="projects-count" id="projects-count">
+                Showing <span id="projects-count-start">0</span>–<span id="projects-count-end">0</span> of <span id="projects-count-total">0</span> projects
+            </div>
+
+            <div class="projects-pagination">
+                <div>Page <span id="current-page">1</span> of <span id="total-pages">1</span></div>
+                <div class="projects-pagination-controls" id="pagination-controls">
+                    {# JS will populate this #}
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -4,13 +4,68 @@
 {% block title %}Modify project {{ id }} participants{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/org/css/edit-participants.css") }}">
+{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    {{ parent() }}
+    <script src="{{ asset('assets/org/js/edit-participants.js') }}"></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
+    {% include "/core/org/_modify-project-nav.html.twig" %}
     <h2>Projects - Modify Participants</h2>
     <p>Organization panel - modify project ({{ id }}) participants page.</p>
+
+    <form method="POST" class="edit-participants-form">
+        <input type="submit" class="submit" value="Submit Changes">
+
+        <table class="edit-participants-table" id="edit-participants-table">
+            <thead>
+            <tr id="table-header-row">
+                <th draggable="true">Name</th>
+                <th draggable="true">Role</th>
+                <th draggable="true">Status</th>
+                <th draggable="true">Joined at</th>
+                <th draggable="true">Left at</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for participant in participants %}
+                <tr>
+                    <td>
+                        {{ participant.display_name }}
+                    </td>
+
+                    <td>
+                        <select name="role[{{ participant.participant_id }}]" class="select-role">
+                            {% for role in roles %}
+                                <option value="{{ role.id }}"
+                                        {% if role.name == participant.role_name %}selected{% endif %}>
+                                    {{ role.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+
+                    <td>
+                        {{ participant.status_name }}
+                    </td>
+
+                    <td>
+                        {{ participant.joinedAt ? participant.joinedAt|date('d/m/Y') : '-' }}
+                    </td>
+
+                    <td>
+                        {{ participant.leftAt ? participant.leftAt|date('d/m/Y') : '-' }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </form>
 {% endblock %}

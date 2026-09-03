@@ -1,7 +1,7 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Project {{ id }} updates{% endblock %}
+{% block title %}Project {{ slug }} updates{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
@@ -17,5 +17,5 @@
 {# Page content #}
 {% block body %}
     <h2>Projects - updates</h2>
-    <p>Main - projects updates page. For project {{ id }}.</p>
+    <p>Main - projects updates page. For project {{ slug }}.</p>
 {% endblock %}

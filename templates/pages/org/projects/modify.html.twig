@@ -1,16 +1,148 @@
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Modify project {{ id }}{% endblock %}
+{% block title %}Modify Project{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('assets/org/css/modify-project.css') }}?v=20260625">
+{% endblock %}
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+<script src="{{ asset('assets/org/js/modify-project.js') }}?v=20260630-1"></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Modify</h2>
-    <p>Organization panel - modify project ({{ id }}) page.</p>
+    {% set queryStatus = app.request.query.get('status')|default('') %}
+    {% set queryMessage = app.request.query.get('message')|default('') %}
+    {% set queryIsError = queryStatus == 'error' %}
+    {% set titleMaxLength = 120 %}
+    {% set summaryMinLength = 5 %}
+    {% set summaryMaxLength = 280 %}
+    {% set descriptionMinLength = 10 %}
+    {% set descriptionMaxLength = 500 %}
+    {% set capacityMin = 1 %}
+    {% set capacityMax = 500 %}
+    {# Detects response messages that look like translation keys or internal codes instead of user text. #}
+    {% set queryMessageLooksLikeKey = queryMessage matches '/^[A-Za-z0-9_.-]+$/' and '.' in queryMessage %}
+    {# Shows a safe generic message for internal keys, and the original message when it is already readable. #}
+    {% set displayQueryMessage = queryMessageLooksLikeKey
+        ? (queryIsError ? 'Something went wrong.' : 'Changes saved.')
+        : queryMessage
+    %}
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div class="content content--single">
+        <section id="main-content" aria-label="Modify project">
+            <section class="modify-banner" aria-label="Modification notice">
+                <p class="eyebrow">Modify</p>
+                <h1>Modify Project</h1>
+                <p>Update project details and save your changes.</p>
+            </section>
+            {% if error is defined and error %}
+                <p class="form-status form-status--error" role="alert" aria-live="assertive">{{ error }}</p>
+            {% endif %}
+            {% if queryMessage is not empty %}
+                <p class="form-status {{ queryIsError ? 'form-status--error' : 'form-status--success' }}" role="{{ queryIsError ? 'alert' : 'status' }}" aria-live="{{ queryIsError ? 'assertive' : 'polite' }}">{{ displayQueryMessage }}</p>
+            {% endif %}
+
+            {% if project %}
+                {# This one form handles both edit and delete actions; the button value tells the backend which path to take. #}
+                <form id="modifyProjectForm" data-modify-project-form method="post" action="{{ path('org.modifyProject', { id: id }) }}">
+                    <p class="form-status" role="status" aria-live="polite" hidden></p>
+                    {# Hidden fields send the security token, the current organisation, the project id, and the last-loaded timestamp. #}
+                    <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ project.id) }}">
+                    <input type="hidden" id="organisationId" name="organisation_id" value="{{ project.organisationId|default(organisationId|default('')) }}">
+                    <input type="hidden" name="project_id" value="{{ project.id|default('') }}">
+                    <input type="hidden" name="last_modified" value="{{ project.lastModified|default('') }}">
+                    <fieldset class="modify-fields" aria-label="Project details">
+                            <legend>Project details</legend>
+                            <div>
+                                <label for="name">Project title</label>
+                                <input type="text" id="name" name="title" placeholder="Project title" required maxlength="{{ titleMaxLength }}" autocomplete="off" aria-describedby="nameHelp" value="{{ project.title|default('') }}">
+                                <p id="nameHelp" class="field-help">Use a clear title (max {{ titleMaxLength }} characters).</p>
+                            </div>
+                            <div>
+                                <label for="summary">Summary</label>
+                                <textarea id="summary" name="summary" rows="3" placeholder="Short project summary" required maxlength="{{ summaryMaxLength }}" autocomplete="off" spellcheck="true" aria-describedby="summaryHelp">{{ project.summary|default('') }}</textarea>
+                                <p id="summaryHelp" class="field-help">Short overview between {{ summaryMinLength }} and {{ summaryMaxLength }} characters.</p>
+                            </div>
+                            <div>
+                                <label for="description">Description</label>
+                                <textarea id="description" name="description" rows="5" placeholder="Describe the project in detail" required maxlength="{{ descriptionMaxLength }}" autocomplete="off" spellcheck="true" aria-describedby="descriptionHelp">{{ project.description|default('') }}</textarea>
+                                <p id="descriptionHelp" class="field-help">Detailed project description between {{ descriptionMinLength }} and {{ descriptionMaxLength }} characters.</p>
+                            </div>
+                            <div>
+                                <label for="visibility">Visibility</label>
+                                {% set currentVisibility = project.visibility|default('public') %}
+                                {# TODO: Remove fallback once visibilityOptions is always provided by backend/DB source. #}
+                                {% set visibilityOptions = visibilityOptions|default([
+                                    { value: 'public', label: 'Public' },
+                                    { value: 'private', label: 'Private' },
+                                    { value: 'unlisted', label: 'Unlisted' }
+                                ]) %}
+                                <select id="visibility" name="visibility" required>
+                                    {% for option in visibilityOptions %}
+                                        <option value="{{ option.value }}" {% if currentVisibility == option.value %}selected{% endif %}>{{ option.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label for="startDate">Start date</label>
+                                <input type="date" id="startDate" name="startDate" required aria-describedby="startDateHelp" value="{{ project.startDate|default('') }}">
+                                <p id="startDateHelp" class="field-help">Enter the project start date.</p>
+                            </div>
+                            <div>
+                                <label for="endDate">End date</label>
+                                <input type="date" id="endDate" name="endDate" aria-describedby="endDateHelp" value="{{ project.endDate|default('') }}">
+                                <p id="endDateHelp" class="field-help">Must be on or after start date.</p>
+                            </div>
+                            <div>
+                                <label for="capacity">Capacity</label>
+                                <input type="number" id="capacity" name="capacity" min="{{ capacityMin }}" max="{{ capacityMax }}" step="1" inputmode="numeric" placeholder="Max participants" aria-describedby="capacityHelp" value="{{ project.capacity is not null ? project.capacity : '' }}">
+                                <p id="capacityHelp" class="field-help">Enter a whole number from {{ capacityMin }} to {{ capacityMax }}.</p>
+                            </div>
+                            <div>
+                                <label for="statusId">Status</label>
+                                {% set currentStatusId = project.statusId|default('') %}
+                                {% set currentStatusName = project.statusName|default('')|lower %}
+                                {% set statusOptions = statusOptions|default([
+                                    { value: 'draft', label: 'Draft', name: 'draft' },
+                                    { value: 'published', label: 'Published', name: 'published' },
+                                    { value: 'archived', label: 'Archived', name: 'archived' }
+                                ]) %}
+                                <select id="statusId" name="status_id">
+                                    {% for option in statusOptions %}
+                                        {% set selected = (currentStatusId is not empty and currentStatusId == option.value)
+                                            or (currentStatusId is empty and currentStatusName == (option.name|default('')|lower)) %}
+                                        <option value="{{ option.value }}" {% if selected %}selected{% endif %}>{{ option.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                    </fieldset>
+                    <div class="button-row" role="group" aria-label="Danger actions">
+                        <div class="button-cell">
+                            <button type="submit" name="intent" value="modify">Modify project</button>
+                        </div>
+                        <div class="button-cell button-cell--delete button-cell--danger">
+                            <p class="danger-note">Danger zone: deleting a project is permanent.</p>
+                            <button type="submit" name="intent" value="delete" class="button-danger" formnovalidate>Delete project</button>
+                        </div>
+                    </div>
+                </form>
+                <dialog id="deleteConfirmDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
+                    <form method="dialog" class="delete-dialog__form">
+                        <h2 id="deleteDialogTitle">Confirm permanent deletion</h2>
+                        <p>Type <strong>DELETE</strong> to permanently remove <strong>{{ project.title|default('this project') }}</strong>. This cannot be undone.</p>
+                        <label for="deleteConfirmInput">Confirmation</label>
+                        <input id="deleteConfirmInput" type="text" autocomplete="off" placeholder="Type DELETE" aria-describedby="deleteConfirmHint">
+                        <p id="deleteConfirmHint" class="field-help">Type DELETE (all caps) to enable the button.</p>
+                        <div class="delete-dialog__actions">
+                            <button value="cancel">Cancel</button>
+                            <button id="deleteConfirmButton" value="confirm" class="button-danger" disabled>Delete permanently</button>
+                        </div>
+                    </form>
+                </dialog>
+            {% endif %}
+        </section>
+    </div>
 {% endblock %}

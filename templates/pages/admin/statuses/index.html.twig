@@ -1,0 +1,40 @@
+{% extends 'layouts/admin.base.html.twig' %}
+
+{% block title %}Statuses{% endblock %}
+
+{% block stylesheets %}{% endblock %}
+
+{% block javascript %}{% endblock %}
+
+{% block body %}
+    <h2>Statuses</h2>
+
+    <p>
+        <a href="{{ path('admin.statuses.create') }}">
+            Create Status
+        </a>
+    </p>
+
+    {% if statuses is empty %}
+        <p>No statuses found.</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Scope</th>
+                    <th>Colour</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status in statuses %}
+                    <tr>
+                        <td>{{ status.name }}</td>
+                        <td>{{ status.scope }}</td>
+                        <td>{{ status.colourHex }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

@@ -1,21 +1,105 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}Project {{ id }} Work Packages{% endblock %}
+{% block title %}Project {{ slug }} Werkpakketten{% endblock %}
 
-{# SEO #}
 {% block seoKeywords %}{% endblock %}
 {% block seoDescription %}{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
-{# CSS #}
 {% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
 {% block javascript %}{% endblock %}
 
-{# Page content #}
 {% block body %}
-    <h2>Projects - Work Packages</h2>
-    <p>Main - projects work packages page. For project {{ id }}.</p>
+    {% set workPackageOverviews = hnnw_work_package_overviews(slug) %}
+    {% set currentProfile = hnnw_current_profile() %}
+
+    <section class="project-work-packages">
+        <header class="project-work-packages__header">
+            <h2>Werkpakketten</h2>
+            <p>Bekijk de taken binnen dit project en schrijf jezelf in op een beschikbare taak.</p>
+        </header>
+
+        {% for flashType, flashMessages in app.flashes %}
+            {% for flashMessage in flashMessages %}
+                <div class="alert alert-{{ flashType }}">
+                    {{ flashMessage }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+        {% if currentProfile is null %}
+            <p>Log in met een profiel om jezelf in te schrijven op taken.</p>
+        {% endif %}
+
+        {% if workPackageOverviews is empty %}
+            <p>Er zijn nog geen werkpakketten of taken beschikbaar voor dit project.</p>
+        {% else %}
+            <div class="work-package-list">
+                {% for overview in workPackageOverviews %}
+                    {% set workPackage = overview.workPackage %}
+                    {% set packageTasks = overview.packageTasks %}
+
+                    <article class="work-package-card">
+                        <header class="work-package-card__header">
+                            <h3>{{ workPackage.title }}</h3>
+
+                            {% if workPackage.dueDate %}
+                                <p>Deadline: {{ workPackage.dueDate|date('d-m-Y') }}</p>
+                            {% endif %}
+                        </header>
+
+                        {% if workPackage.description %}
+                            <p>{{ workPackage.description }}</p>
+                        {% else %}
+                            <p>Geen beschrijving beschikbaar.</p>
+                        {% endif %}
+
+                        {% if packageTasks is empty %}
+                            <p>Er zijn nog geen taken binnen dit werkpakket.</p>
+                        {% else %}
+                            <div class="package-task-list">
+                                {% for packageTask in packageTasks %}
+                                    {% set assignedProfile = packageTask.assignedProfile %}
+                                    {% set isAssignedToCurrentProfile = currentProfile and assignedProfile and assignedProfile.id == currentProfile.id %}
+
+                                    <article class="package-task-card">
+                                        <div class="package-task-card__content">
+                                            <h4>{{ packageTask.title }}</h4>
+
+                                            {% if packageTask.description %}
+                                                <p>{{ packageTask.description }}</p>
+                                            {% endif %}
+
+                                            <p>
+                                                Prioriteit: {{ packageTask.priority|capitalize }}
+                                                {% if packageTask.dueDate %}
+                                                    · Deadline: {{ packageTask.dueDate|date('d-m-Y') }}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+
+                                        <div class="package-task-card__action">
+                                            {% if assignedProfile %}
+                                                {% if isAssignedToCurrentProfile %}
+                                                    <span>Jij bent ingeschreven op deze taak.</span>
+                                                {% else %}
+                                                    <span>Deze taak is al toegewezen.</span>
+                                                {% endif %}
+                                            {% elseif currentProfile %}
+                                                <form method="post" action="{{ path('main.projects.workPackages.enrollTask', { slug: slug, taskId: packageTask.id.toRfc4122() }) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('enroll-package-task-' ~ packageTask.id.toRfc4122()) }}">
+                                                    <button type="submit">Inschrijven</button>
+                                                </form>
+                                            {% else %}
+                                                <span>Beschikbaar</span>
+                                            {% endif %}
+                                        </div>
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

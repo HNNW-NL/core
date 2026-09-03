@@ -1,0 +1,80 @@
+.edit-participants-form{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 1vh;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 3vh;
+}
+
+.edit-participants-table{
+    border-collapse: collapse;
+}
+
+.edit-participants-table tbody{
+    background-color: #0f172ab3;
+}
+
+
+.edit-participants-table tbody tr:hover{
+    background-color: #020617;
+}
+
+
+.edit-participants-table th {
+    cursor: grab;
+    user-select: none;
+}
+
+.edit-participants-table th.dragging {
+    opacity: 0.5;
+}
+
+.edit-participants-table th.drag-over {
+    outline: 2px dashed #666;
+}
+
+.edit-participants-table th.draggable-col {
+    cursor: grab;
+    user-select: none;
+}
+
+.edit-participants-table th.draggable-col:active {
+    cursor: grabbing;
+}
+
+.edit-participants-table th.drop-target {
+    border-left: 4px solid #4A90E2 !important;
+}
+
+.edit-participants-table th.dragging-header {
+    opacity: 0.5;
+    background-color: #eee;
+}
+
+.edit-participants-table td{
+    padding: 1vh 1vw;
+}
+
+.select-role{
+    background-color:  #0f172ab3;
+    border-collapse: collapse;
+    border: none;
+    font-size: 3vh;
+}
+
+.submit{
+    background-color: #f4c400;
+    color: white;
+    border: none;
+    cursor: pointer;
+    appearance: none;
+    font-size: 3vh;
+    padding: 0.5vh 0.5vw;
+    border-radius: 0.2vw;
+}
+
+.submit:hover{
+    background-color: #f4c400;
+}

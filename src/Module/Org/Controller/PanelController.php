@@ -34,6 +34,7 @@ final class PanelController extends AbstractController
             'id' => $id,
         ]);
     }
+
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
     public function modifyProjectMatching(string $id): Response
     {
@@ -46,6 +47,14 @@ final class PanelController extends AbstractController
     public function modifyProjectParticipants(string $id): Response
     {
         return $this->render('pages/org/projects/modify-participants.html.twig', [
+            'id' => $id,
+        ]);
+    }
+
+    #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
+    public function InviteProjectParticipants(string $id): Response
+    {
+        return $this->render('pages/org/projects/invite-participants.html.twig', [
             'id' => $id,
         ]);
     }

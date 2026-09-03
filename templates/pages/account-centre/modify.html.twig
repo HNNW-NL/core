@@ -11,6 +11,90 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Modify</h2>
-    <p>Account Centre - modify page.</p>
+    <div id="account-centre-container">
+
+        <a href="{{ path('account.home') }}" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Profiel Wijzigen</h1>
+            <p>Wijzig hier uw gegevens en uw zichtbaarheid van de profiel.</p>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="account-flash-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="account-form-container">
+            <div class="form-internal-header">
+                <h2>Wijzig je profielgegevens</h2>
+                <p>Pas je gegevens aan om je profiel up-to-date te houden - je gegevens blijven veilig.</p>
+            </div>
+
+            <form action="{{ path('account.modify') }}" method="POST">
+                <div class="form-group">
+                    <label for="username">Gebruikersnaam</label>
+                    <input type="text" id="username" name="username" placeholder="Kies een gebruikersnaam" value="{{ account.username|default('') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="first_name">Voornaam</label>
+                    <input type="text" id="first_name" name="first_name" placeholder="Voornaam" value="{{ profile.firstName|default('') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="last_name">Achternaam</label>
+                    <input type="text" id="last_name" name="last_name" placeholder="Achternaam" value="{{ profile.lastName|default('') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="avatar_url">Avatar URL</label>
+                    <input type="text" id="avatar_url" name="avatar_url" placeholder="https://example.com/avatar.png" value="{{ profile.avatarUrl|default('') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Locatie</label>
+                    <input type="text" id="location" name="location" placeholder="Bijv. Amsterdam, Nederland" value="{{ profile.location|default('') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">Over jezelf</label>
+                    <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf...">{{ profile.description|default('') }}</textarea>
+                </div>
+
+                {% if settings is defined and settings is not null %}
+                    <div class="form-group">
+                        <label for="language">Taal</label>
+                        <input type="text" id="language" name="language" maxlength="5" placeholder="nl" value="{{ settings.language|default('nl') }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="theme">Thema</label>
+                        <select id="theme" name="theme" required>
+                            <option value="light" {% if settings.theme|default('dark') == 'light' %}selected{% endif %}>White</option>
+                            <option value="dark" {% if settings.theme|default('dark') == 'dark' %}selected{% endif %}>Dark</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profile_visibility">Profiel Zichtbaarheid</label>
+                        <select id="profile_visibility" name="profile_visibility" required>
+                            <option value="public" {% if settings.profileVisibility|default('public') == 'public' %}selected{% endif %}>Public</option>
+                            <option value="private" {% if settings.profileVisibility|default('public') == 'private' %}selected{% endif %}>Private</option>
+                        </select>
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn-primary">Wijzigingen opslaan</button>
+
+                <div class="form-footer-link">
+                    Heb je je bedacht? <a href="{{ path('account.home') }}">Annuleren</a>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}

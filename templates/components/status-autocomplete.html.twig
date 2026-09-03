@@ -1,0 +1,15 @@
+<select
+    name="{{ name|default('status') }}"
+    id="{{ id|default('status') }}"
+>
+    {% for status in statuses %}
+        <option
+            value="{{ status.id }}"
+            {% if selected is defined and selected == status.id %}
+                selected
+            {% endif %}
+        >
+            {{ status.name }}
+        </option>
+    {% endfor %}
+</select>

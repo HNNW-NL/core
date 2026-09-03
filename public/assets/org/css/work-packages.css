@@ -1,0 +1,842 @@
+body {
+            margin: 0;
+            background: #f6f8fb;
+            color: #16263a;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .work-packages-page * {
+            box-sizing: border-box;
+        }
+
+        .work-packages-header {
+            background: #0d1a2a;
+            color: #fff;
+            border-bottom: 4px solid #2d8b57;
+        }
+
+        .work-packages-header-inner {
+            min-height: 64px;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .work-packages-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+        }
+
+        .work-packages-brand-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 6px;
+            display: grid;
+            place-items: center;
+            background: #2d8b57;
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .work-packages-brand small {
+            display: block;
+            color: #bfd0e4;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .work-packages-main {
+            max-width: 1180px;
+            margin: 28px auto 48px;
+            padding: 0 28px;
+        }
+
+        .work-packages-page-heading {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        .work-packages-page-heading h1 {
+            margin: 0 0 8px;
+            color: #16263a;
+            font-size: 36px;
+            line-height: 1.1;
+        }
+
+        .work-packages-page-heading p {
+            max-width: 760px;
+            margin: 0;
+            color: #51627a;
+        }
+
+        .work-packages-view-tabs {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(140px, 1fr));
+            gap: 4px;
+            padding: 4px;
+            border: 1px solid #d9e0ea;
+            background: #fff;
+            border-radius: 8px;
+        }
+
+        .work-packages-view-tabs button {
+            min-height: 38px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #607086;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .work-packages-view-tabs button[aria-pressed="true"] {
+            background: #16263a;
+            color: #fff;
+        }
+
+        .work-packages-toolbar {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 18px;
+            background: #fff;
+            border: 1px solid #d9e0ea;
+            border-radius: 8px;
+            box-shadow: 0 10px 28px rgba(13, 26, 42, .07);
+        }
+
+        .work-packages-search-input,
+        .work-packages-project-select {
+            min-height: 42px;
+            border: 1px solid #d9e0ea;
+            border-radius: 6px;
+            padding: 9px 12px;
+            background: #fff;
+            color: #16263a;
+            font: inherit;
+        }
+
+        .work-packages-primary-button,
+        .work-packages-secondary-button,
+        .work-packages-text-button {
+            min-height: 42px;
+            border-radius: 6px;
+            padding: 9px 14px;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .work-packages-primary-button {
+            border: 0;
+            background: #2d8b57;
+            color: #fff;
+            box-shadow: 0 10px 18px rgba(45, 139, 87, .18);
+        }
+
+        .work-packages-secondary-button {
+            border: 1px solid #d9e0ea;
+            background: #fff;
+            color: #16263a;
+        }
+
+        .work-packages-text-button {
+            border: 0;
+            background: transparent;
+            color: #2468a8;
+            padding-inline: 8px;
+        }
+
+        .work-packages-danger-action {
+            color: #b23a48;
+        }
+
+        .work-packages-view {
+            display: none;
+        }
+
+        .work-packages-view.active {
+            display: block;
+        }
+
+        .work-packages-management-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .work-packages-project-sidebar,
+        .work-packages-management-panel,
+        .work-package-card,
+        .work-package-create-panel,
+        .project-overview-summary,
+        .project-overview-task-column {
+            background: #fff;
+            border: 1px solid #d9e0ea;
+            border-radius: 8px;
+            box-shadow: 0 10px 28px rgba(13, 26, 42, .06);
+        }
+
+        .work-packages-project-sidebar {
+            padding: 14px;
+        }
+
+        .work-packages-project-sidebar h3,
+        .project-overview-section-title {
+            margin: 0 0 10px;
+            color: #607086;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .work-packages-project-link {
+            display: block;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 10px;
+            color: #16263a;
+            text-decoration: none;
+        }
+
+        .work-packages-project-link + .work-packages-project-link {
+            margin-top: 8px;
+        }
+
+        .work-packages-project-link strong,
+        .work-packages-project-link span {
+            display: block;
+        }
+
+        .work-packages-project-link span {
+            margin-top: 2px;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .work-packages-project-link.active {
+            border-color: #2d8b57;
+            background: #dff2e7;
+        }
+
+        .work-packages-project-link.active strong {
+            color: #16263a;
+        }
+
+        .work-packages-project-link.active span {
+            color: #51627a;
+        }
+
+        .work-packages-management-panel {
+            padding: 18px;
+        }
+
+        .work-packages-management-panel-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: start;
+            margin-bottom: 18px;
+        }
+
+        .work-packages-management-panel-header h2 {
+            margin: 0 0 12px;
+            font-size: 24px;
+        }
+
+        .work-packages-management-panel-header p {
+            max-width: 680px;
+            margin: 0;
+            color: #51627a;
+        }
+
+        .work-packages-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .work-packages-stat-card {
+            border: 1px solid #d9e0ea;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fbfcfe;
+        }
+
+        .work-packages-stat-card strong,
+        .work-packages-stat-card span {
+            display: block;
+        }
+
+        .work-packages-stat-card strong {
+            font-size: 24px;
+            line-height: 1.1;
+            color: #16263a;
+        }
+
+        .work-packages-stat-card span {
+            margin-top: 4px;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .work-packages-management-content {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .work-package-card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .work-package-card {
+            padding: 16px;
+        }
+
+        .work-package-card-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .work-package-card h3 {
+            margin: 0 0 4px;
+            font-size: 18px;
+        }
+
+        .work-package-card p {
+            margin: 0;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .work-packages-stat-cardus {
+            display: inline-flex;
+            min-height: 28px;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 13px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .work-packages-stat-cardus.busy {
+            background: #fff3d8;
+            color: #b7791f;
+        }
+
+        .work-packages-stat-cardus.open {
+            background: #e4f0fb;
+            color: #2468a8;
+        }
+
+        .work-packages-stat-cardus.done {
+            background: #dff2e7;
+            color: #2d8b57;
+        }
+
+        .work-package-progress {
+            height: 9px;
+            overflow: hidden;
+            background: #e7edf4;
+            border-radius: 999px;
+            margin-bottom: 12px;
+        }
+
+        .work-package-progress span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: #2d8b57;
+        }
+
+        .work-package-task-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #d9e0ea;
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        .work-package-task-row + .work-package-task-row {
+            margin-top: 8px;
+        }
+
+        .work-package-task-check {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #d9e0ea;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .work-package-task-row.done .work-package-task-check {
+            border-color: #2d8b57;
+            background: #2d8b57;
+        }
+
+        .work-package-task-row strong,
+        .work-package-task-row small {
+            display: block;
+        }
+
+        .work-package-task-row small {
+            margin-top: 2px;
+            color: #607086;
+        }
+
+        .work-package-assignee-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #514283;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .work-package-card-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #d9e0ea;
+        }
+
+        .work-package-card-action-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .work-package-create-panel {
+            padding: 18px;
+        }
+
+        .work-package-create-panel h3 {
+            margin: 0 0 14px;
+        }
+
+        .work-package-create-form {
+            display: grid;
+            gap: 12px;
+        }
+
+        .work-package-form-field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .work-package-form-field label {
+            font-weight: 800;
+            color: #16263a;
+        }
+
+        .work-package-form-field input,
+        .work-package-form-field textarea {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid #d9e0ea;
+            border-radius: 6px;
+            padding: 9px 12px;
+            color: #16263a;
+            font: inherit;
+        }
+
+        .work-package-form-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .project-overview-layout {
+            display: grid;
+            grid-template-columns: 310px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .project-overview-summary {
+            padding: 18px;
+        }
+
+        .project-overview-hero {
+            background: #16263a;
+            color: #fff;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 14px;
+        }
+
+        .project-overview-hero h2 {
+            margin: 0 0 8px;
+            font-size: 22px;
+        }
+
+        .project-overview-hero p {
+            margin: 0 0 14px;
+            color: #d8e4f1;
+        }
+
+        .project-overview-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .project-overview-stat-grid div {
+            border: 1px solid rgba(255, 255, 255, .18);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .project-overview-stat-grid strong,
+        .project-overview-stat-grid span {
+            display: block;
+        }
+
+        .project-overview-stat-grid span {
+            color: #bfd0e4;
+            font-size: 13px;
+        }
+
+        .project-overview-member {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #d9e0ea;
+        }
+
+        .project-overview-member:last-child {
+            border-bottom: 0;
+        }
+
+        .project-overview-member-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #ece8f7;
+            color: #514283;
+            font-weight: 900;
+        }
+
+        .project-overview-member strong,
+        .project-overview-member span {
+            display: block;
+        }
+
+        .project-overview-member span {
+            color: #607086;
+            font-size: 13px;
+        }
+
+        .project-overview-task-board {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .project-overview-task-column {
+            min-height: 420px;
+            padding: 14px;
+        }
+
+        .project-overview-column-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .project-overview-column-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: black;
+        }
+
+        .project-overview-column-count {
+            min-width: 30px;
+            min-height: 26px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: #eef2f7;
+            color: #607086;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .project-overview-task-card {
+            padding: 12px;
+            border: 1px solid #d9e0ea;
+            border-left: 4px solid #2468a8;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 10px;
+        }
+
+        .project-overview-task-card.busy {
+            border-left-color: #b7791f;
+        }
+
+        .project-overview-task-card.done {
+            border-left-color: #2d8b57;
+            background: #fbfefc;
+        }
+
+        .project-overview-task-card h4 {
+            margin: 0 0 7px;
+            font-size: 16px;
+            color: black;
+        }
+
+        .project-overview-task-card p {
+            margin: 0 0 10px;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .project-overview-task-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .project-overview-task-card-footer .work-packages-primary-button,
+        .project-overview-task-card-footer .work-packages-secondary-button {
+            min-height: 34px;
+            padding: 6px 9px;
+            font-size: 13px;
+        }
+
+        .project-overview-task-tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: #eef2f7;
+            color: #607086;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 1100px) {
+            .work-packages-management-content,
+            .work-package-card-grid,
+            .work-packages-management-layout,
+            .work-packages-page-heading,
+            .work-packages-toolbar,
+            .work-packages-management-panel-header,
+            .project-overview-layout,
+            .project-overview-task-board {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .work-packages-header-inner,
+            .work-packages-navigation {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .work-packages-header-inner {
+                padding: 14px 20px;
+            }
+
+            .work-packages-main {
+                padding: 0 20px;
+            }
+
+            .work-packages-view-tabs,
+            .work-packages-stat-grid,
+            .project-overview-stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+.work-package-list-empty-state {
+    grid-column: 1 / -1;
+    border: 1px dashed #d9e0ea;
+    border-radius: 8px;
+    padding: 24px;
+    background: #fbfcfe;
+    color: #51627a;
+}
+
+.work-package-list-empty-state strong {
+    display: block;
+    color: #16263a;
+    margin-bottom: 6px;
+}
+
+.work-package-tasks-empty-state {
+    margin: 12px 0 0;
+    padding: 12px;
+    border: 1px dashed #d9e0ea;
+    border-radius: 6px;
+    color: #607086;
+    background: #fbfcfe;
+}
+/* Polished task form inside work package cards */
+.work-package-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.work-package-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.work-package-card > p {
+    line-height: 1.45;
+}
+
+.work-package-task-create-box {
+    margin-top: 4px;
+    padding: 14px;
+    border: 1px solid #d9e0ea;
+    border-radius: 8px;
+    background: #f8fbfd;
+}
+
+.work-package-task-create-box > h4 {
+    margin: 0 0 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e4eaf2;
+    color: #16263a;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.work-package-task-create-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e4eaf2;
+}
+
+.work-package-task-create-heading h4 {
+    margin: 0;
+    color: #16263a;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.work-package-task-create-heading span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    border-radius: 999px;
+    padding: 3px 9px;
+    background: #dff2e7;
+    color: #2d8b57;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.work-package-task-create-box .work-package-create-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.work-package-task-create-box .work-package-form-field {
+    gap: 5px;
+}
+
+.work-package-task-create-box .work-package-form-field:nth-of-type(3) {
+    grid-column: 1 / -1;
+}
+
+.work-package-task-create-box .work-package-form-field label {
+    font-size: 13px;
+}
+
+.work-package-task-create-box .work-package-form-field input,
+.work-package-task-create-box .work-package-form-field textarea {
+    min-height: 40px;
+    background: #fff;
+}
+
+.work-package-task-create-box .work-package-form-field textarea {
+    min-height: 82px;
+}
+
+.work-package-task-create-box .work-packages-primary-button {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 42px;
+}
+
+.work-package-card-actions {
+    margin-top: 0;
+}
+
+.work-package-card-action-group {
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.work-packages-danger-action {
+    min-height: 42px;
+    border-radius: 6px;
+    padding: 9px 12px;
+    background: #fff5f5;
+    color: #b3261e;
+}
+
+.work-packages-danger-action:hover {
+    background: #ffe8e8;
+}
+
+@media (max-width: 720px) {
+    .work-package-task-create-box .work-package-create-form {
+        grid-template-columns: 1fr;
+    }
+}
