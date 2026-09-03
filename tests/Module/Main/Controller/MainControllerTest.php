@@ -12,6 +12,6 @@ class MainControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Home');
+        $this->assertSelectorTextContains('h2', 'Home World');
     }
 }
