@@ -33,7 +33,7 @@ The platform enables:
 This repository contains the **core Symfony application** powering the HNNW platform.
 
 Production website: https://hnnw.nl
-Repository: https://codeberg.org/HNNW/HNNW-core
+Repository: https://code.hnnw.nl/HNNW/core
 
 ---
 
@@ -106,7 +106,7 @@ The database is now ready for use.
 ### 3. Clone the repository
 
 ```bash
-git clone https://codeberg.org/HNNW/HNNW-core.git
+git clone https://code.hnnw.nl/HNNW/core.git
 cd HNNW-core
 ```
 
@@ -331,7 +331,7 @@ Please refer to the official license text:
 
 https://eupl.eu/
 
-Repository organisation: https://codeberg.org/HNNW
+Repository organisation: https://code.hnnw.nl/HNNW
 
 ---
 
