@@ -6,12 +6,25 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class MainControllerTest extends WebTestCase
 {
-    public function testIndex(): void
+    // Index
+
+    public function testShouldDisplayHome(): void
     {
         $client = static::createClient();
         $crawler = $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Home World');
+        $this->assertSelectorTextContains('h2', 'Home');
+    }
+
+    //About
+
+    public function testShouldDisplayAbout(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/about');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h2', 'About');
     }
 }
