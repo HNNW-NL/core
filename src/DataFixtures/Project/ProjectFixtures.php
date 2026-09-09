@@ -21,8 +21,8 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $project = new Project();
         $project->setOwnerAccount($this->getReference(AccountFixtures::TEST_ACCOUNT_REFERENCE, Account::class));
         $project->setOwnerOrganisation($this->getReference(OrganisationFixtures::TEST_ORGANISATION, Organisation::class));
-        $project->setTitle("TestProject");
-        $project->setSlug("TestProject");
+        $project->setTitle("Test Project");
+        $project->setSlug("Test-Project");
         $project->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_PROJECT_STATUS_REFERENCE, Status::class));
         $project->setSummary("Een test project");
         $project->setStartDate(new DateTimeImmutable("now"));

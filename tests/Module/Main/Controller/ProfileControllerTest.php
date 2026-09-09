@@ -192,7 +192,6 @@ class ProfileControllerTest extends WebTestCase
 
         $crawler = $client->request('GET', '/profile');
 
-        $this->assertResponseIsSuccessful();
-        $this->assertResponseRedirects("auth.login");
+        $this->assertResponseRedirects("/auth/login");
     }
 }

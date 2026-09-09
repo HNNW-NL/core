@@ -17,7 +17,7 @@ class OrganisationFixtures extends Fixture implements DependentFixtureInterface
     {
         $organisation = new Organisation();
         $organisation->setName("Test Organistion");
-        $organisation->setSlug("Test Organistion");
+        $organisation->setSlug("Test-Organistion");
         $organisation->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_ORGANISATION_STATUS_REFERENCE, Status::class));
         $organisation->setDescription("Een test omschrijving van de organisatie");
         $manager->persist($organisation);

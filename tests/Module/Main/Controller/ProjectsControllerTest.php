@@ -134,5 +134,35 @@ class ProjectsControllerTest extends WebTestCase
 
     // updates
 
+    public function testWhenNotOwnerShouldGiveError(): void
+    {
+        //Reminder that test is not yet implemented
+        $this->assertTrue(false);
+    }
 
+    public function testWhenOwnerShouldDisplayPage(): void
+    {
+        //Reminder that test is not yet implemented
+        $this->assertTrue(false);
+    }
+
+    public function testWhenOwnerAndSubmitUpdateShouldUpdateProject(): void
+    {
+        //Reminder that test is not yet implemented
+        $this->assertTrue(false);
+    }
+
+    // workPackages
+
+    public function testWhenWorkPackagesExistShouldDisplayThem(): void
+    {
+        //Reminder that test is not yet implemented
+        $this->assertTrue(false);
+    }
+
+    public function testWhenWorkPackagesDontExistShouldDisplayNoWorkPackagesAvailable(): void
+    {
+        //Reminder that test is not yet implemented
+        $this->assertTrue(false);
+    }
 }
