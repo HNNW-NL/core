@@ -120,7 +120,7 @@ class ProjectsControllerTest extends WebTestCase
 
     // enrollTask
 
-    public function testWhenNotLoggedInShouldBeRedirectedToLogin(): void
+    public function testWhenNotLoggedInShouldBeRedirectedFromEnrollTask(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);

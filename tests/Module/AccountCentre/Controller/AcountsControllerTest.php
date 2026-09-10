@@ -45,7 +45,7 @@ class AcountsControllerTest extends WebTestCase
         $this->assertTrue(false);
     }
 
-    public function testWhenLoggedInAndDontHaveApplicationsShouldGiveError(): void
+    public function testWhenLoggedInAndDoesntHaveApplicationsShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
@@ -111,7 +111,7 @@ class AcountsControllerTest extends WebTestCase
         $this->assertTrue(false);
     }
 
-    public function testWhenLoggedInAndDontHaveAvailabilityShouldGiveError(): void
+    public function testWhenLoggedInAndDoesntHaveAvailabilityShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
@@ -171,7 +171,7 @@ class AcountsControllerTest extends WebTestCase
         $this->assertTrue(false);
     }
 
-    public function testWhenLoggedInAndDontHaveExperienceShouldGiveError(): void
+    public function testWhenLoggedInAndDoesntHaveExperienceShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
