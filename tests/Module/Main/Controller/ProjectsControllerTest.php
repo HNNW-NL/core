@@ -160,7 +160,7 @@ class ProjectsControllerTest extends WebTestCase
         $this->assertTrue(false);
     }
 
-    public function testWhenWorkPackagesDontExistShouldDisplayNoWorkPackagesAvailable(): void
+    public function testWhenWorkPackagesDoesntExistShouldDisplayNoWorkPackagesAvailable(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
