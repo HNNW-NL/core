@@ -30,7 +30,7 @@
                 <div class="form-errors visible" role="alert" aria-live="assertive">{{ error }}</div>
             {% endif %}
 
-            <form id="login-form" method="post" action="/auth/login">
+            <form id="login-form" method="post" action="{{ path('app_login') }}">
                 <fieldset>
                     <legend class="visually-hidden">Inloggen met je account</legend>
 
@@ -42,7 +42,7 @@
                         <input id="password" class="auth-input" name="password" type="password" placeholder="Je wachtwoord" autocomplete="current-password" required aria-required="true">
                     </div>
 
-                    <input type="hidden" name="_csrf_token">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                     <div class="mt-1">
                         <button type="submit" class="btn">Log in</button>
