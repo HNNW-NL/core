@@ -1,0 +1,27 @@
+[35mmigrations/Version20260709141033.php[m[36m:[m        $this->addSql('CREATE TABLE availabilities (id UUID NOT NULL, [1;31mavailability[m_type VARCHAR(25) NOT NULL, hours_per_week INT NOT NULL, start_date TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, end_date TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, note TEXT DEFAULT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, deleted_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, profile_id UUID NOT NULL, PRIMARY KEY (id))');
+[35mpublic/assets/account-centre/css/style.css[m[36m:[m   [1;31mAVAILABILITY[m PAGE CUSTOM STYLES
+[35msrc/Entity/Account/Availability.php[m[36m:[mclass [1;31mAvailability[m
+[35msrc/Entity/Account/Availability.php[m[36m:[m    #[ORM\Column(name: '[1;31mavailability[m_type', length: 25)]
+[35msrc/Entity/Account/Availability.php[m[36m:[m    private ?string $[1;31mavailability[mType = null;
+[35msrc/Entity/Account/Availability.php[m[36m:[m    public function get[1;31mAvailability[mType(): ?string
+[35msrc/Entity/Account/Availability.php[m[36m:[m        return $this->[1;31mavailability[mType;
+[35msrc/Entity/Account/Availability.php[m[36m:[m    public function set[1;31mAvailability[mType(?string $[1;31mavailability[mType): static
+[35msrc/Entity/Account/Availability.php[m[36m:[m        $this->[1;31mavailability[mType = $[1;31mavailability[mType;
+[35msrc/Entity/Account/Profile.php[m[36m:[m    #[ORM\OneToMany(targetEntity: [1;31mAvailability[m::class, mappedBy: "profile")]
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m    #[Route('/[1;31mavailability[m', name: '[1;31mavailability[m', methods: ['GET', 'POST'])]
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m    public function [1;31mavailability[m(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m                    '[1;31mavailability[m_type' => $compactType,
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m            return $this->redirectToRoute('account.[1;31mavailability[m');
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m            $rawValue = $row['[1;31mavailability[m_type'] ?? '';
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m        return $this->render('pages/account-centre/[1;31mavailability[m.html.twig', [
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m    #[Route('/[1;31mavailability[m/{id}/delete', name: '[1;31mavailability[m_delete', methods: ['POST'])]
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m    public function delete[1;31mAvailability[m(string $id, Request $request, Connection $connection): Response
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m        if ($this->isCsrfTokenValid('delete_[1;31mavailability[m' . $id, $csrfToken)) {
+[35msrc/Module/AccountCentre/Controller/AccountsController.php[m[36m:[m        return $this->redirectToRoute('account.[1;31mavailability[m');
+[35mtemplates/pages/account-centre/availability.html.twig[m[36m:[m        <form action="{{ path('account.[1;31mavailability[m') }}" method="POST" id="tidycal-schedule-form">
+[35mtemplates/pages/account-centre/availability.html.twig[m[36m:[m                    {% for [1;31mavailability[m in availabilities %}
+[35mtemplates/pages/account-centre/availability.html.twig[m[36m:[m                                <strong class="text-light">{{ [1;31mavailability[m.daysSummary }}</strong>
+[35mtemplates/pages/account-centre/availability.html.twig[m[36m:[m                            <td class="text-light">{{ [1;31mavailability[m.startDate|date('d-m-Y') }}</td>
+[35mtemplates/pages/account-centre/availability.html.twig[m[36m:[m                                <form action="{{ path('account.[1;31mavailability[m_delete', {'id': [1;31mavailability[m.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je dit schema wilt verwijderen?');">
+[35mtemplates/pages/account-centre/availability.html.twig[m[36m:[m                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_[1;31mavailability[m' ~ [1;31mavailability[m.id) }}">
+[35mtemplates/pages/account-centre/index.html.twig[m[36m:[m        <a href="{{ path('account.[1;31mavailability[m') }}" class="account-card">

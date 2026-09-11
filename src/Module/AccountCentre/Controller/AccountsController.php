@@ -5,6 +5,7 @@ namespace App\Module\AccountCentre\Controller;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
+use App\Module\AccountCentre\Service\AvailabilityService;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\Connection;
@@ -91,7 +92,12 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
-    public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
+    public function availability(
+    Request $request,
+    EntityManagerInterface $entityManager,
+    Connection $connection,
+    AvailabilityService $availabilityService
+): Response
     {
         $session = $request->getSession();
         $accountId = $session->get('account_id');
@@ -122,40 +128,41 @@ final class AccountsController extends AbstractController
             $daysInput = $request->request->all('days_config');
 
             $activeDays = [];
-            $startTime = '08:00';
-            $endTime = '17:00';
             $totalHours = 0;
 
-            foreach (range(0, 6) as $dayNum) {
-                $dayConfig = $daysInput[$dayNum] ?? [];
+            $daySchedule = $availabilityService->encodeDaySchedule($daysInput);
 
-                if (empty($dayConfig) && isset($daysInput[$dayNum + 1])) {
-                    $dayConfig = $daysInput[$dayNum + 1];
-                }
+            $startTime = '08:00';
+            $endTime = '17:00';
 
-                if (isset($dayConfig['enabled'])) {
-                    $activeDays[] = $dayNum;
+           foreach (range(0, 6) as $dayNum) {
+    $dayConfig = $daysInput[$dayNum] ?? [];
 
-                    $start = $dayConfig['start'] ?? '08:00';
-                    $end = $dayConfig['end'] ?? '17:00';
+    if (empty($dayConfig) && isset($daysInput[$dayNum + 1])) {
+        $dayConfig = $daysInput[$dayNum + 1];
+    }
 
-                    $startTime = $start;
-                    $endTime = $end;
+    if (isset($dayConfig['enabled'])) {
+        $activeDays[] = $dayNum;
 
-                    try {
-                        $timeStart = new \DateTime($start);
-                        $timeEnd = new \DateTime($end);
-                        if ($timeEnd > $timeStart) {
-                            $diff = $timeStart->diff($timeEnd);
-                            $totalHours += $diff->h + ($diff->i / 60);
-                        } else {
-                            $totalHours += 8;
-                        }
-                    } catch (\Exception $e) {
-                        $totalHours += 8;
-                    }
-                }
+        $start = $dayConfig['start'] ?? '08:00';
+        $end = $dayConfig['end'] ?? '17:00';
+
+        try {
+            $timeStart = new \DateTime($start);
+            $timeEnd = new \DateTime($end);
+
+            if ($timeEnd > $timeStart) {
+                $diff = $timeStart->diff($timeEnd);
+                $totalHours += $diff->h + ($diff->i / 60);
+            } else {
+                $totalHours += 8;
             }
+        } catch (\Exception $e) {
+            $totalHours += 8;
+        }
+    }
+}
 
             $hours = (int) round($totalHours);
             $typeCode = ($hours >= 32) ? 'FT' : 'PT';
@@ -173,6 +180,7 @@ final class AccountsController extends AbstractController
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'profile_id' => $profile->getId()->toString(),
+                    'note' => $daySchedule,
                     'created_at' => $now,
                     'last_modified' => $now,
                     'deleted_at' => null
@@ -201,6 +209,7 @@ final class AccountsController extends AbstractController
 
         foreach ($rows as $row) {
             $rawValue = $row['availability_type'] ?? '';
+            $daySchedule = $availabilityService->decodeDaySchedule($row['note'] ?? null);
 
             $structuredDays = [];
             foreach (range(0, 6) as $d) {
@@ -209,32 +218,43 @@ final class AccountsController extends AbstractController
 
             $baseType = 'Standaard';
 
-            if (str_contains($rawValue, '|')) {
-                $parts = explode('|', $rawValue);
-                $daysPart = $parts[0] ?? '';
-                $timePart = $parts[1] ?? '08:00-17:00';
-                $typePart = $parts[2] ?? 'FT';
+                if (str_contains($rawValue, '|')) {
+    $parts = explode('|', $rawValue);
+    $daysPart = $parts[0] ?? '';
+    $timePart = $parts[1] ?? '08:00-17:00';
+    $typePart = $parts[2] ?? 'FT';
 
-                [$start, $end] = str_contains($timePart, '-') ? explode('-', $timePart, 2) : ['08:00', '17:00'];
-                $baseType = $typeMapping[$typePart] ?? 'Standaard';
+    [$start, $end] = str_contains($timePart, '-')
+        ? explode('-', $timePart, 2)
+        : ['08:00', '17:00'];
 
-                $activeDaysArray = str_split($daysPart);
-                foreach ($activeDaysArray as $dayNum) {
-                    $dayNum = (int)$dayNum;
-                    if ($dayNum >= 0 && $dayNum <= 6) {
-                        $structuredDays[$dayNum] = [
-                            'enabled' => true,
-                            'start' => $start,
-                            'end' => $end
-                        ];
-                    }
-                }
-            } else {
-                foreach (range(0, 4) as $d) {
-                    $structuredDays[$d]['enabled'] = true;
-                }
-                $baseType = !empty($rawValue) ? $rawValue : 'Standaard';
-            }
+    $baseType = $typeMapping[$typePart] ?? 'Standaard';
+
+    $activeDaysArray = str_split($daysPart);
+
+        foreach ($activeDaysArray as $dayNum) {
+        $dayNum = (int) $dayNum;
+
+        if ($dayNum >= 0 && $dayNum <= 6) {
+            $dayTimes = $daySchedule[$dayNum] ?? [
+                'start' => $start,
+                'end' => $end
+            ];
+
+            $structuredDays[$dayNum] = [
+                'enabled' => true,
+                'start' => $dayTimes['start'] ?? $start,
+                'end' => $dayTimes['end'] ?? $end
+            ];
+        }
+    }
+} else {
+    foreach (range(0, 4) as $d) {
+        $structuredDays[$d]['enabled'] = true;
+    }
+
+    $baseType = !empty($rawValue) ? $rawValue : 'Standaard';
+}
 
             $activeDaysText = [];
             foreach ($structuredDays as $dayNum => $meta) {
