@@ -5,9 +5,10 @@
 <div class="profile-card-type-{{ type }}">
     {% if this.profile %}
         <img src="{{ this.profile.avatarUrl }}" alt="Profile picture">
-        <div class="name-description">
-        <h2>{{ this.profile.displayName }}</h2>
-        <p>{{ this.profile.description }}</p>
+        <div class="info">
+            <h2>{{ this.profile.displayName }}</h2>
+            <p>{{ this.profile.location }}</p>
+            <p>{{ this.profile.description }}</p>
         </div>
     {% else %}
         <p>Profile not found.</p>

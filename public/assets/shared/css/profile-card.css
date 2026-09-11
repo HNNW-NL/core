@@ -16,7 +16,7 @@
     height: 15vw;
 }
 
-.profile-card-type-standard .name-description{
+.profile-card-type-standard .info{
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -33,7 +33,36 @@
     margin-top: 3vh;
 }
 
+.profile-card-type-small{
+    background-color: var(--header-background);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 2vh;
+    padding: 1.5vh 1.5vw;
+    margin: 1vh 1vw;
+    width: fit-content;
+}
+.profile-card-type-small img{
+    border-radius: 50%;
+    width: 7.5vw;
+    height: 7.5vw;
+}
 
+.profile-card-type-small .info{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-card-type-small h2{
+    margin-top: 1.5vh;
+    font-size: 1rem;
+}
+
+.profile-card-type-small p{
+    display: none;
+}
 
 .profile-card-type-wide{
     background-color: var(--header-background);
