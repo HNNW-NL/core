@@ -51,11 +51,11 @@ body {
 .header {
     display: flex;
 
-    justify-content: space-between;
+    justify-content: left;
 
     align-items: center;
 
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 
     gap: 20px;
 }
@@ -174,7 +174,7 @@ body {
         padding: 0.6rem;
     }
     .nav-icons {
-        font-size: 250px;
+        font-size: 14px;
     }
     .nav-icons svg {
         width: 1.2rem;
@@ -183,25 +183,40 @@ body {
 }
 
 /* PROFILE */
+.profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
 
 .profile-avatar img {
-    width: 80px;
-    height: 80px;
-    border-radius: 20%;
-
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
     object-fit: cover;
 }
 
 .upload-btn {
-    display: block;
-    padding: 5px 10px;
+    display: inline-block;
+    padding: 8px 12px;
     background: white;
     color: black;
-    align-items: center;
     border-radius: 10px;
     cursor: pointer;
-    margin-top: 10px;
-    gap: 4px;
+    margin-top: 0;
+}
+
+.upload-btn:hover {
+    background: #ddd;
 }
 /* LOCATION POPUP */
 #new-location {
@@ -213,21 +228,11 @@ body {
     color: black;
     background-color: white;
 }
-/* AVATAR */
-
-.profile-avatar {
-    width: 100px;
-
-    height: 100px;
-
-    border-radius: 12px;
-
-    flex-shrink: 0;
-.upload-btn:hover {
-    background: #ddd;
-}
 
 /* TEXT */
+.profile-text {
+    margin-bottom: 3rem;
+}
 
 .profile-text h1 {
     font-size: 26px;
@@ -287,10 +292,9 @@ body {
 
 .main-grid {
     display: grid;
-
-    grid-template-columns: 2fr 1fr;
-
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
     gap: 20px;
+    align-items: start;
 }
 
 /* CARD */
@@ -306,18 +310,18 @@ body {
 }
 
 .card-about-me {
-    background: #141b2e;
+    background: var(--card-bg);
     border: 1px solid #242c3b;
     border-radius: 14px;
     padding: 25px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+
     width: 100%;
-    max-width: 800px;
-    height: 280px;
+    min-height: 280px;
+
     display: flex;
     flex-direction: column;
     gap: 15px;
-    overflow-y: auto;
 }
 
 .card-about-me h2 {
@@ -336,28 +340,20 @@ body {
 
 .expertise-container {
     display: flex;
-
+    flex-wrap: wrap;
     gap: 10px;
-    margin-top: 10px;
-    /* flex-wrap: wrap; */
 }
 
 .bubble {
     background: #000;
-
     padding: 10px 18px;
-    width: 140px;
-
+    min-width: 120px;
     border-radius: 20px;
-
-    border: 3px solid var(--accent-yellow);
-    font-size: 0.930rem;
-
+    border: 2px solid var(--accent-yellow);
     color: var(--accent-yellow);
-
-    font-weight: 800;
+    font-size: 0.93rem;
+    font-weight: 700;
     text-align: center;
-
 }
 
 /* ACTION BUTTONS */
@@ -370,45 +366,21 @@ body {
 }
 
 .btn-outline {
-
-    border: 2px solid var(--accent-yellow);
-
-    color: var(--accent-yellow);
-
-    text-decoration: none;
-
-    text-align: center;
-
+    width: 100%;
+    max-width: 300px;
     padding: 12px;
-
+    border: 2px solid var(--accent-yellow);
     border-radius: 8px;
-
+    color: var(--accent-yellow);
+    text-decoration: none;
+    text-align: center;
     font-weight: bold;
-
-    transition: 0.3s;
-
-    width: 300px;
-
+    transition: all 0.3s ease;
 }
 
-
 .btn-outline:hover {
-    color: var(--accent-yellow);
-
-    text-decoration: none;
-
-    text-align: center;
-
-    padding: 12px;
-
-    border-radius: 8px;
-
-    font-weight: bold;
-
-    transition: 0.3s;
-
-    width: 300px;
-
+    background: var(--accent-yellow);
+    color: var(--dark-bg);
 }
 
 .socials  {
@@ -571,4 +543,4 @@ body {
 
 ::-webkit-scrollbar-corner {
     background: var(--dark-bg);
-}}
+}

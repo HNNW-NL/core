@@ -10,23 +10,53 @@
 
 {% block body %}
 <div class="page">
+    <div class="header">
+        <div class="profile-section">
+            <div class="profile-avatar">
+                <img id="preview" src="" alt="Profile Picture">
+            </div>
+            <input type="file" id="upload" style="display: none;">
+            <label for="upload" class="upload-btn">
+                Kies profielfoto
+            </label>
+        </div>
 
-        <div class="header">
+        <div class="profile-text">
+            <h1>Naam</h1>
+            <p>@username</p>
+            {# <p>Locatie</p> #}
+            <p onclick="openLocationPopup()" style="cursor: pointer;">
+                Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
+                <span style="font-size: 12px;">✏️</span>
+            </p>
 
-                  <!-- Profile Picture -->
-                 <div class="profile-avatar">
-                 <img id="preview" src="default-profile.png" alt="Profile Picture">
-                 </div>
+            {% if app and app.user %}
 
-                 <input type="file" id="upload" style="display: none;">
+                <p>Status:
+                    {% if app.user.status and app.user.status.id == 1 %}
+                        Online
+                    {% elseif app.user.status and app.user.status.id == 2 %}
+                        Afwezig
+                    {% else %}
+                        Offline
+                    {% endif %}
+                </p>
 
-                 <!-- eigen knop -->
-                 <label for="upload" class="upload-btn">
-                   Kies profielfoto
-                 </label>
 
+                <p>
+                    {% if app.user.lastLoginAt %}
 
-                 <script>
+                        Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
+                    {% else %}
+                        Laatst actief: Onbekend
+                    {% endif %}
+                </p>
+            {% else %}
+                <p>Occupation / Status</p>
+                <p>Laatst actief: Onbekend</p>
+            {% endif %}
+        </div>
+            <script>
                 const upload = document.getElementById("upload");
                 const preview = document.getElementById("preview");
 
@@ -43,72 +73,31 @@
                  reader.readAsDataURL(file);
                 }
                 });
-                </script>
-                 </div>
+            </script>
+        </div>
 
 
-
-
-
-
-
-                <div class="profile-text">
-                    <h1>Naam</h1>
-                    <p>@username</p>
-                    {# <p>Locatie</p> #}
-                     <p onclick="openLocationPopup()" style="cursor: pointer;">
-                   Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
-                    <span style="font-size: 12px;">✏️</span>
-                      </p>
-
-                    {% if app and app.user %}
-
-                        <p>Status:
-                            {% if app.user.status and app.user.status.id == 1 %}
-                                Online
-                            {% elseif app.user.status and app.user.status.id == 2 %}
-                                Afwezig
-                            {% else %}
-                                Offline
-                            {% endif %}
-                        </p>
-
-
-                        <p>
-                            {% if app.user.lastLoginAt %}
-
-                                Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
-                            {% else %}
-                                Laatst actief: Onbekend
-                            {% endif %}
-                        </p>
-                    {% else %}
-
-                        <p>Occupation / Status</p>
-                        <p>Laatst actief: Onbekend</p>
-                    {% endif %}
-                </div>
                 <div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
-    <h3>Locatie aanpassen</h3>
-    <select id="new-location">
-        <option value="">-- Kies een stad --</option>
-        <option value="Den Haag">Den Haag</option>
-        <option value="Amsterdam">Amsterdam</option>
-        <option value="Rotterdam">Rotterdam</option>
-        <option value="Utrecht">Utrecht</option>
-        <option value="Eindhoven">Eindhoven</option>
-        <option value="Groningen">Groningen</option>
-        <option value="Maastricht">Maastricht</option>
-    </select>
-    <button onclick="saveLocation()">Opslaan</button>
-    <button onclick="closePopup()">Annuleren</button>
-</div>
 
+                    <h3>Locatie aanpassen</h3>
+                    <label for="new-location"></label>
+                    <select id="new-location">
+                        <option value="">-- Kies een stad --</option>
+                        <option value="Den Haag">Den Haag</option>
+                        <option value="Amsterdam">Amsterdam</option>
+                        <option value="Rotterdam">Rotterdam</option>
+                        <option value="Utrecht">Utrecht</option>
+                        <option value="Eindhoven">Eindhoven</option>
+                        <option value="Groningen">Groningen</option>
+                        <option value="Maastricht">Maastricht</option>
+                        </select>
+                        <button onclick="saveLocation()">Opslaan</button>
+                        <button onclick="closePopup()">Annuleren</button>
+                </div>
 			<div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
 		</div>
-	</div>
 
-	<div class="main-grid">
+    <div class="main-grid">
 
 		<div class="card-about-me">
 			<h2 class="about-me">Over mij</h2>
@@ -133,8 +122,7 @@
                 <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/tiktok.svg" alt="TikTok Icon" width="50" height="50">
             </div>
 </a>
-                    </a>
-			</div>
+            </div>
 		</div>
 
 		<div class="tech-stack">
@@ -165,9 +153,7 @@
 
 	</div>
 
-</div>
-
- <script>
+    <script>
         function openLocationPopup() {
             document.getElementById('location-popup').style.display = 'block';
             document.getElementById('popup-overlay').style.display = 'block';
