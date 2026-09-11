@@ -1,0 +1,15 @@
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ asset('assets/shared/css/profile-card.css') }}">
+{% endblock %}
+
+<div class="profile-card-type-{{ type }}">
+    {% if this.profile %}
+        <img src="{{ this.profile.avatarUrl }}" alt="Profile picture">
+        <div class="name-description">
+        <h2>{{ this.profile.displayName }}</h2>
+        <p>{{ this.profile.description }}</p>
+        </div>
+    {% else %}
+        <p>Profile not found.</p>
+    {% endif %}
+</div>
