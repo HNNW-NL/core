@@ -33,24 +33,31 @@
         {% endfor %}
 
         <div class="account-form-container">
-            <form action="{{ path('account.notifications') }}" method="POST">
+            {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4) #}
+            {{ form_start(form, {'action': path('account.notifications')}) }}
 
+                {{ form_errors(form) }}
+
+                {# beide vinkjes omgebouwd naar losse form velden, ze schrijven nu nog naar hetzelfde database veld (taak 3) #}
                 <div class="form-group-checkbox">
-                    <input type="checkbox" id="notify_projects" name="notify_projects" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
-                    <label for="notify_projects">
+                    {{ form_widget(form.emailNotificationsEnabled) }}
+                    <label for="{{ form.emailNotificationsEnabled.vars.id }}">
                         <strong>Nieuwe Projecten</strong>
                         <span>Ontvang direct een melding zodra er een nieuw project start dat matcht met jouw skills.</span>
                     </label>
+                    {{ form_errors(form.emailNotificationsEnabled) }}
                 </div>
 
                 <div class="form-group-checkbox">
-                    <input type="checkbox" id="notify_newsletter" name="notify_newsletter" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
-                    <label for="notify_newsletter">
+                    {{ form_widget(form.newsletterEnabled) }}
+                    <label for="{{ form.newsletterEnabled.vars.id }}">
                         <strong>Maandelijkse Nieuwsbrief</strong>
                         <span>Blijf op de hoogte van algemeen nieuws, updates en verhalen binnen de community.</span>
                     </label>
+                    {{ form_errors(form.newsletterEnabled) }}
                 </div>
 
+                {# dit vinkje staat vast aan en wordt niet verstuurd, dus met rust gelaten #}
                 <div class="form-group-checkbox">
                     <input type="checkbox" id="notify_security" name="notify_security" checked disabled>
                     <label for="notify_security">
@@ -65,7 +72,7 @@
                         Annuleren
                     </a>
                 </div>
-            </form>
+            {{ form_end(form) }}
         </div>
     </div>
 {% endblock %}

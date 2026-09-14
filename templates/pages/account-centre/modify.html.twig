@@ -35,57 +35,67 @@
                 <p>Pas je gegevens aan om je profiel up-to-date te houden - je gegevens blijven veilig.</p>
             </div>
 
-            <form action="{{ path('account.modify') }}" method="POST">
+            {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4) #}
+            {{ form_start(form, {'action': path('account.modify')}) }}
+
+                {{ form_errors(form) }}
+
                 <div class="form-group">
-                    <label for="username">Gebruikersnaam</label>
-                    <input type="text" id="username" name="username" placeholder="Kies een gebruikersnaam" value="{{ account.username|default('') }}" required>
+                    <label for="{{ form.username.vars.id }}">Gebruikersnaam</label>
+                    {{ form_widget(form.username, {'attr': {'placeholder': 'Kies een gebruikersnaam'}}) }}
+                    {{ form_errors(form.username) }}
                 </div>
 
                 <div class="form-group">
-                    <label for="first_name">Voornaam</label>
-                    <input type="text" id="first_name" name="first_name" placeholder="Voornaam" value="{{ profile.firstName|default('') }}" required>
+                    <label for="{{ form.firstName.vars.id }}">Voornaam</label>
+                    {{ form_widget(form.firstName, {'attr': {'placeholder': 'Voornaam'}}) }}
+                    {{ form_errors(form.firstName) }}
                 </div>
 
                 <div class="form-group">
-                    <label for="last_name">Achternaam</label>
-                    <input type="text" id="last_name" name="last_name" placeholder="Achternaam" value="{{ profile.lastName|default('') }}" required>
+                    <label for="{{ form.lastName.vars.id }}">Achternaam</label>
+                    {{ form_widget(form.lastName, {'attr': {'placeholder': 'Achternaam'}}) }}
+                    {{ form_errors(form.lastName) }}
                 </div>
 
                 <div class="form-group">
-                    <label for="avatar_url">Avatar URL</label>
-                    <input type="text" id="avatar_url" name="avatar_url" placeholder="https://example.com/avatar.png" value="{{ profile.avatarUrl|default('') }}">
+                    <label for="{{ form.avatarUrl.vars.id }}">Avatar URL</label>
+                    {{ form_widget(form.avatarUrl, {'required': false, 'attr': {'placeholder': 'https://example.com/avatar.png'}}) }}
+                    {{ form_errors(form.avatarUrl) }}
                 </div>
 
                 <div class="form-group">
-                    <label for="location">Locatie</label>
-                    <input type="text" id="location" name="location" placeholder="Bijv. Amsterdam, Nederland" value="{{ profile.location|default('') }}">
+                    <label for="{{ form.location.vars.id }}">Locatie</label>
+                    {{ form_widget(form.location, {'required': false, 'attr': {'placeholder': 'Bijv. Amsterdam, Nederland'}}) }}
+                    {{ form_errors(form.location) }}
                 </div>
 
                 <div class="form-group">
-                    <label for="bio">Over jezelf</label>
-                    <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf...">{{ profile.description|default('') }}</textarea>
+                    <label for="{{ form.description.vars.id }}">Over jezelf</label>
+                    {{ form_widget(form.description, {'required': false, 'attr': {'rows': 4, 'placeholder': 'Vertel iets over jezelf...'}}) }}
+                    {{ form_errors(form.description) }}
                 </div>
 
-                {% if settings is defined and settings is not null %}
+                {# deze drie stonden alleen op de pagina als de instellingen bestonden, die check kijkt nu naar het formulier #}
+                {% if form.language is defined %}
                     <div class="form-group">
-                        <label for="language">Taal</label>
-                        <input type="text" id="language" name="language" maxlength="5" placeholder="nl" value="{{ settings.language|default('nl') }}" required>
+                        <label for="{{ form.language.vars.id }}">Taal</label>
+                        {{ form_widget(form.language, {'attr': {'maxlength': 5, 'placeholder': 'nl'}}) }}
+                        {{ form_errors(form.language) }}
                     </div>
 
+                    {# select omgebouwd, keuzes moeten nu uit php komen: light (White), dark (Dark) #}
                     <div class="form-group">
-                        <label for="theme">Thema</label>
-                        <select id="theme" name="theme" required>
-                            <option value="light" {% if settings.theme|default('dark') == 'light' %}selected{% endif %}>White</option>
-                            <option value="dark" {% if settings.theme|default('dark') == 'dark' %}selected{% endif %}>Dark</option>
-                        </select>
+                        <label for="{{ form.theme.vars.id }}">Thema</label>
+                        {{ form_widget(form.theme) }}
+                        {{ form_errors(form.theme) }}
                     </div>
 
+                    {# select omgebouwd, keuzes moeten nu uit php komen: public (Public), private (Private) #}
                     <div class="form-group">
-                        <label for="profile_visibility">Profiel Zichtbaarheid</label>
-                        <select id="profile_visibility" name="profile_visibility" required>
-                            <option value="public" {% if settings.profileVisibility|default('public') == 'public' %}selected{% endif %}>Public</option>
-                            <option value="private" {% if settings.profileVisibility|default('public') == 'private' %}selected{% endif %}>Private</option>
-                        </select>
+                        <label for="{{ form.profileVisibility.vars.id }}">Profiel Zichtbaarheid</label>
+                        {{ form_widget(form.profileVisibility) }}
+                        {{ form_errors(form.profileVisibility) }}
                     </div>
                 {% endif %}
 
@@ -94,7 +104,7 @@
                 <div class="form-footer-link">
                     Heb je je bedacht? <a href="{{ path('account.home') }}">Annuleren</a>
                 </div>
-            </form>
+            {{ form_end(form) }}
         </div>
     </div>
 {% endblock %}
