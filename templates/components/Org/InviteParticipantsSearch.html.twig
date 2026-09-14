@@ -1,0 +1,13 @@
+<div {{ attributes }}>
+    <input
+        type="search"
+        data-model="query"
+        placeholder="Search profiles..."
+    >
+
+    <ul>
+        {% for profile in this.profiles %}
+        <li>{{ profile.displayName }}</li>
+        {% endfor %}
+    </ul>
+</div>

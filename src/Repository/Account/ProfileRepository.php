@@ -13,4 +13,13 @@ class ProfileRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Profile::class);
     }
+
+    public function search(string $query): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.displayName LIKE :query')
+            ->setParameter('query', '%' . $query . '%')
+            ->getQuery()
+            ->getResult();
+    }
 }
