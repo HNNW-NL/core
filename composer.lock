@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5a1f86a83285f5d4baa6119dbc7cb5e9",
+    "content-hash": "67667cb4dce6fd11ee9a8efe1b1418e8",
     "packages": [
         {
             "name": "composer/semver",
@@ -325,16 +325,16 @@
         },
         {
             "name": "doctrine/doctrine-bundle",
-            "version": "3.3.1",
+            "version": "3.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/DoctrineBundle.git",
-                "reference": "9b231f957020de52d6ac94fd72f0cbe8cf1eaad5"
+                "reference": "e6cd6aca912a5701fdc9bf4f0ad8f18f3f1448ed"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/9b231f957020de52d6ac94fd72f0cbe8cf1eaad5",
-                "reference": "9b231f957020de52d6ac94fd72f0cbe8cf1eaad5",
+                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/e6cd6aca912a5701fdc9bf4f0ad8f18f3f1448ed",
+                "reference": "e6cd6aca912a5701fdc9bf4f0ad8f18f3f1448ed",
                 "shasum": ""
             },
             "require": {
@@ -354,7 +354,7 @@
             },
             "conflict": {
                 "doctrine/orm": "<3.0 || >=4.0",
-                "twig/twig": "<3.0.4"
+                "twig/twig": "<3.0.4 || >=5"
             },
             "require-dev": {
                 "doctrine/coding-standard": "^14",
@@ -378,7 +378,7 @@
                 "symfony/validator": "^6.4 || ^7.0 || ^8.0",
                 "symfony/web-profiler-bundle": "^6.4 || ^7.0 || ^8.0",
                 "symfony/yaml": "^6.4 || ^7.0 || ^8.0",
-                "twig/twig": "^3.21.1"
+                "twig/twig": "^3.21.1 || ^4"
             },
             "suggest": {
                 "doctrine/orm": "The Doctrine ORM integration is optional in the bundle.",
@@ -423,7 +423,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/DoctrineBundle/issues",
-                "source": "https://github.com/doctrine/DoctrineBundle/tree/3.3.1"
+                "source": "https://github.com/doctrine/DoctrineBundle/tree/3.3.2"
             },
             "funding": [
                 {
@@ -439,7 +439,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-07-23T10:37:01+00:00"
+            "time": "2026-09-09T11:58:04+00:00"
         },
         {
             "name": "doctrine/doctrine-migrations-bundle",
@@ -965,16 +965,16 @@
         },
         {
             "name": "doctrine/orm",
-            "version": "3.6.8",
+            "version": "3.6.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/orm.git",
-                "reference": "a4d13ed5b11e7f7b4d654b1adf95432031ae3ffc"
+                "reference": "bc217c0e19c3a9eadfa67697143b87c9ba01272c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/orm/zipball/a4d13ed5b11e7f7b4d654b1adf95432031ae3ffc",
-                "reference": "a4d13ed5b11e7f7b4d654b1adf95432031ae3ffc",
+                "url": "https://api.github.com/repos/doctrine/orm/zipball/bc217c0e19c3a9eadfa67697143b87c9ba01272c",
+                "reference": "bc217c0e19c3a9eadfa67697143b87c9ba01272c",
                 "shasum": ""
             },
             "require": {
@@ -1004,7 +1004,6 @@
                 "symfony/cache": "^5.4 || ^6.2 || ^7.0 || ^8.0"
             },
             "suggest": {
-                "ext-deepclone": "Improves performance when not using native lazy objects (Symfony 8.1+)",
                 "ext-dom": "Provides support for XSD validation for XML mapping files",
                 "symfony/cache": "Provides cache support for Setup Tool with doctrine/cache 2.0"
             },
@@ -1048,9 +1047,9 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/orm/issues",
-                "source": "https://github.com/doctrine/orm/tree/3.6.8"
+                "source": "https://github.com/doctrine/orm/tree/3.6.7"
             },
-            "time": "2026-08-05T19:05:32+00:00"
+            "time": "2026-05-25T16:45:47+00:00"
         },
         {
             "name": "doctrine/persistence",
@@ -1610,16 +1609,16 @@
         },
         {
             "name": "monolog/monolog",
-            "version": "3.11.0",
+            "version": "3.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog.git",
-                "reference": "147f303310f06334f03f409e49d7ad1e275ff05a"
+                "reference": "72c534fc0ab181ef52d92a68382318631e301608"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/147f303310f06334f03f409e49d7ad1e275ff05a",
-                "reference": "147f303310f06334f03f409e49d7ad1e275ff05a",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/72c534fc0ab181ef52d92a68382318631e301608",
+                "reference": "72c534fc0ab181ef52d92a68382318631e301608",
                 "shasum": ""
             },
             "require": {
@@ -1645,6 +1644,7 @@
                 "phpstan/phpstan-strict-rules": "^2",
                 "phpunit/phpunit": "^10.5.17 || ^11.0.7",
                 "predis/predis": "^1.1 || ^2",
+                "psr/clock": "^1.0",
                 "rollbar/rollbar": "^4.0",
                 "ruflin/elastica": "^7 || ^8",
                 "symfony/mailer": "^5.4 || ^6",
@@ -1663,6 +1663,7 @@
                 "graylog2/gelf-php": "Allow sending log messages to a GrayLog2 server",
                 "mongodb/mongodb": "Allow sending log messages to a MongoDB server (via library)",
                 "php-amqplib/php-amqplib": "Allow sending log messages to an AMQP server using php-amqplib",
+                "psr/clock": "Required to pass a clock to the Logger and control the timestamp of log records",
                 "rollbar/rollbar": "Allow sending log messages to Rollbar",
                 "ruflin/elastica": "Allow sending log messages to an Elastic Search server"
             },
@@ -1697,7 +1698,7 @@
             ],
             "support": {
                 "issues": "https://github.com/Seldaek/monolog/issues",
-                "source": "https://github.com/Seldaek/monolog/tree/3.11.0"
+                "source": "https://github.com/Seldaek/monolog/tree/3.12.0"
             },
             "funding": [
                 {
@@ -1709,7 +1710,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-02T12:39:56+00:00"
+            "time": "2026-09-09T08:34:20+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -5202,21 +5203,21 @@
         },
         {
             "name": "symfony/monolog-bundle",
-            "version": "v4.0.2",
+            "version": "v4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/monolog-bundle.git",
-                "reference": "c012c6aba13129eb02aa7dd61e66e720911d8598"
+                "reference": "a22de65db405738364af77310761fdd0dce7a40e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/monolog-bundle/zipball/c012c6aba13129eb02aa7dd61e66e720911d8598",
-                "reference": "c012c6aba13129eb02aa7dd61e66e720911d8598",
+                "url": "https://api.github.com/repos/symfony/monolog-bundle/zipball/a22de65db405738364af77310761fdd0dce7a40e",
+                "reference": "a22de65db405738364af77310761fdd0dce7a40e",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": "^2.0",
-                "monolog/monolog": "^3.5",
+                "monolog/monolog": "^3.12",
                 "php": ">=8.2",
                 "symfony/config": "^7.3 || ^8.0",
                 "symfony/dependency-injection": "^7.3 || ^8.0",
@@ -5257,7 +5258,7 @@
             ],
             "support": {
                 "issues": "https://github.com/symfony/monolog-bundle/issues",
-                "source": "https://github.com/symfony/monolog-bundle/tree/v4.0.2"
+                "source": "https://github.com/symfony/monolog-bundle/tree/v4.1.0"
             },
             "funding": [
                 {
@@ -5277,7 +5278,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-02T18:27:21+00:00"
+            "time": "2026-09-10T19:32:07+00:00"
         },
         {
             "name": "symfony/notifier",
@@ -9580,16 +9581,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.8.0",
+            "version": "v5.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f"
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/9e33da9553fe7786f0962b35f4e4ecf01be89def",
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def",
                 "shasum": ""
             },
             "require": {
@@ -9631,9 +9632,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.8.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.9.0"
             },
-            "time": "2026-07-04T14:30:18+00:00"
+            "time": "2026-09-13T18:51:52+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -9755,16 +9756,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "14.3.1",
+            "version": "14.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "6ce313bb110384148d1dc7695a99175f59529069"
+                "reference": "f8640c238e930b914d0098a1edbad6652e61a64a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/6ce313bb110384148d1dc7695a99175f59529069",
-                "reference": "6ce313bb110384148d1dc7695a99175f59529069",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/f8640c238e930b914d0098a1edbad6652e61a64a",
+                "reference": "f8640c238e930b914d0098a1edbad6652e61a64a",
                 "shasum": ""
             },
             "require": {
@@ -9783,7 +9784,7 @@
                 "theseer/tokenizer": "^2.0.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "^13.3.1"
+                "phpunit/phpunit": "^13.3.3"
             },
             "suggest": {
                 "ext-pcov": "PHP extension that provides line coverage",
@@ -9821,7 +9822,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
                 "security": "https://github.com/sebastianbergmann/php-code-coverage/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/14.3.1"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/14.3.3"
             },
             "funding": [
                 {
@@ -9841,7 +9842,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-16T05:23:47+00:00"
+            "time": "2026-09-10T13:08:32+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -10138,16 +10139,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "13.3.2",
+            "version": "13.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "22104a5ceb8d642e6b30ab00211d53d88e2db368"
+                "reference": "0d8711067516c1f6ba1a66f762e16c2fb1a8ccd1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/22104a5ceb8d642e6b30ab00211d53d88e2db368",
-                "reference": "22104a5ceb8d642e6b30ab00211d53d88e2db368",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/0d8711067516c1f6ba1a66f762e16c2fb1a8ccd1",
+                "reference": "0d8711067516c1f6ba1a66f762e16c2fb1a8ccd1",
                 "shasum": ""
             },
             "require": {
@@ -10161,14 +10162,14 @@
                 "phar-io/manifest": "^2.0.4",
                 "phar-io/version": "^3.2.1",
                 "php": ">=8.4.1",
-                "phpunit/php-code-coverage": "^14.3.1",
+                "phpunit/php-code-coverage": "^14.3.2",
                 "phpunit/php-file-iterator": "^7.0.2",
                 "phpunit/php-invoker": "^7.0.0",
                 "phpunit/php-text-template": "^6.0.0",
                 "phpunit/php-timer": "^9.0.0",
                 "sebastian/cli-parser": "^5.0.1",
                 "sebastian/comparator": "^8.4",
-                "sebastian/diff": "^9.0",
+                "sebastian/diff": "^9.0.1",
                 "sebastian/environment": "^9.3.2",
                 "sebastian/exporter": "^8.2.1",
                 "sebastian/file-filter": "^1.0",
@@ -10218,7 +10219,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.3.2"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.3.3"
             },
             "funding": [
                 {
@@ -10226,7 +10227,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-08-27T08:40:49+00:00"
+            "time": "2026-09-09T04:50:32+00:00"
         },
         {
             "name": "sebastian/cli-parser",
