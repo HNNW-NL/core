@@ -8,13 +8,7 @@ class SocialControllerTest extends WebTestCase
 {
     // index
 
-    public function testWhenNotLoggedInShouldBeRedirectedFromIndex(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayIndex(): void
+    public function testShouldDisplayIndex(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
@@ -22,13 +16,7 @@ class SocialControllerTest extends WebTestCase
 
     // categories
 
-    public function testWhenNotLoggedInShouldBeRedirectedFromCategories(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayCategories(): void
+    public function testShouldDisplayCategories(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
@@ -42,13 +30,13 @@ class SocialControllerTest extends WebTestCase
         $this->assertTrue(false);
     }
 
-    public function testWhenLoggedInAndCategoryDoesntExistsShouldGiveError(): void
+    public function testWhenCategoryDoesntExistsShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
     }
 
-    public function testWhenLoggedInAndCategoryExistsShouldDisplayViewCategory(): void
+    public function testWhenCategoryExistsShouldDisplayViewCategory(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
@@ -76,19 +64,13 @@ class SocialControllerTest extends WebTestCase
 
     // viewPost
 
-    public function testWhenNotLoggedInShouldBeRedirectedFromViewPost(): void
+    public function testWhenPostDoesntExistsShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
     }
 
-    public function testWhenLoggedInAndPostDoesntExistsShouldGiveError(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInAndPostExistsShouldDisplayViewPost(): void
+    public function testWhenPostExistsShouldDisplayViewPost(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);

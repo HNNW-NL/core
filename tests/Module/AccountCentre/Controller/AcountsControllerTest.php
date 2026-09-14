@@ -16,6 +16,12 @@ class AcountsControllerTest extends WebTestCase
         $this->assertResponseRedirects("/auth/login");
     }
 
+    public function testWhenLoggedInShouldDisplayIndex(): void
+    {
+        //Reminder that test is not yet implemented
+        $this->assertTrue(false);
+    }
+
     // applications
 
     public function testWhenNotLoggedInShouldRedirectFromApplications(): void

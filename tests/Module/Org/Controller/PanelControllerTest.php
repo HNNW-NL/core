@@ -9,13 +9,7 @@ class PanelControllerTest extends WebTestCase
 
     // index
 
-    public function testWhenNotLoggedInShouldBeRedirectedFromIndex(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayIndex(): void
+    public function testShouldDisplayIndex(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
@@ -23,13 +17,7 @@ class PanelControllerTest extends WebTestCase
 
     // projects
 
-    public function testWhenNotLoggedInShouldBeRedirectedFromProjects(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayProjects(): void
+    public function testShouldDisplayProjects(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
@@ -370,13 +358,7 @@ class PanelControllerTest extends WebTestCase
 
     // staff
 
-    public function testWhenNotLoggedInShouldBeRedirectedFromStaff(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayStaff(): void
+    public function testShouldDisplayStaff(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
@@ -384,17 +366,12 @@ class PanelControllerTest extends WebTestCase
 
     // viewStaff
 
-    public function testWhenNotLoggedInShouldGiveErrorFromViewStaff(): void
+    public function testWheStaffDoesntExistShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
     }
-    public function testWhenLoggedInAndStaffDoesntExistShouldGiveError(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-    public function testWhenLoggedInAndStaffExistShouldDisplayViewStaff(): void
+    public function testWhenStaffExistShouldDisplayViewStaff(): void
     {
         //Reminder that test is not yet implemented
         $this->assertTrue(false);
