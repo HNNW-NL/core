@@ -18,47 +18,51 @@
 
 <h2>Create project</h2>
 
-<form method="post">
+{# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4). de id's hieronder heb ik niet veranderd, create-project.js zoekt ze op met getElementById #}
+{{ form_start(form) }}
+
+    {{ form_errors(form) }}
+
+    {# omgebouwd naar het form veld title, zo heet het in de database #}
     <div>
         <label for="name">Project name</label>
-        <input type="text" id="name" name="name" required placeholder="Enter a project name">
+        {{ form_widget(form.title, {'id': 'name', 'attr': {'placeholder': 'Enter a project name'}}) }}
+        {{ form_errors(form.title) }}
         <p id="title-counter">0 characters</p>
     </div>
 
     <div>
         <label for="summary">Summary</label>
-        <textarea id="summary" name="summary" required placeholder="Write a short summary of your project"></textarea>
+        {{ form_widget(form.summary, {'id': 'summary', 'attr': {'placeholder': 'Write a short summary of your project'}}) }}
+        {{ form_errors(form.summary) }}
         <p id="summary-counter">0 characters</p>
     </div>
 
     <div>
         <label for="description">Description</label>
-        <textarea id="description" name="description" required placeholder="Describe your project in detail"></textarea>
+        {{ form_widget(form.description, {'id': 'description', 'attr': {'placeholder': 'Describe your project in detail'}}) }}
+        {{ form_errors(form.description) }}
         <p id="description-counter">0 characters</p>
     </div>
 
     <div>
         <label for="capacity">Capacity</label>
-        <input value="0" type="number" id="capacity" name="capacity" min="0">
+        {{ form_widget(form.capacity, {'id': 'capacity', 'required': false, 'attr': {'min': 0}}) }}
+        {{ form_errors(form.capacity) }}
     </div>
 
+    {# select omgebouwd, keuzes moeten nu uit php komen: public, private, met "Choose visibility" als lege keuze #}
     <div>
         <label for="visibility">Visibility</label>
-        <select id="visibility" name="visibility" required>
-            <option value="" selected disabled>Choose visibility</option>
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-        </select>
+        {{ form_widget(form.visibility, {'id': 'visibility'}) }}
+        {{ form_errors(form.visibility) }}
     </div>
 
+    {# de include van components/status-autocomplete.html.twig vervangen door een form veld, dat was een gewone select met de statussen erin #}
     <div>
         <label for="status">Status</label>
-
-        {% include 'components/status-autocomplete.html.twig' with {
-            statuses: statuses|default([]),
-            name: 'status',
-            id: 'status'
-        } %}
+        {{ form_widget(form.status, {'id': 'status'}) }}
+        {{ form_errors(form.status) }}
     </div>
 
     {# Project opslaan #}
@@ -66,6 +70,6 @@
         <button type="submit" id="submit-btn">Create new project</button>
     </div>
 
-</form>
+{{ form_end(form) }}
 
 {% endblock %}

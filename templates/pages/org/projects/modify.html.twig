@@ -47,76 +47,62 @@
 
             {% if project %}
                 {# This one form handles both edit and delete actions; the button value tells the backend which path to take. #}
-                <form id="modifyProjectForm" data-modify-project-form method="post" action="{{ path('org.modifyProject', { id: id }) }}">
+                {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4). het csrf token komt nu uit symfony zelf, dat heette hier org_modify_project_<id>. de id's startDate, endDate en het attribuut data-modify-project-form heb ik niet veranderd, modify-project.js zoekt die op #}
+                {{ form_start(form, {'action': path('org.modifyProject', { id: id }), 'attr': {'id': 'modifyProjectForm', 'data-modify-project-form': true}}) }}
                     <p class="form-status" role="status" aria-live="polite" hidden></p>
                     {# Hidden fields send the security token, the current organisation, the project id, and the last-loaded timestamp. #}
-                    <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ project.id) }}">
-                    <input type="hidden" id="organisationId" name="organisation_id" value="{{ project.organisationId|default(organisationId|default('')) }}">
-                    <input type="hidden" name="project_id" value="{{ project.id|default('') }}">
-                    <input type="hidden" name="last_modified" value="{{ project.lastModified|default('') }}">
+                    {{ form_widget(form.organisationId, {'id': 'organisationId'}) }}
+                    {{ form_widget(form.projectId) }}
+                    {{ form_widget(form.lastModified) }}
                     <fieldset class="modify-fields" aria-label="Project details">
                             <legend>Project details</legend>
                             <div>
                                 <label for="name">Project title</label>
-                                <input type="text" id="name" name="title" placeholder="Project title" required maxlength="{{ titleMaxLength }}" autocomplete="off" aria-describedby="nameHelp" value="{{ project.title|default('') }}">
+                                {{ form_widget(form.title, {'id': 'name', 'attr': {'placeholder': 'Project title', 'maxlength': titleMaxLength, 'autocomplete': 'off', 'aria-describedby': 'nameHelp'}}) }}
+                                {{ form_errors(form.title) }}
                                 <p id="nameHelp" class="field-help">Use a clear title (max {{ titleMaxLength }} characters).</p>
                             </div>
                             <div>
                                 <label for="summary">Summary</label>
-                                <textarea id="summary" name="summary" rows="3" placeholder="Short project summary" required maxlength="{{ summaryMaxLength }}" autocomplete="off" spellcheck="true" aria-describedby="summaryHelp">{{ project.summary|default('') }}</textarea>
+                                {{ form_widget(form.summary, {'id': 'summary', 'attr': {'rows': 3, 'placeholder': 'Short project summary', 'maxlength': summaryMaxLength, 'autocomplete': 'off', 'spellcheck': 'true', 'aria-describedby': 'summaryHelp'}}) }}
+                                {{ form_errors(form.summary) }}
                                 <p id="summaryHelp" class="field-help">Short overview between {{ summaryMinLength }} and {{ summaryMaxLength }} characters.</p>
                             </div>
                             <div>
                                 <label for="description">Description</label>
-                                <textarea id="description" name="description" rows="5" placeholder="Describe the project in detail" required maxlength="{{ descriptionMaxLength }}" autocomplete="off" spellcheck="true" aria-describedby="descriptionHelp">{{ project.description|default('') }}</textarea>
+                                {{ form_widget(form.description, {'id': 'description', 'attr': {'rows': 5, 'placeholder': 'Describe the project in detail', 'maxlength': descriptionMaxLength, 'autocomplete': 'off', 'spellcheck': 'true', 'aria-describedby': 'descriptionHelp'}}) }}
+                                {{ form_errors(form.description) }}
                                 <p id="descriptionHelp" class="field-help">Detailed project description between {{ descriptionMinLength }} and {{ descriptionMaxLength }} characters.</p>
                             </div>
+                            {# select omgebouwd, de keuzes stonden hier in de twig en moeten nu uit php komen: public, private, unlisted #}
                             <div>
                                 <label for="visibility">Visibility</label>
-                                {% set currentVisibility = project.visibility|default('public') %}
-                                {# TODO: Remove fallback once visibilityOptions is always provided by backend/DB source. #}
-                                {% set visibilityOptions = visibilityOptions|default([
-                                    { value: 'public', label: 'Public' },
-                                    { value: 'private', label: 'Private' },
-                                    { value: 'unlisted', label: 'Unlisted' }
-                                ]) %}
-                                <select id="visibility" name="visibility" required>
-                                    {% for option in visibilityOptions %}
-                                        <option value="{{ option.value }}" {% if currentVisibility == option.value %}selected{% endif %}>{{ option.label }}</option>
-                                    {% endfor %}
-                                </select>
+                                {{ form_widget(form.visibility, {'id': 'visibility'}) }}
+                                {{ form_errors(form.visibility) }}
                             </div>
                             <div>
                                 <label for="startDate">Start date</label>
-                                <input type="date" id="startDate" name="startDate" required aria-describedby="startDateHelp" value="{{ project.startDate|default('') }}">
+                                {{ form_widget(form.startDate, {'id': 'startDate', 'attr': {'aria-describedby': 'startDateHelp'}}) }}
+                                {{ form_errors(form.startDate) }}
                                 <p id="startDateHelp" class="field-help">Enter the project start date.</p>
                             </div>
                             <div>
                                 <label for="endDate">End date</label>
-                                <input type="date" id="endDate" name="endDate" aria-describedby="endDateHelp" value="{{ project.endDate|default('') }}">
+                                {{ form_widget(form.endDate, {'id': 'endDate', 'required': false, 'attr': {'aria-describedby': 'endDateHelp'}}) }}
+                                {{ form_errors(form.endDate) }}
                                 <p id="endDateHelp" class="field-help">Must be on or after start date.</p>
                             </div>
                             <div>
                                 <label for="capacity">Capacity</label>
-                                <input type="number" id="capacity" name="capacity" min="{{ capacityMin }}" max="{{ capacityMax }}" step="1" inputmode="numeric" placeholder="Max participants" aria-describedby="capacityHelp" value="{{ project.capacity is not null ? project.capacity : '' }}">
+                                {{ form_widget(form.capacity, {'id': 'capacity', 'required': false, 'attr': {'min': capacityMin, 'max': capacityMax, 'step': 1, 'inputmode': 'numeric', 'placeholder': 'Max participants', 'aria-describedby': 'capacityHelp'}}) }}
+                                {{ form_errors(form.capacity) }}
                                 <p id="capacityHelp" class="field-help">Enter a whole number from {{ capacityMin }} to {{ capacityMax }}.</p>
                             </div>
+                            {# select omgebouwd, de keuzes stonden hier in de twig en moeten nu uit php komen: draft, published, archived #}
                             <div>
                                 <label for="statusId">Status</label>
-                                {% set currentStatusId = project.statusId|default('') %}
-                                {% set currentStatusName = project.statusName|default('')|lower %}
-                                {% set statusOptions = statusOptions|default([
-                                    { value: 'draft', label: 'Draft', name: 'draft' },
-                                    { value: 'published', label: 'Published', name: 'published' },
-                                    { value: 'archived', label: 'Archived', name: 'archived' }
-                                ]) %}
-                                <select id="statusId" name="status_id">
-                                    {% for option in statusOptions %}
-                                        {% set selected = (currentStatusId is not empty and currentStatusId == option.value)
-                                            or (currentStatusId is empty and currentStatusName == (option.name|default('')|lower)) %}
-                                        <option value="{{ option.value }}" {% if selected %}selected{% endif %}>{{ option.label }}</option>
-                                    {% endfor %}
-                                </select>
+                                {{ form_widget(form.status, {'id': 'statusId', 'required': false}) }}
+                                {{ form_errors(form.status) }}
                             </div>
                     </fieldset>
                     <div class="button-row" role="group" aria-label="Danger actions">
@@ -128,7 +114,7 @@
                             <button type="submit" name="intent" value="delete" class="button-danger" formnovalidate>Delete project</button>
                         </div>
                     </div>
-                </form>
+                {{ form_end(form) }}
                 <dialog id="deleteConfirmDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
                     <form method="dialog" class="delete-dialog__form">
                         <h2 id="deleteDialogTitle">Confirm permanent deletion</h2>
