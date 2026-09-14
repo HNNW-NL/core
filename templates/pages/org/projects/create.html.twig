@@ -23,11 +23,11 @@
 
     {{ form_errors(form) }}
 
-    {# omgebouwd naar het form veld title, zo heet het in de database #}
+    {# omgebouwd naar het form veld name, zo heet het in de bestaande CreateProjectDTO #}
     <div>
         <label for="name">Project name</label>
-        {{ form_widget(form.title, {'id': 'name', 'attr': {'placeholder': 'Enter a project name'}}) }}
-        {{ form_errors(form.title) }}
+        {{ form_widget(form.name, {'id': 'name', 'attr': {'placeholder': 'Enter a project name'}}) }}
+        {{ form_errors(form.name) }}
         <p id="title-counter">0 characters</p>
     </div>
 
