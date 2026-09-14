@@ -21,8 +21,6 @@ class InviteParticipantsSearch
 
     public function getProfiles(): array
     {
-        dump($this->query);
-
         if (mb_strlen($this->query) < 2) {
             return [];
         }

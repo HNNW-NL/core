@@ -1,13 +1,19 @@
-<div {{ attributes }}>
-    <input
-        type="search"
-        data-model="query"
-        placeholder="Search profiles..."
-    >
+<div {{ attributes }} class="page-content">
 
-    <ul>
-        {% for profile in this.profiles %}
-        <li>{{ profile.displayName }}</li>
-        {% endfor %}
-    </ul>
+    <div class="input-content">
+        <label for="invite-input">Invite user</label>
+        <input
+            type="search"
+            data-model="debounce(300)|query"
+            placeholder="Search profiles..."
+            name="invite-input"
+            id="invite-input"
+        >
+
+        <ul id="profile-list">
+            {% for profile in this.profiles %}
+                <li>{{ profile.displayName }}</li>
+            {% endfor %}
+        </ul>
+    </div>
 </div>
