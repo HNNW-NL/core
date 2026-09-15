@@ -16,6 +16,8 @@ use Doctrine\Persistence\ObjectManager;
 
 class ProjectFixtures extends Fixture implements DependentFixtureInterface
 {
+    public const TEST_PROJECT_REFERENCE = "test-project";
+
     public function load(ObjectManager $manager): void
     {
         $project = new Project();
@@ -33,6 +35,9 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $manager->persist($project);
 
         $manager->flush();
+
+        $this->addReference(self::TEST_PROJECT_REFERENCE, $project);
+        
     }
 
     public function getDependencies(): array

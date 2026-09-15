@@ -12,6 +12,7 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 class AccountFixtures extends Fixture implements DependentFixtureInterface
 {
     public const TEST_ACCOUNT_REFERENCE = 'test-account';
+    public const ADMIN_ACCOUNT_REFERENCE = 'admin-account';
 
     public function load(ObjectManager $manager): void
     {
@@ -22,9 +23,17 @@ class AccountFixtures extends Fixture implements DependentFixtureInterface
         $account->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_ACCOUNT_STATUS_REFERENCE, Status::class));
         $manager->persist($account);
 
+        $admin = new Account();
+        $admin->setUsername("AdminUser");
+        $admin->setEmail("Admin@test.nl");
+        $admin->setPasswordHash(password_hash("test1234", PASSWORD_DEFAULT));
+        $admin->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_ACCOUNT_STATUS_REFERENCE, Status::class));
+        $manager->persist($admin);
+
         $manager->flush();
 
         $this->addReference(self::TEST_ACCOUNT_REFERENCE, $account);
+        $this->addReference(self::ADMIN_ACCOUNT_REFERENCE, $admin);
     }
 
     public function getDependencies(): array
