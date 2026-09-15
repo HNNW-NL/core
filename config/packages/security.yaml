@@ -7,7 +7,7 @@ security:
     providers:
         app_user_provider:
             entity:
-                class: App\Entity\Account
+                class: App\Entity\Account\Account
                 property: email
 
     firewalls:
@@ -19,8 +19,8 @@ security:
             lazy: true
             provider: app_user_provider
             form_login:
-                login_path: app.login
-                check_path: app.login
+                login_path: auth.login
+                check_path: auth.login
                 username_parameter: username
                 password_parameter: password
             # Activate different ways to authenticate:
@@ -31,7 +31,7 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/profile, roles: ROLE_USER }
 
 when@test:
