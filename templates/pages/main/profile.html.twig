@@ -10,77 +10,58 @@
 
 {% block body %}
 <div class="page">
-    <div class="header">
-        <div class="profile-section">
+    <div class="profile-card">
+
+        <div class="profile-picture-section">
             <div class="profile-avatar">
-                <img id="preview" src="" alt="Profile Picture">
+                <img id="preview" src="" alt="Profielfoto">
+                <label for="upload" class="edit-profile-picture" title="Profielfoto wijzigen">
+                    ✎
+                </label>
             </div>
-            <input type="file" id="upload" style="display: none;">
-            <label for="upload" class="upload-btn">
-                Kies profielfoto
-            </label>
+            <input type="file" id="upload" accept="image/*" hidden>
         </div>
+
 
         <div class="profile-text">
-            <h1>Naam</h1>
+            <div class="profile-name-row">
+                <h1>Naam</h1>
+
+                {% if app.user and app.user.status and app.user.status.id == 1 %}
+                    <span class="status-dot online"></span>
+                {% elseif app.user and app.user.status and app.user.status.id == 2 %}
+                    <span class="status-dot away"></span>
+                {% else %}
+                    <span class="status-dot offline"></span>
+                {% endif %}
+            </div>
+
             <p>@username</p>
-            {# <p>Locatie</p> #}
-            <p onclick="openLocationPopup()" style="cursor: pointer;">
-                Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
-                <span style="font-size: 12px;">✏️</span>
+
+            {# Location #}
+            <p class="profile-location" onclick="openLocationPopup()">
+                Locatie:
+                <span id="current-location">
+        {{ profile.location ?? 'Niet ingesteld' }}
+    </span>
+                <span class="location-edit-icon">✏️</span>
             </p>
 
-            {% if app and app.user %}
+            {# Location popup #}
+            <div id="location-popup" class="location-popup">
+                <div class="location-popup-content">
 
-                <p>Status:
-                    {% if app.user.status and app.user.status.id == 1 %}
-                        Online
-                    {% elseif app.user.status and app.user.status.id == 2 %}
-                        Afwezig
-                    {% else %}
-                        Offline
-                    {% endif %}
-                </p>
-
-
-                <p>
-                    {% if app.user.lastLoginAt %}
-
-                        Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
-                    {% else %}
-                        Laatst actief: Onbekend
-                    {% endif %}
-                </p>
-            {% else %}
-                <p>Occupation / Status</p>
-                <p>Laatst actief: Onbekend</p>
-            {% endif %}
-        </div>
-            <script>
-                const upload = document.getElementById("upload");
-                const preview = document.getElementById("preview");
-
-                upload.addEventListener("change", function () {
-                const file = this.files[0];
-
-                if (file) {
-                const reader = new FileReader();
-
-                reader.onload = function () {
-                preview.src = reader.result;
-                };
-
-                 reader.readAsDataURL(file);
-                }
-                });
-            </script>
-        </div>
-
-
-                <div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
+                    <button type="button" class="close-popup" onclick="closePopup()">
+                        &times;
+                    </button>
 
                     <h3>Locatie aanpassen</h3>
-                    <label for="new-location"></label>
+                    <p class="popup-description">Kies je stad.</p>
+
+                    <label for="new-location" class="sr-only">
+                        Kies een stad
+                    </label>
+
                     <select id="new-location">
                         <option value="">-- Kies een stad --</option>
                         <option value="Den Haag">Den Haag</option>
@@ -90,12 +71,31 @@
                         <option value="Eindhoven">Eindhoven</option>
                         <option value="Groningen">Groningen</option>
                         <option value="Maastricht">Maastricht</option>
-                        </select>
-                        <button onclick="saveLocation()">Opslaan</button>
-                        <button onclick="closePopup()">Annuleren</button>
+                    </select>
+
+                    <div class="popup-buttons">
+                        <button type="button" class="save-location" onclick="saveLocation()">
+                            Opslaan
+                        </button>
+
+                        <button type="button" class="cancel-location" onclick="closePopup()">
+                            Annuleren
+                        </button>
+                    </div>
+
                 </div>
-			<div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
-		</div>
+            </div>
+
+            {# Dark overlay #}
+            <div id="popup-overlay" class="popup-overlay" onclick="closePopup()"></div>
+
+                <p>Occupation / Status</p>
+
+        </div>
+
+    </div>
+
+
 
     <div class="main-grid">
 
@@ -154,6 +154,24 @@
 	</div>
 
     <script>
+
+        const upload = document.getElementById("upload");
+        const preview = document.getElementById("preview");
+
+        upload.addEventListener("change", function () {
+            const file = this.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function () {
+                    preview.src = reader.result;
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+
         function openLocationPopup() {
             document.getElementById('location-popup').style.display = 'block';
             document.getElementById('popup-overlay').style.display = 'block';
@@ -191,6 +209,6 @@
 			});
 		}
 	   </script>
-
+    </div>
     {% endblock %}
 

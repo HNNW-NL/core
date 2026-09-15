@@ -9,7 +9,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 3px;
+    padding: 16px 3px;
 }
 
 header nav ul {
@@ -133,32 +133,40 @@ header nav ul svg:hover path {
 }
 
 .logo-name {
-    margin-left: 100px;
+    margin-left: 150px;
+    display: flex;
+    align-items: baseline;
+    white-space: nowrap;
+    gap: 5px;
+}
+
+.logo-name-het,
+.logo-name-nieuwe,
+.logo-name-werken {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 28px;
 }
 
 .logo-name-het {
     color: #ffd400;
-    font-weight: 600;
-    font-size: 18px;
-    line-height: 28px;
 }
 
 .logo-name-nieuwe {
-    color: #FFFFFF;
-    font-weight: 600;
-    font-size: 18px;
-    line-height: 28px;
+    color: #ffffff;
 }
 
 .logo-name-two {
     color: #ffe36f;
-    font-weight: 700;
     font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    position: relative;
+    top: -8px;
+    margin-left: 3px;
+    margin-right: 2px;
 }
 
 .logo-name-werken {
-    color: #626E81;
-    font-weight: 600;
-    font-size: 18px;
-    line-height: 28px;
+    color: #626e81;
 }
