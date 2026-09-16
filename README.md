@@ -10,6 +10,7 @@ Het platform is ontworpen om samenwerking binnen en tussen overheidsorganisaties
 
 * [Overview](#overview)
 * [Installation](#installation)
+* [Running tests](#running-tests)
 * [Technical Information](#technical-information)
 * [Troubleshooting](#troubleshooting)
 * [License](#license)
@@ -228,6 +229,86 @@ http://localhost:8000
 ```
 
 ---
+
+## Running Tests
+
+### 1. Create environment configuration
+
+Duplicate the example environment file:
+
+```bash
+cp .env.test.local.example .env.test.local
+```
+
+If `cp` is not available, manually duplicate:
+
+```text
+.env.test.local.example
+```
+
+Rename it to:
+
+```text
+.env.test.local
+```
+
+### 2. Configure `.env.test.local`
+
+Open `.env.test.local` and configure the application settings.
+
+The same setting used in the .env.local can be used.
+
+### 3. Create the database
+
+Run:
+```bash
+ php bin/console --env=test doctrine:database:create
+```
+
+This command will create a database with with the name of the database given in .env.test.local with _test appended at the end e.g. HNNW becomes HNNW_test.
+
+### 4. Run database migrations
+
+The database tables are managed through Doctrine migrations.
+
+Run:
+
+```bash
+php bin/console --env=test doctrine:migrations:migrate
+```
+
+When prompted, type:
+
+```text
+yes
+```
+
+### 5. Load database fixtures
+
+Test data for the database is created through the use of fixtures.
+
+Run:
+
+```bash
+php bin/console --env=test doctrine:fixtures:load
+```
+
+When prompted, type:
+
+```text
+yes
+```
+
+### 6. Running the tests
+
+Run:
+
+```bash
+php bin/phpunit
+```
+
+---
+
 
 ## Technical Information
 
