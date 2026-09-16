@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity\Account;
 
 use App\Entity\Admin\Admin;
