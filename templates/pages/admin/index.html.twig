@@ -84,8 +84,8 @@
             <ul>
                 {% for account in accounts %}
                     <li>
-                        {{ account.name }}
-                        <small>{{ account.updatedAt|date('d-m-Y H:i') }}</small>
+                        {{ account.username }}
+                        <small>{{ account.lastModified|date('d-m-Y H:i') }}</small>
                     </li>
                 {% endfor %}
             </ul>
@@ -102,8 +102,8 @@
             <ul>
                 {% for profile in profiles %}
                     <li>
-                        {{ profile.fullName }}
-                        <small>{{ profile.updatedAt|date('d-m-Y H:i') }}</small>
+                        {{ profile.firstName  }} {{ profile.lastName }}
+                        <small>{{ profile.lastModified|date('d-m-Y H:i') }}</small>
                     </li>
                 {% endfor %}
             </ul>

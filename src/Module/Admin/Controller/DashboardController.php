@@ -2,6 +2,10 @@
 
 namespace App\Module\Admin\Controller;
 
+use App\Repository\Account\ProfileRepository as AccountProfileRepository;
+use App\Repository\Log\AuditLogRepository;
+use App\Repository\Org\AccountRepository;
+use App\Repository\Org\ProfileRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -10,9 +14,19 @@ use Symfony\Component\Routing\Attribute\Route;
 final class DashboardController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
+    public function index(AuditLogRepository $auditLogRepository,
+     AccountRepository $accountRepository,AccountProfileRepository $profileRepository): Response
     {
-        return $this->render('pages/admin/index.html.twig');
+        $logs = $auditLogRepository->findLatest();
+        $accounts = $accountRepository->findLatestChanged();
+        $profiles = $profileRepository->findLatestChanged();
+        
+        return $this->render('pages/admin/index.html.twig',
+        array(
+            'logs' => $logs,
+            'accounts' =>  $accounts,
+            'profiles' =>  $profiles
+        ));
     }
 
     #[Route('/logs', name: 'logs', methods: ['GET'])]
