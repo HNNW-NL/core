@@ -13,10 +13,13 @@
     <!-- CSS -->
     <link rel="stylesheet" href="{{ asset("assets/shared/css/style.css") }}">
     <link rel="stylesheet" href="{{ asset("assets/admin/css/style.css") }}">
-    {% block stylesheets %}{% endblock %}
+    {% block stylesheets %}
+    {% endblock %}
 
     <!-- JavaScript -->
-    {% block javascript %}{% endblock %}
+    {% block javascript %}
+        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    {% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
     {% if frankenphpHotReload %}

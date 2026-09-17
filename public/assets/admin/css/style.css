@@ -1,0 +1,24 @@
+.admin-footer{
+    text-align: center;    
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 100%;
+    word-wrap: break-word;
+    flex-shrink: 0;
+
+    p{
+        color: var(--secondary-foreground);
+    }
+}
+
+html, body {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1 0 auto;
+}

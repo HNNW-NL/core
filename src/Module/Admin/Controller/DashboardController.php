@@ -5,7 +5,6 @@ namespace App\Module\Admin\Controller;
 use App\Repository\Account\ProfileRepository as AccountProfileRepository;
 use App\Repository\Log\AuditLogRepository;
 use App\Repository\Org\AccountRepository;
-use App\Repository\Org\ProfileRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,9 +16,9 @@ final class DashboardController extends AbstractController
     public function index(AuditLogRepository $auditLogRepository,
      AccountRepository $accountRepository,AccountProfileRepository $profileRepository): Response
     {
-        $logs = $auditLogRepository->findLatest();
-        $accounts = $accountRepository->findLatestChanged();
-        $profiles = $profileRepository->findLatestChanged();
+        $logs = $auditLogRepository->findLatest(10);
+        $accounts = $accountRepository->findLatestChanged(10);
+        $profiles = $profileRepository->findLatestChanged(10);
         
         return $this->render('pages/admin/index.html.twig',
         array(
