@@ -9,7 +9,7 @@ security:
             entity:
                 class: App\Entity\Account\Account
                 property: email
-
+                # property: username
     firewalls:
         dev:
             # Ensure dev tools and static assets are always allowed
