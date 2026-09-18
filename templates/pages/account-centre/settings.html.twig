@@ -11,6 +11,41 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Settings</h2>
-    <p>Account Centre - settings page.</p>
+    <div id="account-centre-container">
+        <a href="{{ path('account.home') }}" class="btn-back">
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Accountinstellingen</h1>
+            <p>Wijzig de gegevens die je voor je account wilt aanpassen.</p>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="account-flash-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="account-form-container">
+            <div class="form-internal-header">
+                <h2>Accountgegevens</h2>
+                <p>Laat een veld leeg als je die gegevens niet wilt wijzigen.</p>
+            </div>
+
+            <form action="{{ path('account.modify') }}" method="POST" class="account-form">
+                <div class="form-group">
+                    <label for="username">Gebruikersnaam</label>
+                    <input type="text" id="username" name="username" placeholder="Nieuwe gebruikersnaam">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-mailadres</label>
+                    <input type="email" id="email" name="email" placeholder="nieuw e-mailadres">
+                </div>
+
+                <button type="submit" class="btn-primary">Wijzigingen opslaan</button>
+            </form>
+        </div>
+    </div>
 {% endblock %}
