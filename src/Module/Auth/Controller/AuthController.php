@@ -48,7 +48,7 @@ final class AuthController extends AbstractController
         }
 
         return $this->render('pages/auth/login.html.twig', [
-            'last_username' => (string)$request->query->get('last', ''),
+            'last_username' => $request->query->get('last', ''),
         ]);
     }
 
@@ -116,9 +116,9 @@ final class AuthController extends AbstractController
                 $em->persist($account);
 
                 // 2. Setup Profile linked directly to Account
-                $nameParts = explode(' ', $data['full_name'], 2);
+                $nameParts = explode('', $data['full_name'], 2);
                 $firstName = $nameParts[0] !== '' ? $nameParts[0] : $data['username'];
-                $lastName = $nameParts[1] ?? ' ';
+                $lastName = $nameParts[1] ?? '';
 
                 $profile = new Profile();
                 $profile->setAccount($account);
