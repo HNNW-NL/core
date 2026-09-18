@@ -301,4 +301,4 @@ final class AccountsController extends AbstractController
 
     #[Route('/skills', name: 'skills', methods: ['GET'])]
     public function skills(): Response { return $this->render('pages/account-centre/skills.html.twig'); }
-}
+} 
