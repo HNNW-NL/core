@@ -14,16 +14,21 @@
 
         <div class="profile-picture-section">
             <div class="profile-avatar">
-                <img id="preview" src="" alt="Profielfoto">
-                <label for="upload" class="edit-profile-picture" title="Profielfoto wijzigen">
+                <img id="preview" src="" alt="">
+
+                <label for="upload"
+                       class="edit-profile-picture"
+                       title="Profielfoto wijzigen">
                     ✎
                 </label>
             </div>
+
             <input type="file" id="upload" accept="image/*" hidden>
         </div>
 
 
         <div class="profile-text">
+
             <div class="profile-name-row">
                 <h1>Naam</h1>
 
@@ -37,26 +42,35 @@
             </div>
 
             <p>@username</p>
+            <p>Junior Software Developer</p>
 
             {# Location #}
             <p class="profile-location" onclick="openLocationPopup()">
-                Locatie:
+                📍:
                 <span id="current-location">
-        {{ profile.location ?? 'Niet ingesteld' }}
-    </span>
+                {{ profile.location ?? 'Niet ingesteld' }}
+            </span>
+
                 <span class="location-edit-icon">✏️</span>
             </p>
 
+
             {# Location popup #}
             <div id="location-popup" class="location-popup">
+
                 <div class="location-popup-content">
 
-                    <button type="button" class="close-popup" onclick="closePopup()">
+                    <button type="button"
+                            class="close-popup"
+                            onclick="closePopup()">
                         &times;
                     </button>
 
                     <h3>Locatie aanpassen</h3>
-                    <p class="popup-description">Kies je stad.</p>
+
+                    <p class="popup-description">
+                        Kies je stad.
+                    </p>
 
                     <label for="new-location" class="sr-only">
                         Kies een stad
@@ -74,22 +88,42 @@
                     </select>
 
                     <div class="popup-buttons">
-                        <button type="button" class="save-location" onclick="saveLocation()">
+
+                        <button type="button"
+                                class="save-location"
+                                onclick="saveLocation()">
                             Opslaan
                         </button>
 
-                        <button type="button" class="cancel-location" onclick="closePopup()">
+                        <button type="button"
+                                class="cancel-location"
+                                onclick="closePopup()">
                             Annuleren
                         </button>
+
                     </div>
 
                 </div>
+
             </div>
 
-            {# Dark overlay #}
-            <div id="popup-overlay" class="popup-overlay" onclick="closePopup()"></div>
 
-                <p>Occupation / Status</p>
+            {# Dark overlay #}
+            <div id="popup-overlay"
+                 class="popup-overlay"
+                 onclick="closePopup()">
+            </div>
+
+        </div>
+
+
+        {# Achievements #}
+        <div class="achievements">
+
+            <div class="achievement-circle"></div>
+            <div class="achievement-circle"></div>
+            <div class="achievement-circle"></div>
+            <div class="achievement-circle"></div>
 
         </div>
 
@@ -103,72 +137,56 @@
 			<h2 class="about-me">Over mij</h2>
 			<p class="text-muted">This is an example text.</p>
 
-			<h2 class="expertise" style="margin-top: 40px;">Expertise</h2>
+			<h2 class="expertise">Skills</h2>
 			<div class="expertise-container">
-				<div class="bubble">Expertise 1</div>
-				<div class="bubble">Expertise 2</div>
-				<div class="bubble">Expertise 3</div>
+				<div class="bubble-ex">HTML</div>
+				<div class="bubble-med">CSS</div>
+				<div class="bubble-be">JavaScript</div>
 			</div>
+
+            <div class="socials-section">
+                <div class="socials-icons">
+                    <a href="#" class="social-button" aria-label="Instagram">
+                        <img
+                            src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/instagram.svg"
+                            alt=""
+                        >
+                    </a>
+
+                    <a href="#" class="social-button" aria-label="YouTube">
+                        <img
+                            src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/youtube.svg"
+                            alt=""
+                        >
+                    </a>
+
+                    <a href="#" class="social-button" aria-label="TikTok">
+                        <img
+                            src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/tiktok.svg"
+                            alt=""
+                        >
+                    </a>
+                </div>
+            </div>
+
 		</div>
+
+        <div class="achievements-bar">
+            <div class="circle"></div>
+            <div class="circle"></div>
+            <div class="circle"></div>
+            <div class="circle"></div>
+            <div class="circle"></div>
+        </div>
 
 		<div class="card">
 			<div class="action-buttons">
-				<a href="#" class="btn-outline">Edit Profile</a>
 				<a href="#" class="btn-outline">Projects</a>
-
-                <div class="socials-section">
-                    <div class="socials-icons">
-                        <a href="#" class="social-button" aria-label="Instagram">
-                            <img
-                                src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/instagram.svg"
-                                alt=""
-                            >
-                        </a>
-
-                        <a href="#" class="social-button" aria-label="YouTube">
-                            <img
-                                src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/youtube.svg"
-                                alt=""
-                            >
-                        </a>
-
-                        <a href="#" class="social-button" aria-label="TikTok">
-                            <img
-                                src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/tiktok.svg"
-                                alt=""
-                            >
-                        </a>
-                    </div>
-                </div>
-
             </div>
 		</div>
 
-		<div class="tech-stack">
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JS">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP">
-			</div>
-		</div>
 
-		<div class="achievements-bar">
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-		</div>
+
 
 	</div>
 
