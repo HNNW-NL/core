@@ -23,20 +23,23 @@
             {% endfor %}
         </ul>
     </div>
-    <form action="">
+    <div>
         <ul id="selected-list">
             {% for profile in this.selectedProfiles %}
                 <li>
                     {{ profile.displayName }}
+                    <button
+                        data-action="click->live#action"
+                        data-live-action-param="removeSelectedProfile"
+                        data-live-id-param="{{ profile.id }}"
+                    >Remove</button>
                 </li>
             {% endfor %}
         </ul>
-        <input
-            id="submit-users"
-            type="submit"
-            value="Invite users"
-            {% if this.selectedProfiles == [] %} style="display: none;" {% endif %}
-        >
-    </form>
+        <button
+            data-action="click->live#action"
+            data-live-action-param="inviteSelectedProfiles"
+        >Invite users</button>
+    </div>
 
 </div>

@@ -32,8 +32,21 @@ class InviteParticipantsSearch
         }
         else
         {
-            $this->selectedProfileIds = array_diff($this->selectedProfileIds, [$id]);
+            $this->removeSelectedProfile($id);
         }
+    }
+
+    #[LiveAction]
+    public function removeSelectedProfile(#[LiveArg] string $id): void
+    {
+        $this->selectedProfileIds = array_diff($this->selectedProfileIds, [$id]);
+    }
+
+    #[LiveAction]
+    public function inviteSelectedProfiles(): void
+    {
+        // send invites to profiles
+        $this->selectedProfileIds = [];
     }
 
     public function getProfiles(): array
@@ -55,10 +68,6 @@ class InviteParticipantsSearch
         ]);
     }
 
-    public function inviteSelectedProfiles()
-    {
-        // send invites to profiles
-    }
 
 
 }
