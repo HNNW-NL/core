@@ -101,15 +101,67 @@ class DashboardControllerTest extends WebTestCase
     // logs
 
     public function testWhenUserIsNotAdminShouldRedirectFromLogs(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+    {     
+        // retrieve the test user
+        $testUser = $this->accountRepository->findOneBy(['email' => 'Test@test.nl']);
+
+        // simulate $testUser being logged in
+        $this->client->loginUser($testUser);
+
+        $crawler = $this->client->request('GET', '/admin/logs');
+
+        $this->assertResponseRedirects("/auth/login");
     }
 
     public function testWhenUserIsAdminShouldDisplayLogs(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        // retrieve the admin user
+        $testUser = $this->accountRepository->findOneBy(['email' => 'Admin@test.nl']);
+
+        // simulate $adminUser being logged in
+        $this->client->loginUser($testUser);
+
+        $crawler = $this->client->request('GET', '/admin/logs');
+
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testWhenUserIsAdminShouldDisplayAuditLogsInLogs(): void
+    {
+        // retrieve the admin user
+        $testUser = $this->accountRepository->findOneBy(['email' => 'Admin@test.nl']);
+
+        // simulate $adminUser being logged in
+        $this->client->loginUser($testUser);
+
+        $crawler = $this->client->request('GET', '/admin/logs');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains("#auditLogsTable > tr:nth-of-type(1) > td:nth-of-type(2)","TestUser");
+        $this->assertSelectorTextContains("#auditLogsTable > tr:nth-of-type(1) > td:nth-of-type(3)","Test@test.nl");
+        $this->assertSelectorTextContains("#auditLogsTable > tr:nth-of-type(1) > td:nth-of-type(4)","login");
+        $this->assertSelectorTextContains("#auditLogsTable > tr:nth-of-type(1) > td:nth-of-type(5)","none");
+        $this->assertSelectorTextContains("#auditLogsTable > tr:nth-of-type(1) > td:nth-of-type(6)","none");
+        $this->assertSelectorTextContains("#auditLogsTable > tr:nth-of-type(1) > td:nth-of-type(7)","127.0.0.0");
+    }
+
+    public function testWhenUserIsAdminShouldDisplaySystemLogsInLogs(): void
+    {
+        // retrieve the admin user
+        $testUser = $this->accountRepository->findOneBy(['email' => 'Admin@test.nl']);
+
+        // simulate $adminUser being logged in
+        $this->client->loginUser($testUser);
+
+        $crawler = $this->client->request('GET', '/admin/logs');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains("#systemLogsTable > tr:nth-of-type(1) > td:nth-of-type(2)","1");
+        $this->assertSelectorTextContains("#systemLogsTable > tr:nth-of-type(1) > td:nth-of-type(3)","1");
+        $this->assertSelectorTextContains("#systemLogsTable > tr:nth-of-type(1) > td:nth-of-type(4)","A system message");
+        $this->assertSelectorTextContains("#systemLogsTable > tr:nth-of-type(1) > td:nth-of-type(5)","/");
+        $this->assertSelectorTextContains("#systemLogsTable > tr:nth-of-type(1) > td:nth-of-type(6)","get");
+        $this->assertSelectorTextContains("#systemLogsTable > tr:nth-of-type(1) > td:nth-of-type(7)","127.0.0.1");
     }
 
     // notifications

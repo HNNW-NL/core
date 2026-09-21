@@ -30,9 +30,17 @@ final class DashboardController extends AbstractController
     }
 
     #[Route('/logs', name: 'logs', methods: ['GET'])]
-    public function logs(): Response
+    public function logs(SystemLogRepository $systemLogRepository, AuditLogRepository $auditLogRepository): Response
     {
-        return $this->render('pages/admin/logs.html.twig');
+        $auditLogs = $auditLogRepository->findLatest(100);
+        $systemLogs = $systemLogRepository->findLatest(100);
+
+        
+        return $this->render('pages/admin/logs.html.twig',
+        array(
+            'auditLogs' => $auditLogs,
+            'systemLogs' => $systemLogs
+        ));
     }
 
     #[Route('/notifications', name: 'notifications', methods: ['GET'])]

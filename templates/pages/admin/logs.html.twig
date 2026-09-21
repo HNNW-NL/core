@@ -2,104 +2,96 @@
 
 {% block title %}Logs{% endblock %}
 
-{% block javascript %}
-<script>
-    fetch('/admin/api/logs/audit')
-        .then(response => response.json())
-        .then(logs => {
-            const table = document.getElementById('auditLogsTable');
-            table.innerHTML = '';
 
-            if (logs.length === 0) {
-                table.innerHTML = '<tr><td colspan="7">Geen audit logs gevonden.</td></tr>';
-                return;
-            }
-
-            logs.forEach(log => {
-                table.innerHTML += `
-                    <tr>
-                        <td>${log.createdAt ?? ''}</td>
-                        <td>${log.actorUsername ?? ''}</td>
-                        <td>${log.actorEmail ?? ''}</td>
-                        <td>${log.action ?? ''}</td>
-                        <td>${log.entityType ?? ''}</td>
-                        <td>${log.entityId ?? ''}</td>
-                        <td>${log.requestIp ?? ''}</td>
-                    </tr>
-                `;
-            });
-        });
-
-    fetch('/admin/api/logs/system')
-        .then(response => response.json())
-        .then(logs => {
-            const table = document.getElementById('systemLogsTable');
-            table.innerHTML = '';
-
-            if (logs.length === 0) {
-                table.innerHTML = '<tr><td colspan="7">Geen system logs gevonden.</td></tr>';
-                return;
-            }
-
-            logs.forEach(log => {
-                table.innerHTML += `
-                    <tr>
-                        <td>${log.createdAt ?? ''}</td>
-                        <td>${log.code ?? ''}</td>
-                        <td>${log.level ?? ''}</td>
-                        <td>${log.message ?? ''}</td>
-                        <td>${log.route ?? ''}</td>
-                        <td>${log.method ?? ''}</td>
-                        <td>${log.requestIp ?? ''}</td>
-                    </tr>
-                `;
-            });
-        });
-</script>
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/admin/css/logs.css") }}">
 {% endblock %}
 
 {% block body %}
-    <h2>Audit Logs</h2>
 
-    <table border="1" cellpadding="8">
-        <thead>
-        <tr>
-            <th>Datum</th>
-            <th>Gebruiker</th>
-            <th>Email</th>
-            <th>Actie</th>
-            <th>Onderdeel</th>
-            <th>Entity ID</th>
-            <th>IP</th>
-        </tr>
-        </thead>
-        <tbody id="auditLogsTable">
-        <tr>
-            <td colspan="7">Laden...</td>
-        </tr>
-        </tbody>
-    </table>
+<header>
+    <h2>Logs</h2>
+    <p>Overzicht van de 100 niewste Audit/System Logs.</p>
+</header>
+
+
+<div class="dashboard">
+    <twig:Shared:Card>
+        <twig:Shared:Card:Header>Audit Logs</twig:Shared:Card:Header>
+        <twig:Shared:Card:Content>
+            <table>
+                <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Gebruiker</th>
+                    <th>Email</th>
+                    <th>Actie</th>
+                    <th>Onderdeel</th>
+                    <th>Entity ID</th>
+                    <th>IP</th>
+                </tr>
+                </thead>
+                <tbody id="auditLogsTable">
+                    {% if auditLogs is not empty %}
+                        {% for log in auditLogs %}
+                        <tr>
+                            <td>{{log.createdAt?.format('Y-m-d H:i:s') ?? ''}}</td>
+                            <td>{{log.actorUsername ?? ''}}</td>
+                            <td>{{log.actorEmail ?? ''}}</td>
+                            <td>{{log.action ?? ''}}</td>
+                            <td>{{log.entityType ?? ''}}</td>
+                            <td>{{log.entityId ?? ''}}</td>
+                            <td>{{log.requestIp ?? ''}}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td>Geen audit logs gevonden</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </twig:Shared:Card:Content>
+    </twig:Shared:Card>
 
     <br><br>
 
-    <h2>System Logs</h2>
-
-    <table border="1" cellpadding="8">
-        <thead>
-        <tr>
-            <th>Datum</th>
-            <th>Code</th>
-            <th>Level</th>
-            <th>Bericht</th>
-            <th>Route</th>
-            <th>Methode</th>
-            <th>IP</th>
-        </tr>
-        </thead>
-        <tbody id="systemLogsTable">
-        <tr>
-            <td colspan="7">Laden...</td>
-        </tr>
-        </tbody>
-    </table>
+    <twig:Shared:Card>
+        <twig:Shared:Card:Header>System Logs</twig:Shared:Card:Header>
+        <twig:Shared:Card:Content>
+            <table>
+                <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Code</th>
+                    <th>Level</th>
+                    <th>Bericht</th>
+                    <th>Route</th>
+                    <th>Methode</th>
+                    <th>IP</th>
+                </tr>
+                </thead>
+                <tbody id="systemLogsTable">
+                    {% if systemLogs is not empty %}
+                        {% for log in systemLogs %}
+                        <tr>
+                            <td>{{log.createdAt?.format('Y-m-d H:i:s') ?? ''}}</td>
+                            <td>{{log.code ?? ''}}</td>
+                            <td>{{log.level ?? ''}}</td>
+                            <td>{{log.message ?? ''}}</td>
+                            <td>{{log.route ?? ''}}</td>
+                            <td>{{log.method ?? ''}}</td>
+                            <td>{{log.requestIp ?? ''}}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td>Geen system logs gevonden</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </twig:Shared:Card:Content>
+    </twig:Shared:Card>
+</div>
 {% endblock %}

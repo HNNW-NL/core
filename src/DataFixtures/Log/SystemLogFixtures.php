@@ -12,7 +12,10 @@ class SystemLogFixtures extends Fixture
     {
         $systemLog = new SystemLog();
         $systemLog->setCode(1);
-        $systemLog->setLevel("");
+        $systemLog->setLevel("1");
+        $systemLog->setRoute("/");
+        $systemLog->setMethod("get");
+        $systemLog->setRequestIp("127.0.0.1");
         $systemLog->setMessage("A system message");
         $systemLog->setContextJson([]);
         
@@ -20,7 +23,7 @@ class SystemLogFixtures extends Fixture
 
         $systemLog = new SystemLog();
         $systemLog->setCode(1);
-        $systemLog->setLevel("");
+        $systemLog->setLevel("1");
         $systemLog->setMessage("A second system log");
         $systemLog->setContextJson([]);
         
