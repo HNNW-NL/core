@@ -14,10 +14,10 @@ use Symfony\Component\Routing\Attribute\Route;
 final class DashboardController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
-    public function index(SystemLogRepository $auditLogRepository,
+    public function index(SystemLogRepository $systemLogRepository,
      AccountRepository $accountRepository, ProfileRepository $profileRepository): Response
     {
-        $logs = $auditLogRepository->findLatest(10);
+        $logs = $systemLogRepository->findLatest(10);
         $accounts = $accountRepository->findLatestChanged(10);
         $profiles = $profileRepository->findLatestChanged(10);
         
