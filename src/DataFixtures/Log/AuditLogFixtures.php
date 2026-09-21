@@ -29,6 +29,20 @@ class AuditLogFixtures extends Fixture implements DependentFixtureInterface
         
         $manager->persist($auditLog);
 
+        $auditLog = new AuditLog();
+        $auditLog->setAction("test");
+        $auditLog->setActorAccount($account);
+        $auditLog->setActorEmail($account->getEmail());
+        $auditLog->setActorUsername($account->getUsername());
+        $auditLog->setEntityId("none");
+        $auditLog->setEntityType("none");
+        $auditLog->setOldValuesJson([0]);
+        $auditLog->setNewValuesJson([1]);
+        $auditLog->setRequestIp("127.0.0.0");        
+        $auditLog->setUserAgent("firefox");        
+        
+        $manager->persist($auditLog);
+
         $manager->flush();
     }
 

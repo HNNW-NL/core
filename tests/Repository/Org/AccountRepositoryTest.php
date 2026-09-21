@@ -2,9 +2,9 @@
 
 namespace App\Tests\Repository\Org;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class AccountRepositoryTest extends WebTestCase
+class AccountRepositoryTest extends KernelTestCase
 {
     // findAllForAdmin
 

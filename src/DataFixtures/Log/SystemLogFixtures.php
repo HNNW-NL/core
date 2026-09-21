@@ -18,6 +18,14 @@ class SystemLogFixtures extends Fixture
         
         $manager->persist($systemLog);
 
+        $systemLog = new SystemLog();
+        $systemLog->setCode(1);
+        $systemLog->setLevel("");
+        $systemLog->setMessage("A second system log");
+        $systemLog->setContextJson([]);
+        
+        $manager->persist($systemLog);
+
         $manager->flush();
     }
 }
