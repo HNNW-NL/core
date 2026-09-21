@@ -12,8 +12,31 @@
 
         <ul id="profile-list">
             {% for profile in this.profiles %}
-                <li>{{ profile.displayName }}</li>
+                <li
+                    data-action="click->live#action"
+                    data-live-action-param="selectProfile"
+                    data-live-id-param="{{ profile.id }}"
+                    class="profile-item {% if profile.id in this.selectedProfileIds %} active {% endif %}"
+                >
+                    {{ profile.displayName }}
+                </li>
             {% endfor %}
         </ul>
     </div>
+    <form action="">
+        <ul id="selected-list">
+            {% for profile in this.selectedProfiles %}
+                <li>
+                    {{ profile.displayName }}
+                </li>
+            {% endfor %}
+        </ul>
+        <input
+            id="submit-users"
+            type="submit"
+            value="Invite users"
+            {% if this.selectedProfiles == [] %} style="display: none;" {% endif %}
+        >
+    </form>
+
 </div>

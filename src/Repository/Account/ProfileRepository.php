@@ -17,7 +17,7 @@ class ProfileRepository extends ServiceEntityRepository
     public function search(string $query): array
     {
         return $this->createQueryBuilder('p')
-            ->where('p.displayName LIKE :query')
+            ->where('LOWER(p.displayName) LIKE LOWER(:query)')
             ->setParameter('query', '%' . $query . '%')
             ->getQuery()
             ->getResult();
