@@ -19,5 +19,7 @@
     <h2>Projects - Invite Participants</h2>
     <p>Organization panel - invite project ({{ id }}) participants page.</p>
 
-    {{ component('Org:InviteParticipantsSearch') }}
+    {{ component('Org:InviteParticipantsSearch',{
+        projectId: id
+    }) }}
 {% endblock %}

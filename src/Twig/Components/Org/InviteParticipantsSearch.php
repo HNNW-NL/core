@@ -20,6 +20,8 @@ class InviteParticipantsSearch
     #[LiveProp(writable: true)]
     public array $selectedProfileIds = [];
 
+    public string $projectId = '';
+
     public function __construct(readonly private ProfileRepository $profileRepository)
     {
     }
