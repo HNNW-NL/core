@@ -44,8 +44,15 @@ final class AccountsController extends AbstractController
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
+        // Ophalen van de aanmeldingen MET verplichte 2e parameter (orderBy)
+        $applications = $entityManager->getRepository(ProjectApplication::class)->findBy(
+            ['profile' => $profile, 'deletedAt' => null],
+            ['createdAt' => 'DESC']
+        );
+
         return $this->render('pages/account-centre/applications.html.twig', [
-            'profile' => $profile
+            'profile' => $profile,
+            'applications' => $applications,
         ]);
     }
 
@@ -74,11 +81,8 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
 
-            if (method_exists($application, 'softDelete')) {
-                $application->softDelete();
-            } else {
-                $application->setDeletedAt(new \DateTimeImmutable());
-            }
+            // Direct de softDelete aanroepen op de Application entiteit
+            $application->softDelete();
 
             $entityManager->flush();
 
@@ -113,12 +117,10 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        // POST: Schema opslaan in de `availabilities` tabel
         if ($request->isMethod('POST')) {
             $startDate = $request->request->get('start_date') ?: (new \DateTimeImmutable())->format('Y-m-d');
             $endDate = $request->request->get('end_date') ?: null;
 
-            // Haal de TidyCal dagschema's op uit het formulier
             $daysInput = $request->request->all('days_config');
 
             $activeDays = [];
@@ -326,12 +328,12 @@ final class AccountsController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
-            $jobTitle = trim((string) $request->request->get('job_title'));
-            $organisationName = trim((string) $request->request->get('organisation_name'));
-            $startDateStr = trim((string) $request->request->get('start_date'));
-            $endDateStr = trim((string) $request->request->get('end_date'));
-            $isCurrent = (bool) $request->request->get('is_current', false);
-            $description = trim((string) $request->request->get('description'));
+            $jobTitle = trim((string)$request->request->get('job_title'));
+            $organisationName = trim((string)$request->request->get('organisation_name'));
+            $startDateStr = trim((string)$request->request->get('start_date'));
+            $endDateStr = trim((string)$request->request->get('end_date'));
+            $isCurrent = (bool)$request->request->get('is_current', false);
+            $description = trim((string)$request->request->get('description'));
 
             if (empty($jobTitle) || empty($organisationName) || empty($startDateStr)) {
                 $this->addFlash('error', 'Vul alstublieft alle verplichte velden in.');
@@ -344,10 +346,7 @@ final class AccountsController extends AbstractController
                     }
 
                     $experience->setJobTitle($jobTitle);
-
-                    // Fixed spelling from setOrganizationName to setOrganisationName
                     $experience->setOrganisationName($organisationName);
-
                     $experience->setStartDate(new \DateTimeImmutable($startDateStr));
                     $experience->setIsCurrent($isCurrent);
 
@@ -454,9 +453,9 @@ final class AccountsController extends AbstractController
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
         if ($request->isMethod('POST')) {
-            $username = trim((string) $request->request->get('username'));
-            $email = trim((string) $request->request->get('email'));
-            $bio = trim((string) $request->request->get('bio'));
+            $username = trim((string)$request->request->get('username'));
+            $email = trim((string)$request->request->get('email'));
+            $bio = trim((string)$request->request->get('bio'));
 
             if (!empty($username)) {
                 $account->setUsername($username);
@@ -479,10 +478,10 @@ final class AccountsController extends AbstractController
             }
 
             if ($settings) {
-                $settings->setLanguage(trim((string) $request->request->get('language', 'nl')));
-                $settings->setTheme(trim((string) $request->request->get('theme', 'dark')));
-                $settings->setProfileVisibility(trim((string) $request->request->get('profile_visibility', 'public')));
-                $settings->setEmailNotificationsEnabled((bool) $request->request->get('email_notifications_enabled', false));
+                $settings->setLanguage(trim((string)$request->request->get('language', 'nl')));
+                $settings->setTheme(trim((string)$request->request->get('theme', 'dark')));
+                $settings->setProfileVisibility(trim((string)$request->request->get('profile_visibility', 'public')));
+                $settings->setEmailNotificationsEnabled((bool)$request->request->get('email_notifications_enabled', false));
 
                 if (method_exists($settings, 'setLastModified')) {
                     $settings->setLastModified(new \DateTimeImmutable());
@@ -531,8 +530,8 @@ final class AccountsController extends AbstractController
             $settings->setProfileVisibility('public');
             $settings->setEmailNotificationsEnabled(true);
 
-            if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Uuid::class, 'v4')) {
-                $settings->setId(\Symfony\Component\Uid\Uuid::v4());
+            if (method_exists($settings, 'setId') && method_exists(Uuid::class, 'v4')) {
+                $settings->setId(Uuid::v4());
             }
             if (method_exists($settings, 'setCreatedAt')) {
                 $settings->setCreatedAt(new \DateTimeImmutable());
