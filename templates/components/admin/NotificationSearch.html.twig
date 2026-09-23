@@ -1,0 +1,24 @@
+<div class="notificationSearch" {{ attributes }}>
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('assets/admin/css/notificationSearch.css') }}">
+    {% endblock %}
+
+    {{ form_start(form,{
+            attr: {
+                'data-action': 'live#action:prevent',
+                'data-live-action-param': 'search'
+            }
+        }) }}
+        <div class="form_field">
+            Zoekopdracht:
+            {{ form_widget(form.query,{attr:{ 'autocomplete' :'off'}})}}
+        </div>
+        {{ form_rest(form) }}
+        <button>Zoek</button>
+    {{ form_end(form) }}
+    <ul>
+        {% for notification in this.notifications %}
+            <li>{{ notification.title }}</li>
+        {% endfor %}
+    </ul>
+</div>

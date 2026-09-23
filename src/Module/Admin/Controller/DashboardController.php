@@ -43,7 +43,7 @@ final class DashboardController extends AbstractController
         ));
     }
 
-    #[Route('/notifications', name: 'notifications', methods: ['GET'])]
+    #[Route('/notifications', name: 'notifications', methods: ['GET','POST'])]
     public function notifications(): Response
     {
         return $this->render('pages/admin/notifications.html.twig');

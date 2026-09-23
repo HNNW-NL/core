@@ -4,13 +4,30 @@
 {% block title %}Notifications{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/admin/css/notifications.css") }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
+<header>
     <h2>Notifications</h2>
     <p>Admin dashboard - notifications page.</p>
+</header>
+
+<div class="dashboard">
+    <twig:Shared:Card>
+        <twig:Shared:Card:Header>Zoek notificaties</twig:Shared:Card:Header>
+        <twig:Shared:Card:Content>
+            {{ component('Admin:NotificationSearch',{
+                formData: null,
+            }) }}
+
+        </twig:Shared:Card:Content>
+    </twig:Shared:Card>
+</div>
+
 {% endblock %}
