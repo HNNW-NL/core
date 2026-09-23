@@ -1,5 +1,12 @@
-<form method="POST" class="edit-participants-form">
-    <input type="submit" class="submit" value="Submit Changes">
+<div {{ attributes }} class="edit-participants-form">
+    <button
+        type="button"
+        data-action="live#action"
+        data-live-action-param="updateParticipants"
+        class="submit"
+    >
+        Submit Changes
+    </button>
     <table class="edit-participants-table" id="edit-participants-table">
         <thead>
         <tr id="table-header-row">
@@ -12,11 +19,14 @@
         <tbody>
         {% for participant in this.participants %}
             <tr>
-                <td>{{ participant.profile.displayName }}</td> <!-- link to profile-->
+                <td>{{ participant.profile.displayName }}</td> <!-- link to profile page-->
                 <td>{{ participant.joinedAt ? participant.joinedAt|date('d/m/Y') : '-' }}</td>
                 <td>{{ participant.status.name }}</td>
                 <td>
-                    <select name="role[{{ participant.id }}]" class="select-role">
+                    <select
+                        class="select-role"
+                        data-model="rolesByParticipant[{{ participant.id }}]"
+                    >
                         {% for role in this.roles %}
                             <option value="{{ role.id }}"
                                     {% if role == participant.role %}selected{% endif %}>
@@ -29,4 +39,4 @@
         {% endfor %}
         </tbody>
     </table>
-</form>
+</div>

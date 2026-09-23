@@ -5,6 +5,7 @@ namespace App\Twig\Components\Org;
 
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRoleRepository;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -16,9 +17,14 @@ class ModifyParticipantsTable
 {
     use DefaultActionTrait;
 
+    #[LiveProp(writable: true)]
+    public array $rolesByParticipant = [];
+
+    #[LiveProp]
     public string $projectId = '';
     public function __construct(readonly private ProjectParticipantRepository $projectParticipantRepository,
-                                readonly private ProjectRoleRepository $projectRoleRepository)
+                                readonly private ProjectRoleRepository $projectRoleRepository,
+                                readonly private ProjectParticipantUpdateRoleHandler $projectParticipantUpdateRoleHandler)
     {
     }
 
@@ -35,6 +41,6 @@ class ModifyParticipantsTable
     #[LiveAction]
     public function updateParticipants(): void
     {
-
+        $this->projectParticipantUpdateRoleHandler->handle($this->rolesByParticipant);
     }
 }
