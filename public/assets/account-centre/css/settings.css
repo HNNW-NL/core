@@ -1,0 +1,30 @@
+#account-centre-container.settings-page {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+#account-centre-container.settings-page .dashboard-header,
+#account-centre-container.settings-page .account-flash-success,
+#account-centre-container.settings-page .account-form-container {
+	width: 100%;
+}
+
+#account-centre-container.settings-page .dashboard-header {
+	max-width: 550px;
+}
+
+#account-centre-container.settings-page .account-form-container {
+	max-width: 550px;
+	margin: 2rem auto 0;
+}
+
+#account-centre-container.settings-page .account-form {
+	width: 100%;
+}
+
+@media (max-width: 600px) {
+	#account-centre-container.settings-page .account-form-container {
+		padding: 1.5rem;
+	}
+}
