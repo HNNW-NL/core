@@ -3,6 +3,8 @@
 namespace App\Twig\Components\Org;
 
 use App\Repository\Account\ProfileRepository;
+use App\Repository\Project\ProjectParticipantRepository;
+use App\Entity\Account\Profile;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -20,9 +22,12 @@ class InviteParticipantsSearch
     #[LiveProp(writable: true)]
     public array $selectedProfileIds = [];
 
+    #[LiveProp(writable: true)]
     public string $projectId = '';
 
-    public function __construct(readonly private ProfileRepository $profileRepository)
+    public function __construct(readonly private ProfileRepository $profileRepository,
+                                readonly private ProjectParticipantRepository $projectParticipantRepository
+                                )
     {
     }
 
@@ -56,7 +61,8 @@ class InviteParticipantsSearch
         if (mb_strlen($this->query) < 2) {
             return [];
         }
-        return $this->profileRepository->search($this->query);
+
+        return $this->profileRepository->searchExcluding($this->query, $this->getProfileIdsInProject());
     }
 
     public function getSelectedProfiles(): array
@@ -70,6 +76,20 @@ class InviteParticipantsSearch
         ]);
     }
 
+    public function getParticipants(): array
+    {
+        return $this->projectParticipantRepository->findBy(['project' => $this->projectId]);
+    }
+
+    public function getProfilesInProject(): array
+    {
+        return array_map(fn ($participant) => $participant->getProfile(), $this->getParticipants());
+    }
+
+    public function getProfileIdsInProject(): array
+    {
+        return array_map(fn(Profile $profile) => $profile->getId(), $this->getProfilesInProject());
+    }
 
 
 }
