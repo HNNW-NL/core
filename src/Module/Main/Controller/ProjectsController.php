@@ -5,7 +5,9 @@ namespace App\Module\Main\Controller;
 use App\Module\Main\Handler\GetProjectWorkPackagesHandler;
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
+use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectRepository;
+use App\Security\Voter\PackageTaskVoter;
 use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -119,6 +121,7 @@ final class ProjectsController extends AbstractController
         string $taskId,
         Request $request,
         ProjectRepository $projectRepository,
+        PackageTaskRepository $packageTaskRepository,
         CurrentProfileProvider $currentProfileProvider,
         WorkPackageTaskEnrollmentHandler $workPackageTaskEnrollmentHandler,
     ): RedirectResponse {
@@ -147,6 +150,20 @@ final class ProjectsController extends AbstractController
         }
 
         $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
+
+        $packageTask = $packageTaskRepository->findOneForProject(
+            $taskId,
+            $project
+        );
+
+        if ($packageTask === null) {
+            throw $this->createNotFoundException('Taak niet gevonden.');
+        }
+
+        $this->denyAccessUnlessGranted(
+            PackageTaskVoter::EDIT,
+            $packageTask
+        );
 
         $profile = $currentProfileProvider->getProfile();
 
