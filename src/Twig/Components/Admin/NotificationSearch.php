@@ -2,6 +2,7 @@
 
 namespace App\Twig\Components\Admin;
 
+use App\Entity\Account\Notification;
 use App\Form\Admin\NotificationSearchType;
 use App\Module\Admin\DTO\NotificationSearchDTO;
 use App\Repository\Account\NotificationRepository;
@@ -23,6 +24,8 @@ class NotificationSearch extends AbstractController
     #[LiveProp]
     public ?NotificationSearchDTO $formData = null;
 
+    public array $notifications = [];
+
     public function __construct(private NotificationRepository $notificationRepository)
     {
     }
@@ -36,17 +39,16 @@ class NotificationSearch extends AbstractController
         return $this->createForm(NotificationSearchType::class, $this->formData);
     }
 
-    public function getnotifications(): array
+    public function get(): array
     {
         return $this->notificationRepository->findLatestChanged();
     }
 
     #[LiveAction]
-    public function search(EntityManagerInterface $entityManager)
+    public function search(NotificationRepository $notificationRepository)
     {
         $this->submitForm();
         $post = $this->getForm()->getData();
-
-
+        $this->notifications = $notificationRepository->findByTitleAndReceiver($post->title,$post->user?->getUsername());
     }
 }

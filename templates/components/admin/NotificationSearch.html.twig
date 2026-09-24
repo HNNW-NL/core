@@ -9,16 +9,50 @@
                 'data-live-action-param': 'search'
             }
         }) }}
-        <div class="form_field">
-            Zoekopdracht:
-            {{ form_widget(form.query,{attr:{ 'autocomplete' :'off'}})}}
-        </div>
-        {{ form_rest(form) }}
+        <table>
+            <tr class="form_field">
+                <td>titel:</td>
+                <td>{{ form_widget(form.title,{attr:{ 'autocomplete' :'off'}})}}</td>
+            </tr>
+            <tr class="form_field">
+                <td>gebruiker:</td>
+                <td>{{ form_widget(form.user,{attr:{ 'autocomplete' :'off'}})}}</td>
+            </tr>
+        </table>
         <button>Zoek</button>
+        {{ form_rest(form) }}
     {{ form_end(form) }}
-    <ul>
+    <table class="result">
+        <thead>
+            <th>Ontvanger</th>
+            <th>Sender</th>
+            <th>Type</th>
+            <th>Title</th>
+            <th>Message</th>
+            <th>Route</th>
+            <th>Gelezen op</th>
+            <th>Gemaakt op</th>
+            <th>DataJson</th>
+        </thead>
+        <tbody>
+        {% if this.notifications is empty %}
+            <tr><td Colspan="9">Geen notificaties</td></tr>
+        {% else %}
         {% for notification in this.notifications %}
-            <li>{{ notification.title }}</li>
+            <tr>
+                <td>{{ notification.account.username }}</td>
+                <td>{{ notification.senderAccount?.username }}</td>
+                <td>{{ notification.type }}</td>
+                <td>{{ notification.title }}</td>
+                <td>{{ notification.message}}</td>
+                <td>{{ notification.route }}</td>
+                <td>{{ notification.readAt?.date('d-m-Y H:i') }}</td>
+                <td>{{ notification.createdAt|date('d-m-Y H:i') }}</td>
+                <td>{{ notification.dataJson }}</td>
+            </tr>
         {% endfor %}
-    </ul>
+
+        {% endif %}
+        </tbody>
+    </table>
 </div>

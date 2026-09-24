@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Module\Admin\DTO;
-use Symfony\Component\Validator\Constraints as Assert;
+
+use App\Entity\Account\Account;
 
 class NotificationSearchDTO
 {
-   public string $query  = '';
+   public string $title  = '';
+   public ?Account $user  = null;
 }

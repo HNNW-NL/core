@@ -19,15 +19,98 @@
 </header>
 
 <div class="dashboard">
+    {% for message in app.flashes('success') %}
+        <twig:Shared:Card>
+            <twig:Shared:Card:Content style="color: green;">{{ message }}</twig:Shared:Card:Content>
+        </twig:Shared:Card>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <twig:Shared:Card>
+            <twig:Shared:Card:Content style="color: red;">{{ message }}</twig:Shared:Card:Content>
+        </twig:Shared:Card>
+    {% endfor %}
+    <twig:Shared:Card>
+        <twig:Shared:Card:Header>Nieuwste notificaties </twig:Shared:Card:Header>
+            <twig:Shared:Card:Content>
+                <table class="result">
+                    <thead>
+                        <th>Ontvanger</th>
+                        <th>Sender</th>
+                        <th>Type</th>
+                        <th>Title</th>
+                        <th>Message</th>
+                        <th>Route</th>
+                        <th>Gelezen op</th>
+                        <th>Gemaakt op</th>
+                        <th>DataJson</th>
+                    </thead>
+                    <tbody>
+                    {% if notifications is empty %}
+                        <tr><td Colspan="9">Geen notificaties</td></tr>
+                    {% else %}
+                        {% for notification in notifications %}
+                            <tr>
+                                <td>{{ notification.account.username }}</td>
+                                <td>{{ notification.senderAccount?.username }}</td>
+                                <td>{{ notification.type }}</td>
+                                <td>{{ notification.title }}</td>
+                                <td>{{ notification.message}}</td>
+                                <td>{{ notification.route }}</td>
+                                <td>{{ notification.readAt?.date('d-m-Y H:i') }}</td>
+                                <td>{{ notification.createdAt|date('d-m-Y H:i') }}</td>
+                                <td>{{ notification.dataJson }}</td>
+                            </tr>
+                        {% endfor %}
+
+                    {% endif %}
+                    </tbody>
+                </table>
+            </twig:Shared:Card:Content>
+        <twig:Shared:Card:Footer></twig:Shared:Card:Footer>
+    </twig:Shared:Card>
+
+
+
     <twig:Shared:Card>
         <twig:Shared:Card:Header>Zoek notificaties</twig:Shared:Card:Header>
         <twig:Shared:Card:Content>
             {{ component('Admin:NotificationSearch',{
                 formData: null,
             }) }}
-
         </twig:Shared:Card:Content>
     </twig:Shared:Card>
+
+
+    <twig:Shared:Card class="create-notifications">
+        <twig:Shared:Card:Header>Maak notificatie</twig:Shared:Card:Header>
+        <twig:Shared:Card:Content>
+            {{ form_start(form) }}
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Ontvanger: </td>
+                        <td>{{form_widget(form.account)}}</td>
+                    </tr>
+                    <tr>
+                        <td>Titel: </td>
+                        <td>{{form_widget(form.title)}}</td>
+                    </tr>
+                    <tr>
+                        <td>Type: </td>
+                        <td>{{form_widget(form.type)}}</td>
+                    </tr>
+                    <tr>
+                        <td>Bericht: </td>
+                        <td>{{form_widget(form.message)}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button>verstuur</button>
+                {{ form_rest(form) }}
+            {{ form_end(form) }}
+        </twig:Shared:Card:Content>
+    </twig:Shared:Card>
+    
 </div>
 
 {% endblock %}

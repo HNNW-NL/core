@@ -344,4 +344,9 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->verifyEmailTokens;
     }
+
+    /** @return string */
+    public function __toString() : string {
+        return $this->getUsername()." ".$this->getEmail();
+    }
 }

@@ -1,6 +1,6 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('assets/shared/css/card.css') }}">
 {% endblock %}
-<div class="card">
+<div {{ attributes.defaults({class: 'card'}) }}>
     {%- block content %}{% endblock -%}
 </div>
