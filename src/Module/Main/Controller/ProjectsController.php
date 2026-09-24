@@ -50,34 +50,66 @@ final class ProjectsController extends AbstractController
     }
 
     #[Route('/{slug}/chat', name: 'chat', methods: ['GET'])]
-    public function chat(string $slug): Response
-    {
+    public function chat(
+        string $slug,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository
+        );
+
         return $this->render('pages/main/projects/chat.html.twig', [
             'slug' => $slug,
+            'project' => $project,
         ]);
     }
 
     #[Route('/{slug}/participants', name: 'participants', methods: ['GET'])]
-    public function participants(string $slug): Response
-    {
+    public function participants(
+        string $slug,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository
+        );
+
         return $this->render('pages/main/projects/participants.html.twig', [
             'slug' => $slug,
+            'project' => $project,
         ]);
     }
 
     #[Route('/{slug}/reviews', name: 'reviews', methods: ['GET'])]
-    public function reviews(string $slug): Response
-    {
+    public function reviews(
+        string $slug,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository
+        );
+
         return $this->render('pages/main/projects/reviews.html.twig', [
             'slug' => $slug,
+            'project' => $project,
         ]);
     }
 
     #[Route('/{slug}/tasks', name: 'tasks', methods: ['GET'])]
-    public function tasks(string $slug): Response
-    {
+    public function tasks(
+        string $slug,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository
+        );
+
         return $this->render('pages/main/projects/tasks.html.twig', [
             'slug' => $slug,
+            'project' => $project,
         ]);
     }
 
@@ -114,6 +146,8 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
+        $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
+
         $profile = $currentProfileProvider->getProfile();
 
         if ($profile === null) {
@@ -148,10 +182,18 @@ final class ProjectsController extends AbstractController
     }
 
     #[Route('/{slug}/updates', name: 'updates', methods: ['GET'])]
-    public function updates(string $slug): Response
-    {
+    public function updates(
+        string $slug,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository
+        );
+
         return $this->render('pages/main/projects/updates.html.twig', [
             'slug' => $slug,
+            'project' => $project,
         ]);
     }
 
@@ -159,10 +201,36 @@ final class ProjectsController extends AbstractController
     public function workPackages(
         string $slug,
         GetProjectWorkPackagesHandler $handler,
+        ProjectRepository $projectRepository,
     ): Response {
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository
+        );
+
         return $this->render('pages/main/projects/work-packages.html.twig', [
             'slug' => $slug,
+            'project' => $project,
             'workPackages' => $handler->handle($slug),
         ]);
+    }
+
+    /**
+     * Haalt een project op en controleert direct of de huidige
+     * gebruiker dit specifieke project mag bekijken.
+     */
+    private function getProjectAndCheckViewAccess(
+        string $slug,
+        ProjectRepository $projectRepository,
+    ): object {
+        $project = $projectRepository->findOneVisibleBySlug($slug);
+
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
+
+        return $project;
     }
 }
