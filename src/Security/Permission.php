@@ -43,7 +43,7 @@ enum Permission: int
     /**
      * Zoekt een Permission op basis van de enum-naam (bijv. "ORG_EDIT").
      * Dit is nodig omdat de Voters een string-attribute binnenkrijgen
-     * (zoals bij IsGranted('ORG_EDIT', $organisation)).
+     * (zoals bij IsGranted('ORG_EDIT', $organisation))..
      */
     public static function fromName(string $name): ?self
     {
