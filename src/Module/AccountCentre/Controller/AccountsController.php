@@ -12,7 +12,6 @@ use App\Module\AccountCentre\Enum\AvailabilityType;
 use App\Module\AccountCentre\Enum\DayOfWeek;
 use App\Module\AccountCentre\Handler\CreateAvailabilityHandler;
 use App\Repository\Account\AvailabilityRepository;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -137,6 +136,13 @@ final class AccountsController extends AbstractController
         ];
 
         if ($request->isMethod('POST')) {
+            $csrfToken = (string) $request->request->get('_token');
+
+            if (!$this->isCsrfTokenValid('save_availability', $csrfToken)) {
+                $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+                return $this->redirectToRoute('account.availability');
+            }
+
             $daysInput = $request->request->all('days_config');
 
             try {
@@ -291,28 +297,50 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
-    public function deleteAvailability(string $id, Request $request, Connection $connection): Response
-    {
+    public function deleteAvailability(
+        string $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        AvailabilityRepository $availabilityRepository,
+    ): Response {
         $session = $request->getSession();
-        if (!$session->get('account_id')) {
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
             $this->addFlash('error', 'Je moet ingelogd zijn.');
             return $this->redirectToRoute('auth.login');
         }
 
-        $csrfToken = $request->request->get('_token');
-        if ($this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
-            try {
-                $connection->update(
-                    'availabilities',
-                    ['deleted_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
-                    ['id' => $id]
-                );
-                $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd (soft delete).');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Fout bij verwijderen: ' . $e->getMessage());
-            }
-        } else {
+        $csrfToken = (string) $request->request->get('_token');
+
+        if (!$this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
             $this->addFlash('error', 'Ongeldig veiligheidstoken.');
+            return $this->redirectToRoute('account.availability');
+        }
+
+        $availability = $availabilityRepository->find($id);
+
+        if (!$availability) {
+            $this->addFlash('error', 'Beschikbaarheid niet gevonden.');
+            return $this->redirectToRoute('account.availability');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        $profile = $account
+            ? $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account])
+            : null;
+
+        if (!$profile || $availability->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze beschikbaarheid.');
+        }
+
+        try {
+            $availability->softDelete();
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd.');
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Fout bij verwijderen: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('account.availability');
@@ -342,6 +370,13 @@ final class AccountsController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
+            $csrfToken = (string) $request->request->get('_token');
+
+            if (!$this->isCsrfTokenValid('save_experience', $csrfToken)) {
+                $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+                return $this->redirectToRoute('account.experience');
+            }
+
             $jobTitle = trim((string)$request->request->get('job_title'));
             $organisationName = trim((string)$request->request->get('organisation_name'));
             $startDateStr = trim((string)$request->request->get('start_date'));
