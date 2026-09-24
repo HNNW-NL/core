@@ -23,6 +23,31 @@
 	width: 100%;
 }
 
+#account-centre-container.settings-page .settings-form-divider {
+	margin: 2rem 0 1.25rem;
+	padding-bottom: 0.75rem;
+	border-bottom: 1px solid #2d3748;
+}
+
+#account-centre-container.settings-page .settings-form-divider h3 {
+	font-size: 1.1rem;
+	margin: 0;
+}
+
+#account-centre-container.settings-page .form-group textarea,
+#account-centre-container.settings-page .form-group select {
+	width: 100%;
+}
+
+#account-centre-container.settings-page .form-group textarea {
+	resize: vertical;
+	min-height: 7rem;
+}
+
+#account-centre-container.settings-page .form-group select {
+	padding: 0.85rem 1rem;
+}
+
 @media (max-width: 600px) {
 	#account-centre-container.settings-page .account-form-container {
 		padding: 1.5rem;
