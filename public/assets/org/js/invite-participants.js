@@ -116,7 +116,6 @@ list.addEventListener("click", (e) => {
 if (sessionStorage.getItem("clearList") === "1") {
     selected.length = 0;
     sessionStorage.removeItem("clearList");
-    
 }
 
 updateUI();

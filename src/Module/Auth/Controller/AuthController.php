@@ -116,7 +116,7 @@ final class AuthController extends AbstractController
                 $em->persist($account);
 
                 // 2. Setup Profile linked directly to Account
-                $nameParts = explode('', $data['full_name'], 2);
+                $nameParts = explode(' ', $data['full_name'], 2);
                 $firstName = $nameParts[0] !== '' ? $nameParts[0] : $data['username'];
                 $lastName = $nameParts[1] ?? '';
 
@@ -160,11 +160,14 @@ final class AuthController extends AbstractController
 
             } catch (\Exception $e) {
                 $em->getConnection()->rollBack();
-                 
-                $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
-                return $this->render('pages/auth/register.html.twig', [
-                    'old' => $data,
-                ]);
+
+              $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
+
+              return $this->render('pages/auth/register.html.twig', [
+                'errors' => [
+                    'general' => 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.'],
+                'old' => $data,
+            ]);
             }
 
             $this->addFlash('success', 'Account aangemaakt. Je kunt nu inloggen.');
