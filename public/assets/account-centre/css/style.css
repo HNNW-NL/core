@@ -20,39 +20,59 @@
 
 /* Flex-direction column zodat de brede kaarten strak onder elkaar staan */
 .account-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+    width: 100%;
+}
+
+/* Account cards */
+.account-card {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
-}
+    /*justify-content: space-between;*/
 
-/* Row-layout zodat de knop naast de tekst komt te staan */
-.account-card {
-    padding: 2rem;
-    border-radius: 12px;
+    min-height: 170px;
+    padding: 1.5rem;
+
+    background: var(--dark-bg);
+    border: 1px solid #2d3748;
+    border-radius: 14px;
+
     text-decoration: none;
-    transition: transform 0.3s ease, border-color 0.3s ease;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    box-sizing: border-box;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
+/* Hover */
 .account-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
+    border-color: var(--hnnw-yellow-400);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 
+/* Title */
 .account-card h3 {
-    font-size: 1.4rem;
-    margin-top: 0;
-    margin-bottom: 0.25rem;
+    margin: 0 0 0.6rem;
+    color: var(--hnnw-yellow-400);
+    font-size: 1.15rem;
+    font-weight: 700;
 }
 
+/* Description */
 .account-card p {
-    font-size: 0.95rem;
-    line-height: 1.5;
     margin: 0;
+    color: var(--hnnw-secondary-text);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+/* Last card fills the row */
+.account-card:last-child {
+    grid-column: 1 / -1;
 }
 
 .account-card-content {
@@ -796,4 +816,20 @@ body[data-theme="dark"] .custom-table tbody tr {
 
 .blocked-badge span {
     cursor: pointer;
+}
+
+@media (max-width: 700px) {
+    .account-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .account-card:last-child {
+        grid-column: auto;
+    }
+
+    .account-card {
+        min-height: 150px;
+        padding: 1.25rem;
+    }
 }
