@@ -30,6 +30,18 @@
 {# Page content #}
 
 {% block body %}
+<header class="topbar">
+    <div class="container nav">
+        <a class="brand" href="{{ path('main.home') }}" aria-label="Het Nieuwe² Werken home">
+            Het Nieuwe<sup>2</sup> Werken
+        </a>
+        <nav class="nav-links" aria-label="Hoofdnavigatie">
+            <a href="{{ path('main.home') }}">Home</a>
+            <a href="#about">About</a>
+        </nav>
+    </div>
+</header>
+
 <section class="hero container" id="about">
     <div class="hero-copy">
         <p class="eyebrow">Open platform voor de overheid</p>
