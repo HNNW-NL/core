@@ -1,0 +1,791 @@
+<?php
+?><!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HNNW | Over ons</title>
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --primary: #0d4c92;
+            --primary-dark: #0a3d74;
+            --accent: #6ec6d4;
+            --text: #1c2430;
+            --muted: #5d6b7a;
+            --line: #dfe7f0;
+            --success: #dff7ee;
+            --shadow: 0 18px 45px rgba(13, 76, 146, 0.12);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(180deg, #f4f7fb 0%, #eef4fa 100%);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        a { text-decoration: none; }
+
+        .container {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line);
+            z-index: 10;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 76px;
+            gap: 20px;
+        }
+
+        .brand {
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 0.96rem;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-cta {
+            background: var(--primary);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 999px;
+            font-weight: 700;
+            box-shadow: var(--shadow);
+        }
+
+        .hero {
+            padding: 72px 0 28px;
+        }
+
+        .hero-inner {
+            display: grid;
+            grid-template-columns: 1.35fr 0.95fr;
+            gap: 42px;
+            align-items: center;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: #ebf4ff;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 0.02em;
+        }
+
+        h1 {
+            margin: 18px 0 18px;
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            letter-spacing: -0.05em;
+            line-height: 0.96;
+            color: var(--text);
+        }
+
+        .lead {
+            font-size: 1.15rem;
+            color: var(--muted);
+            max-width: 680px;
+            margin-bottom: 28px;
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 22px;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--line);
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            padding: 28px;
+        }
+
+        .hero-card .mini-tag {
+            display: inline-flex;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: var(--success);
+            color: #157c60;
+            font-weight: 700;
+            font-size: 0.75rem;
+            margin-bottom: 12px;
+        }
+
+        .hero-card h2 {
+            margin: 0 0 12px;
+            font-size: 2rem;
+            letter-spacing: -0.04em;
+        }
+
+        .hero-card p {
+            margin: 0 0 18px;
+            color: var(--muted);
+        }
+
+        .list {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--text);
+        }
+
+        .list li {
+            margin-bottom: 10px;
+            color: var(--muted);
+        }
+
+        .section {
+            padding: 50px 0;
+        }
+
+        .section-header {
+            margin-bottom: 30px;
+            max-width: 780px;
+        }
+
+        .section-header h3 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            letter-spacing: -0.05em;
+            margin: 0 0 12px;
+        }
+
+        .section-header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.05rem;
+        }
+
+        .split {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .text-block {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 12px 26px rgba(17, 40, 80, 0.05);
+        }
+
+        .text-block h4 {
+            margin: 0 0 14px;
+            font-size: 1.5rem;
+            letter-spacing: -0.04em;
+        }
+
+        .text-block p {
+            margin: 0 0 16px;
+            color: var(--muted);
+        }
+
+        .chip-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 22px;
+        }
+
+        .chip {
+            background: linear-gradient(180deg, #f7fbff 0%, #eef6ff 100%);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .chip strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .chip span {
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+            margin-top: 28px;
+        }
+
+        .feature-card {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 24px 22px;
+            box-shadow: 0 12px 26px rgba(17, 40, 80, 0.05);
+        }
+
+        .icon {
+            width: 52px;
+            height: 52px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: #edf6ff;
+            font-size: 1.5rem;
+            margin-bottom: 18px;
+        }
+
+        .feature-card h4 {
+            margin: 0 0 10px;
+            font-size: 1.3rem;
+            letter-spacing: -0.04em;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .open-source {
+            background: linear-gradient(135deg, #0d4c92 0%, #1b6fb7 100%);
+            color: white;
+            border-radius: 28px;
+            padding: 40px 34px;
+            box-shadow: var(--shadow);
+        }
+
+        .open-source .section-header h3,
+        .open-source .section-header p {
+            color: white;
+        }
+
+        .source-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 28px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .source-box {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.22);
+            border-radius: 22px;
+            padding: 24px;
+        }
+
+        .source-box p,
+        .source-box li {
+            color: rgba(255,255,255,0.82);
+        }
+
+        .source-box ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .cta {
+            padding: 42px 0 70px;
+            text-align: center;
+        }
+
+        .cta-box {
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            padding: 42px 22px;
+            box-shadow: 0 15px 35px rgba(13, 76, 146, 0.08);
+        }
+
+        .cta-box h3 {
+            margin: 0 0 12px;
+            font-size: clamp(2rem, 4vw, 3rem);
+            letter-spacing: -0.05em;
+        }
+
+        .cta-box p {
+            margin: 0 auto 22px;
+            max-width: 720px;
+            color: var(--muted);
+        }
+
+        footer {
+            background: #0f1724;
+            color: rgba(255,255,255,0.75);
+            padding: 28px 0 40px;
+        }
+
+        .footer-inner {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.85);
+        }
+
+        @media (max-width: 900px) {
+            .hero-inner,
+            .split,
+            .source-grid,
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chip-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 16px 0;
+            }
+
+            .nav-links {
+                justify-content: center;
+                gap: 14px 18px;
+            }
+
+            .chip-grid,
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="container nav">
+            <div class="brand">Het Nieuwe² Werken</div>
+            <nav class="nav-links" aria-label="Hoofdnavigatie">
+                <a href="#home">Home</a>
+                <a href="#features">Features</a>
+                <a href="#open-beta">Open Bèta</a>
+                <a href="#open-source">Open Source</a>
+                <a href="#slack">Slack</a>
+            </nav>
+            <a href="#aanmelden" class="nav-cta">Nu aan de slag</a>
+        </div>
+    </header>
+
+    <main id="home">
+        <section class="hero">
+            <div class="container hero-inner">
+                <div>
+                    <div class="eyebrow">Open Bèta • Transparant via Codeberg • Community op Slack</div>
+                    <h1>Breng vraag &amp; aanbod van werk bij elkaar.</h1>
+                    <p class="lead">Open, transparant en samen. Publiceer hulpvragen, vind expertise binnen en buiten je organisatie, werk veilig samen en bouw aan interdepartementale impact.</p>
+
+                    <div class="buttons">
+                        <a href="#aanmelden" class="btn btn-primary">Nu aan de slag</a>
+                        <a href="#features" class="btn btn-secondary">Ontdek features</a>
+                    </div>
+
+                    <div class="meta">
+                        <span>⟳ Open source</span>
+                        <span>🤝 Community</span>
+                        <span>🔐 Veilig &amp; schaalbaar</span>
+                    </div>
+                </div>
+
+                <aside class="hero-card" aria-label="Open bèta info">
+                    <div class="mini-tag">Open Bèta is begonnen</div>
+                    <h2>Het crowd-sourcing platform voor de overheid</h2>
+                    <p>De basis staat en het platform is continu in ontwikkeling. We nodigen organisaties binnen de overheid uit om actief mee te doen en feedback te geven — zodat we sneller verbeteren waar het ertoe doet.</p>
+                    <ul class="list">
+                        <li>Gebruik de feedbackknop in de app</li>
+                        <li>Issues &amp; voortgang zijn openbaar op Codeberg</li>
+                        <li>Sluit je aan op Slack (#project-hnnw)</li>
+                    </ul>
+                </aside>
+            </div>
+        </section>
+
+        <section class="section" id="open-beta">
+            <div class="container split">
+                <div class="text-block">
+                    <h4>Open, veilig en schaalbaar</h4>
+                    <p>Het platform is ontworpen voor samenwerking over grenzen heen. Het ondersteunt teams, diensten en afdelingen die samen werken aan publieke vraagstukken en innovatieve oplossingen.</p>
+                    <div class="chip-grid">
+                        <div class="chip">
+                            <strong>Projecten</strong>
+                            <span>Publiceer projecten, verzamel een team en wijs rollen toe.</span>
+                        </div>
+                        <div class="chip">
+                            <strong>Werkpakketten</strong>
+                            <span>Definieer concrete taken die op afstand uitgevoerd kunnen worden.</span>
+                        </div>
+                        <div class="chip">
+                            <strong>Groepen</strong>
+                            <span>Start interdepartementale communities met een gezamenlijk doel.</span>
+                        </div>
+                        <div class="chip">
+                            <strong>Matching</strong>
+                            <span>Ontvang suggesties voor projecten, werkpakketten en events.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-block">
+                    <h4>Wat kan ik ermee?</h4>
+                    <p>Onderstaande modules vormen de bouwblokken van het platform. Ze helpen bij het organiseren van samenwerking, kennisdeling en inzet van vakkennis.</p>
+                    <ul class="list">
+                        <li>360° Reviews</li>
+                        <li>Volgen &amp; notificaties</li>
+                        <li>Polls &amp; forum</li>
+                        <li>Scoren, punten en reputatie</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h3>Wat kan je op het platform doen?</h3>
+                    <p>HNNW helpt om werk, kennis en mensen op een veilige en open manier bij elkaar te brengen.</p>
+                </div>
+
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <div class="icon">🧩</div>
+                        <h4>Projecten</h4>
+                        <p>Publiceer projecten, verzamel een team, wijs rollen toe en laat geïnteresseerden zich inschrijven.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="icon">📦</div>
+                        <h4>Werkpakketten</h4>
+                        <p>Definieer concrete taken die op afstand uitgevoerd kunnen worden.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="icon">👥</div>
+                        <h4>Groepen</h4>
+                        <p>Start interdepartementale communities met een gezamenlijk doel.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="icon">🎯</div>
+                        <h4>Profielen &amp; Matching</h4>
+                        <p>Maak een profiel en ontvang suggesties voor projecten, werkpakketten en events.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="icon">⭐</div>
+                        <h4>360° Reviews</h4>
+                        <p>Opdrachtgever en opdrachtnemer bouwen aan reputatie, punten en waardering.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="icon">🔔</div>
+                        <h4>Volgen &amp; Notificaties</h4>
+                        <p>Volg onderwerpen en ontvang updates die ertoe doen.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="icon">🗳️</div>
+                        <h4>Polls &amp; Forum</h4>
+                        <p>Peil meningen, start discussies en bouw samen aan een community.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="icon">🏆</div>
+                        <h4>Scoren</h4>
+                        <p>Verdien punten door activiteiten op het platform te voltooien.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="icon">💬</div>
+                        <h4>Community</h4>
+                        <p>Werk samen, deel kennis en bouw een open netwerk van overheidspartners op.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="open-source">
+            <div class="container open-source">
+                <div class="section-header">
+                    <h3>100% Open Source</h3>
+                    <p>De broncode is publiek beschikbaar. Help mee met design, UX/UI, code of documentatie. Transparantie en samenwerking staan centraal.</p>
+                </div>
+
+                <div class="source-grid">
+                    <div class="source-box">
+                        <p><strong>Broncode</strong><br>Open en toegankelijk voor de hele community.</p>
+                        <p><strong>Issues</strong><br>Openbaar volgen van ontwikkelvoortgang en feedback.</p>
+                        <p><strong>#hnnw op Slack</strong><br>Praat mee met de community en deel ideeën.</p>
+                    </div>
+
+                    <div class="source-box">
+                        <p><strong>Contributierichtlijnen (voorbeeld)</strong></p>
+                        <ul>
+                            <li>Fork het project op Codeberg</li>
+                            <li>Maak een feature branch en een nette PR</li>
+                            <li>Beschrijf context, use-case en teststappen</li>
+                            <li>Houd publieke issues en roadmap bij</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta" id="aanmelden">
+            <div class="container">
+                <div class="cta-box">
+                    <h3>HNNW ∞</h3>
+                    <p>Samen bouwen we aan een veilige, open en krachtige digitale overheid. Registreer nu en ga aan de slag.</p>
+                    <div class="buttons" style="justify-content:center;">
+                        <a href="#" class="btn btn-primary">Account aanmaken</a>
+                        <a href="#" class="btn btn-secondary">Naar Slack</a>
+                    </div>
+                    <p style="margin-top:16px; color: var(--muted);">Tip: gebruik je overheids-emailadres voor snelle verificatie.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-inner">
+            <div>© 2026 HNNW — Het Nieuwe² Werken</div>
+            <div class="footer-links" aria-label="Footer links">
+                <a href="#features">Features</a>
+                <a href="#open-beta">Open bèta</a>
+                <a href="#open-source">Open source</a>
+                <a href="#">Community</a>
+                <a href="#">Slack</a>
+                <a href="#">Broncode</a>
+                <a href="#">Issues</a>
+            </div>
+        </div>
+    </footer>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+</body>
+</html>
+
+body {
+   margin: 0;
+    padding-inline: 90px;
+}
+
+.main {
+    min-height: 100vh;
+    background-color: brown;
+    display: flex;
+    flex-direction: column;
+}
+
+.homepage {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 60px; 
+background-color: rgb(121, 101, 101);
+}
+
+.homepage span {
+    color: white;
+    font-size: 30px;
+}
+
+.navbar { 
+height: 60px; 
+background-color: black;
+display: flex; 
+justify-content: center; 
+align-items: center;
+} 
+
+.nav-links { 
+display: flex; justify-content: center; align-items: center; gap: 15px; list-style: none; margin: 0; padding: 0;
+} 
+
+.nav-links li { background-color: rgb(70, 70, 70); padding: 8px 60px; border-radius: 8px; }
+
+
+.nav-links a { 
+
+color: white; 
+text-decoration: none; 
+font-size: 16px;
+} 
+
+.nav-links li:hover { background-color: rgb(100, 100, 100); }
+
+.belly { 
+flex: 1;
+background-color: lightblue;
+}
+
+.footer { 
+margin-top: auto; 
+height: 60px; 
+background-color: #222; color: white;
+display: flex; 
+justify-content: center; 
+align-items: center; 
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="bpv.css">
+</head>
+<body>
+<div class="main">
+<div class="homepage">  <span> HomePage!!!! </span> </div>  
+ <div class="navbar">
+    <ul class="nav-links"> 
+    <li><a href="#">Home</a></li> 
+    <li><a href="about.php">About</a></li> 
+    <li><a href="#">Services</a></li> 
+    <li><a href="#">Contact</a></li></ul>
+ </div>
+ <div class="belly">
+ </div>   
+
+ <footer class="footer"> <p>© 2026 My Website</p> </footer>
+
+
+
+ 
+</div>
+</body>
+</html>
