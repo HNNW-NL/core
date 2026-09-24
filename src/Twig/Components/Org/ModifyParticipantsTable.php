@@ -22,6 +22,9 @@ class ModifyParticipantsTable
 
     #[LiveProp]
     public string $projectId = '';
+
+    public bool $submitted = false;
+
     public function __construct(readonly private ProjectParticipantRepository $projectParticipantRepository,
                                 readonly private ProjectRoleRepository $projectRoleRepository,
                                 readonly private ProjectParticipantUpdateRoleHandler $projectParticipantUpdateRoleHandler)
@@ -42,5 +45,6 @@ class ModifyParticipantsTable
     public function updateParticipants(): void
     {
         $this->projectParticipantUpdateRoleHandler->handle($this->rolesByParticipant);
+        $this->submitted = true;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Twig\Components\Org;
 use App\Repository\Account\ProfileRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Entity\Account\Profile;
+use App\Module\Org\Service\InviteParticipantsService;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -50,9 +51,9 @@ class InviteParticipantsSearch
     }
 
     #[LiveAction]
-    public function inviteSelectedProfiles(): void
+    public function inviteSelectedProfiles(InviteParticipantsService $inviteParticipantsService): void
     {
-        // send invites to profiles
+        $inviteParticipantsService->addToProject($this->projectId, $this->getSelectedProfiles());
         $this->selectedProfileIds = [];
     }
 

@@ -1,4 +1,9 @@
 <div {{ attributes }} class="edit-participants-form">
+    {% if this.submitted == true %}
+        <twig:Shared:Alert variant="success">
+            The changes were saved.
+        </twig:Shared:Alert>
+    {% endif %}
     <button
         type="button"
         data-action="live#action"
