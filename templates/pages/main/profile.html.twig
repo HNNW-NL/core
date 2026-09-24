@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="page">
+<main class="page">
     <div class="profile-card">
 
         <div class="profile-picture-section">
@@ -42,7 +42,6 @@
             </div>
 
             <p>@username</p>
-            <p>Junior Software Developer</p>
 
             {# Location #}
             <p class="profile-location" onclick="openLocationPopup()">
@@ -171,21 +170,51 @@
 
 		</div>
 
-        <div class="achievements-bar">
-            <div class="circle"></div>
-            <div class="circle"></div>
-            <div class="circle"></div>
-            <div class="circle"></div>
-            <div class="circle"></div>
-        </div>
+        <div class="projects-grid">
 
-		<div class="card">
-			<div class="action-buttons">
-				<a href="#" class="btn-outline">Projects</a>
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="" alt="">
+                </div>
+
+                <div class="project-content">
+                    <h3>Mijn Project</h3>
+                    <p>
+                        Een korte beschrijving van mijn project en wat ik ermee heb gemaakt.
+                    </p>
+
+                    <div class="project-tags">
+                        <span>HTML</span>
+                        <span>CSS</span>
+                        <span>PHP</span>
+                    </div>
+
+                    <a href="#" class="project-link">Bekijk project →</a>
+                </div>
             </div>
-		</div>
 
+            <div class="project-card">
+                <div class="project-image">
+                    <img src="" alt="">
+                </div>
 
+                <div class="project-content">
+                    <h3>Ander Project</h3>
+                    <p>
+                        Een korte beschrijving van mijn tweede project en wat ik ermee heb gemaakt.
+                    </p>
+
+                    <div class="project-tags">
+                        <span>JavaScript</span>
+                        <span>MySQL</span>
+                    </div>
+
+                    <a href="#" class="project-link">Bekijk project →</a>
+                </div>
+            </div>
+
+        </div>
+        
 
 
 	</div>
@@ -246,6 +275,6 @@
 			});
 		}
 	   </script>
-    </div>
+    </main>
     {% endblock %}
 

@@ -479,15 +479,7 @@ body {
 
 /* CARD */
 
-.card {
-    background: var(--card-bg);
 
-    border-radius: 14px;
-    border: 1px solid #242c3b;
-    padding: 20px;
-
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-}
 
 .card-about-me {
     background: var(--card-bg);
@@ -525,7 +517,7 @@ body {
 }
 
 .bubble-ex {
-    background: #000;
+    background: var(--dark-bg);
     padding: 10px 18px;
     min-width: 120px;
     border-radius: 20px;
@@ -537,7 +529,7 @@ body {
 }
 
 .bubble-med {
-    background: #000;
+    background: var(--dark-bg);;
     padding: 10px 18px;
     min-width: 120px;
     border-radius: 20px;
@@ -549,7 +541,7 @@ body {
 }
 
 .bubble-be {
-    background: #000;
+    background: var(--dark-bg);
     padding: 10px 18px;
     min-width: 120px;
     border-radius: 20px;
@@ -645,106 +637,472 @@ body {
 
 
 
-/* ACHIEVEMENTS */
+/* PROJECTS */
 
-.achievements-bar {
-
-    grid-column: span 1;
-
-    background: var(--card-bg);
-
-    border: 1px solid #242c3b;
-
-    border-radius: 12px;
-
-    padding: 15px 25px;
-
-    display: flex;
-
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-
-    align-items: center;
+    width: 100%;
 }
 
-.circle {
-    width: 50px;
+/* PROJECT CARD */
 
-    height: 50px;
+.project-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    border: 1px solid #242c3b;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 
-    background: #1a2332;
+    overflow: hidden;
 
-    border-radius: 50%;
-
-    flex-shrink: 0;
+    transition: transform 0.2s ease, border-color 0.2s ease;
 }
-/* =========================
-   RESPONSIVE
-========================= */
 
-@media (max-width: 992px) {
-    .main-grid {
+
+/* PROJECT IMAGE */
+
+.project-image {
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+    background: var(--icon-bg);
+}
+
+.project-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* PROJECT CONTENT */
+
+.project-content {
+    padding: 18px;
+}
+
+.project-content h3 {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.project-content p {
+    color: var(--text-gray);
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 14px;
+}
+
+/* TECHNOLOGY TAGS */
+
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.project-tags span {
+    background: var(--dark-bg);
+    color: var(--hnnw-yellow-300);
+
+    padding: 5px 9px;
+    border-radius: 6px;
+
+    font-size: 12px;
+}
+
+/* PROJECT LINK */
+
+.project-link {
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.project-link:hover {
+    color: var(--hnnw-yellow-300);
+    transition: 0.1s;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+    .projects-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .projects-grid {
         grid-template-columns: 1fr;
     }
+}
 
-    .achievements-bar {
-        grid-column: span 1;
+
+/* RESPONSIVENESS */
+
+/* TABLET / SMALL DESKTOP */
+
+@media (max-width: 992px) {
+
+    .page {
+        width: 92%;
+        margin: 80px auto 40px;
+    }
+
+    /* PROFILE */
+
+    .profile-card {
+        gap: 25px;
+    }
+
+    .profile-text h1 {
+        font-size: 24px;
+    }
+
+    .achievements {
+        gap: 8px;
+    }
+
+    /* PROJECTS */
+
+    .projects-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+
+/* TABLET */
 
 @media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
+
+    .page {
+        width: 92%;
+        margin: 70px auto 35px;
     }
 
-    .tech-stack {
-        width: 100%;
-        justify-content: center;
+    /* PROFILE */
+
+    .profile-card {
+        display: flex;
         flex-wrap: wrap;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 35px;
     }
+
+    .profile-picture-section {
+        flex-shrink: 0;
+    }
+
+    .profile-text {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .profile-text h1 {
+        font-size: 23px;
+    }
+
+    .profile-text p {
+        font-size: 14px;
+    }
+
+    .achievements {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+        padding-top: 5px;
+    }
+
+
+    /* ABOUT ME CARD */
 
     .card-about-me {
-        max-width: 100%;
+        padding: 22px;
+        min-height: auto;
     }
 
-    .achievements-bar {
+
+    /* EXPERTISE */
+
+    .expertise-container {
+        gap: 8px;
+    }
+
+    .bubble-ex,
+    .bubble-med,
+    .bubble-be {
+        min-width: auto;
+        padding: 9px 14px;
+        font-size: 0.88rem;
+    }
+
+
+    /* SOCIALS */
+
+    .socials-icons {
         flex-wrap: wrap;
+    }
+
+
+    /* PROJECTS */
+
+    .projects-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 15px;
+    }
+
+    .project-image {
+        height: 140px;
+    }
+
+    .project-content {
+        padding: 15px;
+    }
+
+    .project-content h3 {
+        font-size: 17px;
+    }
+
+    .project-content p {
+        font-size: 13px;
     }
 }
 
-@media (max-width: 480px) {
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
     .page {
-        width: 95%;
+        width: 94%;
+        margin: 60px auto 30px;
     }
 
-    .profile {
-        /* flex-direction: column; */
-        align-items: flex-start;
+
+    /* PROFILE */
+
+    .profile-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .profile-picture-section {
+        width: 100%;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto;
+    }
+
+    .edit-profile-picture {
+        width: 32px;
+        height: 32px;
+        right: -6px;
+        bottom: -6px;
+        font-size: 16px;
+    }
+
+    .profile-text {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .profile-name-row {
+        justify-content: center;
+        gap: 8px;
     }
 
     .profile-text h1 {
         font-size: 22px;
     }
 
-    .tech-stack {
+    .profile-text p {
+        font-size: 13px;
+    }
+
+    .profile-location {
+        margin-top: 6px;
+    }
+
+
+    /* ACHIEVEMENTS */
+
+    .achievements {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+        gap: 10px;
+    }
+
+    .achievement-circle {
+        width: 30px;
+        height: 30px;
+    }
+
+
+    /* ABOUT ME */
+
+    .card-about-me {
+        padding: 18px;
+        border-radius: 12px;
+        gap: 12px;
+    }
+
+    .card-about-me h2 {
+        font-size: 20px;
+    }
+
+    .text-muted {
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+
+    /* EXPERTISE */
+
+    .expertise-container {
+        gap: 7px;
+    }
+
+    .bubble-ex,
+    .bubble-med,
+    .bubble-be {
+        padding: 8px 12px;
+        font-size: 0.82rem;
+        border-width: 1px;
+    }
+
+
+    /* SOCIALS */
+
+    .socials-section {
+        margin-top: 20px;
+    }
+
+    .socials-section h3 {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    .socials-icons {
         gap: 8px;
     }
 
-    .tech-icon {
-        width: 45px;
-        height: 45px;
+    .social-button {
+        width: 44px;
+        height: 44px;
     }
 
-    .tech-icon img {
-        width: 26px;
-        height: 26px;
+    .social-button img {
+        width: 21px;
+        height: 21px;
     }
 
-    .circle {
-        width: 40px;
-        height: 40px;
+
+    /* PROJECTS */
+
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .project-image {
+        height: 160px;
+    }
+
+    .project-content {
+        padding: 16px;
+    }
+
+    .project-content h3 {
+        font-size: 17px;
+    }
+
+    .project-content p {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .project-tags {
+        gap: 5px;
+    }
+
+    .project-tags span {
+        font-size: 11px;
+        padding: 4px 8px;
     }
 }
+
+
+/*  VERY SMALL PHONES */
+
+@media (max-width: 400px) {
+
+    .page {
+        width: 92%;
+        margin-top: 50px;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .profile-text h1 {
+        font-size: 20px;
+    }
+
+    .profile-text p {
+        font-size: 12px;
+    }
+
+    .card-about-me {
+        padding: 15px;
+    }
+
+    .card-about-me h2 {
+        font-size: 18px;
+    }
+
+    .bubble-ex,
+    .bubble-med,
+    .bubble-be {
+        padding: 7px 10px;
+        font-size: 0.78rem;
+    }
+
+    .project-image {
+        height: 140px;
+    }
+
+    .project-content {
+        padding: 14px;
+    }
+
+    .project-content h3 {
+        font-size: 16px;
+    }
+
+    .project-content p {
+        font-size: 12px;
+    }
+
+    .btn-outline {
+        max-width: 100%;
+    }
+}
+
 
 /* WEBKIT SCROLLBAR */
 
