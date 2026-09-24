@@ -28,6 +28,55 @@
 {# Page content #}
 
 {% block body %}
-    <h2>Home</h2>
-    <p>Main - home page.</p>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Het Nieuwe² Werken</title>
+    <link rel="stylesheet" href="home-page.css">
+</head>
+<body>
+<header class="topbar">
+    <div class="container nav">
+        <a class="brand" href="home-page.php" aria-label="Het Nieuwe² Werken home">
+            Het Nieuwe<sup>2</sup> Werken
+        </a>
+        <nav class="nav-links" aria-label="Hoofdnavigatie">
+            <a href="home-page.php">Home</a>
+            <a href="#about">About</a>
+        </nav>
+    </div>
+</header>
+
+<main id="about">
+    <section class="hero container" id="home">
+        <div class="hero-copy">
+            <p class="eyebrow">Open platform voor de overheid</p>
+            <h1>Breng vraag &amp; aanbod van werk bij elkaar <span>open, transparant en samen.</span></h1>
+            <p class="hero-text">Publiceer hulpvragen, vind expertise binnen en buiten je organisatie, werk veilig samen en bouw aan interdepartementale impact.</p>
+            <div class="hero-actions">
+                <a class="button button-primary" href="mailto:contact@hnnw.nl">Nu aan de slag</a>
+                <a class="button button-secondary" href="https://hnnw.nl">Bezoek HNNW</a>
+            </div>
+            <p class="hero-note">Open bèta <span>•</span> Transparant via Codeberg <span>•</span> Community op Slack</p>
+        </div>
+
+        <div class="hero-visual" aria-label="Verbind projecten, mensen en taken">
+            <div class="visual-orbit orbit-one"></div>
+            <div class="visual-orbit orbit-two"></div>
+            <div class="visual-center">🤝</div>
+            <div class="visual-label label-top">Projecten</div>
+            <div class="visual-label label-right">Mensen</div>
+            <div class="visual-label label-bottom">Taken</div>
+            <div class="visual-caption">Verbind projecten,<br>mensen en taken</div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="container footer-content">
+        <span>© 2026 HNNW — Het Nieuwe² Werken</span>
+        <span>Open, veilig en schaalbaar samenwerken</span>
+    </div>
+</footer>
 {% endblock %}
