@@ -43,6 +43,19 @@
             <a href="#contact">Contact</a>
             <a href="https://slack.com" target="_blank" rel="noopener noreferrer">Slack</a>
         </nav>
+        <details class="mobile-nav">
+            <summary aria-label="Open navigatiemenu">
+                <span class="menu-icon" aria-hidden="true"></span>
+                <span>Menu</span>
+            </summary>
+            <nav class="mobile-nav-links" aria-label="Mobiele hoofdnavigatie">
+                <a href="{{ path('main.home') }}">Home</a>
+                <a href="#projects">Project</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+                <a href="https://slack.com" target="_blank" rel="noopener noreferrer">Slack</a>
+            </nav>
+        </details>
     </div>
 </header>
 
@@ -78,19 +91,19 @@
 
         <div class="feature-grid">
             <article class="feature-card">
-                <span class="feature-icon" aria-hidden="true">🔎</span>
+                <span class="feature-icon feature-icon-search" aria-hidden="true"></span>
                 <h3>Vind expertise</h3>
                 <p>Zoek snel de juiste mensen, kennis en ervaring voor jouw opdracht of project.</p>
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon" aria-hidden="true">🤝</span>
+                <span class="feature-icon feature-icon-share" aria-hidden="true"></span>
                 <h3>Deel werk</h3>
                 <p>Maak vraag en aanbod zichtbaar, zodat teams sneller kunnen aansluiten en samenwerken.</p>
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon" aria-hidden="true">📈</span>
+                <span class="feature-icon feature-icon-impact" aria-hidden="true"></span>
                 <h3>Meet impact</h3>
                 <p>Blijf inzichtelijk over samenwerking, voortgang en resultaten in één overzicht.</p>
             </article>
