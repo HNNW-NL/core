@@ -161,8 +161,6 @@ final class AuthController extends AbstractController
             } catch (\Exception $e) {
                 $em->getConnection()->rollBack();
 
-                // Diagnostic dump to identify missing entity parameters easily
-                dd($e->getMessage(), $e->getTraceAsString());
 
                 $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
                 return $this->render('pages/auth/register.html.twig', [
