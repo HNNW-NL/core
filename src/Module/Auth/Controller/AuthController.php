@@ -20,7 +20,7 @@ use App\Entity\Common\Status;
 #[Route('/auth', name: 'auth.')]
 final class AuthController extends AbstractController
 {
-    #[Route('/login', name: 'login', methods: ['GET'])]
+    #[Route('/login', name: 'login', methods: ['GET', 'POST'])]
     public function login(Request $request): Response
     {
         // De POST naar deze route wordt onderschept en afgehandeld door

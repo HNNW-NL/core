@@ -9,6 +9,7 @@ use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
  * Laadt een Account voor Symfony Security. Ondersteunt inloggen op zowel
@@ -55,7 +56,7 @@ final class AccountUserProvider implements UserProviderInterface, PasswordUpgrad
         return Account::class === $class || is_subclass_of($class, Account::class);
     }
 
-    public function upgradePassword(UserInterface $user, string $newHashedPassword): void
+        public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof Account) {
             return;
