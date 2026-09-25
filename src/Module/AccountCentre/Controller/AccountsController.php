@@ -7,7 +7,11 @@ use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
-use Doctrine\DBAL\Connection;
+use App\Module\AccountCentre\DTO\AvailabilityDTO;
+use App\Module\AccountCentre\Enum\AvailabilityType;
+use App\Module\AccountCentre\Enum\DayOfWeek;
+use App\Module\AccountCentre\Handler\CreateAvailabilityHandler;
+use App\Repository\Account\AvailabilityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -94,9 +98,13 @@ final class AccountsController extends AbstractController
         return $this->redirectToRoute('account.applications');
     }
 
-    #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
-    public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
-    {
+      #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
+    public function availability(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        CreateAvailabilityHandler $createAvailabilityHandler,
+        AvailabilityRepository $availabilityRepository,
+    ): Response {
         $session = $request->getSession();
         $accountId = $session->get('account_id');
 
@@ -118,8 +126,7 @@ final class AccountsController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
-            $startDate = $request->request->get('start_date') ?: (new \DateTimeImmutable())->format('Y-m-d');
-            $endDate = $request->request->get('end_date') ?: null;
+            $csrfToken = (string) $request->request->get('_token');
 
             $daysInput = $request->request->all('days_config');
 
@@ -159,35 +166,71 @@ final class AccountsController extends AbstractController
                 }
             }
 
-            $hours = (int) round($totalHours);
-            $typeCode = ($hours >= 32) ? 'FT' : 'PT';
-
-            $compactType = implode('', $activeDays) . '|' . $startTime . '-' . $endTime . '|' . $typeCode;
-            $compactType = substr($compactType, 0, 25);
+            $daysInput = $request->request->all('days_config');
 
             try {
-                $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+                $validFrom = new \DateTimeImmutable(
+                    (string) ($request->request->get('start_date') ?: 'today')
+                );
+                $validUntilInput = $request->request->get('end_date');
+                $validUntil = $validUntilInput
+                    ? new \DateTimeImmutable((string) $validUntilInput)
+                    : null;
 
-                $connection->insert('availabilities', [
-                    'id' => Uuid::v4()->toString(),
-                    'availability_type' => $compactType,
-                    'hours_per_week' => $hours,
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                    'profile_id' => $profile->getId()->toString(),
-                    'created_at' => $now,
-                    'last_modified' => $now,
-                    'deleted_at' => null
-                ]);
+                $savedCount = 0;
 
-                $this->addFlash('success', 'Beschikbaarheidsschema succesvol opgeslagen!');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Databasefout bij opslaan: ' . $e->getMessage());
+                foreach ($dayEnums as $dayNumber => $dayOfWeek) {
+                    $dayConfig = $daysInput[$dayNumber] ?? [];
+
+                    if (!isset($dayConfig['enabled'])) {
+                        continue;
+                    }
+
+                    $startTimeInput = $dayConfig['start'] ?? null;
+                    $endTimeInput = $dayConfig['end'] ?? null;
+
+                    if (!$startTimeInput || !$endTimeInput) {
+                        continue;
+                    }
+
+                    $startTime = new \DateTimeImmutable((string) $startTimeInput);
+                    $endTime = new \DateTimeImmutable((string) $endTimeInput);
+
+                    if ($endTime <= $startTime) {
+                        throw new \InvalidArgumentException(sprintf(
+                            'De eindtijd van %s moet na de starttijd liggen.',
+                            $dayOfWeek->value
+                        ));
+                    }
+
+                    $dto = new AvailabilityDTO(
+                        availabilityType: AvailabilityType::STANDARD_CONTRACTUAL,
+                        validFrom: $validFrom,
+                        validUntil: $validUntil,
+                        dayOfWeek: $dayOfWeek,
+                        startTime: $startTime,
+                        endTime: $endTime,
+                        note: null,
+                    );
+
+                    $createAvailabilityHandler->handle($dto, $profile, false);
+                    $savedCount++;
+                }
+
+                if ($savedCount === 0) {
+                    $this->addFlash('error', 'Selecteer minimaal één dag met geldige tijden.');
+                    return $this->redirectToRoute('account.availability');
+                }
+
+                $entityManager->flush();
+                $this->addFlash('success', 'Beschikbaarheid succesvol opgeslagen!');
+            } catch (\Throwable $e) {
+                $this->addFlash('error', 'Fout bij opslaan: ' . $e->getMessage());
             }
 
             return $this->redirectToRoute('account.availability');
         }
-
+        
         try {
             $rows = $connection->fetchAllAssociative(
                 'SELECT * FROM availabilities WHERE profile_id = :profileId AND deleted_at IS NULL ORDER BY start_date DESC',
@@ -277,28 +320,50 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
-    public function deleteAvailability(string $id, Request $request, Connection $connection): Response
-    {
+    public function deleteAvailability(
+        string $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        AvailabilityRepository $availabilityRepository,
+    ): Response {
         $session = $request->getSession();
-        if (!$session->get('account_id')) {
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
             $this->addFlash('error', 'Je moet ingelogd zijn.');
             return $this->redirectToRoute('auth.login');
         }
 
-        $csrfToken = $request->request->get('_token');
-        if ($this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
-            try {
-                $connection->update(
-                    'availabilities',
-                    ['deleted_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
-                    ['id' => $id]
-                );
-                $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd (soft delete).');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Fout bij verwijderen: ' . $e->getMessage());
-            }
-        } else {
+        $csrfToken = (string) $request->request->get('_token');
+
+        if (!$this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
             $this->addFlash('error', 'Ongeldig veiligheidstoken.');
+            return $this->redirectToRoute('account.availability');
+        }
+
+        $availability = $availabilityRepository->find($id);
+
+        if (!$availability) {
+            $this->addFlash('error', 'Beschikbaarheid niet gevonden.');
+            return $this->redirectToRoute('account.availability');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        $profile = $account
+            ? $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account])
+            : null;
+
+        if (!$profile || $availability->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze beschikbaarheid.');
+        }
+
+        try {
+            $availability->softDelete();
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd.');
+        } catch (\Throwable $e) {
+            $this->addFlash('error', 'Fout bij verwijderen: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('account.availability');
