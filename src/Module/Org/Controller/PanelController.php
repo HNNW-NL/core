@@ -2,10 +2,15 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Repository\Project\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+// De hele /org/* sectie vereist al ROLE_USER (zie security.yaml). Losse
+// acties die iets aan een specifieke organisatie wijzigen, checken
+// daarnaast een organisatie-gebonden permission via de OrgPermissionVoter
+// (zie modifyProject() hieronder als voorbeeld).
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
 {
@@ -28,8 +33,18 @@ final class PanelController extends AbstractController
     }
 
     #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET'])]
-    public function modifyProject(string $id): Response
+    public function modifyProject(string $id, ProjectRepository $projectRepository): Response
     {
+        $project = $projectRepository->find($id);
+
+        if ($project !== null) {
+            // Subject = de Organisation waar dit project onder valt.
+            // OrgPermissionVoter checkt dan of de ingelogde account bij
+            // die organisatie de ORG_MANAGE_PROJECTS-permission heeft
+            // (bijv. via de rol "Organisation Admin"), i.p.v. een globale rol.
+            $this->denyAccessUnlessGranted('ORG_MANAGE_PROJECTS', $project->getOwnerOrganisation());
+        }
+
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
         ]);
