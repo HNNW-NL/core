@@ -29,7 +29,7 @@ body {
     radial-gradient(circle at bottom right, rgba(110, 198, 212, 0.12), transparent 30%),
     var(--bg);
   color: var(--text);
-  font-family: "Trebuchet MS", Verdana, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   line-height: 1.6;
 }
 
@@ -88,7 +88,7 @@ button:focus-visible {
 
 .brand {
   color: var(--primary);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: Arial, Helvetica, sans-serif;
   font-size: 1.12rem;
   font-weight: 700;
   white-space: nowrap;
@@ -246,7 +246,7 @@ button:focus-visible {
 .hero h1 {
   max-width: 720px;
   margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: Arial, Helvetica, sans-serif;
   font-size: clamp(2.75rem, 5.3vw, 5rem);
   letter-spacing: 0;
   line-height: 0.99;
