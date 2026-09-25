@@ -14,40 +14,25 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class ProfileController extends AbstractController
+
 {
-    private const DEV_ACCOUNT_ID = '018f4a2b-3c4d-7e6f-8a9b-0c1d2e3f4a5b';
+private function getAccount(): ?Account
+{
+    return $this->getUser();
+}
 
-    #[Route('/dev/set-user', name: 'dev_set_user')]
-    public function devSetUser(SessionInterface $session): Response
-    {
-        $session->set('dev_account_id', self::DEV_ACCOUNT_ID);
-        return new Response('✅ Dev user set! <a href="/profile">Go to profile</a>');
-    }
+#[Route('/profile', name: 'app_profile')]
+public function index(): Response
+{
+    $account = $this->getAccount();
+    $profile = $account?->getProfile();
+    $location = $profile?->getLocation();
 
-    private function getAccount(SessionInterface $session, EntityManagerInterface $em): ?Account
-    {
-        $account = $this->getUser();
-
-        if (!$account && $session->get('dev_account_id')) {
-            $account = $em->getRepository(Account::class)
-                ->find($session->get('dev_account_id'));
-        }
-
-        return $account;
-    }
-
-    #[Route('/profile', name: 'app_profile')]
-    public function index(SessionInterface $session, EntityManagerInterface $em): Response
-    {
-        $account = $this->getAccount($session, $em);
-        $profile = $account?->getProfile();
-        $location = $profile?->getLocation();
-
-        return $this->render('pages/main/profile.html.twig', [
-            'profile' => $profile,
-            'guest_location' => $location,
-        ]);
-    }
+    return $this->render('pages/main/profile.html.twig', [
+        'profile' => $profile,
+        'guest_location' => $location,
+    ]);
+}
 
     #[Route('/profile/location', name: 'profile_update_location', methods: ['POST'])]
     public function updateLocation(
@@ -59,7 +44,7 @@ final class ProfileController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true) ?? [];
             $dto = UpdateLocationDto::fromArray($data);
-            $account = $this->getAccount($session, $em);
+            $account = $this->getAccount();
 
             $result = $locationService->updateLocation($account, $dto, $session);
 
