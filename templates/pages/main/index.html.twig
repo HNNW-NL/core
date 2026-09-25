@@ -30,6 +30,7 @@
 {# Page content #}
 
 {% block body %}
+<a class="skip-link" href="#about">Direct naar de inhoud</a>
 <header class="topbar">
     <div class="container nav">
         <a class="brand" href="{{ path('main.home') }}" aria-label="Het Nieuwe² Werken home">
@@ -45,10 +46,10 @@
     </div>
 </header>
 
-<section class="hero container" id="about">
+<section class="hero container" id="about" aria-labelledby="hero-title">
     <div class="hero-copy">
         <p class="eyebrow">Open platform voor de overheid</p>
-        <h1>Breng vraag &amp; aanbod van werk bij elkaar <span>open, transparant en samen.</span></h1>
+        <h1 id="hero-title">Breng vraag &amp; aanbod van werk bij elkaar <span>open, transparant en samen.</span></h1>
         <p class="hero-text">Publiceer hulpvragen, vind expertise binnen en buiten je organisatie, werk veilig samen en bouw aan interdepartementale impact.</p>
         <div class="hero-actions">
             <a class="button button-primary" href="mailto:contact@hnnw.nl">Nu aan de slag</a>
@@ -57,7 +58,7 @@
         <p class="hero-note">Open bèta <span>•</span> Transparant via Codeberg <span>•</span> Community op Slack</p>
     </div>
 
-    <div class="hero-visual" aria-label="Verbind projecten, mensen en taken">
+    <div class="hero-visual" aria-hidden="true">
         <div class="visual-orbit orbit-one"></div>
         <div class="visual-orbit orbit-two"></div>
         <div class="visual-center">🤝</div>
@@ -68,28 +69,28 @@
     </div>
 </section>
 
-<section class="features" id="projects" aria-label="Waarom HNNW werkt">
+<section class="features" id="projects" aria-labelledby="features-title">
     <div class="container">
         <div class="section-heading">
             <p class="eyebrow">Waarom HNNW</p>
-            <h2>Werk slimmer samen binnen en buiten je organisatie.</h2>
+            <h2 id="features-title">Werk slimmer samen binnen en buiten je organisatie.</h2>
         </div>
 
         <div class="feature-grid">
             <article class="feature-card">
-                <span class="feature-icon">🔎</span>
+                <span class="feature-icon" aria-hidden="true">🔎</span>
                 <h3>Vind expertise</h3>
                 <p>Zoek snel de juiste mensen, kennis en ervaring voor jouw opdracht of project.</p>
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon">🤝</span>
+                <span class="feature-icon" aria-hidden="true">🤝</span>
                 <h3>Deel werk</h3>
                 <p>Maak vraag en aanbod zichtbaar, zodat teams sneller kunnen aansluiten en samenwerken.</p>
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon">📈</span>
+                <span class="feature-icon" aria-hidden="true">📈</span>
                 <h3>Meet impact</h3>
                 <p>Blijf inzichtelijk over samenwerking, voortgang en resultaten in één overzicht.</p>
             </article>
@@ -97,7 +98,7 @@
     </div>
 </section>
 
-<section class="stats-bar">
+<section class="stats-bar" aria-label="HNNW in cijfers">
     <div class="container stats-grid">
         <div class="stat-item">
             <strong>1.200+</strong>
