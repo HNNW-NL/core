@@ -27,7 +27,7 @@ final class ProjectsController extends AbstractController
         return $this->render('pages/main/projects/detail.html.twig', [
             'slug' => $slug,
         ]);
-    } 
+    }
 
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
     public function apply(string $slug): Response
@@ -81,7 +81,11 @@ final class ProjectsController extends AbstractController
         if (!$this->isCsrfTokenValid('enroll-package-task-' . $taskId, (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Ongeldige aanvraag. Probeer het opnieuw.');
 
-            return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute(
+                'main.projects.tasks',
+                ['slug' => $slug],
+                Response::HTTP_SEE_OTHER
+            );
         }
 
         $project = $projectRepository->findOneVisibleBySlug($slug);
@@ -94,14 +98,26 @@ final class ProjectsController extends AbstractController
 
         if ($profile === null) {
             $this->addFlash('danger', 'Je moet ingelogd zijn met een profiel om je in te schrijven.');
-            return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+
+            return $this->redirectToRoute(
+                'main.projects.tasks',
+                ['slug' => $slug],
+                Response::HTTP_SEE_OTHER
+            );
         }
 
         $result = $workPackageTaskEnrollmentHandler->handle($project, $taskId, $profile);
 
-        $this->addFlash($result->isSuccessful() ? 'success' : 'warning', $result->message);
+        $this->addFlash(
+            $result->isSuccessful() ? 'success' : 'warning',
+            $result->message
+        );
 
-        return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute(
+            'main.projects.tasks',
+            ['slug' => $slug],
+            Response::HTTP_SEE_OTHER
+        );
     }
 
     #[Route('/{slug}/updates', name: 'updates', methods: ['GET'])]
@@ -113,13 +129,13 @@ final class ProjectsController extends AbstractController
     }
 
     #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
-    public function workPackages( 
-         string $slug,
-         GetProjectWorkPackagesHandler $handler,
-  ): Response {
-      return $this->render('pages/main/projects/work-packages.html.twig', [
-          'slug' => $slug,
-          'workPackages' => $handler->handle($slug),
-    ]);
- }
+    public function workPackages(
+        string $slug,
+        GetProjectWorkPackagesHandler $handler,
+    ): Response {
+        return $this->render('pages/main/projects/work-packages.html.twig', [
+            'slug' => $slug,
+            'workPackages' => $handler->handle($slug),
+        ]);
+    }
 }

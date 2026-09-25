@@ -2,24 +2,36 @@
 
 namespace App\Module\Main\Service;
 
+use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
-use Symfony\Bundle\SecurityBundle\Security;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+
 final readonly class CurrentProfileProvider
 {
     public function __construct(
-        private Security $security,
+        private RequestStack $requestStack,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
     public function getProfile(): ?Profile
     {
-        $user = $this->security->getUser();
+        $session = $this->requestStack->getSession();
+        $accountId = $session->get('account_id');
 
-        if ($user === null || !method_exists($user, 'getProfile')) {
+        if (!$accountId) {
             return null;
         }
-        $profile = $user->getProfile();
 
-        return $profile instanceof Profile ? $profile : null;
+        $account = $this->entityManager
+            ->getRepository(Account::class)
+            ->find($accountId);
+
+        if (!$account instanceof Account) {
+            return null;
+        }
+
+        return $account->getProfile();
     }
 }
