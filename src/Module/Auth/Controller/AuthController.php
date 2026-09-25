@@ -161,8 +161,6 @@ final class AuthController extends AbstractController
             } catch (\Exception $e) {
                 $em->getConnection()->rollBack();
 
-              $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
-
               return $this->render('pages/auth/register.html.twig', [
                 'errors' => [
                     'general' => 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.'],
