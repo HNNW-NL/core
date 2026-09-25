@@ -33,34 +33,7 @@
 {# Skip link keeps the homepage keyboard-friendly. #}
 <a class="skip-link" href="#about">Direct naar de inhoud</a>
 
-{# Shared desktop and mobile navigation. #}
-<header class="topbar">
-    <div class="container nav">
-        <a class="brand" href="{{ path('main.home') }}" aria-label="Het Nieuwe² Werken home">
-            Het Nieuwe<sup>2</sup> Werken
-        </a>
-        <nav class="nav-links" aria-label="Hoofdnavigatie">
-            <a href="{{ path('main.home') }}">Home</a>
-            <a href="#about">About</a>
-            <a href="#projects">Project</a>
-            <a href="#contact">Contact</a>
-            <a href="https://slack.com" target="_blank" rel="noopener noreferrer">Slack</a>
-        </nav>
-        <details class="mobile-nav">
-            <summary aria-label="Open navigatiemenu">
-                <span class="menu-icon" aria-hidden="true"></span>
-                <span>Menu</span>
-            </summary>
-            <nav class="mobile-nav-links" aria-label="Mobiele hoofdnavigatie">
-                <a href="{{ path('main.home') }}">Home</a>
-                <a href="#about">About</a>
-                <a href="#projects">Project</a>
-                <a href="#contact">Contact</a>
-                <a href="https://slack.com" target="_blank" rel="noopener noreferrer">Slack</a>
-            </nav>
-        </details>
-    </div>
-</header>
+
 
 {# Hero introduces the platform and its primary call to action. #}
 <section class="hero container" id="about" aria-labelledby="hero-title">

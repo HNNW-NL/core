@@ -11,6 +11,15 @@
   --white: #f8fbff;
   --panel: #121d30;
   --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+
+    --background: #020617;
+    --header-background: #0f172ab3;
+
+    --paragraph: #FFFFFF;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
 }
 
 * {
@@ -214,7 +223,7 @@ button:focus-visible {
 }
 
 .button-primary:hover {
-  background: var(--primary-dark);
+  background: var(--hnnw-yellow-400);
   transform: translateY(-1px);
 }
 
@@ -249,19 +258,19 @@ button:focus-visible {
   max-width: 720px;
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: clamp(2.75rem, 5.3vw, 5rem);
+  font-size: clamp(2.5rem, 5.3vw, 3.5rem);
   letter-spacing: 0;
   line-height: 0.99;
   text-wrap: balance;
 }
 
 .hero h1 span {
-  color: var(--primary);
+  color: var(--hnnw-yellow-500);
 }
 
 .eyebrow {
   margin: 0 0 18px;
-  color: var(--primary);
+  color: var(--hnnw-yellow-500);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.13em;
@@ -295,20 +304,20 @@ button:focus-visible {
 }
 
 .button-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  color: var(--white);
-  box-shadow: 0 18px 32px rgba(77, 163, 255, 0.28);
+  background: var(--white);
+  color: var(--background);
 }
 
 .button-secondary {
-  border-color: var(--line);
-  background: var(--panel);
+  border-color: var(--hnnw-yellow-400);
+  background: var(--header-background);
+    color: var(--hnnw-yellow-400);
 }
 
 .button-secondary:hover {
-  border-color: rgba(77, 163, 255, 0.7);
-  color: var(--primary);
-  background: rgba(18, 29, 48, 0.9);
+  border-color: var(--hnnw-yellow-500);
+  color: var(--hnnw-yellow-500);
+  background: color-mix(in srgb, var(--hnnw-yellow-500) 10%, transparent);
   transform: translateY(-1px);
 }
 
@@ -320,7 +329,7 @@ button:focus-visible {
 
 .hero-note span {
   margin: 0 5px;
-  color: var(--accent);
+  color: var(--muted);
 }
 
 .features {
