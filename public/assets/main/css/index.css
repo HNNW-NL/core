@@ -2,6 +2,8 @@
   --bg: #0b1220;
   --primary: #4da3ff;
   --primary-dark: #2f7ed1;
+  --primary-light: #74b9ff;
+  --primary-hover: #7cc0ff;
   --accent: #6ec6d4;
   --text: #f3f7ff;
   --muted: #a8b4c7;
@@ -21,6 +23,7 @@ html {
 
 body {
   margin: 0;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top, rgba(77, 163, 255, 0.18), transparent 26%),
     radial-gradient(circle at bottom right, rgba(110, 198, 212, 0.12), transparent 30%),
@@ -93,7 +96,7 @@ button:focus-visible {
 }
 
 .brand:hover {
-  color: #7cc0ff;
+  color: var(--primary-hover);
   opacity: 1;
   transform: translateY(-1px);
 }
@@ -199,7 +202,6 @@ button:focus-visible {
   color: var(--primary);
 }
 
-.header-button,
 .button {
   display: inline-flex;
   align-items: center;
@@ -209,21 +211,9 @@ button:focus-visible {
   transition: 160ms ease;
 }
 
-.header-button {
-  padding: 11px 17px;
-  background: var(--primary);
-  color: var(--white);
-  font-size: 0.86rem;
-}
-
-.header-button:hover,
 .button-primary:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);
-}
-
-.page-home {
-  min-height: calc(100vh - 120px);
 }
 
 .hero {
@@ -258,7 +248,7 @@ button:focus-visible {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2.75rem, 5.3vw, 5rem);
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
   line-height: 0.99;
   text-wrap: balance;
 }
@@ -303,7 +293,7 @@ button:focus-visible {
 }
 
 .button-primary {
-  background: linear-gradient(135deg, #4da3ff 0%, #74b9ff 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: var(--white);
   box-shadow: 0 18px 32px rgba(77, 163, 255, 0.28);
 }
@@ -345,7 +335,7 @@ button:focus-visible {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.1;
-  letter-spacing: -0.05em;
+  letter-spacing: 0;
 }
 
 .feature-grid {
@@ -497,10 +487,11 @@ button:focus-visible {
 }
 
 .cta-content h2 {
+  max-width: 680px;
   margin: 0;
   font-size: clamp(1.7rem, 3vw, 2.5rem);
   line-height: 1.1;
-  letter-spacing: -0.05em;
+  letter-spacing: 0;
 }
 
 .hero-visual {
@@ -571,7 +562,7 @@ button:focus-visible {
   transform: translate(-50%, -50%);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 22px;
-  background: linear-gradient(135deg, #4da3ff 0%, #7bc0ff 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   box-shadow: 0 18px 35px rgba(77, 163, 255, 0.4), 0 0 0 14px rgba(77, 163, 255, 0.12);
   font-size: 2.2rem;
 }
