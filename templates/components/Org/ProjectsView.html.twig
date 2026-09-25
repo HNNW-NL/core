@@ -6,8 +6,9 @@
             placeholder="Search projects..."
             name="search-text"
             data-model="debounce(300)|query"
+            value="{{ this.query }}"
         >
-        <button id="reset-button" type="button" class="reset-button">Reset</button>
+        <button id="reset-button" type="button" class="reset-button" data-action="click->live#action" data-live-action-param="reset">Reset</button>
         <label for="card-size-select" class="card-size-label">Size</label>
         <div class="card-size-wrapper">
             <select id="card-size-select" aria-label="Card size" class="card-size-select">

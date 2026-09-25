@@ -26,6 +26,12 @@ class ProjectsView
     {
     }
 
+    #[LiveAction]
+    public function reset(): void
+    {
+        $this->query = '';
+    }
+
     public function getProjects(): array
     {
         $profile = $this->profileRepository->findOneBy([]); // use symfony security to find logged-in user $this->security->getUser()
