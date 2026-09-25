@@ -12,7 +12,11 @@ final class DashboardController extends AbstractController
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(): Response
     {
-        return $this->render('pages/admin/index.html.twig');
+        return $this->render('pages/admin/index.html.twig', [
+            'logs' => [],
+            'accounts' => [],
+            'profiles' => [],
+        ]);
     }
 
     #[Route('/logs', name: 'logs', methods: ['GET'])]
