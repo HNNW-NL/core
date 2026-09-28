@@ -20,6 +20,9 @@ class ProjectsView
     #[LiveProp(writable: true)]
     public string $query = '';
 
+    #[LiveProp(writable: true)]
+    public string $cardSize = 'medium';
+
     public function __construct(readonly private ProjectRepository $projectRepository,
                                 readonly private ProfileRepository $profileRepository,
                                 private readonly ProjectParticipantRepository $projectParticipantRepository,)
@@ -30,6 +33,7 @@ class ProjectsView
     public function reset(): void
     {
         $this->query = '';
+        $this->cardSize = 'medium';
     }
 
     public function getProjects(): array
@@ -37,6 +41,5 @@ class ProjectsView
         $profile = $this->profileRepository->findOneBy([]); // use symfony security to find logged-in user $this->security->getUser()
 
         return $this->projectRepository->findByProfileOnQuery($this->query,$profile);
-
     }
 }
