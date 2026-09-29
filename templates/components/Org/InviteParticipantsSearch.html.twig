@@ -1,0 +1,45 @@
+<div {{ attributes }} class="page-content">
+
+    <div class="input-content">
+        <label for="invite-input">Invite user</label>
+        <input
+            type="search"
+            data-model="debounce(300)|query"
+            placeholder="Search profiles..."
+            name="invite-input"
+            id="invite-input"
+        >
+
+        <ul id="profile-list">
+            {% for profile in this.profiles %}
+                <li
+                    data-action="click->live#action"
+                    data-live-action-param="selectProfile"
+                    data-live-id-param="{{ profile.id }}"
+                    class="profile-item {% if profile.id in this.selectedProfileIds %} active {% endif %}"
+                >
+                    {{ profile.displayName }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div>
+        <ul id="selected-list">
+            {% for profile in this.selectedProfiles %}
+                <li>
+                    {{ profile.displayName }}
+                    <button
+                        data-action="click->live#action"
+                        data-live-action-param="removeSelectedProfile"
+                        data-live-id-param="{{ profile.id }}"
+                    >Remove</button>
+                </li>
+            {% endfor %}
+        </ul>
+        <button
+            data-action="click->live#action"
+            data-live-action-param="inviteSelectedProfiles"
+        >Invite users</button>
+    </div>
+
+</div>

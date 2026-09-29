@@ -1,0 +1,35 @@
+<div {{ attributes }}>
+    <div class="search-bar-projects">
+        <input
+            type="text"
+            id="search-text"
+            placeholder="Search projects..."
+            name="search-text"
+            data-model="debounce(300)|query"
+            value="{{ this.query }}"
+        >
+        <button id="reset-button" type="button" class="reset-button" data-action="click->live#action" data-live-action-param="reset">Reset</button>
+
+        <label for="card-size-select" class="card-size-label">Size</label>
+        <div class="card-size-wrapper">
+            <select id="card-size-select" aria-label="Card size" class="card-size-select" data-model="cardSize">
+                <option value="small" {{ this.cardSize == 'small' ? 'selected' : '' }}>Small</option>
+                <option value="medium" {{ this.cardSize == 'medium' ? 'selected' : '' }}>Medium</option>
+                <option value="large" {{ this.cardSize == 'large' ? 'selected' : '' }}>Large</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="projects-container size-{{ this.cardSize }}">
+        {% if this.projects == [] %}
+            <p>No projects found</p>
+        {% endif %}
+        {% for project in this.projects %}
+            <div class="project-card">
+                <h3 class="project-title">{{ project.title }}</h3>
+                <p class="project-summary">{{ project.summary }}</p>
+                <a href="org/projects/{{ project.slug }}" class="project-slug">{{ project.slug }}</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>

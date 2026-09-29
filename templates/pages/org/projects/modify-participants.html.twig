@@ -11,7 +11,6 @@
 {# JavaScript #}
 {% block javascript %}
     {{ parent() }}
-    <script src="{{ asset('assets/org/js/edit-participants.js') }}"></script>
 {% endblock %}
 
 {# Page content #}
@@ -20,7 +19,7 @@
     <h2>Projects - Modify Participants</h2>
     <p>Organization panel - modify project ({{ id }}) participants page.</p>
 
-    <form method="POST" class="edit-participants-form">
+    {# <form method="POST" class="edit-participants-form">
         <input type="submit" class="submit" value="Submit Changes">
 
         <table class="edit-participants-table" id="edit-participants-table">
@@ -67,5 +66,10 @@
             {% endfor %}
             </tbody>
         </table>
-    </form>
+    </form>#}
+
+    {{ component('Org:ModifyParticipantsTable',{
+        projectId: id
+    }) }}
+
 {% endblock %}

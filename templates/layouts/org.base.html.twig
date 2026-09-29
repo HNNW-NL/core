@@ -16,7 +16,7 @@
     {% block stylesheets %}{% endblock %}
 
     <!-- JavaScript -->
-    {% block javascript %}{% endblock %}
+    {% block javascript %}{{ importmap('app') }}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
     {% if frankenphpHotReload %}

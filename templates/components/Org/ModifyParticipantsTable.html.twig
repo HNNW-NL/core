@@ -1,0 +1,47 @@
+<div {{ attributes }} class="edit-participants-form">
+    {% if this.submitted == true %}
+        <twig:Shared:Alert variant="success">
+            The changes were saved.
+        </twig:Shared:Alert>
+    {% endif %}
+    <button
+        type="button"
+        data-action="live#action"
+        data-live-action-param="updateParticipants"
+        class="submit"
+    >
+        Submit Changes
+    </button>
+    <table class="edit-participants-table" id="edit-participants-table">
+        <thead>
+        <tr id="table-header-row">
+            <td draggable="true">Display Name</td>
+            <td draggable="true">Date joined</td>
+            <td draggable="true">Status</td>
+            <td draggable="true">Role</td>
+        </tr>
+        </thead>
+        <tbody>
+        {% for participant in this.participants %}
+            <tr>
+                <td>{{ participant.profile.displayName }}</td> <!-- link to profile page-->
+                <td>{{ participant.joinedAt ? participant.joinedAt|date('d/m/Y') : '-' }}</td>
+                <td>{{ participant.status.name }}</td>
+                <td>
+                    <select
+                        class="select-role"
+                        data-model="rolesByParticipant[{{ participant.id }}]"
+                    >
+                        {% for role in this.roles %}
+                            <option value="{{ role.id }}"
+                                    {% if role == participant.role %}selected{% endif %}>
+                                {{ role.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
