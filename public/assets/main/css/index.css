@@ -100,7 +100,7 @@ button:focus-visible {
   gap: 70px;
   min-height: calc(100vh - 150px);
   padding-top: 56px;
-  padding-bottom: 88px;
+  padding-bottom: 100px;
   animation: rise-in 600ms ease both;
 }
 
@@ -279,13 +279,6 @@ button:focus-visible {
   box-shadow: 16px 9px 0 -3px var(--panel), 16px 9px 0 0 var(--white), 0 18px 0 -3px var(--panel), 0 18px 0 0 var(--white);
 }
 
-.feature-icon-share::after {
-  width: 18px;
-  height: 3px;
-  background: var(--white);
-  transform: translate(5px, 14px) rotate(28deg);
-}
-
 .feature-icon-impact::before {
   width: 22px;
   height: 18px;
@@ -371,20 +364,30 @@ button:focus-visible {
 }
 
 .hero-visual {
-  position: relative;
-  min-height: 430px;
-  border: 1px solid var(--header-background);
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    var(--header-background) 18%,
-    var(--header-background) 18% 24%,
-    var(--header-background) 24% 44%,
-    var(--hnnw-yellow-400) 44% 45%,
-    var(--header-background) 45% 58%,
-    var(--header-background) 58% 100%
-  );
-  box-shadow: inset 0 0 35px rgba(77, 163, 255, 0.08), 0 22px 40px rgba(5, 10, 20, 0.28);
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+
+    border: 1px solid var(--header-background);
+    border-radius: 50%;
+
+    background: radial-gradient(
+        circle at center,
+        var(--header-background) 18%,
+        var(--header-background) 18% 24%,
+        var(--header-background) 24% 44%,
+        var(--hnnw-yellow-400) 44% 45%,
+        var(--header-background) 45% 58%,
+        var(--header-background) 58% 100%
+    );
+
+    box-shadow:
+        inset 0 0 35px rgba(77, 163, 255, 0.08),
+        0 22px 40px rgba(5, 10, 20, 0.28);
 }
 
 .hero-visual::before,
@@ -490,3 +493,305 @@ button:focus-visible {
   }
 }
 
+/* Tablets and smaller laptops */
+@media (max-width: 1000px) {
+
+    .container {
+        width: min(100% - 40px, 900px);
+    }
+
+    .hero {
+        grid-template-columns: 1fr;
+        gap: 50px;
+        min-height: auto;
+        padding-top: 50px;
+        padding-bottom: 70px;
+        text-align: center;
+    }
+
+    .hero-copy {
+        max-width: 720px;
+        margin: 0 auto;
+    }
+
+    .hero-text {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    .hero-note {
+        text-align: center;
+    }
+
+    .hero-visual {
+        width: min(100%, 430px);
+        min-height: 430px;
+        margin: 0 auto;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Make the third card fill the available space nicely */
+    .feature-card:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .cta-content {
+        padding: 28px;
+    }
+}
+
+
+/* Tablets / large phones */
+@media (max-width: 700px) {
+
+    .container {
+        width: min(100% - 28px, 600px);
+    }
+
+    .hero {
+        gap: 40px;
+        padding-top: 35px;
+        padding-bottom: 55px;
+    }
+
+    .hero h1 {
+        font-size: clamp(2.2rem, 9vw, 3rem);
+        line-height: 1.05;
+    }
+
+    .hero-text {
+        margin-top: 20px;
+        margin-bottom: 26px;
+        font-size: 1rem;
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hero-actions .button {
+        width: 100%;
+    }
+
+    .hero-note {
+        font-size: 0.75rem;
+        line-height: 1.8;
+    }
+
+    .hero-note span {
+        margin: 0 3px;
+    }
+
+    /* Visual */
+    .hero-visual {
+        width: min(100%, 380px);
+        min-height: 380px;
+    }
+
+    .visual-label {
+        width: 105px;
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    .label-right {
+        right: -2%;
+    }
+
+    .label-bottom {
+        bottom: 12%;
+        transform: translateX(-140%);
+    }
+
+    /* Features */
+    .features {
+        padding-bottom: 60px;
+    }
+
+    .section-heading {
+        margin-bottom: 24px;
+    }
+
+    .section-heading h2 {
+        font-size: clamp(1.8rem, 8vw, 2.5rem);
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .feature-card {
+        min-height: auto;
+        padding: 24px 20px;
+    }
+
+    .feature-card:last-child {
+        grid-column: auto;
+    }
+
+    /* Stats */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .stat-item {
+        padding: 18px;
+    }
+
+    /* CTA */
+    .cta-band {
+        padding-bottom: 60px;
+    }
+
+    .cta-content {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        padding: 26px 20px;
+        gap: 24px;
+    }
+
+    .cta-content h2 {
+        font-size: clamp(1.6rem, 7vw, 2.2rem);
+    }
+
+    .cta-content .button {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+
+/* Small phones */
+@media (max-width: 480px) {
+
+    .container {
+        width: calc(100% - 24px);
+    }
+
+    .hero {
+        padding-top: 25px;
+        padding-bottom: 45px;
+        gap: 35px;
+    }
+
+    .hero h1 {
+        font-size: 2.15rem;
+    }
+
+    .eyebrow {
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+    }
+
+    .hero-text {
+        font-size: 0.95rem;
+    }
+
+    .hero-note {
+        font-size: 0.7rem;
+    }
+
+    /* Smaller visual so it doesn't overflow */
+    .hero-visual {
+        width: min(100%, 320px);
+        min-height: 320px;
+    }
+
+    .visual-center {
+        width: 70px;
+        height: 70px;
+        border-radius: 18px;
+        font-size: 1.8rem;
+    }
+
+    .visual-label {
+        width: 90px;
+        padding: 7px 8px;
+        font-size: 0.75rem;
+    }
+
+    .label-top {
+        top: 5%;
+    }
+
+    .label-right {
+        top: 48%;
+        right: -4%;
+    }
+
+    .label-bottom {
+        bottom: 8%;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .feature-card {
+        padding: 22px 18px;
+        border-radius: 16px;
+    }
+
+    .feature-card h3 {
+        font-size: 1.2rem;
+    }
+
+    .feature-card p {
+        font-size: 0.92rem;
+    }
+
+    .stat-item strong {
+        font-size: 2rem;
+    }
+
+    .cta-content {
+        border-radius: 18px;
+        padding: 24px 18px;
+    }
+}
+
+
+/* Very small phones */
+@media (max-width: 360px) {
+
+    .container {
+        width: calc(100% - 20px);
+    }
+
+    .hero h1 {
+        font-size: 1.9rem;
+    }
+
+    .hero-visual {
+        width: 285px;
+        min-height: 285px;
+    }
+
+    .visual-label {
+        width: 78px;
+        font-size: 0.7rem;
+    }
+
+    .label-right {
+        right: -5%;
+    }
+
+    .visual-center {
+        width: 62px;
+        height: 62px;
+        font-size: 1.5rem;
+    }
+}

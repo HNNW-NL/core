@@ -1,145 +1,41 @@
 html,
 body {
     min-height: 100%;
-    display: flex;
-    flex-direction: column;
-
-
 }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 3px;
-}
-
-header nav ul {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    list-style: none;
-    gap: 5px;
-    padding: 0;
-    margin: 0 30px 0 0;
-}
-
-header nav ul li a {
-    text-decoration: none;
-    display: inline-block;
-}
-
-.nav-button {
-    display: inline-block;
-    padding: 8px 16px;
-    cursor: pointer;
-    background-color: transparent;
-    color: #fff;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: all 0.5s ease;
-    font-family: inter, sans-serif;
-    font-size: 14px;
-}
-.nav-button:hover {
-    color: #ffe36f;
-}
-
-header nav ul svg:first-of-type {
-    margin-left: 30px;
-    margin-right: 15px;
-}
-
-header nav ul svg {
-    cursor: pointer;
-}
-
-header nav ul svg:hover path {
-    fill: #f4c400;
-    transition: fill 0.5s ease;
-}
-
-.main-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    padding: 24px 20px;
-    margin-top: auto;
-    text-align: center;
-    box-sizing: border-box;
-    flex-wrap: wrap;
-}
-
-.main-footer p {
-    color: #64748b;
-    font-size: 0.85rem;
-    line-height: 1.5;
+body {
     margin: 0;
-    max-width: 100%;
-    word-wrap: break-word;
-    /* flex: 1; */
+    overflow-x: hidden;
 }
 
-@media (max-width: 900px) {
-    .main-footer {
-        padding: 22px 18px;
-        margin-top: auto;
-    }
-    .main-footer p {
-        font-size: 0.8rem;
-    }
+
+/* HEADER */
+
+.main-header {
+    position: relative;
+    z-index: 2000;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    min-height: 72px;
+
+    padding: 0 24px;
+
+    background: #0f172a;
 }
 
-@media (max-width: 768px) {
-    .main-footer {
-        padding: 20px 16px;
-        flex-direction: column;
-        gap: 8px;
-        flex: 1;
-    }
 
-    .main-footer p {
-        font-size: 0.7rem;
-        line-height: 1.4;
-    }
-}
 
-@media (max-width: 480px) {
-    .page {
-        width: 95%;
-        margin: 40px auto;
-    }
-    .main-footer {
-        padding: 16px 12px;
-        /* margin-top: auto; */
-    }
-    .main-footer p {
-        font-size: 0.7rem;
-        line-height: 1.4;
-    }
-}
-@media (max-width: 360px) {
-    .page {
-        width: 92%;
-        margin: 20px auto;
-    }
-    .main-footer {
-        padding: 12px 8px;
-        margin-top: auto;
-    }
-
-    .main-footer p {
-        font-size: 0.65rem;
-    }
-}
 
 .logo-name {
-    margin-left: 150px;
     display: flex;
     align-items: baseline;
-    white-space: nowrap;
+    margin-left: 0;
     gap: 5px;
+    white-space: nowrap;
 }
 
 .logo-name-het,
@@ -160,15 +56,400 @@ header nav ul svg:hover path {
 
 .logo-name-two {
     color: #ffe36f;
+
     font-size: 12px;
     font-weight: 700;
     line-height: 1;
+
     position: relative;
     top: -8px;
+
     margin-left: 3px;
     margin-right: 2px;
 }
 
 .logo-name-werken {
     color: #626e81;
+}
+
+
+.navbar {
+    display: flex;
+    align-items: center;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-button {
+    display: inline-block;
+
+    padding: 8px 16px;
+
+    cursor: pointer;
+
+    background-color: transparent;
+    color: #ffffff;
+
+    border: none;
+    border-radius: 4px;
+
+    text-decoration: none;
+
+    transition:
+        color 0.3s ease,
+        transform 0.3s ease;
+
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+}
+
+.nav-button:hover {
+    color: #ffd736;
+    transform: translateY(-2px);
+}
+
+
+.nav-icons {
+    display: flex;
+    align-items: center;
+
+    gap: 0.8rem;
+    margin-left: 0.5rem;
+
+    font-size: 14px;
+}
+
+.nav-icons svg {
+    cursor: pointer;
+
+    color: #ffffff;
+
+    transition:
+        color 0.3s ease,
+        transform 0.3s ease;
+}
+
+.nav-icons svg:hover {
+    color: #ffd736;
+    transform: scale(1.1);
+}
+
+
+.hamburger {
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 42px;
+    height: 42px;
+
+    padding: 6px;
+
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+
+    color: #ffffff;
+
+    cursor: pointer;
+}
+
+
+@media (max-width: 900px) {
+
+    .main-header {
+        padding: 0 20px;
+    }
+
+    .nav-button {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .main-header {
+        position: relative;
+        z-index: 2000;
+
+        min-height: 72px;
+
+        padding: 0 16px;
+    }
+
+
+    /* Logo */
+
+    .logo-name {
+        margin-left: 0;
+    }
+
+
+    /* Hamburger */
+
+    .hamburger {
+        display: flex;
+
+        position: relative;
+        z-index: 2002;
+    }
+
+
+    /* Closed mobile menu */
+
+    .navbar {
+        position: absolute;
+
+        top: 100%;
+        left: 0;
+
+        width: 100%;
+
+        display: block;
+
+        background: #141b2e;
+
+        border-radius: 0 0 14px 14px;
+
+        max-height: 0;
+
+        overflow: hidden;
+
+        opacity: 0;
+        visibility: hidden;
+
+        transform: translateY(-10px);
+
+        transition:
+            max-height 0.35s ease,
+            opacity 0.25s ease,
+            transform 0.25s ease,
+            visibility 0.25s ease;
+
+        z-index: 2001;
+
+        box-shadow:
+            0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+
+    /* Open mobile menu */
+
+    .navbar.active {
+        max-height: 500px;
+
+        opacity: 1;
+        visibility: visible;
+
+        transform: translateY(0);
+    }
+
+
+    /* Links */
+
+    .nav-links {
+        display: flex;
+
+        flex-direction: column;
+        align-items: stretch;
+
+        width: 100%;
+
+        padding: 16px;
+
+        gap: 8px;
+    }
+
+
+    /* Mobile buttons */
+
+    .nav-button {
+        display: block;
+
+        width: 100%;
+
+        padding: 12px 16px;
+
+        text-align: center;
+
+        font-size: 0.95rem;
+    }
+
+
+    /* Icons */
+
+    .nav-icons {
+        justify-content: center;
+
+        width: 100%;
+
+        margin-left: 0;
+
+        padding-top: 14px;
+        padding-bottom: 4px;
+
+        border-top: 1px solid #2a3448;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .main-header {
+        min-height: 68px;
+        padding: 0 12px;
+    }
+
+    .logo-name {
+        gap: 3px;
+    }
+
+    .logo-name-het,
+    .logo-name-nieuwe,
+    .logo-name-werken {
+        font-size: 16px;
+        line-height: 24px;
+    }
+
+    .logo-name-two {
+        font-size: 10px;
+        top: -6px;
+    }
+
+    .hamburger {
+        width: 40px;
+        height: 40px;
+    }
+
+    .nav-button {
+        padding: 11px;
+        font-size: 0.9rem;
+    }
+
+    .nav-icons {
+        font-size: 14px;
+    }
+
+    .nav-icons svg {
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+}
+
+
+@media (max-width: 360px) {
+
+    .main-header {
+        padding: 0 10px;
+    }
+
+    .logo-name-het,
+    .logo-name-nieuwe,
+    .logo-name-werken {
+        font-size: 14px;
+    }
+
+    .logo-name-two {
+        font-size: 9px;
+    }
+}
+
+/* FOOTER */
+
+.main-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+
+    margin-top: auto;
+    padding: 24px 20px;
+
+    text-align: center;
+
+    box-sizing: border-box;
+}
+
+.main-footer p {
+    margin: 0;
+
+    max-width: 100%;
+
+    color: #64748b;
+
+    font-size: 0.85rem;
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
+}
+
+
+@media (max-width: 900px) {
+
+    .main-footer {
+        padding: 22px 18px;
+    }
+
+    .main-footer p {
+        font-size: 0.8rem;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .main-footer {
+        padding: 20px 16px;
+
+        flex-direction: column;
+
+        gap: 8px;
+
+        text-align: center;
+    }
+
+    .main-footer p {
+        font-size: 0.75rem;
+        line-height: 1.5;
+    }
+}
+
+
+
+
+@media (max-width: 480px) {
+
+    .main-footer {
+        padding: 18px 12px;
+    }
+
+    .main-footer p {
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+}
+
+
+@media (max-width: 360px) {
+
+    .main-footer {
+        padding: 14px 10px;
+    }
+
+    .main-footer p {
+        font-size: 0.65rem;
+    }
 }
