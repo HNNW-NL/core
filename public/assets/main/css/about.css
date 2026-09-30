@@ -193,16 +193,10 @@ a {
 
 .mission-card {
     padding: 32px;
-    background: var(--panel);
+    background: var(--header-background);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     transition: transform .2s ease, background .2s ease, border-color .2s ease;
-}
-
-.mission-card:hover {
-    transform: translateY(-5px);
-    background: var(--panel-hover);
-    border-color: var(--line-blue);
 }
 
 .icon {
@@ -280,8 +274,8 @@ a {
     justify-content: center;
     padding: 40px;
     border-radius: 25px;
-    background: linear-gradient(145deg, rgba(75, 156, 245, .18), rgba(75, 156, 245, .03));
-    border: 1px solid var(--line-blue);
+    background: var(--header-background);
+    border: 1px solid var(--line);
 }
 
 .source-number strong {
@@ -338,8 +332,8 @@ a {
 .cta-inner {
     padding: 65px;
     border-radius: 28px;
-    background: linear-gradient(135deg, #102945, #0d1b2d);
-    border: 1px solid var(--line-blue);
+    background: var(--header-background);
+    border: 1px solid var(--line);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -373,21 +367,6 @@ a {
     transform: translateY(-2px);
 }
 
-footer {
-    border-top: 1px solid var(--line);
-    padding: 28px 0;
-    color: #7f91aa;
-    font-size: 13px;
-}
-
-.footer-inner {
-    width: min(1180px, calc(100% - 48px));
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
 
 @media (max-width: 900px) {
     .hero {
