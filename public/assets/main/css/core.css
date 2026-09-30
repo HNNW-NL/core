@@ -1,3 +1,25 @@
+:root {
+    --background: #010412;
+    --header-background: #0f172ab3;
+
+    --paragraph: #FFFFFF;
+    --muted: #808080;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
+}
+[data-theme="light"] {
+    --background: #FFFFFF;
+    --header-background: #0f172ab3;
+
+    --paragraph: #020617;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
+}
+
 html,
 body {
     min-height: 100%;
@@ -5,6 +27,7 @@ body {
 
 body {
     margin: 0;
+    padding-top: 72px;
     overflow-x: hidden;
 }
 
@@ -12,7 +35,10 @@ body {
 /* HEADER */
 
 .main-header {
-    position: relative;
+    position: fixed;
+
+    top: 0;
+    left: 0;
     z-index: 2000;
 
     display: flex;
@@ -24,11 +50,8 @@ body {
 
     padding: 0 24px;
 
-    background: #0f172a;
+    background: var(--header-background);
 }
-
-
-
 
 .logo-name {
     display: flex;
@@ -47,15 +70,15 @@ body {
 }
 
 .logo-name-het {
-    color: #ffd400;
+    color: var(--hnnw-yellow-500);
 }
 
 .logo-name-nieuwe {
-    color: #ffffff;
+    color: var(--paragraph);
 }
 
 .logo-name-two {
-    color: #ffe36f;
+    color: var(--hnnw-yellow-300);
 
     font-size: 12px;
     font-weight: 700;
@@ -69,7 +92,7 @@ body {
 }
 
 .logo-name-werken {
-    color: #626e81;
+    color: var(--muted);
 }
 
 
@@ -97,7 +120,7 @@ body {
     cursor: pointer;
 
     background-color: transparent;
-    color: #ffffff;
+    color: var(--paragraph);
 
     border: none;
     border-radius: 4px;
@@ -113,7 +136,7 @@ body {
 }
 
 .nav-button:hover {
-    color: #ffd736;
+    color: var(--hnnw-yellow-400);
     transform: translateY(-2px);
 }
 
@@ -131,7 +154,7 @@ body {
 .nav-icons svg {
     cursor: pointer;
 
-    color: #ffffff;
+    color: var(--paragraph);
 
     transition:
         color 0.3s ease,
@@ -139,7 +162,7 @@ body {
 }
 
 .nav-icons svg:hover {
-    color: #ffd736;
+    color: var(--hnnw-yellow-400);
     transform: scale(1.1);
 }
 
@@ -159,7 +182,7 @@ body {
     border: none;
     border-radius: 6px;
 
-    color: #ffffff;
+    color: var(--paragraph);
 
     cursor: pointer;
 }
@@ -181,12 +204,16 @@ body {
 @media (max-width: 768px) {
 
     .main-header {
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+
         z-index: 2000;
 
         min-height: 72px;
 
         padding: 0 16px;
+
     }
 
 
@@ -452,4 +479,31 @@ body {
     .main-footer p {
         font-size: 0.65rem;
     }
+}
+
+/* WEBKIT SCROLLBAR */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ffd400, #ffb800);
+    border-radius: 10px;
+    border: 2px solid var(--dark-bg);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ffe14a, #ffcc00);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--dark-bg);
 }
