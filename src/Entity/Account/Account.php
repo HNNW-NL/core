@@ -9,7 +9,6 @@ use App\Entity\Common\Status;
 use App\Entity\Log\AuditLog;
 use App\Entity\Org\OrgMember;
 use App\Entity\Project\Project;
-use App\Entity\Common\Event;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -90,12 +89,6 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(targetEntity: Admin::class, mappedBy: "account")]
     private ?Admin $admin = null;
 
-    /**
-     * @var Collection<int, Event>
-     */
-    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'authorAccount')]
-    private Collection $authoredEvents;
-
 
     // Functions
 
@@ -109,7 +102,6 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
         $this->ownedProjects = new ArrayCollection();
         $this->resetPasswordTokens = new ArrayCollection();
         $this->verifyEmailTokens = new ArrayCollection();
-        $this->authoredEvents = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -351,34 +343,5 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     public function getVerifyEmailTokens(): Collection
     {
         return $this->verifyEmailTokens;
-    }
-
-    /**
-     * @return Collection<int, Event>
-     */
-    public function getAuthoredEvents(): Collection
-    {
-        return $this->authoredEvents;
-    }
-
-    public function addAuthoredEvent(Event $event): static
-    {
-        if (!$this->authoredEvents->contains($event)) {
-            $this->authoredEvents->add($event);
-            $event->setAuthorAccount($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAuthoredEvent(Event $event): static
-    {
-        if ($this->authoredEvents->removeElement($event)) {
-            if ($event->getAuthorAccount() === $this) {
-                $event->setAuthorAccount(null);
-            }
-        }
-
-        return $this;
     }
 }

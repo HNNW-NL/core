@@ -15,7 +15,9 @@
 
 {# CSS #}
 
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/index.css') }}">
+{% endblock %}
 
 
 
@@ -28,6 +30,118 @@
 {# Page content #}
 
 {% block body %}
-    <h2>Home</h2>
-    <p>Main - home page.</p>
+{# Skip link keeps the homepage keyboard-friendly. #}
+<a class="skip-link" href="#about">Direct naar de inhoud</a>
+
+{# Shared desktop and mobile navigation. #}
+<header class="topbar">
+    <div class="container nav">
+        <a class="brand" href="{{ path('main.home') }}" aria-label="Het Nieuwe² Werken home">
+            Het Nieuwe<sup>2</sup> Werken
+        </a>
+        <nav class="nav-links" aria-label="Hoofdnavigatie">
+            <a href="{{ path('main.home') }}">Home</a>
+            <a href="#about">About</a>
+            <a href="#projects">Project</a>
+            <a href="#contact">Contact</a>
+            <a href="https://slack.com" target="_blank" rel="noopener noreferrer">Slack</a>
+        </nav>
+        <details class="mobile-nav">
+            <summary aria-label="Open navigatiemenu">
+                <span class="menu-icon" aria-hidden="true"></span>
+                <span>Menu</span>
+            </summary>
+            <nav class="mobile-nav-links" aria-label="Mobiele hoofdnavigatie">
+                <a href="{{ path('main.home') }}">Home</a>
+                <a href="#about">About</a>
+                <a href="#projects">Project</a>
+                <a href="#contact">Contact</a>
+                <a href="https://slack.com" target="_blank" rel="noopener noreferrer">Slack</a>
+            </nav>
+        </details>
+    </div>
+</header>
+
+{# Hero introduces the platform and its primary call to action. #}
+<section class="hero container" id="about" aria-labelledby="hero-title">
+    <div class="hero-copy">
+        <p class="eyebrow">Open platform voor de overheid</p>
+        <h1 id="hero-title">Breng vraag &amp; aanbod van werk bij elkaar <span>open, transparant en samen.</span></h1>
+        <p class="hero-text">Publiceer hulpvragen, vind expertise binnen en buiten je organisatie, werk veilig samen en bouw aan interdepartementale impact.</p>
+        <div class="hero-actions">
+            <a class="button button-primary" href="mailto:contact@hnnw.nl">Nu aan de slag</a>
+            <a class="button button-secondary" href="https://hnnw.nl">Bezoek HNNW</a>
+        </div>
+        <p class="hero-note">Open bèta <span>•</span> Transparant via Codeberg <span>•</span> Community op Slack</p>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+        <div class="visual-orbit orbit-one"></div>
+        <div class="visual-orbit orbit-two"></div>
+        <div class="visual-center">🤝</div>
+        <div class="visual-label label-top">Projecten</div>
+        <div class="visual-label label-right">Mensen</div>
+        <div class="visual-label label-bottom">Taken</div>
+        <div class="visual-caption">Verbind projecten,<br>mensen en taken</div>
+    </div>
+</section>
+
+{# Core platform benefits. #}
+<section class="features" id="projects" aria-labelledby="features-title">
+    <div class="container">
+        <div class="section-heading">
+            <p class="eyebrow">Waarom HNNW</p>
+            <h2 id="features-title">Werk slimmer samen binnen en buiten je organisatie.</h2>
+        </div>
+
+        <div class="feature-grid">
+            <article class="feature-card">
+                <span class="feature-icon feature-icon-search" aria-hidden="true"></span>
+                <h3>Vind expertise</h3>
+                <p>Zoek snel de juiste mensen, kennis en ervaring voor jouw opdracht of project.</p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon feature-icon-share" aria-hidden="true"></span>
+                <h3>Deel werk</h3>
+                <p>Maak vraag en aanbod zichtbaar, zodat teams sneller kunnen aansluiten en samenwerken.</p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon feature-icon-impact" aria-hidden="true"></span>
+                <h3>Meet impact</h3>
+                <p>Blijf inzichtelijk over samenwerking, voortgang en resultaten in één overzicht.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+{# Snapshot metrics shown above the contact call to action. #}
+<section class="stats-bar" aria-label="HNNW in cijfers">
+    <div class="container stats-grid">
+        <div class="stat-item">
+            <strong>1.200+</strong>
+            <span>leden</span>
+        </div>
+        <div class="stat-item">
+            <strong>340</strong>
+            <span>projecten</span>
+        </div>
+        <div class="stat-item">
+            <strong>85%</strong>
+            <span>snellere matching</span>
+        </div>
+    </div>
+</section>
+
+{# Final conversion point for visitors ready to participate. #}
+<section class="cta-band" id="contact">
+    <div class="container cta-content">
+        <div>
+            <p class="eyebrow">Aan de slag</p>
+            <h2>Start vandaag nog met slimmer samenwerken.</h2>
+        </div>
+        <a class="button button-primary" href="mailto:contact@hnnw.nl">Neem contact op</a>
+    </div>
+</section>
 {% endblock %}
