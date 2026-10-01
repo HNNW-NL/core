@@ -1,16 +1,12 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Project
-	{{ slug }}
-	participants
-{% endblock %}
+{% block title %}Project {{ slug }} participants{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
 {% block seoDescription %}{% endblock %}
-{% block seoAuthor %}HNNW
-{% endblock %}
+{% block seoAuthor %}HNNW{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -20,28 +16,23 @@
 
 {# Page content #}
 {% block body %}
-	<h2>Projects - Participants</h2>
-	<p>Main - projects participants page. For project
-		{{ slug }}.</p>
 	<h2>Deelnemers</h2>
-	<p>Deelnemers van project
-		{{ slug }}.</p>
+	<p>Deelnemers van project {{ overview.project.title }}.</p>
 
-	{% if participants is not empty %}
+	{% if overview.participants is not empty %}
 		<div class="participants-grid">
-			{% for participant in participants %}
+			{% for participant in overview.participants %}
 				<div class="participant-card">
-					{% if participant.avatarUrl %}
-						<img src="{{ participant.avatarUrl }}" alt="{{ participant.fullName }}" class="participant-avatar">
+					{% if participant.profile.avatarUrl %}
+						<img src="{{ participant.profile.avatarUrl }}" alt="{{ participant.profile.displayName|default(participant.profile.firstName) }}" class="participant-avatar">
 					{% endif %}
-					<h3>{{ participant.fullName }}</h3>
-					{% if participant.roleName %}
-						<p class="participant-role">{{ participant.roleName }}</p>
+					<h3>{{ participant.profile.displayName|default(participant.profile.firstName ~ ' ' ~ participant.profile.lastName) }}</h3>
+					{% if participant.role %}
+						<p class="participant-role">{{ participant.role.name }}</p>
 					{% endif %}
-					<p class="participant-status">{{ participant.statusName }}</p>
+					<p class="participant-status">{{ participant.status.name }}</p>
 					{% if participant.joinedAt %}
-						<small>Lid sinds
-							{{ participant.joinedAt|date('d-m-Y') }}</small>
+						<small>Lid sinds {{ participant.joinedAt|date('d-m-Y') }}</small>
 					{% endif %}
 				</div>
 			{% endfor %}
