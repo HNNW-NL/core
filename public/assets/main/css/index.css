@@ -1,3 +1,4 @@
+/* Keep homepage tokens and layout isolated from shared pages. */
 .home-page {
   --bg: #0b1220;
   --primary: #4da3ff;
@@ -225,6 +226,7 @@ button:focus-visible {
 }
 }
 
+/* Keyframe names are global; page selectors stay inside the scopes below. */
 @keyframes rise-in {
   from {
     opacity: 0;
