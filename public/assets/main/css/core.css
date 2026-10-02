@@ -2,8 +2,8 @@
     --background: #010412;
     --header-background: #0f172ab3;
 
+    --text: #c1ccdc;
     --paragraph: #FFFFFF;
-    --muted: #808080;
     --line: #26344a;
 
     --hnnw-yellow-300: #ffe36f;
@@ -94,7 +94,7 @@ body {
 }
 
 .logo-name-werken {
-    color: var(--muted);
+    color: var(--text);
 }
 
 

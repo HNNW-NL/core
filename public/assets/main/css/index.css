@@ -1,5 +1,6 @@
 :root {
     --muted: #9eafc7;
+    --text: #c1ccdc;
     --background: #020617;
     --header-background: #0f172ab3;
 
@@ -25,7 +26,7 @@ body {
     /*radial-gradient(circle at top, rgba(77, 163, 255, 0.18), transparent 26%),*/
     /*radial-gradient(circle at bottom right, rgba(110, 198, 212, 0.12), transparent 30%),*/
     var(--background);
-  color: var(--paragraph);
+  /*color: var(--paragraph);*/
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.6;
 }
@@ -67,7 +68,8 @@ button:focus-visible {
 }
 
 .visual {
-    min-height: 380px;
+    min-height: 330px;
+    min-width: 520px;
     border: 1px solid var(--line);
     border-radius: 30px;
     background: var(--header-background);
@@ -94,8 +96,8 @@ button:focus-visible {
 
 .visual-text {
     margin-top: 120px;
-    font-size: 17px;
-    color: var(--muted);
+    font-size: 1.1rem;
+    color: var(--text);
 }
 
 /* Shared button geometry keeps primary and secondary actions aligned. */
@@ -119,7 +121,7 @@ button:focus-visible {
   align-items: center;
   gap: 70px;
   min-height: calc(100vh - 150px);
-  padding-top: 56px;
+  padding-top: 106px;
   padding-bottom: 100px;
   animation: rise-in 600ms ease both;
 }
@@ -143,8 +145,8 @@ button:focus-visible {
 .hero h1 {
   max-width: 720px;
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: clamp(2.5rem, 5.3vw, 3.5rem);
+  font-family: Inter, Lato, sans-serif;
+  font-size: clamp(2rem, 4.7vw, 3rem);
   letter-spacing: 0;
   line-height: 0.99;
   text-wrap: balance;
@@ -172,7 +174,7 @@ button:focus-visible {
 .hero-text {
   max-width: 650px;
   margin: 26px 0 30px;
-  color: var(--muted);
+  color: var(--text);
   font-size: 1.1rem;
 }
 
@@ -196,7 +198,7 @@ button:focus-visible {
 
 .button-secondary {
   border-color: var(--hnnw-yellow-400);
-  background: var(--header-background);
+  background: transparent;
     color: var(--hnnw-yellow-400);
 }
 
@@ -209,13 +211,13 @@ button:focus-visible {
 
 .hero-note {
   margin: 22px 0 0;
-  color: var();
+  color: var(--text);
   font-size: 0.82rem;
 }
 
 .hero-note span {
   margin: 0 5px;
-  color: var(--muted);
+  color: var(--text);
 }
 
 .features {
@@ -277,42 +279,18 @@ button:focus-visible {
   content: "";
 }
 
-.feature-icon-search::before {
-  width: 15px;
-  height: 15px;
-  border: 3px solid var(--paragraph);
-  border-radius: 50%;
+.feature-icon-search {
+    font-size: 20px;
 }
 
-.feature-icon-search::after {
-  width: 10px;
-  height: 3px;
-  background: var(--paragraph);
-  transform: translate(9px, 9px) rotate(45deg);
+.feature-icon-share {
+    font-size: 20px;
+
 }
 
-.feature-icon-share::before {
-  width: 9px;
-  height: 9px;
-  border: 3px solid var(--paragraph);
-  border-radius: 50%;
-  box-shadow: 16px 9px 0 -3px var(--panel), 16px 9px 0 0 var(--paragraph), 0 18px 0 -3px var(--panel), 0 18px 0 0 var(--paragraph);
-}
+.feature-icon-impact {
+    font-size: 20px;
 
-.feature-icon-impact::before {
-  width: 22px;
-  height: 18px;
-  border-bottom: 3px solid var(--paragraph);
-  border-left: 3px solid var(--paragraph);
-  transform: translateY(-2px) skewY(-28deg);
-}
-
-.feature-icon-impact::after {
-  width: 9px;
-  height: 9px;
-  border-top: 3px solid var(--paragraph);
-  border-right: 3px solid var(--paragraph);
-  transform: translate(9px, -8px) rotate(45deg);
 }
 
 .feature-card h3 {
@@ -322,7 +300,7 @@ button:focus-visible {
 
 .feature-card p {
   margin: 0;
-  color: var(--muted);
+  color: var(--text);
   line-height: 1.7;
 }
 
@@ -351,7 +329,7 @@ button:focus-visible {
 }
 
 .stat-item span {
-  color: var(--muted);
+  color: var(--text);
 }
 
 .cta-band {

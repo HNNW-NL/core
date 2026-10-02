@@ -1,16 +1,6 @@
 :root {
-    --bg: #08111f;
-    --bg-soft: #0c1625;
-    --panel: #101d30;
-    --panel-hover: #14243a;
-    --text: #f2f6ff;
     --muted: #9eafc7;
-    --blue: #4b9cf5;
-    --blue-light: #65b0ff;
-    --blue-dark: #287dd8;
-    --line: rgba(130, 166, 210, 0.17);
-    --line-blue: rgba(75, 156, 245, 0.35);
-    --radius: 20px;
+
 
     --background: #020617;
     --header-background: #0f172ab3;
