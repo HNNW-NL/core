@@ -2,35 +2,52 @@
 
 {% block title %}Staff{% endblock %}
 
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/org/css/staff-view.css') }}">
+{% endblock %}
 
 {% block javascript %}{% endblock %}
 
 {% block body %}
     {% set data = org_staff() %}
 
-    <h2>Organization Staff</h2>
+    <div class="staff-header">
+        <h2>Organization Staff</h2>
+        <p>View the staff members of your organization.</p>
+    </div>
 
     {% if data.items is empty %}
-        <p>No staff members found.</p>
+        <div class="staff-empty">
+            <p>No staff members found.</p>
+        </div>
     {% else %}
-        {% for member in data.items %}
-            <div>
-                <h3>
-                    {% if member.displayName %}
-                        {{ member.displayName }}
-                    {% else %}
-                        {{ member.firstName }} {{ member.lastName }}
-                    {% endif %}
-                </h3>
+        <div class="staff-container">
+            {% for member in data.items %}
+                <div class="staff-card">
+                    <h3 class="staff-name">
+                        {% if member.displayName %}
+                            {{ member.displayName }}
+                        {% else %}
+                            {{ member.firstName }} {{ member.lastName }}
+                        {% endif %}
+                    </h3>
 
-                <p>{{ member.email }}</p>
-                <p>Role: {{ member.role|default('No role') }}</p>
+                    <p class="staff-email">
+                        {{ member.email }}
+                    </p>
 
-                <a href="{{ path('org.viewStaff', {id: member.id}) }}">
-                    View staff member
-                </a>
-            </div>
-        {% endfor %}
+                    <p class="staff-role">
+                        Role: {{ member.role|default('No role') }}
+                    </p>
+
+                    <a
+                        class="staff-view-link"
+                        href="{{ path('org.viewStaff', {id: member.id}) }}"
+                    >
+                        View staff member
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 {% endblock %}
