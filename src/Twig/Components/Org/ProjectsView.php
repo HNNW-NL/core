@@ -11,6 +11,7 @@ use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\Bundle\SecurityBundle\Security;
+use App\Module\Main\Service\CurrentProfileProvider;
 
 #[AsLiveComponent]
 class ProjectsView
@@ -25,7 +26,8 @@ class ProjectsView
 
     public function __construct(readonly private ProjectRepository $projectRepository,
                                 readonly private ProfileRepository $profileRepository,
-                                private readonly ProjectParticipantRepository $projectParticipantRepository,)
+                                private readonly ProjectParticipantRepository $projectParticipantRepository,
+                                private readonly CurrentProfileProvider $currentProfileProvider,)
     {
     }
 
@@ -38,7 +40,7 @@ class ProjectsView
 
     public function getProjects(): array
     {
-        $profile = $this->profileRepository->findOneBy([]); // use symfony security to find logged-in user $this->security->getUser()
+        $profile = $this->currentProfileProvider->getProfile(); // use symfony security to find logged-in user $this->security->getUser()
 
         return $this->projectRepository->findByProfileOnQuery($this->query,$profile);
     }
