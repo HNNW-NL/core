@@ -32,6 +32,7 @@ security:
                 check_path: auth.login
                 username_parameter: username
                 password_parameter: password
+                enable_csrf: true 
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
 
