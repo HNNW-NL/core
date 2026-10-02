@@ -4,63 +4,23 @@
 {% block title %}Home{% endblock %}
 
 {# SEO #}
-
 {% block seoKeywords %}{% endblock %}
-
 {% block seoDescription %}{% endblock %}
-
 {% block seoAuthor %}HNNW{% endblock %}
 
-
-
 {# CSS #}
-
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('assets/main/css/index.css') }}">
 {% endblock %}
 
-
-
 {# JavaScript #}
-
 {% block javascript %}{% endblock %}
 
-
-
 {# Page content #}
-
 {% block body %}
+<div class="home-page">
 {# Skip link keeps the homepage keyboard-friendly. #}
 <a class="skip-link" href="#about">Direct naar de inhoud</a>
-
-{# Shared desktop and mobile navigation. #}
-<header class="topbar">
-    <div class="container nav">
-        <a class="brand" href="{{ path('main.home') }}" aria-label="Het Nieuwe² Werken home">
-            Het Nieuwe<sup>2</sup> Werken
-        </a>
-        <nav class="nav-links" aria-label="Hoofdnavigatie">
-            <a href="{{ path('main.home') }}">Home</a>
-            <a href="#about">About</a>
-            <a href="#projects">Project</a>
-            <a href="#contact">Contact</a>
-            <a href="https://slack.com" target="_blank" rel="noopener noreferrer">Slack</a>
-        </nav>
-        <details class="mobile-nav">
-            <summary aria-label="Open navigatiemenu">
-                <span class="menu-icon" aria-hidden="true"></span>
-                <span>Menu</span>
-            </summary>
-            <nav class="mobile-nav-links" aria-label="Mobiele hoofdnavigatie">
-                <a href="{{ path('main.home') }}">Home</a>
-                <a href="#about">About</a>
-                <a href="#projects">Project</a>
-                <a href="#contact">Contact</a>
-                <a href="https://slack.com" target="_blank" rel="noopener noreferrer">Slack</a>
-            </nav>
-        </details>
-    </div>
-</header>
 
 {# Hero introduces the platform and its primary call to action. #}
 <section class="hero container" id="about" aria-labelledby="hero-title">
@@ -78,7 +38,7 @@
     <div class="hero-visual" aria-hidden="true">
         <div class="visual-orbit orbit-one"></div>
         <div class="visual-orbit orbit-two"></div>
-        <div class="visual-center">🤝</div>
+        <div class="visual-center">{{ ux_icon('mdi:handshake', { 'aria-hidden': 'true' }) }}</div>
         <div class="visual-label label-top">Projecten</div>
         <div class="visual-label label-right">Mensen</div>
         <div class="visual-label label-bottom">Taken</div>
@@ -144,4 +104,5 @@
         <a class="button button-primary" href="mailto:contact@hnnw.nl">Neem contact op</a>
     </div>
 </section>
+</div>
 {% endblock %}
