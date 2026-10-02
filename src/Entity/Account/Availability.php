@@ -1,6 +1,8 @@
 <?php
+
 namespace App\Entity\Account;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
@@ -16,32 +18,38 @@ class Availability
     #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
     private Uuid $id;
 
-    #[ORM\ManyToOne(inversedBy: "availabilities")]
+    #[ORM\ManyToOne(inversedBy: 'availabilities')]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
     private ?Profile $profile = null;
 
-    #[ORM\Column(name: 'availability_type', length: 25)]
+    #[ORM\Column(name: 'availability_type', length: 35)]
     private ?string $availabilityType = null;
 
-    #[ORM\Column(name: 'hours_per_week', type: "integer")]
-    private ?int $hoursPerWeek = null;
+    #[ORM\Column(name: 'valid_from', type: Types::DATE_IMMUTABLE)]
+    private ?\DateTimeImmutable $validFrom = null;
 
-    #[ORM\Column(name: 'start_date', type: 'datetime_immutable')]
-    private \DateTimeImmutable $startDate;
+    #[ORM\Column(name: 'valid_until', type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $validUntil = null;
 
-    #[ORM\Column(name: 'end_date', type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $endDate = null;
+    #[ORM\Column(name: 'day_of_week', length: 25)]
+    private ?string $dayOfWeek = null;
 
-    #[ORM\Column(name: 'note', type: "text", nullable: true)]
+    #[ORM\Column(name: 'start_time', type: Types::TIME_IMMUTABLE)]
+    private ?\DateTimeImmutable $startTime = null;
+
+    #[ORM\Column(name: 'end_time', type: Types::TIME_IMMUTABLE)]
+    private ?\DateTimeImmutable $endTime = null;
+
+    #[ORM\Column(name: 'note', type: Types::TEXT, nullable: true)]
     private ?string $note = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
+    #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
-    #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
+    #[ORM\Column(name: 'last_modified', type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $lastModified;
 
-    #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
+    #[ORM\Column(name: 'deleted_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
 
@@ -88,7 +96,7 @@ class Availability
     }
 
 
-    /// Getters & Setters Functions
+    // Getters & Setters
 
     public function getProfile(): ?Profile
     {
@@ -98,6 +106,42 @@ class Availability
     public function setProfile(?Profile $profile): static
     {
         $this->profile = $profile;
+
+        return $this;
+    }
+
+    public function getDayOfWeek(): ?string
+    {
+        return $this->dayOfWeek;
+    }
+
+    public function setDayOfWeek(?string $dayOfWeek): static
+    {
+        $this->dayOfWeek = $dayOfWeek;
+
+        return $this;
+    }
+
+    public function getStartTime(): ?\DateTimeImmutable
+    {
+        return $this->startTime;
+    }
+
+    public function setStartTime(?\DateTimeImmutable $startTime): static
+    {
+        $this->startTime = $startTime;
+
+        return $this;
+    }
+
+    public function getEndTime(): ?\DateTimeImmutable
+    {
+        return $this->endTime;
+    }
+
+    public function setEndTime(?\DateTimeImmutable $endTime): static
+    {
+        $this->endTime = $endTime;
 
         return $this;
     }
@@ -114,38 +158,26 @@ class Availability
         return $this;
     }
 
-    public function getHoursPerWeek(): ?int
+    public function getValidFrom(): ?\DateTimeImmutable
     {
-        return $this->hoursPerWeek;
+        return $this->validFrom;
     }
 
-    public function setHoursPerWeek(?int $hoursPerWeek): static
+    public function setValidFrom(?\DateTimeImmutable $validFrom): static
     {
-        $this->hoursPerWeek = $hoursPerWeek;
+        $this->validFrom = $validFrom;
 
         return $this;
     }
 
-    public function getStartDate(): \DateTimeImmutable
+    public function getValidUntil(): ?\DateTimeImmutable
     {
-        return $this->startDate;
+        return $this->validUntil;
     }
 
-    public function setStartDate(\DateTimeImmutable $startDate): static
+    public function setValidUntil(?\DateTimeImmutable $validUntil): static
     {
-        $this->startDate = $startDate;
-
-        return $this;
-    }
-
-    public function getEndDate(): ?\DateTimeImmutable
-    {
-        return $this->endDate;
-    }
-
-    public function setEndDate(?\DateTimeImmutable $endDate): static
-    {
-        $this->endDate = $endDate;
+        $this->validUntil = $validUntil;
 
         return $this;
     }
