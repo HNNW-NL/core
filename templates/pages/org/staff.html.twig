@@ -1,16 +1,36 @@
 {% extends 'layouts/org.base.html.twig' %}
 
-{# Page title meta tag #}
 {% block title %}Staff{% endblock %}
 
-{# CSS #}
 {% block stylesheets %}{% endblock %}
 
-{# JavaScript #}
 {% block javascript %}{% endblock %}
 
-{# Page content #}
 {% block body %}
+    {% set data = org_staff() %}
+
     <h2>Organization Staff</h2>
-    <p>Organization panel - organization staff page.</p>
+
+    {% if data.items is empty %}
+        <p>No staff members found.</p>
+    {% else %}
+        {% for member in data.items %}
+            <div>
+                <h3>
+                    {% if member.displayName %}
+                        {{ member.displayName }}
+                    {% else %}
+                        {{ member.firstName }} {{ member.lastName }}
+                    {% endif %}
+                </h3>
+
+                <p>{{ member.email }}</p>
+                <p>Role: {{ member.role|default('No role') }}</p>
+
+                <a href="{{ path('org.viewStaff', {id: member.id}) }}">
+                    View staff member
+                </a>
+            </div>
+        {% endfor %}
+    {% endif %}
 {% endblock %}

@@ -1,0 +1,84 @@
+.staff-header {
+    margin-bottom: 20px;
+}
+
+.staff-header h2 {
+    margin-bottom: 6px;
+}
+
+.staff-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.staff-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.staff-card {
+    background-color: #115480;
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.staff-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.staff-name {
+    margin: 0 0 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.staff-email {
+    margin: 0 0 8px;
+    color: rgba(255, 255, 255, 0.9);
+    word-break: break-word;
+}
+
+.staff-role {
+    margin: 0 0 18px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.staff-view-link {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.staff-view-link:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.staff-empty {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #115480;
+    color: white;
+    border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+    .staff-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .staff-container {
+        grid-template-columns: 1fr;
+    }
+}
