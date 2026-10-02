@@ -68,30 +68,31 @@ button:focus-visible {
 }
 
 .visual {
-    min-height: 330px;
-    min-width: 520px;
-    border: 1px solid var(--line);
-    border-radius: 30px;
-    background: var(--header-background);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
+  width: 100%;
+  min-height: 330px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: var(--header-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
 
 
 .center {
-    width: 92px;
-    height: 92px;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 60px;
+  width: 92px;
+  height: 92px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
 }
 
 .visual-text {
@@ -116,14 +117,14 @@ button:focus-visible {
 }
 
 .hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.82fr);
-  align-items: center;
-  gap: 70px;
-  min-height: calc(100vh - 150px);
-  padding-top: 106px;
-  padding-bottom: 100px;
-  animation: rise-in 600ms ease both;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    align-items: center;
+    gap: clamp(40px, 6vw, 70px);
+    min-height: calc(100vh - 150px);
+    padding-top: clamp(70px, 8vw, 106px);
+    padding-bottom: 100px;
+    animation: rise-in 600ms ease both;
 }
 
 @keyframes rise-in {
@@ -185,10 +186,10 @@ button:focus-visible {
 }
 
 .button {
-  padding: 14px 20px;
+  min-height: 48px;
+  padding: 12px clamp(16px, 3vw, 20px);
   border: 1px solid transparent;
   font-size: 0.9rem;
-  letter-spacing: 0.01em;
 }
 
 .button-primary {
@@ -466,14 +467,14 @@ button:focus-visible {
 }
 
 .label-right {
-  top: 49%;
-  right: -4%;
+    top: 49%;
+    right: 0;
 }
 
 .label-bottom {
-  bottom: 16%;
+  bottom: 10%;
   left: 50%;
-  transform: translateX(-160%);
+  transform: translateX(-50%);
 }
 
 /* Respect visitors who prefer less motion. */
@@ -491,7 +492,10 @@ button:focus-visible {
   }
 }
 
-/* Tablets and smaller laptops */
+/* ========================================
+   TABLETS / SMALL LAPTOPS
+======================================== */
+
 @media (max-width: 1000px) {
 
     .container {
@@ -502,19 +506,26 @@ button:focus-visible {
         grid-template-columns: 1fr;
         gap: 50px;
         min-height: auto;
-        padding-top: 50px;
+        padding-top: 60px;
         padding-bottom: 70px;
         text-align: center;
     }
 
     .hero-copy {
+        width: 100%;
         max-width: 720px;
         margin: 0 auto;
     }
 
-    .hero-text {
+    .hero h1 {
+        max-width: 700px;
         margin-left: auto;
         margin-right: auto;
+    }
+
+    .hero-text {
+        max-width: 650px;
+        margin: 24px auto 30px;
     }
 
     .hero-actions {
@@ -527,7 +538,8 @@ button:focus-visible {
 
     .hero-visual {
         width: min(100%, 430px);
-        min-height: 430px;
+        aspect-ratio: 1;
+        min-height: 0;
         margin: 0 auto;
     }
 
@@ -535,7 +547,6 @@ button:focus-visible {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    /* Make the third card fill the available space nicely */
     .feature-card:last-child {
         grid-column: 1 / -1;
     }
@@ -550,33 +561,39 @@ button:focus-visible {
 }
 
 
-/* Tablets / large phones */
+/* ========================================
+   TABLETS / LARGE PHONES
+======================================== */
+
 @media (max-width: 700px) {
 
     .container {
-        width: min(100% - 28px, 600px);
+        width: calc(100% - 28px);
     }
 
     .hero {
-        gap: 40px;
-        padding-top: 35px;
-        padding-bottom: 55px;
+        gap: 45px;
+        padding-top: 40px;
+        padding-bottom: 60px;
     }
 
     .hero h1 {
-        font-size: clamp(2.2rem, 9vw, 3rem);
+        font-size: clamp(2rem, 9vw, 2.8rem);
         line-height: 1.05;
     }
 
     .hero-text {
-        margin-top: 20px;
-        margin-bottom: 26px;
+        margin: 20px auto 26px;
         font-size: 1rem;
+        line-height: 1.6;
     }
 
     .hero-actions {
         flex-direction: column;
         align-items: stretch;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
     }
 
     .hero-actions .button {
@@ -588,14 +605,19 @@ button:focus-visible {
         line-height: 1.8;
     }
 
-    .hero-note span {
-        margin: 0 3px;
-    }
 
-    /* Visual */
+    /* HERO VISUAL */
+
     .hero-visual {
         width: min(100%, 380px);
-        min-height: 380px;
+        aspect-ratio: 1;
+        min-height: 0;
+    }
+
+    .visual-center {
+        width: 76px;
+        height: 76px;
+        font-size: 2rem;
     }
 
     .visual-label {
@@ -604,16 +626,24 @@ button:focus-visible {
         font-size: 0.85rem;
     }
 
+    .label-top {
+        top: 7%;
+    }
+
     .label-right {
-        right: -2%;
+        top: 48%;
+        right: 0;
     }
 
     .label-bottom {
-        bottom: 12%;
-        transform: translateX(-140%);
+        bottom: 10%;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
-    /* Features */
+
+    /* FEATURES */
+
     .features {
         padding-bottom: 60px;
     }
@@ -640,7 +670,9 @@ button:focus-visible {
         grid-column: auto;
     }
 
-    /* Stats */
+
+    /* STATS */
+
     .stats-grid {
         grid-template-columns: 1fr;
         gap: 12px;
@@ -650,7 +682,9 @@ button:focus-visible {
         padding: 18px;
     }
 
+
     /* CTA */
+
     .cta-band {
         padding-bottom: 60px;
     }
@@ -674,7 +708,10 @@ button:focus-visible {
 }
 
 
-/* Small phones */
+/* ========================================
+   SMALL PHONES
+======================================== */
+
 @media (max-width: 480px) {
 
     .container {
@@ -682,13 +719,14 @@ button:focus-visible {
     }
 
     .hero {
-        padding-top: 25px;
-        padding-bottom: 45px;
         gap: 35px;
+        padding-top: 30px;
+        padding-bottom: 45px;
     }
 
     .hero h1 {
-        font-size: 2.15rem;
+        font-size: clamp(1.9rem, 9vw, 2.3rem);
+        line-height: 1.05;
     }
 
     .eyebrow {
@@ -704,32 +742,34 @@ button:focus-visible {
         font-size: 0.7rem;
     }
 
-    /* Smaller visual so it doesn't overflow */
+
+    /* Smaller visual */
+
     .hero-visual {
         width: min(100%, 320px);
-        min-height: 320px;
+        aspect-ratio: 1;
     }
 
     .visual-center {
-        width: 70px;
-        height: 70px;
+        width: 68px;
+        height: 68px;
         border-radius: 18px;
-        font-size: 1.8rem;
+        font-size: 1.7rem;
     }
 
     .visual-label {
-        width: 90px;
+        width: 88px;
         padding: 7px 8px;
-        font-size: 0.75rem;
+        font-size: 0.74rem;
     }
 
     .label-top {
-        top: 5%;
+        top: 6%;
     }
 
     .label-right {
         top: 48%;
-        right: -4%;
+        right: 0;
     }
 
     .label-bottom {
@@ -737,6 +777,9 @@ button:focus-visible {
         left: 50%;
         transform: translateX(-50%);
     }
+
+
+    /* FEATURES */
 
     .feature-card {
         padding: 22px 18px;
@@ -751,9 +794,15 @@ button:focus-visible {
         font-size: 0.92rem;
     }
 
+
+    /* STATS */
+
     .stat-item strong {
         font-size: 2rem;
     }
+
+
+    /* CTA */
 
     .cta-content {
         border-radius: 18px;
@@ -762,34 +811,45 @@ button:focus-visible {
 }
 
 
-/* Very small phones */
+/* ========================================
+   VERY SMALL PHONES
+======================================== */
+
 @media (max-width: 360px) {
 
     .container {
         width: calc(100% - 20px);
     }
 
+    .hero {
+        gap: 30px;
+    }
+
     .hero h1 {
-        font-size: 1.9rem;
+        font-size: 1.85rem;
+    }
+
+    .hero-text {
+        font-size: 0.9rem;
     }
 
     .hero-visual {
         width: 285px;
-        min-height: 285px;
-    }
-
-    .visual-label {
-        width: 78px;
-        font-size: 0.7rem;
-    }
-
-    .label-right {
-        right: -5%;
     }
 
     .visual-center {
-        width: 62px;
-        height: 62px;
+        width: 60px;
+        height: 60px;
         font-size: 1.5rem;
+    }
+
+    .visual-label {
+        width: 76px;
+        padding: 6px;
+        font-size: 0.68rem;
+    }
+
+    .label-right {
+        right: 0;
     }
 }
