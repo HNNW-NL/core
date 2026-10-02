@@ -1,4 +1,4 @@
-:root {
+.home-page {
   --bg: #0b1220;
   --primary: #4da3ff;
   --primary-dark: #2f7ed1;
@@ -11,19 +11,9 @@
   --white: #f8fbff;
   --panel: #121d30;
   --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
   margin: 0;
   overflow-x: hidden;
+  scroll-behavior: smooth;
   background:
     radial-gradient(circle at top, rgba(77, 163, 255, 0.18), transparent 26%),
     radial-gradient(circle at bottom right, rgba(110, 198, 212, 0.12), transparent 30%),
@@ -31,6 +21,11 @@ body {
   color: var(--text);
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.6;
+}
+
+@scope (.home-page) {
+* {
+  box-sizing: border-box;
 }
 
 a {
@@ -228,6 +223,7 @@ button:focus-visible {
   padding-bottom: 88px;
   animation: rise-in 600ms ease both;
 }
+}
 
 @keyframes rise-in {
   from {
@@ -241,6 +237,7 @@ button:focus-visible {
   }
 }
 
+@scope (.home-page) {
 .hero-copy {
   max-width: 620px;
 }
@@ -610,10 +607,11 @@ button:focus-visible {
 
 /* Respect visitors who prefer less motion. */
 @media (prefers-reduced-motion: reduce) {
-  html {
+  :scope {
     scroll-behavior: auto;
   }
 
+  :scope,
   *,
   *::before,
   *::after {
@@ -717,4 +715,5 @@ footer {
   .footer-content span + span {
     margin-top: 7px;
   }
+}
 }
