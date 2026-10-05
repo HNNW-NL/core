@@ -18,18 +18,18 @@
     <div class="projects-main"> 
         <h2>Projects - Overview</h2> 
         <p>Organization panel - projects overview page.</p> 
- 
+
         <div class="projects-current-text"><h2>Current projects</h2></div> 
         <div class="search-bar-projects"> 
             <input type="text" id="search-text" placeholder="Search projects..." aria-label="Search projects">
-            <button id="search-button">Search</button> 
-            <button id="reset-button" type="button" class="reset-button">Reset</button> 
+            <button id="search-button" type="button" aria-label="Search projects">Search</button> 
+            <button id="reset-button" type="button" class="reset-button" aria-label="Reset project search">Reset</button> 
             <label for="card-size-select" class="card-size-label">Size</label> 
             <div class="card-size-wrapper"> 
                 <select id="card-size-select" aria-label="Card size" class="card-size-select"> 
-                <option value="small">Small</option> 
-                <option value="medium" selected>Medium</option> 
-                <option value="large">Large</option> 
+                    <option value="small">Small</option> 
+                    <option value="medium" selected>Medium</option> 
+                    <option value="large">Large</option> 
                 </select> 
             </div> 
             <label for="per-page-select" class="per-page-label">Items</label> 
@@ -62,4 +62,4 @@
             </div> 
         </div> 
     </div> 
-{% endblock %} 
+{% endblock %}
