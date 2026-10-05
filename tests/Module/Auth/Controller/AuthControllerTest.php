@@ -113,11 +113,26 @@ class AuthControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         // de route /auth/logout maakt symfony zelf aan door de logout-instelling in security.yaml
-        $client->request('GET', '/auth/logout');
-        $this->assertResponseRedirects();
+        // als het goed is staat het csrf-token in de link op de signoff-pagina, dus we klikken op die link zoals een gebruiker dat doet
+        $crawler = $client->request('GET', '/account/signoff');
+        $client->click($crawler->selectLink('Uitloggen')->link());
+        $this->assertResponseRedirects('/');
 
         $client->request('GET', '/account');
         $this->assertResponseRedirects('/auth/login');
+    }
+
+    public function testWhenLogoutHasNoCsrfTokenShouldStayLoggedIn(): void
+    {
+        $client = static::createClient();
+        $client->loginUser($this->findAccount('Test@test.nl'));
+
+        // zonder token in de link weigert symfony het uitloggen (enable_csrf onder logout in security.yaml), dat geeft een 403
+        $client->request('GET', '/auth/logout');
+        $this->assertResponseStatusCodeSame(403);
+
+        $client->request('GET', '/account');
+        $this->assertResponseIsSuccessful();
     }
 
     // hulpfuncties

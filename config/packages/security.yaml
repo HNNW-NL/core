@@ -38,6 +38,8 @@ security:
             logout:
                 path: /auth/logout
                 target: main.home
+                # uitloggen kan nu alleen nog met een geldig csrf-token in de link, zo kan een andere site je niet stiekem uitloggen
+                enable_csrf: true
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
 

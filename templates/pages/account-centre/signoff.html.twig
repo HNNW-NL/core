@@ -14,5 +14,6 @@
     <h2>Signoff</h2>
     <p>Klik op de knop om uit te loggen.</p>
     {# als het goed is maakt symfony de route _logout_main zelf aan door de logout-instelling in security.yaml #}
-    <a class="btn btn-primary" href="{{ path('_logout_main') }}">Uitloggen</a>
+    {# de link krijgt een csrf-token mee, als het goed is weigert symfony het uitloggen zonder dat token (enable_csrf onder logout in security.yaml) #}
+    <a class="btn btn-primary" href="{{ path('_logout_main', {'_csrf_token': csrf_token('logout')}) }}">Uitloggen</a>
 {% endblock %}
