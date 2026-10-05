@@ -211,7 +211,9 @@ button:focus-visible {
 
 .button-primary:hover {
   background: var(--primary-dark);
+  filter: brightness(1.06);
   transform: translateY(-1px);
+  box-shadow: 0 22px 36px rgba(77, 163, 255, 0.32);
 }
 
 .hero {
@@ -361,7 +363,7 @@ button:focus-visible {
 .feature-card:hover {
   transform: translateY(-3px);
   border-color: rgba(77, 163, 255, 0.35);
-  box-shadow: 0 22px 34px rgba(4, 9, 18, 0.24);
+  box-shadow: 0 22px 34px rgba(4, 9, 18, 0.24), 0 0 0 1px rgba(116, 185, 255, 0.08);
 }
 
 .feature-icon {
