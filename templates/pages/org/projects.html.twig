@@ -20,8 +20,8 @@
         <p>Organization panel - projects overview page.</p> 
 
         <div class="projects-current-text"><h2>Current projects</h2></div> 
-        <div class="search-bar-projects"> 
-            <input type="text" id="search-text" placeholder="Search projects..." aria-label="Search projects">
+        <div class="search-bar-projects" role="search" aria-controls="projects-app"> 
+            <input type="text" id="search-text" placeholder="Search projects..." aria-label="Search projects" autocomplete="off">
             <button id="search-button" type="button" aria-label="Search projects">Search</button> 
             <button id="reset-button" type="button" class="reset-button" aria-label="Reset project search">Reset</button> 
             <label for="card-size-select" class="card-size-label">Size</label> 
