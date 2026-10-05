@@ -17,7 +17,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Uid\Uuid;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -98,7 +97,7 @@ final class AccountsController extends AbstractController
         return $this->redirectToRoute('account.applications');
     }
 
-      #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
+    #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
     public function availability(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -208,91 +207,11 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.availability');
         }
         
-        try {
-            $rows = $connection->fetchAllAssociative(
-                'SELECT * FROM availabilities WHERE profile_id = :profileId AND deleted_at IS NULL ORDER BY start_date DESC',
-                ['profileId' => $profile->getId()->toString()]
-            );
-        } catch (\Exception $e) {
-            $rows = [];
-        }
-
-        $availabilities = [];
-        $daysMapping = [0 => 'Ma', 1 => 'Di', 2 => 'Wo', 3 => 'Do', 4 => 'Vr', 5 => 'Za', 6 => 'Zo'];
-        $typeMapping = ['FT' => 'Full-Time', 'PT' => 'Part-Time'];
-
-        foreach ($rows as $row) {
-            $rawValue = $row['availability_type'] ?? '';
-
-            $structuredDays = [];
-            foreach (range(0, 6) as $d) {
-                $structuredDays[$d] = ['enabled' => false, 'start' => '08:00', 'end' => '17:00'];
-            }
-
-            $baseType = 'Standaard';
-
-            if (str_contains($rawValue, '|')) {
-                $parts = explode('|', $rawValue);
-                $daysPart = $parts[0] ?? '';
-                $timePart = $parts[1] ?? '08:00-17:00';
-                $typePart = $parts[2] ?? 'FT';
-
-                [$start, $end] = str_contains($timePart, '-') ? explode('-', $timePart, 2) : ['08:00', '17:00'];
-                $baseType = $typeMapping[$typePart] ?? 'Standaard';
-
-                $activeDaysArray = str_split($daysPart);
-                foreach ($activeDaysArray as $dayNum) {
-                    $dayNum = (int)$dayNum;
-                    if ($dayNum >= 0 && $dayNum <= 6) {
-                        $structuredDays[$dayNum] = [
-                            'enabled' => true,
-                            'start' => $start,
-                            'end' => $end
-                        ];
-                    }
-                }
-            } else {
-                foreach (range(0, 4) as $d) {
-                    $structuredDays[$d]['enabled'] = true;
-                }
-                $baseType = !empty($rawValue) ? $rawValue : 'Standaard';
-            }
-
-            $activeDaysText = [];
-            foreach ($structuredDays as $dayNum => $meta) {
-                if ($meta['enabled']) {
-                    $activeDaysText[] = $daysMapping[$dayNum];
-                }
-            }
-            $daysSummary = !empty($activeDaysText) ? ' (' . implode(', ', $activeDaysText) . ')' : ' (Geen werkdagen)';
-
-            $availabilities[] = (object) [
-                'id' => $row['id'],
-                'baseType' => $baseType,
-                'daysSummary' => $daysSummary,
-                'daysDetails' => $structuredDays,
-                'blockedDates' => [],
-                'hoursPerWeek' => $row['hours_per_week'],
-                'startDate' => new \DateTimeImmutable($row['start_date']),
-                'endDate' => $row['end_date'] ? new \DateTimeImmutable($row['end_date']) : null
-            ];
-        }
-
-        $defaultSchedule = [];
-        $fullNames = [0 => 'Monday', 1 => 'Tuesday', 2 => 'Wednesday', 3 => 'Thursday', 4 => 'Friday', 5 => 'Saturday', 6 => 'Sunday'];
-        foreach ($fullNames as $num => $name) {
-            $defaultSchedule[$num] = [
-                'name' => $name,
-                'enabled' => $num <= 4,
-                'start' => '08:00',
-                'end' => '17:00'
-            ];
-        }
+        $availabilities = $availabilityRepository->findActiveForProfile($profile);
 
         return $this->render('pages/account-centre/availability.html.twig', [
             'profile' => $profile,
             'availabilities' => $availabilities,
-            'defaultSchedule' => $defaultSchedule
         ]);
     }
 
@@ -578,13 +497,6 @@ final class AccountsController extends AbstractController
             $settings->setTheme('dark');
             $settings->setProfileVisibility('public');
             $settings->setEmailNotificationsEnabled(true);
-
-            if (method_exists($settings, 'setId') && method_exists(Uuid::class, 'v4')) {
-                $settings->setId(Uuid::v4());
-            }
-            if (method_exists($settings, 'setCreatedAt')) {
-                $settings->setCreatedAt(new \DateTimeImmutable());
-            }
 
             $entityManager->persist($settings);
         }
