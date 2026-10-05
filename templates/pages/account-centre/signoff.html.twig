@@ -12,5 +12,7 @@
 {# Page content #}
 {% block body %}
     <h2>Signoff</h2>
-    <p>Account Centre - Signoff page.</p>
+    <p>Klik op de knop om uit te loggen.</p>
+    {# als het goed is maakt symfony de route _logout_main zelf aan door de logout-instelling in security.yaml #}
+    <a class="btn btn-primary" href="{{ path('_logout_main') }}">Uitloggen</a>
 {% endblock %}

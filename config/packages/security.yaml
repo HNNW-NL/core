@@ -34,6 +34,10 @@ security:
                 password_parameter: password
                 # het login-formulier stuurt _csrf_token mee, hier zeggen we dat symfony hem ook echt moet controleren
                 enable_csrf: true
+            # uitloggen: symfony maakt zelf de route /auth/logout aan (config/routes/security.yaml laadt de logout-routes) en stuurt daarna naar de homepagina
+            logout:
+                path: /auth/logout
+                target: main.home
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
 
