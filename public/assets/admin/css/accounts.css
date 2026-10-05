@@ -1,9 +1,4 @@
 /* Dark theme with yellow accents - inspired by Het Nieuwe Werken */
-/* kleuren komen uit de shared-tokens; de oude naam blijft bestaan voor de inline style in de template */
-:root {
-    --accent-yellow: var(--brand);
-}
-
 * {
     box-sizing: border-box;
 }
@@ -73,6 +68,34 @@ h2 {
 
 .accounts button[type="submit"]:hover {
     text-decoration: underline;
+}
+
+/* gele waarschuwing boven de lijst; shared .alert geeft al de ruimte, rand en radius */
+.alert-warning {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    color: var(--text);
+}
+
+/* zoekveld en de knop 'create' naast elkaar */
+.toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.toolbar .search-form {
+    margin-bottom: 0;
+    align-items: center;
+}
+
+/* tekst als de lijst leeg is */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
 }
 
 /* Search form */
