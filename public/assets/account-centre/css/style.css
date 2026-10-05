@@ -224,41 +224,7 @@
    GLOBAL DESIGN ELEMENTS
    ========================================== */
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 3px;
-}
-
-header nav ul {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    list-style: none;
-    gap: 5px;
-    padding: 0;
-    margin: 0 20px 0 0;
-}
-
-header nav ul li a {
-    text-decoration: none;
-    display: inline-block;
-}
-
-header nav ul svg:first-of-type {
-    margin-left: 50px;
-    margin-right: 15px;
-}
-
-header nav ul svg {
-    cursor: pointer;
-}
-
-header nav ul svg:hover path {
-    fill: var(--brand);
-    transition: fill 0.5s ease;
-}
+/* de header-regels staan in main/css/core.css, die laadt deze layout ook */
 
 
 /* ==========================================

@@ -1,18 +1,8 @@
-body {
-   header {
-       position: sticky;
-       top: 0;
-       background-color: var(--header-background);
-       backdrop-filter: blur(8px);
-   }
-
-   main {
-       min-height: 100dvh;
-
-   }
-
-   footer {
-
-   }
-
+/* de header-balk staat in core.css, hier alleen de ruimte rond de inhoud van de pagina */
+main {
+    width: 100%;
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    flex: 1;
 }

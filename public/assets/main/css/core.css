@@ -1,15 +1,30 @@
-html,
+/* de pagina is minstens zo hoog als het scherm, zo staat de footer altijd onderaan */
 body {
-    min-height: 100%;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
 
-header {
+/* header zoals hnnw.nl: een balk over de hele breedte die blijft staan bij scrollen */
+.page_navbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--header-background);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+}
+
+/* de inhoud van de header staat in het midden, net zo breed als de rest van de pagina */
+.main-header {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 3px;
+    gap: 1rem;
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
 }
 
 header nav ul {
@@ -17,9 +32,9 @@ header nav ul {
     justify-content: flex-end;
     align-items: center;
     list-style: none;
-    gap: 5px;
+    gap: 0.25rem;
     padding: 0;
-    margin: 0 30px 0 0;
+    margin: 0;
 }
 
 header nav ul li a {
@@ -29,7 +44,7 @@ header nav ul li a {
 
 .nav-button {
     display: inline-block;
-    padding: 8px 16px;
+    padding: 0.5rem 0.75rem;
     cursor: pointer;
     background-color: transparent;
     /* menu-links zoals hnnw.nl: gedempt, bij hover de gewone tekstkleur */
@@ -44,9 +59,13 @@ header nav ul li a {
     color: var(--text);
 }
 
-header nav ul svg:first-of-type {
-    margin-left: 30px;
-    margin-right: 15px;
+/* bel en zoeken naast elkaar, met wat ruimte na de menu-links */
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: 1rem;
+    margin-right: 0.5rem;
 }
 
 header nav ul svg {
@@ -56,6 +75,26 @@ header nav ul svg {
 header nav ul svg:hover path {
     fill: var(--brand);
     transition: fill 0.5s ease;
+}
+
+/* inloggen is een gele knop, uitloggen een knop met een randje */
+.nav-auth {
+    margin-left: 0.5rem;
+}
+
+.nav-auth.nav-button.btn-primary {
+    color: var(--brand-text);
+    background-color: var(--brand);
+    font-weight: 600;
+}
+
+.nav-auth.nav-button.btn-primary:hover {
+    background-color: var(--brand-strong);
+}
+
+.nav-auth.nav-button.btn-secondary {
+    border: 1px solid var(--border);
+    color: var(--text);
 }
 
 /* menu-knop: op desktop verborgen, de svg erin volgt de tekstkleur (currentColor) */
@@ -116,8 +155,7 @@ header nav ul svg:hover path {
 
     .nav-icons {
         justify-content: center;
-        margin-left: -40px;
-        /* margin-left: 0; */
+        margin-left: 0;
         padding-top: 0.5rem;
         border-top: 1px solid var(--border);
     }
@@ -199,7 +237,7 @@ header nav ul svg:hover path {
 }
 
 .logo-name {
-    margin-left: 100px;
+    white-space: nowrap;
 }
 
 .logo-name-het {
