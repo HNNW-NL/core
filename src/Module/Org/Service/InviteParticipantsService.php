@@ -16,18 +16,19 @@ class InviteParticipantsService
 
     public function addToProject(string $projectId, array $profiles): void
     {
+        $project = $this->projectRepository->find($projectId);
         foreach ($profiles as $profile)
         {
             $projectParticipant = new ProjectParticipant();
             $projectParticipant->setProfile($profile);
-            $projectParticipant->setProject($this->projectRepository->find($projectId));
+            $projectParticipant->setProject($project);
             $projectParticipant->setStatus($this->entityManager->getRepository(Status::class)->findOneBy([])); // random entity for now
             $projectParticipant->setRole(null);
             $projectParticipant->setApplication(null);
 
             $this->entityManager->persist($projectParticipant);
-            $this->entityManager->flush();
         }
+        $this->entityManager->flush();
     }
 }
 
