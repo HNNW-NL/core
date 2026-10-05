@@ -1,0 +1,42 @@
+/* dashboard-pagina (/admin): alleen het raster en de inhoud van de kaarten; de kaart zelf komt uit shared .card */
+
+/* kaarten naast elkaar, op een smal scherm onder elkaar */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.dashboard .card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.dashboard .card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dashboard .card li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text);
+}
+
+.dashboard .card li small {
+    display: block;
+    color: var(--text-soft);
+    font-size: 12px;
+}
+
+.dashboard .empty {
+    color: var(--text-soft);
+    font-size: 14px;
+}
