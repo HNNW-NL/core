@@ -273,6 +273,28 @@ final class PanelController extends AbstractController
     ): Response {
         $project = $this->findProjectForAccount($id, $entityManager);
 
+        // de verwijderknop is een gewoon html formulier en geen symfony form, daarom controleren we het csrf token hier zelf en zoeken we het werkpakket alleen binnen dit project
+        if ($request->request->get('_action') === 'delete_work_package') {
+            $workPackageId = (string) $request->request->get('workPackageId');
+            $token = (string) $request->request->get('_token');
+
+            if ($this->isCsrfTokenValid('delete_work_package', $token) && Uuid::isValid($workPackageId)) {
+                $workPackage = $entityManager->getRepository(WorkPackage::class)->findOneBy([
+                    'id' => $workPackageId,
+                    'project' => $project,
+                ]);
+
+                if ($workPackage !== null) {
+                    $workPackage->softDelete();
+                    $entityManager->flush();
+                }
+            }
+
+            return $this->redirectToRoute('org.modifyProject.workPackages', [
+                'id' => $id,
+            ]);
+        }
+
         // formulier voor een nieuw werkpakket
         $workPackageDTO = new WorkPackageFormDTO();
         $form = $this->createForm(WorkPackageType::class, $workPackageDTO);

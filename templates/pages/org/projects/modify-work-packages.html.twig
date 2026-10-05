@@ -180,6 +180,7 @@
 
                                                 <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-delete-form">
                                                     <input type="hidden" name="_action" value="delete_work_package">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_work_package') }}">
                                                     <input type="hidden" name="workPackageId" value="{{ workPackage.id }}">
 
                                                     <button class="work-packages-text-button work-packages-danger-action" type="submit">
