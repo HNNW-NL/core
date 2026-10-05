@@ -214,6 +214,11 @@ a:hover {
     text-decoration: underline;
 }
 
+/* in licht is geel op wit niet te lezen, daarom krijgen links daar de gewone tekstkleur (zo doet hnnw.nl het ook) */
+[data-theme="light"] main a {
+    color: var(--text);
+}
+
 /* Form group spacing */
 form {
     max-width: 600px;

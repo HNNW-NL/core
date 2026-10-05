@@ -140,6 +140,12 @@ a {
     text-decoration: underline;
 }
 
+/* in licht is geel op wit niet te lezen, hnnw.nl maakt links daar gewoon tekstkleur met een streep eronder */
+[data-theme="light"] .link {
+    color: var(--text);
+    text-decoration: underline;
+}
+
 /* toetsenbord-focus altijd zichtbaar */
 :focus-visible {
     outline: 2px solid var(--brand);
