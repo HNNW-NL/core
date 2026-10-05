@@ -204,6 +204,17 @@ class AcountsControllerTest extends WebTestCase
         $this->assertNull($this->findAvailability('Test@test.nl', 'Tuesday')->getDeletedAt());
     }
 
+    public function testWhenLoggedInAndAvailabilityIdIsNotAUuidShouldGive404(): void
+    {
+        $client = static::createClient();
+        $this->loginAs($client, 'Test@test.nl');
+
+        // een id dat geen uuid is past niet op de route, dan geeft symfony een 404 en komt het nooit bij de database
+        $client->request('POST', '/account/availability/abc/delete', ['_token' => 'maakt-niet-uit']);
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
     //experience
 
     public function testWhenNotLoggedInShouldRedirectFromExperience(): void
@@ -353,6 +364,17 @@ class AcountsControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(403);
         $this->assertNull($this->findExperience('A Job Title')->getDeletedAt());
+    }
+
+    public function testWhenLoggedInAndExperienceIdIsNotAUuidShouldGive404(): void
+    {
+        $client = static::createClient();
+        $this->loginAs($client, 'Test@test.nl');
+
+        // zelfde eis op het id als bij beschikbaarheid
+        $client->request('POST', '/account/experience/abc/delete', ['_token' => 'maakt-niet-uit']);
+
+        $this->assertResponseStatusCodeSame(404);
     }
 
     // modify

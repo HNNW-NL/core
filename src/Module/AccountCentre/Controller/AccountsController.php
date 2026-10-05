@@ -20,6 +20,7 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Requirement\Requirement;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -105,7 +106,8 @@ final class AccountsController extends AbstractController
         ]);
     }
 
-    #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
+    // als het id geen uuid is geeft symfony nu een 404 in plaats van een databasefout
+    #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'], requirements: ['id' => Requirement::UUID])]
     public function deleteAvailability(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
         $account = $this->getAuthenticatedAccount();
@@ -197,7 +199,8 @@ final class AccountsController extends AbstractController
         ]);
     }
 
-    #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
+    // zelfde eis op het id als bij beschikbaarheid
+    #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'], requirements: ['id' => Requirement::UUID])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
         $account = $this->getAuthenticatedAccount();
