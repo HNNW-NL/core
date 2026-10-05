@@ -4,13 +4,20 @@ namespace App\Module\Org\Controller;
 
 use App\Entity\Account\Account;
 use App\Entity\Org\Organisation;
+use App\Entity\Project\PackageTask;
 use App\Entity\Project\Project;
+use App\Entity\Project\WorkPackage;
 use App\Form\Org\CreateProjectType;
 use App\Form\Org\ModifyProjectType;
+use App\Form\Org\PackageTaskType;
 use App\Form\Org\ParticipantRolesType;
+use App\Form\Org\WorkPackageType;
 use App\Module\Org\DTO\CreateProjectDTO;
 use App\Module\Org\DTO\ModifyProjectFormDTO;
+use App\Module\Org\DTO\PackageTaskFormDTO;
 use App\Module\Org\DTO\ParticipantRolesDTO;
+use App\Module\Org\DTO\WorkPackageFormDTO;
+use App\Module\Org\Handler\GetOrgProjectWorkPackagesHandler;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use App\Module\Org\Service\CreateProjectService;
 use App\Repository\Common\StatusRepository;
@@ -18,6 +25,7 @@ use App\Repository\Project\ProjectRoleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -254,11 +262,108 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
-    public function modifyProjectWorkPackages(string $id): Response
-    {
+    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET', 'POST'])]
+    public function modifyProjectWorkPackages(
+        string $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        FormFactoryInterface $formFactory,
+        StatusRepository $statusRepository,
+        GetOrgProjectWorkPackagesHandler $overviewHandler
+    ): Response {
+        $project = $this->findProjectForAccount($id, $entityManager);
+
+        // formulier voor een nieuw werkpakket
+        $workPackageDTO = new WorkPackageFormDTO();
+        $form = $this->createForm(WorkPackageType::class, $workPackageDTO);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $status = $statusRepository->findOneByScopeAndName('WorkPackage', 'active');
+            $workPackageWithSameSlug = $entityManager->getRepository(WorkPackage::class)->findOneBy([
+                'project' => $project,
+                'slug' => $workPackageDTO->slug,
+            ]);
+
+            if ($status === null) {
+                $form->addError(new FormError('Er is geen status voor werkpakketten in de database.'));
+            } elseif ($workPackageWithSameSlug !== null) {
+                // de slug moet uniek zijn binnen het project, anders geeft het opslaan een fout
+                $form->get('slug')->addError(new FormError('Er bestaat al een werkpakket met deze slug in dit project.'));
+            } else {
+                $workPackage = new WorkPackage();
+                $workPackage->setProject($project);
+                $workPackage->setStatus($status);
+                $workPackage->setTitle($workPackageDTO->title);
+                $workPackage->setSlug($workPackageDTO->slug);
+                $workPackage->setDescription($workPackageDTO->description);
+                $workPackage->setDueDate($workPackageDTO->dueDate);
+
+                $entityManager->persist($workPackage);
+                $entityManager->flush();
+
+                return $this->redirectToRoute('org.modifyProject.workPackages', [
+                    'id' => $id,
+                ]);
+            }
+        }
+
+        $overview = $overviewHandler->handle((string) $project->getId());
+
+        // per werkpakket een eigen taakformulier met een eigen naam, zo weet symfony welk formulier is verstuurd
+        $taskForms = [];
+        foreach ($overview['workPackages'] as $workPackageRow) {
+            $workPackageId = $workPackageRow['id'];
+
+            $packageTaskDTO = new PackageTaskFormDTO($workPackageId);
+            $taskForm = $formFactory->createNamed('package_task_' . $workPackageId, PackageTaskType::class, $packageTaskDTO);
+            $taskForm->handleRequest($request);
+
+            if ($taskForm->isSubmitted() && $taskForm->isValid()) {
+                $workPackage = $entityManager->getRepository(WorkPackage::class)->find($workPackageId);
+                $status = $statusRepository->findOneByScopeAndName('PackageTask', 'active');
+                $taskWithSameSlug = $entityManager->getRepository(PackageTask::class)->findOneBy([
+                    'workPackage' => $workPackage,
+                    'slug' => $packageTaskDTO->taskSlug,
+                ]);
+
+                if ($status === null) {
+                    $taskForm->addError(new FormError('Er is geen status voor taken in de database.'));
+                } elseif ($taskWithSameSlug !== null) {
+                    $taskForm->get('taskSlug')->addError(new FormError('Er bestaat al een taak met deze slug in dit werkpakket.'));
+                } else {
+                    $packageTask = new PackageTask();
+                    $packageTask->setWorkPackage($workPackage);
+                    $packageTask->setStatus($status);
+                    $packageTask->setTitle($packageTaskDTO->taskTitle);
+                    $packageTask->setSlug($packageTaskDTO->taskSlug);
+                    $packageTask->setDescription($packageTaskDTO->taskDescription);
+                    $packageTask->setDueDate($packageTaskDTO->taskDueDate);
+                    $packageTask->setPriority($packageTaskDTO->taskPriority ?? 'normal');
+
+                    $entityManager->persist($packageTask);
+                    $entityManager->flush();
+
+                    return $this->redirectToRoute('org.modifyProject.workPackages', [
+                        'id' => $id,
+                    ]);
+                }
+            }
+
+            // de pagina verwacht per werkpakket een form view, de lijst zit in een array dus die maken we hier zelf
+            $taskForms[$workPackageId] = $taskForm->createView();
+        }
+
         return $this->render('pages/org/projects/modify-work-packages.html.twig', [
             'id' => $id,
+            'projectTitle' => $project->getTitle(),
+            'projectMemberCount' => $project->getParticipants()->count(),
+            'workPackages' => $overview['workPackages'],
+            'workPackageCount' => $overview['workPackageCount'],
+            'taskCount' => $overview['taskCount'],
+            'averageProgress' => $overview['averageProgress'],
+            'form' => $form,
+            'taskForms' => $taskForms,
         ]);
     }
 
