@@ -6,7 +6,9 @@ use App\Entity\Account\Account;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
 use App\Form\Org\CreateProjectType;
+use App\Form\Org\ModifyProjectType;
 use App\Module\Org\DTO\CreateProjectDTO;
+use App\Module\Org\DTO\ModifyProjectFormDTO;
 use App\Module\Org\Service\CreateProjectService;
 use App\Repository\Common\StatusRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,6 +17,7 @@ use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -80,11 +83,72 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET'])]
-    public function modifyProject(string $id): Response
+    #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET', 'POST'])]
+    public function modifyProject(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
+        $project = $this->findProjectForAccount($id, $entityManager);
+
+        // de waarden van het project gaan eerst in de dto, het formulier werkt met de dto en niet met de entity
+        $modifyProjectDTO = new ModifyProjectFormDTO();
+        $modifyProjectDTO->projectId = (string) $project->getId();
+        $modifyProjectDTO->organisationId = (string) $project->getOwnerOrganisation()?->getId();
+        $modifyProjectDTO->lastModified = $project->getLastModified()->format('Y-m-d H:i:s');
+        $modifyProjectDTO->title = $project->getTitle();
+        $modifyProjectDTO->summary = $project->getSummary();
+        $modifyProjectDTO->description = $project->getDescription();
+        $modifyProjectDTO->visibility = $project->getVisibility();
+        $modifyProjectDTO->startDate = $project->getStartDate();
+        $modifyProjectDTO->endDate = $project->getEndDate();
+        $modifyProjectDTO->capacity = $project->getCapacity();
+        $modifyProjectDTO->status = $project->getStatus();
+
+        $form = $this->createForm(ModifyProjectType::class, $modifyProjectDTO);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // de knop delete zit in hetzelfde formulier, de waarde van intent zegt wat de gebruiker wil
+            if ($request->request->get('intent') === 'delete') {
+                $project->softDelete();
+                $entityManager->flush();
+
+                return $this->redirectToRoute('org.projects');
+            }
+
+            // als het verborgen veld niet meer klopt heeft iemand anders het project ondertussen opgeslagen
+            if ($modifyProjectDTO->lastModified !== $project->getLastModified()->format('Y-m-d H:i:s')) {
+                return $this->redirectToRoute('org.modifyProject', [
+                    'id' => $id,
+                    'status' => 'error',
+                    'message' => 'Het project is ondertussen door iemand anders aangepast. Laad de pagina opnieuw.',
+                ]);
+            }
+
+            $project->setTitle($modifyProjectDTO->title);
+            $project->setSummary($modifyProjectDTO->summary);
+            $project->setDescription($modifyProjectDTO->description);
+            $project->setVisibility($modifyProjectDTO->visibility);
+            $project->setStartDate($modifyProjectDTO->startDate);
+            $project->setEndDate($modifyProjectDTO->endDate);
+            // de kolom capacity mag niet leeg zijn, dus zonder invulling slaan we 0 op
+            $project->setCapacity($modifyProjectDTO->capacity ?? 0);
+
+            if ($modifyProjectDTO->status !== null) {
+                $project->setStatus($modifyProjectDTO->status);
+            }
+
+            $entityManager->flush();
+
+            return $this->redirectToRoute('org.modifyProject', [
+                'id' => $id,
+                'status' => 'success',
+                'message' => 'Project opgeslagen.',
+            ]);
+        }
+
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
+            'project' => $project,
+            'form' => $form,
         ]);
     }
 
@@ -182,5 +246,48 @@ final class PanelController extends AbstractController
         }
 
         return $membership->getOrganisation();
+    }
+
+    // kijkt of het account bij de organisatie hoort, een admin mag altijd
+    private function isMemberOfOrganisation(Account $account, ?Organisation $organisation): bool
+    {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return true;
+        }
+
+        if ($organisation === null) {
+            return false;
+        }
+
+        foreach ($account->getOrgMemberships() as $membership) {
+            if ((string) $membership->getOrganisation()?->getId() === (string) $organisation->getId()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // zoekt het project op en controleert of de ingelogde gebruiker er iets mee mag doen
+    private function findProjectForAccount(string $id, EntityManagerInterface $entityManager): Project
+    {
+        $account = $this->getAuthenticatedAccount();
+
+        // zonder deze controle geeft doctrine een fout als de id geen uuid is
+        if (!Uuid::isValid($id)) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $project = $entityManager->getRepository(Project::class)->find($id);
+
+        if ($project === null || $project->getDeletedAt() !== null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        if (!$this->isMemberOfOrganisation($account, $project->getOwnerOrganisation())) {
+            throw $this->createAccessDeniedException('Je hoort niet bij de organisatie van dit project.');
+        }
+
+        return $project;
     }
 }

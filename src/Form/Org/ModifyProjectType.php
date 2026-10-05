@@ -2,7 +2,10 @@
 
 namespace App\Form\Org;
 
+use App\Entity\Common\Status;
 use App\Module\Org\DTO\ModifyProjectFormDTO;
+use Doctrine\ORM\EntityRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -56,12 +59,14 @@ final class ModifyProjectType extends AbstractType
             ->add('capacity', IntegerType::class, [
                 'required' => false,
             ])
-            ->add('status', ChoiceType::class, [
-                'choices' => [
-                    'Draft' => 'draft',
-                    'Published' => 'published',
-                    'Archived' => 'archived',
-                ],
+            // de statussen draft, published en archived staan niet in de database, daarom haalt symfony ze nu zelf op net als bij aanmaken
+            ->add('status', EntityType::class, [
+                'class' => Status::class,
+                'choice_label' => 'name',
+                'query_builder' => fn (EntityRepository $repo) => $repo->createQueryBuilder('s')
+                    ->where('s.scope = :scope')
+                    ->setParameter('scope', 'project')
+                    ->orderBy('s.name', 'ASC'),
                 'required' => false,
             ]);
     }

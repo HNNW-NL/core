@@ -2,6 +2,8 @@
 
 namespace App\Module\Org\DTO;
 
+use App\Entity\Common\Status;
+
 // deze dto vangt het project wijzigen formulier op
 // er bestaat al een ModifyProjectDTO, maar die heeft verplichte constructor argumenten
 // en werkt daardoor niet als model voor een symfony form
@@ -19,5 +21,6 @@ class ModifyProjectFormDTO
     public ?\DateTimeImmutable $startDate = null;
     public ?\DateTimeImmutable $endDate = null;
     public ?int $capacity = null;
-    public ?string $status = null;
+    // de status komt nu als entity uit de database, net als bij de CreateProjectDTO
+    public ?Status $status = null;
 }
