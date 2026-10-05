@@ -42,7 +42,8 @@ class PackageTaskTypeTest extends TypeTestCase
         $this->assertTrue($form->has('taskSlug'));
         $this->assertTrue($form->has('taskDescription'));
         $this->assertTrue($form->has('taskDueDate'));
-        $this->assertTrue($form->has('taskPriority'));
+        // de prioriteit zit niet in het formulier, de dto houdt normal als standaard
+        $this->assertFalse($form->has('taskPriority'));
         // het verborgen veld krijgt het id van het werkpakket uit de dto
         $this->assertSame(self::WORK_PACKAGE_ID, $form->get('workPackageId')->getData());
     }
@@ -58,7 +59,6 @@ class PackageTaskTypeTest extends TypeTestCase
             'taskSlug' => 'nieuwe-taak',
             'taskDescription' => 'Omschrijving van de taak',
             'taskDueDate' => '2026-12-31',
-            'taskPriority' => 'high',
         ]);
 
         $this->assertTrue($form->isSynchronized());
@@ -68,7 +68,7 @@ class PackageTaskTypeTest extends TypeTestCase
         $this->assertSame('nieuwe-taak', $dto->taskSlug);
         $this->assertSame('Omschrijving van de taak', $dto->taskDescription);
         $this->assertSame('2026-12-31', $dto->taskDueDate->format('Y-m-d'));
-        $this->assertSame('high', $dto->taskPriority);
+        $this->assertSame('normal', $dto->taskPriority);
     }
 
     public function testWhenTaskTitleIsEmptyShouldBeInvalid(): void

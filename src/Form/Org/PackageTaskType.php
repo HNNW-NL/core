@@ -41,8 +41,8 @@ final class PackageTaskType extends AbstractType
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'required' => false,
-            ])
-            ->add('taskPriority', HiddenType::class);
+            ]);
+        // de prioriteit zit niet meer in het formulier, de pagina biedt geen keuze aan en de dto houdt normal als standaard
     }
 
     public function configureOptions(OptionsResolver $resolver): void
