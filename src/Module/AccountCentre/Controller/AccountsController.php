@@ -5,23 +5,20 @@ namespace App\Module\AccountCentre\Controller;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
+use App\Entity\Account\Availability;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
-use App\Form\AccountCentre\AvailabilityType;
 use App\Form\AccountCentre\ExperienceType;
 use App\Form\AccountCentre\ModifyAccountType;
 use App\Form\AccountCentre\NotificationSettingsType;
-use App\Module\AccountCentre\DTO\AvailabilityDTO;
 use App\Module\AccountCentre\DTO\ExperienceDTO;
 use App\Module\AccountCentre\DTO\ModifyAccountDTO;
 use App\Module\AccountCentre\DTO\NotificationSettingsDTO;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Uid\Uuid;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -79,8 +76,8 @@ final class AccountsController extends AbstractController
         return $this->redirectToRoute('account.applications');
     }
 
-    #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
-    public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
+    #[Route('/availability', name: 'availability', methods: ['GET'])]
+    public function availability(EntityManagerInterface $entityManager): Response
     {
         $account = $this->getAuthenticatedAccount();
 
@@ -95,184 +92,48 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        $availabilityDTO = new AvailabilityDTO();
-        $form = $this->createForm(AvailabilityType::class, $availabilityDTO);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $activeDays = [];
-            $startTime = '08:00';
-            $endTime = '17:00';
-            $totalHours = 0;
-
-            foreach (range(0, 6) as $dayNum) {
-                $dayConfig = $availabilityDTO->daysConfig[$dayNum] ?? null;
-
-                if (!$dayConfig || !$dayConfig->enabled) {
-                    continue;
-                }
-
-                $activeDays[] = $dayNum;
-
-                $start = substr((string) ($dayConfig->start ?? '08:00'), 0, 5);
-                $end = substr((string) ($dayConfig->end ?? '17:00'), 0, 5);
-
-                $startTime = $start;
-                $endTime = $end;
-
-                try {
-                    $timeStart = new \DateTime($start);
-                    $timeEnd = new \DateTime($end);
-                    if ($timeEnd > $timeStart) {
-                        $diff = $timeStart->diff($timeEnd);
-                        $totalHours += $diff->h + ($diff->i / 60);
-                    } else {
-                        $totalHours += 8;
-                    }
-                } catch (\Exception $e) {
-                    $totalHours += 8;
-                }
-            }
-
-            $hours = (int) round($totalHours ?: ($availabilityDTO->hoursPerWeek ?? 0));
-            $typeCode = ($hours >= 32) ? 'FT' : 'PT';
-
-            $compactType = implode('', $activeDays) . '|' . $startTime . '-' . $endTime . '|' . $typeCode;
-            $compactType = substr($compactType, 0, 25);
-            $startDate = ($availabilityDTO->startDate ?? new \DateTimeImmutable())->format('Y-m-d');
-
-            try {
-                $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
-
-                $connection->insert('availabilities', [
-                    'id' => Uuid::v4()->toString(),
-                    'availability_type' => $compactType,
-                    'hours_per_week' => $hours,
-                    'start_date' => $startDate,
-                    'end_date' => null,
-                    'profile_id' => $profile->getId()->toString(),
-                    'created_at' => $now,
-                    'last_modified' => $now,
-                    'deleted_at' => null
-                ]);
-
-                $this->addFlash('success', 'Beschikbaarheidsschema succesvol opgeslagen!');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Databasefout bij opslaan: ' . $e->getMessage());
-            }
-
-            return $this->redirectToRoute('account.availability');
-        }
-
-        try {
-            $rows = $connection->fetchAllAssociative(
-                'SELECT * FROM availabilities WHERE profile_id = :profileId AND deleted_at IS NULL ORDER BY start_date DESC',
-                ['profileId' => $profile->getId()->toString()]
-            );
-        } catch (\Exception $e) {
-            $rows = [];
-        }
-
-        $availabilities = [];
-        $daysMapping = [0 => 'Ma', 1 => 'Di', 2 => 'Wo', 3 => 'Do', 4 => 'Vr', 5 => 'Za', 6 => 'Zo'];
-        $typeMapping = ['FT' => 'Full-Time', 'PT' => 'Part-Time'];
-
-        foreach ($rows as $row) {
-            $rawValue = $row['availability_type'] ?? '';
-
-            $structuredDays = [];
-            foreach (range(0, 6) as $d) {
-                $structuredDays[$d] = ['enabled' => false, 'start' => '08:00', 'end' => '17:00'];
-            }
-
-            $baseType = 'Standaard';
-
-            if (str_contains($rawValue, '|')) {
-                $parts = explode('|', $rawValue);
-                $daysPart = $parts[0] ?? '';
-                $timePart = $parts[1] ?? '08:00-17:00';
-                $typePart = $parts[2] ?? 'FT';
-
-                [$start, $end] = str_contains($timePart, '-') ? explode('-', $timePart, 2) : ['08:00', '17:00'];
-                $baseType = $typeMapping[$typePart] ?? 'Standaard';
-
-                $activeDaysArray = str_split($daysPart);
-                foreach ($activeDaysArray as $dayNum) {
-                    $dayNum = (int)$dayNum;
-                    if ($dayNum >= 0 && $dayNum <= 6) {
-                        $structuredDays[$dayNum] = [
-                            'enabled' => true,
-                            'start' => $start,
-                            'end' => $end
-                        ];
-                    }
-                }
-            } else {
-                foreach (range(0, 4) as $d) {
-                    $structuredDays[$d]['enabled'] = true;
-                }
-                $baseType = !empty($rawValue) ? $rawValue : 'Standaard';
-            }
-
-            $activeDaysText = [];
-            foreach ($structuredDays as $dayNum => $meta) {
-                if ($meta['enabled']) {
-                    $activeDaysText[] = $daysMapping[$dayNum];
-                }
-            }
-            $daysSummary = !empty($activeDaysText) ? ' (' . implode(', ', $activeDaysText) . ')' : ' (Geen werkdagen)';
-
-            $availabilities[] = (object) [
-                'id' => $row['id'],
-                'baseType' => $baseType,
-                'daysSummary' => $daysSummary,
-                'daysDetails' => $structuredDays,
-                'blockedDates' => [],
-                'hoursPerWeek' => $row['hours_per_week'],
-                'startDate' => new \DateTimeImmutable($row['start_date']),
-                'endDate' => $row['end_date'] ? new \DateTimeImmutable($row['end_date']) : null
-            ];
-        }
-
-        $defaultSchedule = [];
-        $fullNames = [0 => 'Monday', 1 => 'Tuesday', 2 => 'Wednesday', 3 => 'Thursday', 4 => 'Friday', 5 => 'Saturday', 6 => 'Sunday'];
-        foreach ($fullNames as $num => $name) {
-            $defaultSchedule[$num] = [
-                'name' => $name,
-                'enabled' => $num <= 4,
-                'start' => '08:00',
-                'end' => '17:00'
-            ];
-        }
+        // alleen nog de lijst tonen via de entity, het opslaan komt uit pr #3 van team 4
+        $availabilities = $entityManager->getRepository(Availability::class)->findBy(
+            ['profile' => $profile, 'deletedAt' => null],
+            ['validFrom' => 'DESC', 'createdAt' => 'ASC']
+        );
 
         return $this->render('pages/account-centre/availability.html.twig', [
             'profile' => $profile,
             'availabilities' => $availabilities,
-            'defaultSchedule' => $defaultSchedule,
-            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
-    public function deleteAvailability(string $id, Request $request, Connection $connection): Response
+    public function deleteAvailability(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->getAuthenticatedAccount()) {
+        $account = $this->getAuthenticatedAccount();
+
+        if (!$account) {
             $this->addFlash('error', 'Je moet ingelogd zijn.');
             return $this->redirectToRoute('auth.login');
         }
 
+        $availability = $entityManager->getRepository(Availability::class)->find($id);
+
+        if (!$availability) {
+            $this->addFlash('error', 'Beschikbaarheid niet gevonden.');
+            return $this->redirectToRoute('account.availability');
+        }
+
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
+        if (!$profile || $availability->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze beschikbaarheid.');
+        }
+
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
-            try {
-                $connection->update(
-                    'availabilities',
-                    ['deleted_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
-                    ['id' => $id]
-                );
-                $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd (soft delete).');
-            } catch (\Exception $e) {
-                $this->addFlash('error', 'Fout bij verwijderen: ' . $e->getMessage());
-            }
+            // net als bij werkervaring: de entity zet zelf deletedAt op nu
+            $availability->softDelete();
+
+            $entityManager->flush();
+            $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd.');
         } else {
             $this->addFlash('error', 'Ongeldig veiligheidstoken.');
         }
