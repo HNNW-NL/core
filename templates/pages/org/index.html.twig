@@ -15,10 +15,10 @@
 
 {# Flash berichten #}
 {% for bericht in app.flashes('success') %}
-    <p style="color: green;">{{ bericht }}</p>
+    <p class="alert alert-success">{{ bericht }}</p>
 {% endfor %}
 {% for bericht in app.flashes('error') %}
-    <p style="color: red;">{{ bericht }}</p>
+    <p class="alert alert-error">{{ bericht }}</p>
 {% endfor %}
 
 <table border="1">

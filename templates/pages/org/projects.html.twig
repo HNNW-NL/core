@@ -5,12 +5,12 @@
 
 {# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="../../../assets/org/css/projects-view.css">
+    <link rel="stylesheet" href="{{ asset('assets/org/css/projects-view.css') }}">
 {% endblock %}
 
 {# JavaScript #}
 {% block javascript %}
-    <script src="../../../assets/org/js/projects-view.js"></script>
+    <script src="{{ asset('assets/org/js/projects-view.js') }}"></script>
 {% endblock %}
 
 {# Page content #}
@@ -22,8 +22,8 @@
         <div class="projects-current-text"><h2>Current projects</h2></div>
         <div class="search-bar-projects">
             <input type="text" id="search-text" placeholder="Search projects...">
-            <button id="search-button">Search</button>
-            <button id="reset-button" type="button" class="reset-button">Reset</button>
+            <button id="search-button" class="btn-primary">Search</button>
+            <button id="reset-button" type="button" class="btn-secondary reset-button">Reset</button>
             <label for="card-size-select" class="card-size-label">Size</label>
             <div class="card-size-wrapper">
                 <select id="card-size-select" aria-label="Card size" class="card-size-select">

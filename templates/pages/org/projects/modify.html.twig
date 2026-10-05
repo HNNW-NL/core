@@ -107,11 +107,11 @@
                     </fieldset>
                     <div class="button-row" role="group" aria-label="Danger actions">
                         <div class="button-cell">
-                            <button type="submit" name="intent" value="modify">Modify project</button>
+                            <button type="submit" name="intent" value="modify" class="btn-primary">Modify project</button>
                         </div>
                         <div class="button-cell button-cell--delete button-cell--danger">
                             <p class="danger-note">Danger zone: deleting a project is permanent.</p>
-                            <button type="submit" name="intent" value="delete" class="button-danger" formnovalidate>Delete project</button>
+                            <button type="submit" name="intent" value="delete" class="btn-danger button-danger" formnovalidate>Delete project</button>
                         </div>
                     </div>
                 {{ form_end(form) }}
@@ -123,8 +123,8 @@
                         <input id="deleteConfirmInput" type="text" autocomplete="off" placeholder="Type DELETE" aria-describedby="deleteConfirmHint">
                         <p id="deleteConfirmHint" class="field-help">Type DELETE (all caps) to enable the button.</p>
                         <div class="delete-dialog__actions">
-                            <button value="cancel">Cancel</button>
-                            <button id="deleteConfirmButton" value="confirm" class="button-danger" disabled>Delete permanently</button>
+                            <button value="cancel" class="btn-secondary">Cancel</button>
+                            <button id="deleteConfirmButton" value="confirm" class="btn-danger button-danger" disabled>Delete permanently</button>
                         </div>
                     </form>
                 </dialog>
