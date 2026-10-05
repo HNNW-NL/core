@@ -5,19 +5,9 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_by_email:
-            entity:
-                class: App\Entity\Account\Account
-                property: email
-
-        users_by_username:
-            entity:
-                class: App\Entity\Account\Account
-                property: username
-
+        # eigen provider: zoekt op e-mail of gebruikersnaam en let niet op hoofdletters (src/Module/Auth/Security/AccountProvider.php)
         app_user_provider:
-            chain:
-                providers: ['users_by_email', 'users_by_username']
+            id: App\Module\Auth\Security\AccountProvider
 
     firewalls:
         dev:

@@ -44,13 +44,55 @@ class AuthControllerTest extends WebTestCase
         $client = static::createClient();
         $crawler = $client->request('GET', '/auth/login');
 
-        // de provider in security.yaml zoekt eerst op e-mail en dan op gebruikersnaam
+        // de AccountProvider (security.yaml) zoekt op e-mail of op gebruikersnaam
         $this->submitLoginForm($client, $crawler, 'Test@test.nl', 'test1234');
 
         $this->assertResponseRedirects();
 
         $client->request('GET', '/account');
         $this->assertResponseIsSuccessful();
+    }
+
+    public function testWhenEmailHasOtherCapitalsShouldStillLogIn(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/auth/login');
+
+        // de AccountProvider vergelijkt alles in kleine letters, dus hoofdletters maken niet uit
+        $this->submitLoginForm($client, $crawler, 'TEST@TEST.NL', 'test1234');
+
+        $this->assertResponseRedirects('/');
+
+        $client->request('GET', '/account');
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testWhenUsernameIsLowercaseShouldStillLogIn(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/auth/login');
+
+        // de fixture heet TestUser, als het goed is werkt testuser ook
+        $this->submitLoginForm($client, $crawler, 'testuser', 'test1234');
+
+        $this->assertResponseRedirects('/');
+
+        $client->request('GET', '/account');
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function testWhenEmailHasOtherCapitalsAndPasswordIsWrongShouldNotLogIn(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/auth/login');
+
+        // het account wordt wel gevonden, maar het wachtwoord moet nog steeds kloppen
+        $this->submitLoginForm($client, $crawler, 'test@test.nl', 'verkeerd');
+
+        $this->assertResponseRedirects('/auth/login');
+
+        $client->request('GET', '/account');
+        $this->assertResponseRedirects('/auth/login');
     }
 
     public function testWhenPasswordIsWrongShouldShowErrorAndStayLoggedOut(): void
