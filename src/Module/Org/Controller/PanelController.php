@@ -7,10 +7,14 @@ use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
 use App\Form\Org\CreateProjectType;
 use App\Form\Org\ModifyProjectType;
+use App\Form\Org\ParticipantRolesType;
 use App\Module\Org\DTO\CreateProjectDTO;
 use App\Module\Org\DTO\ModifyProjectFormDTO;
+use App\Module\Org\DTO\ParticipantRolesDTO;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use App\Module\Org\Service\CreateProjectService;
 use App\Repository\Common\StatusRepository;
+use App\Repository\Project\ProjectRoleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -160,11 +164,61 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET'])]
-    public function modifyProjectParticipants(string $id): Response
-    {
+    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET', 'POST'])]
+    public function modifyProjectParticipants(
+        string $id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        ProjectRoleRepository $projectRoleRepository,
+        ProjectParticipantUpdateRoleHandler $updateRoleHandler
+    ): Response {
+        $project = $this->findProjectForAccount($id, $entityManager);
+
+        // de keuzelijst voor het formulier, de naam van de rol is het label en het id is de waarde
+        $roleChoices = [];
+        foreach ($projectRoleRepository->findByProjectIdRoles((string) $project->getId()) as $role) {
+            $roleChoices[$role->getName()] = (string) $role->getId();
+        }
+
+        // per deelnemer de huidige rol in de dto en de gegevens voor de tabel in de pagina
+        $participantRolesDTO = new ParticipantRolesDTO();
+        $participants = [];
+        foreach ($project->getParticipants() as $participant) {
+            $participantId = (string) $participant->getId();
+            $profile = $participant->getProfile();
+
+            $displayName = $profile?->getDisplayName();
+            if ($displayName === null || $displayName === '') {
+                $displayName = trim($profile?->getFirstName() . ' ' . $profile?->getLastName());
+            }
+
+            $participantRolesDTO->role[$participantId] = (string) $participant->getRole()?->getId();
+            $participants[] = [
+                'participant_id' => $participantId,
+                'display_name' => $displayName,
+                'status_name' => $participant->getStatus()?->getName(),
+                'joinedAt' => $participant->getJoinedAt(),
+                'leftAt' => $participant->getLeftAt(),
+            ];
+        }
+
+        $form = $this->createForm(ParticipantRolesType::class, $participantRolesDTO, [
+            'role_choices' => $roleChoices,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $updateRoleHandler->handle($participantRolesDTO->role);
+
+            return $this->redirectToRoute('org.modifyProject.participants', [
+                'id' => $id,
+            ]);
+        }
+
         return $this->render('pages/org/projects/modify-participants.html.twig', [
             'id' => $id,
+            'participants' => $participants,
+            'form' => $form,
         ]);
     }
 
