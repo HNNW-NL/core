@@ -110,6 +110,7 @@ button:focus-visible {
   font-size: 0.92rem;
 }
 
+/* Navigation links get a subtle underline indicator on hover. */
 .nav-links a {
   position: relative;
   transition: color 180ms ease, transform 180ms ease;
@@ -232,6 +233,7 @@ button:focus-visible {
   transition: 160ms ease;
 }
 
+/* Primary actions stand out with a stronger hover state to guide the eye. */
 .button-primary:hover {
   background: var(--primary-dark);
   filter: brightness(1.06);
