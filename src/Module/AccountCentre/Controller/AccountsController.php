@@ -124,22 +124,45 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        $dayEnums = [
-            0 => DayOfWeek::MONDAY,
-            1 => DayOfWeek::TUESDAY,
-            2 => DayOfWeek::WEDNESDAY,
-            3 => DayOfWeek::THURSDAY,
-            4 => DayOfWeek::FRIDAY,
-            5 => DayOfWeek::SATURDAY,
-            6 => DayOfWeek::SUNDAY,
-        ];
-
         if ($request->isMethod('POST')) {
             $csrfToken = (string) $request->request->get('_token');
 
-            if (!$this->isCsrfTokenValid('save_availability', $csrfToken)) {
-                $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
-                return $this->redirectToRoute('account.availability');
+            $daysInput = $request->request->all('days_config');
+
+            $activeDays = [];
+            $startTime = '08:00';
+            $endTime = '17:00';
+            $totalHours = 0;
+
+            foreach (range(0, 6) as $dayNum) {
+                $dayConfig = $daysInput[$dayNum] ?? [];
+
+                if (empty($dayConfig) && isset($daysInput[$dayNum + 1])) {
+                    $dayConfig = $daysInput[$dayNum + 1];
+                }
+
+                if (isset($dayConfig['enabled'])) {
+                    $activeDays[] = $dayNum;
+
+                    $start = $dayConfig['start'] ?? '08:00';
+                    $end = $dayConfig['end'] ?? '17:00';
+
+                    $startTime = $start;
+                    $endTime = $end;
+
+                    try {
+                        $timeStart = new \DateTime($start);
+                        $timeEnd = new \DateTime($end);
+                        if ($timeEnd > $timeStart) {
+                            $diff = $timeStart->diff($timeEnd);
+                            $totalHours += $diff->h + ($diff->i / 60);
+                        } else {
+                            $totalHours += 8;
+                        }
+                    } catch (\Exception $e) {
+                        $totalHours += 8;
+                    }
+                }
             }
 
             $daysInput = $request->request->all('days_config');
@@ -289,13 +312,6 @@ final class AccountsController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
-            $csrfToken = (string) $request->request->get('_token');
-
-            if (!$this->isCsrfTokenValid('save_experience', $csrfToken)) {
-                $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
-                return $this->redirectToRoute('account.experience');
-            }
-
             $jobTitle = trim((string)$request->request->get('job_title'));
             $organisationName = trim((string)$request->request->get('organisation_name'));
             $startDateStr = trim((string)$request->request->get('start_date'));
