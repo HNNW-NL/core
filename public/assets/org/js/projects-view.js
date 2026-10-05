@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchButton = document.getElementById("search-button");
     const resetButton = document.getElementById("reset-button");
     const app = document.getElementById("projects-app");
+    // guard: zonder app-element is dit niet de projectenpagina
+    if (!app) {
+        return;
+    }
     const container = app.querySelector(".projects-container");
     const currentPageSpan = document.getElementById("current-page");
     const totalPagesSpan = document.getElementById("total-pages");
@@ -11,6 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const countStartSpan = document.getElementById("projects-count-start");
     const countEndSpan = document.getElementById("projects-count-end");
     const countTotalSpan = document.getElementById("projects-count-total");
+    // guard: alle tel- en bladerelementen moeten er zijn, anders niets doen
+    if (!container || !currentPageSpan || !totalPagesSpan || !paginationControls || !countStartSpan || !countEndSpan || !countTotalSpan) {
+        return;
+    }
 
     // Parse project data from server-rendered JSON
     const allProjects = JSON.parse(app.dataset.projects || "[]");
@@ -25,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentPage = parseInt(urlParams.get("page")) || 1;
 
     // Pre-fill search input if query was provided
-    if (searchQuery) {
+    if (searchQuery && searchInput) {
         searchInput.value = searchQuery;
     }
 
@@ -281,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * Saves search query to URL and reloads page with new results
      */
     function submitSearch() {
-        const q = (searchInput.value || "").trim();
+        const q = (searchInput && searchInput.value || "").trim();
         const url = new URL(window.location);
         if (q) {
             url.searchParams.set("q", q);
@@ -293,7 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Search button click handler
-    searchButton.addEventListener("click", submitSearch);
+    if (searchButton) searchButton.addEventListener("click", submitSearch);
 
     /**
      * Reset all filters and preferences
@@ -315,7 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Allow Enter key to submit search
-    searchInput.addEventListener("keyup", (e) => {
+    if (searchInput) searchInput.addEventListener("keyup", (e) => {
         if (e.key === "Enter") {
             submitSearch();
         }

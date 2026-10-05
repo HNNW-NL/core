@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const table = document.getElementById('edit-participants-table');
+    // guard: zonder tabel is er niets te slepen
+    if (!table) {
+        return;
+    }
     const headerRow = table.querySelector('thead tr');
     let draggedColumnIndex = null;
 

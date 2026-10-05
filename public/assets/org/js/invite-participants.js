@@ -6,7 +6,9 @@ const post = document.getElementById("invite-form");
 let selected = JSON.parse(sessionStorage.getItem("selectedParticipants")) || [];
 let timeout;
 
-document.querySelector("form").addEventListener("submit", () => {
+// guard: alleen binden als het formulier op de pagina staat
+const form = document.querySelector("form");
+if (form) form.addEventListener("submit", () => {
     sessionStorage.setItem("clearList", "1");
 });
 
@@ -17,6 +19,8 @@ function save() {
 
 // render selected in html
 function renderSelected() {
+    // guard: zonder lijst niets tekenen
+    if (!output) return;
     output.innerHTML = selected
         .map((p, i) => `
             <li class="profile-item" data-id="${p.id}" data-name="${p.displayName}">
@@ -29,6 +33,8 @@ function renderSelected() {
 
 // highlight selected profiles in search
 function updateUI() {
+    // guard: zonder zoeklijst niets bijwerken
+    if (!list) return;
     const items = list.querySelectorAll(".profile-item");
 
     items.forEach(item => {
@@ -44,7 +50,8 @@ function updateUI() {
 
 
 // check for input and send ajax request to the controller to search for profiles
-input.addEventListener("input", () => {
+// guard: alleen als het zoekveld bestaat
+if (input) input.addEventListener("input", () => {
     clearTimeout(timeout);
 
     const q = input.value;
@@ -91,7 +98,8 @@ input.addEventListener("input", () => {
 
 
 // check for click on highlighted profiles and remove from selected
-list.addEventListener("click", (e) => {
+// guard: alleen als de zoeklijst bestaat
+if (list) list.addEventListener("click", (e) => {
     const item = e.target.closest(".profile-item");
     if (!item) return;
 
