@@ -525,6 +525,57 @@ class AcountsControllerTest extends WebTestCase
         $this->assertSame('Admin@test.nl', $this->findAccountByUsername('AdminUser')->getEmail());
     }
 
+    public function testWhenLoggedInSubmitFormWithEmailOfOtherAccountInOtherCaseShouldGiveError(): void
+    {
+        $client = static::createClient();
+        $this->loginAs($client, 'Test@test.nl');
+
+        // als het goed is telt 'admin@test.nl' als hetzelfde adres als 'Admin@test.nl', ook al verschillen de hoofdletters
+        $crawler = $client->request('GET', '/account/modify');
+        $form = $crawler->selectButton('Wijzigingen opslaan')->form();
+        $form['modify_account[email]'] = 'admin@test.nl';
+        $client->submit($form, [], self::ORIGIN);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('form[action="/account/modify"]', 'Dit e-mailadres is al in gebruik.');
+
+        $this->assertSame('Test@test.nl', $this->findAccountByUsername('TestUser')->getEmail());
+        $this->assertSame('Admin@test.nl', $this->findAccountByUsername('AdminUser')->getEmail());
+    }
+
+    public function testWhenLoggedInSubmitFormWithUsernameOfOtherAccountInOtherCaseShouldGiveError(): void
+    {
+        $client = static::createClient();
+        $this->loginAs($client, 'Test@test.nl');
+
+        // als het goed is telt 'adminuser' als dezelfde naam als 'AdminUser'
+        $crawler = $client->request('GET', '/account/modify');
+        $form = $crawler->selectButton('Wijzigingen opslaan')->form();
+        $form['modify_account[username]'] = 'adminuser';
+        $client->submit($form, [], self::ORIGIN);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('form[action="/account/modify"]', 'Deze gebruikersnaam is al in gebruik.');
+
+        // er is geen account met de naam 'adminuser' bijgekomen, testuser heet nog gewoon TestUser
+        $this->assertSame('Test@test.nl', $this->findAccountByUsername('TestUser')->getEmail());
+    }
+
+    public function testWhenLoggedInSubmitFormWithOwnEmailInOtherCaseShouldSave(): void
+    {
+        $client = static::createClient();
+        $this->loginAs($client, 'Test@test.nl');
+
+        // je eigen adres in andere hoofdletters is geen dubbel adres, want het is je eigen account
+        $crawler = $client->request('GET', '/account/modify');
+        $form = $crawler->selectButton('Wijzigingen opslaan')->form();
+        $form['modify_account[email]'] = 'TEST@test.nl';
+        $client->submit($form, [], self::ORIGIN);
+
+        $this->assertResponseRedirects('/account/modify');
+        $this->assertSame('TEST@test.nl', $this->findAccountByUsername('TestUser')->getEmail());
+    }
+
     // notifications
 
     public function testWhenNotLoggedInShouldRedirectFromNotifications(): void
@@ -686,7 +737,7 @@ class AcountsControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         // de uitloglink wijst naar de route _logout_main die symfony zelf aanmaakt
-        $this->assertSelectorExists('a[href="/auth/logout"]');
+        $this->assertSelectorExists('a[href^="/auth/logout"]');
     }
 
     // skills
