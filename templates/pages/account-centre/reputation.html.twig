@@ -11,6 +11,37 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Reputation</h2>
-    <p>Account Centre - reputation page.</p>
+    <div id="account-centre-container">
+
+        <a href="{{ path('account.home') }}" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Mijn Reputatie</h1>
+            <p>Bekijk hier jouw reputatie-overzicht en verdiende punten binnen de projecten.</p>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash-alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="account-form-container">
+            <div class="form-internal-header">
+                <h2>Reputatie-overzicht</h2>
+                <p>Jouw prestaties en opgebouwde betrouwbaarheid binnen het platform.</p>
+            </div>
+
+            <div class="account-card account-card-empty">
+                <div class="account-card-content">
+                    <p>Je hebt nog geen reputatie-items of beoordelingen ontvangen.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
