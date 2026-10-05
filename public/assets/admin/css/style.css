@@ -51,6 +51,11 @@ small,
     color: var(--text-soft);
 }
 
+/* verwijder-formulier staat in een tabelcel naast een link, dus niet op een eigen regel */
+.delete-form {
+    display: inline;
+}
+
 footer {
     padding: 1rem;
     border-top: 1px solid var(--border);
