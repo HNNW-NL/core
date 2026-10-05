@@ -33,7 +33,7 @@
         {% endfor %}
 
         <div class="account-form-container">
-            {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4) #}
+            {# hele formulier omgebouwd naar symfony form, de form variabele komt uit de controller #}
             {{ form_start(form, {'action': path('account.notifications')}) }}
 
                 {{ form_errors(form) }}

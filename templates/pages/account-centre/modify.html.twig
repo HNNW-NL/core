@@ -35,7 +35,7 @@
                 <p>Pas je gegevens aan om je profiel up-to-date te houden - je gegevens blijven veilig.</p>
             </div>
 
-            {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4) #}
+            {# hele formulier omgebouwd naar symfony form, de form variabele komt uit de controller #}
             {{ form_start(form, {'action': path('account.modify')}) }}
 
                 {{ form_errors(form) }}

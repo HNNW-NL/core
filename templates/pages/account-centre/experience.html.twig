@@ -76,7 +76,7 @@
                 <p>Vul de onderstaande velden in om een werkgever of project toe te voegen aan je profiel.</p>
             </div>
 
-            {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4) #}
+            {# hele formulier omgebouwd naar symfony form, de form variabele komt uit de controller #}
             {{ form_start(form, {'action': path('account.experience'), 'attr': {'class': 'account-form'}}) }}
 
                 {{ form_errors(form) }}
