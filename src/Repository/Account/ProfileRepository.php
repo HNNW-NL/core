@@ -25,13 +25,17 @@ class ProfileRepository extends ServiceEntityRepository
 
     public function searchExcluding(string $query, array $excludedProfileIds): array
     {
-        return $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->where('LOWER(p.displayName) LIKE LOWER(:query)')
-            ->andWhere('p.id NOT IN (:existingProfileIds)')
-            ->setParameter('existingProfileIds', $excludedProfileIds)
-            ->setParameter('query', '%' . $query . '%')
-            ->getQuery()
-            ->getResult();
+            ->setParameter('query', '%' . $query . '%');
+
+        if (!empty($excludedProfileIds)) {
+            $qb
+                ->andWhere('p.id NOT IN (:excludedProfileIds)')
+                ->setParameter('excludedProfileIds', $excludedProfileIds);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
 }
