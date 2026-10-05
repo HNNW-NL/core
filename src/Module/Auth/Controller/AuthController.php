@@ -5,7 +5,6 @@ namespace App\Module\Auth\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -22,32 +21,9 @@ use App\Entity\Common\Status;
 final class AuthController extends AbstractController
 {
     #[Route('/login', name: 'login', methods: ['GET','POST'])]
-    public function login(Request $request, EntityManagerInterface $em, AuthenticationUtils $authenticationUtils): Response
+    public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
-        if ($request->isMethod('POST')) {
-            $usernameOrEmail = (string)$request->request->get('username', '');
-            $password = (string)$request->request->get('password', '');
-
-            $repo = $em->getRepository(Account::class);
-            $account = $repo->findOneBy(['username' => $usernameOrEmail]);
-            if (!$account) {
-                $account = $repo->findOneBy(['email' => $usernameOrEmail]);
-            }
-
-            if (!$account || !password_verify($password, $account->getPasswordHash() ?? '')) {
-                $this->addFlash('error', 'Ongeldige gebruikersnaam/e-mail of wachtwoord.');
-                return $this->redirectToRoute('auth.login', ['last' => $usernameOrEmail]);
-            }
-
-            $account->login();
-            $em->persist($account);
-            $em->flush();
-
-            $request->getSession()->set('account_id', (string)$account->getId());
-
-            return new RedirectResponse('/');
-        }
-
+        // de post wordt door symfony form_login afgevangen (check_path in security.yaml), dus hier tonen we alleen de pagina
         $securityError = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
 
