@@ -1,22 +1,86 @@
+/* huisstijl van hnnw.nl: donker is standaard, licht staat onder body[data-theme="light"] */
 :root {
-    --background: #020617;
-    --header-background: #0f172ab3;
+    color-scheme: dark;
 
-    --paragraph: #FFFFFF;
+    /* achtergrond van de pagina */
+    --page-bg: #020817;
+    --page-bg-alt: #0f172a;
 
+    /* vlakken zoals kaarten, panelen en invoervelden */
+    --surface: rgba(15, 23, 42, 0.78);
+    --surface-strong: rgba(15, 23, 42, 0.94);
+    --surface-soft: rgba(30, 41, 59, 0.82);
+
+    /* tekst */
+    --text: #e2e8f0;
+    --text-muted: #cbd5e1;
+    --text-soft: #94a3b8;
+
+    /* randen */
+    --border: rgba(255, 255, 255, 0.10);
+
+    /* geel accent en de tekst die erop staat */
+    --brand: #f4c400;
+    --brand-strong: #ffd736;
+    --brand-soft: rgba(244, 196, 0, 0.14);
+    --brand-text: #111827;
+
+    /* meldingen */
+    --danger: #ef4444;
+    --danger-strong: #dc2626;
+    --danger-soft: rgba(239, 68, 68, 0.14);
+    --success: #22c55e;
+    --success-soft: rgba(34, 197, 94, 0.14);
+
+    /* vorm, schaduw, letter en breedte */
+    --radius: 0.75rem;
+    --radius-lg: 1.5rem;
+    --shadow: 0 12px 30px rgba(2, 6, 23, 0.35);
+    --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+    --container-width: 80rem;
+
+    /* oude namen blijven werken voor de sectie-css */
+    --background: var(--page-bg);
+    --header-background: rgba(15, 23, 42, 0.70);
+    --paragraph: var(--text);
     --hnnw-yellow-300: #ffe36f;
     --hnnw-yellow-400: #ffd736;
     --hnnw-yellow-500: #f4c400;
 }
+
+/* lichte versie: alleen wat anders is dan donker */
 [data-theme="light"] {
-    --background: #FFFFFF;
-    --header-background: #0f172ab3;
+    color-scheme: light;
 
-    --paragraph: #020617;
+    --page-bg: #f8fafc;
+    --page-bg-alt: #e2e8f0;
 
-    --hnnw-yellow-300: #ffe36f;
-    --hnnw-yellow-400: #ffd736;
-    --hnnw-yellow-500: #f4c400;
+    --surface: rgba(255, 255, 255, 0.86);
+    --surface-strong: rgba(255, 255, 255, 0.96);
+    --surface-soft: rgba(241, 245, 249, 0.92);
+
+    --text: #0f172a;
+    --text-muted: #334155;
+    --text-soft: #64748b;
+
+    --border: rgba(15, 23, 42, 0.12);
+
+    --brand: #eab308;
+    --brand-strong: #ca8a04;
+    --brand-soft: rgba(234, 179, 8, 0.18);
+
+    --danger: #dc2626;
+    --danger-strong: #b91c1c;
+    --danger-soft: rgba(220, 38, 38, 0.12);
+    --success: #16a34a;
+    --success-soft: rgba(22, 163, 74, 0.12);
+
+    --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+
+    /* aliassen opnieuw zetten, anders houden ze de donkere waarde van :root */
+    --background: var(--page-bg);
+    --header-background: rgba(255, 255, 255, 0.70);
+    --paragraph: var(--text);
 }
 
 @font-face {
@@ -38,17 +102,301 @@
     transition: color .5s ease, background-color .5s ease, border .5s ease;
 }
 
+/* basis: hele site in inter, zoals hnnw.nl */
 body {
-    background-color: var(--background);
-
-    h1, h2, h3 {
-        font-family: inter;
-    }
-
-    p {
-        font-family: lato;
-    }
+    background-color: var(--page-bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.5;
 }
+
+/* koppen */
+h1, h2, h3, h4 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1rem; }
+
+p {
+    color: var(--text-muted);
+}
+
+/* links: erven de kleur van de tekst eromheen, .link is geel */
+a {
+    color: inherit;
+}
+
+.link {
+    color: var(--brand);
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+/* toetsenbord-focus altijd zichtbaar */
+:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+
+/* vaste breedte in het midden */
+.container {
+    width: 100%;
+    max-width: var(--container-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* knoppen: primair geel, secundair met randje, gevaar rood, cancel als tekst */
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    font: inherit;
+    font-weight: 500;
+    line-height: 1.25;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.btn-primary {
+    background-color: var(--brand);
+}
+
+.btn-primary,
+.btn-primary * {
+    color: var(--brand-text);
+}
+
+.btn-primary:hover {
+    background-color: var(--brand-strong);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.btn-secondary:hover {
+    background-color: var(--surface-soft);
+    border-color: var(--text-soft);
+}
+
+.btn-danger {
+    background-color: var(--danger);
+}
+
+.btn-danger,
+.btn-danger * {
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-strong);
+}
+
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 0.5rem;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--text-soft);
+    cursor: pointer;
+}
+
+.btn-cancel:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* kaart */
+.card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+/* formulier: label boven het veld, veld vult de breedte */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+.input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    background-color: var(--surface-strong);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font: inherit;
+    line-height: 1.4;
+}
+
+.form-group textarea,
+textarea.input {
+    min-height: 6rem;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+.form-group input[type="checkbox"],
+.form-group input[type="radio"] {
+    width: auto;
+    accent-color: var(--brand);
+}
+
+::placeholder {
+    color: var(--text-soft);
+    opacity: 1;
+}
+
+/* foutmelding onder een veld en de lijst met fouten boven het formulier */
+.field-error {
+    color: var(--danger);
+    font-size: 0.875rem;
+}
+
+.form-errors,
+.form-errors * {
+    color: var(--danger);
+}
+
+.form-errors {
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--danger);
+    border-radius: var(--radius);
+    background-color: var(--danger-soft);
+}
+
+.form-errors ul {
+    padding-left: 1.2rem;
+}
+
+/* meldingen */
+.alert {
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    color: var(--text);
+}
+
+.alert-success {
+    border-color: var(--success);
+    background-color: var(--success-soft);
+}
+
+.alert-success,
+.alert-success * {
+    color: var(--success);
+}
+
+.alert-error {
+    border-color: var(--danger);
+    background-color: var(--danger-soft);
+}
+
+.alert-error,
+.alert-error * {
+    color: var(--danger);
+}
+
+/* thema-schakelaar: drie knoppen, de actieve is geel */
+.theme-toggle {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background-color: var(--surface);
+}
+
+.theme-toggle button {
+    padding: 0.3rem 0.7rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    cursor: pointer;
+}
+
+.theme-toggle button:hover {
+    color: var(--text);
+}
+
+.theme-toggle button[aria-pressed="true"] {
+    background-color: var(--brand);
+    color: var(--brand-text);
+}
+
+/* smalle balk voor secties die nog geen eigen header hebben */
+.theme-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background-color: var(--header-background);
+}
+
+/* kleine helpers voor tekstkleur */
+.text-muted { color: var(--text-muted); }
+.text-soft { color: var(--text-soft); }
+.text-brand { color: var(--brand); }
 
 /* For screen reader only html tags */
 .sr-only {
