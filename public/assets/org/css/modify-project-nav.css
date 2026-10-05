@@ -1,6 +1,6 @@
 .sidebar{
     width:180px;
-    background:#0f172ab3;
+    background:var(--surface);
     padding:20px 10px;
     min-height:100vh;
     float:left;
@@ -20,19 +20,19 @@
 .sidebar ul li a{
     display:block;
     text-decoration:none;
-    color:#e2e8f0;
+    color:var(--text);
     padding:12px 14px;
-    border-radius:8px;
+    border-radius:var(--radius);
     transition:0.2s;
     font-size:15px;
 }
 
 .sidebar ul li a:hover{
-    background:#0f172ab3;
+    background:var(--surface-soft);
 }
 
 .sidebar ul li a.active{
-    background:#f4c400;
-    color:white;
+    background:var(--brand);
+    color:var(--brand-text);
     font-weight:bold;
 }

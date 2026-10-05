@@ -13,21 +13,22 @@
 
     position: relative;
     overflow: hidden;
-    background-color: #115480;
-    color: white;
+    background-color: var(--page-bg-alt);
+    /* tekst op de foto blijft wit; de donkere laag (::after) zorgt voor contrast in beide thema's */
+    color: #ffffff;
 
     padding: 16px;
     box-sizing: border-box;
 }
 .project-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow);
 }
 .project-card::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.7) 100%);
+    background: linear-gradient(180deg, rgba(2, 8, 23, 0.6) 0%, rgba(2, 8, 23, 0.88) 100%);
     pointer-events: none;
 }
 .project-card-image-container {
@@ -52,9 +53,9 @@
     justify-content: center;
     padding: 12px;
     text-align: center;
-    color: rgba(255,255,255,0.85);
+    color: #ffffff;
     font-size: 0.95rem;
-    background: rgba(0, 0, 0, 0.35);
+    background: transparent;
 }
 .project-card-details {
     position: relative;
@@ -77,7 +78,7 @@
 
 .projects-count {
     margin-top: 14px;
-    color: #fff;
+    color: var(--text);
     font-size: 0.95rem;
     font-weight: 500;
 }
@@ -91,8 +92,9 @@
     margin-left: auto;
     margin-right: auto;
     padding: 10px 14px;
-    background-color: #115480;
-    border-radius: 8px;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     width: 100%;
     max-width: 750px;
     align-items: center;
@@ -101,39 +103,42 @@
 
 .search-bar-projects input[type="text"] {
     padding: 8px 10px;
-    border-radius: 4px;
-    border: none;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
     min-width: 180px;
     width: 240px;
     max-width: 100%;
-    color: black;
+    color: var(--text);
+    background-color: var(--surface-strong);
 }
 
 .search-bar-projects button {
     padding: 8px 12px;
-    border-radius: 4px;
+    border-radius: var(--radius);
     border: none;
-    background-color: rgba(255,255,255,0.15);
-    color: white;
+    background-color: var(--brand);
+    color: var(--brand-text);
     cursor: pointer;
 }
-.reset-button {
-    background-color: rgba(255,255,255,0.08);
+.search-bar-projects .reset-button {
+    background-color: var(--surface-soft);
+    color: var(--text);
+    border: 1px solid var(--border);
 }
-.reset-button:hover {
-    background-color: rgba(255,255,255,0.2);
+.search-bar-projects .reset-button:hover {
+    background-color: var(--surface-strong);
 }
 
 /* Card size select styling */
 .card-size-label {
     margin-left: 8px;
-    color: #fff;
+    color: var(--text);
     align-self: center;
     font-weight: 500;
 }
 .per-page-label {
     margin-left: 8px;
-    color: #fff;
+    color: var(--text);
     align-self: center;
     font-weight: 500;
 }
@@ -145,17 +150,18 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-color: rgba(255,255,255,0.06);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.08);
+    background-color: var(--surface-strong);
+    color: var(--text);
+    border: 1px solid var(--border);
     padding: 6px 30px 6px 8px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     min-width: 96px;
     cursor: pointer;
 }
 .card-size-select:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(17,84,128,0.12);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
 }
 .card-size-wrapper::after {
     content: '';
@@ -166,13 +172,13 @@
     height: 0;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-top: 6px solid rgba(255,255,255,0.9);
+    border-top: 6px solid var(--text);
     transform: translateY(-50%);
     pointer-events: none;
 }
 .card-size-select option {
-    background-color: #04202a;
-    color: #fff;
+    background-color: var(--page-bg-alt);
+    color: var(--text);
 }
 
 @media (max-width: 600px) {
@@ -212,8 +218,8 @@
 }
 
 .search-highlight {
-    background: rgba(255, 215, 70, 0.18);
-    color: #fff;
+    background: var(--brand-soft);
+    color: inherit;
     padding: 0 2px;
     border-radius: 3px;
 }
@@ -329,7 +335,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: white;
+    color: var(--text);
 }
 .projects-pagination .projects-pagination-controls {
     margin-top: 8px;
@@ -345,15 +351,15 @@
     min-width: 40px;
     height: 36px;
     padding: 0 12px;
-    border-radius: 8px;
-    background-color: #115480;
-    color: #fff;
+    border-radius: var(--radius);
+    background-color: var(--surface-strong);
+    color: var(--text);
     text-decoration: none;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
     transition: background-color 150ms ease;
 }
 .projects-pagination-controls a:hover {
-    background-color: #0d3b58;
+    background-color: var(--surface-soft);
 }
 .projects-pagination-controls strong {
     display: inline-flex;
@@ -362,9 +368,9 @@
     min-width: 40px;
     height: 36px;
     padding: 0 12px;
-    border-radius: 8px;
-    background-color: rgba(255,255,255,0.12);
-    color: #fff;
+    border-radius: var(--radius);
+    background-color: var(--brand);
+    color: var(--brand-text);
     font-weight: 700;
 }
 .projects-pagination-controls .disabled {
@@ -374,15 +380,15 @@
     min-width: 40px;
     height: 36px;
     padding: 0 12px;
-    border-radius: 8px;
-    background-color: rgba(255,255,255,0.03);
-    color: rgba(255,255,255,0.65);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    color: var(--text-soft);
     cursor: default;
     pointer-events: none;
 }
 .projects-pagination > div:first-child {
     font-weight: 600;
-    color: #fff;
+    color: var(--text);
 }
 @media (max-width: 600px) {
     .projects-pagination-controls a,

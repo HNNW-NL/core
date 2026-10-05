@@ -5,12 +5,12 @@
 
 .accounts-table th,
 .accounts-table td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--border);
     padding: 12px;
 }
 
 .profile-card {
-    background: #fff;
+    background: var(--surface);
     padding: 20px;
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
 }

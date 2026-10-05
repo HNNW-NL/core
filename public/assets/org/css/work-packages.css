@@ -1,8 +1,8 @@
 body {
             margin: 0;
-            background: #f6f8fb;
-            color: #16263a;
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--page-bg);
+            color: var(--text);
+            font-family: var(--font-sans);
         }
 
         .work-packages-page * {
@@ -10,9 +10,9 @@ body {
         }
 
         .work-packages-header {
-            background: #0d1a2a;
-            color: #fff;
-            border-bottom: 4px solid #2d8b57;
+            background: var(--page-bg-alt);
+            color: var(--text);
+            border-bottom: 4px solid var(--brand);
         }
 
         .work-packages-header-inner {
@@ -39,14 +39,14 @@ body {
             border-radius: 6px;
             display: grid;
             place-items: center;
-            background: #2d8b57;
-            color: #fff;
+            background: var(--brand);
+            color: var(--brand-text);
             font-weight: 900;
         }
 
         .work-packages-brand small {
             display: block;
-            color: #bfd0e4;
+            color: var(--text-soft);
             font-weight: 600;
             margin-top: 2px;
         }
@@ -67,7 +67,7 @@ body {
 
         .work-packages-page-heading h1 {
             margin: 0 0 8px;
-            color: #16263a;
+            color: var(--text);
             font-size: 36px;
             line-height: 1.1;
         }
@@ -75,7 +75,7 @@ body {
         .work-packages-page-heading p {
             max-width: 760px;
             margin: 0;
-            color: #51627a;
+            color: var(--text-muted);
         }
 
         .work-packages-view-tabs {
@@ -83,9 +83,9 @@ body {
             grid-template-columns: repeat(2, minmax(140px, 1fr));
             gap: 4px;
             padding: 4px;
-            border: 1px solid #d9e0ea;
-            background: #fff;
-            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: var(--radius);
         }
 
         .work-packages-view-tabs button {
@@ -93,15 +93,15 @@ body {
             border: 0;
             border-radius: 6px;
             background: transparent;
-            color: #607086;
+            color: var(--text-soft);
             font: inherit;
             font-weight: 800;
             cursor: pointer;
         }
 
         .work-packages-view-tabs button[aria-pressed="true"] {
-            background: #16263a;
-            color: #fff;
+            background: var(--brand);
+            color: var(--brand-text);
         }
 
         .work-packages-toolbar {
@@ -111,20 +111,20 @@ body {
             align-items: center;
             padding: 16px;
             margin-bottom: 18px;
-            background: #fff;
-            border: 1px solid #d9e0ea;
-            border-radius: 8px;
-            box-shadow: 0 10px 28px rgba(13, 26, 42, .07);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
         }
 
         .work-packages-search-input,
         .work-packages-project-select {
             min-height: 42px;
-            border: 1px solid #d9e0ea;
-            border-radius: 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 9px 12px;
-            background: #fff;
-            color: #16263a;
+            background: var(--surface-strong);
+            color: var(--text);
             font: inherit;
         }
 
@@ -132,7 +132,7 @@ body {
         .work-packages-secondary-button,
         .work-packages-text-button {
             min-height: 42px;
-            border-radius: 6px;
+            border-radius: var(--radius);
             padding: 9px 14px;
             font: inherit;
             font-weight: 800;
@@ -141,26 +141,26 @@ body {
 
         .work-packages-primary-button {
             border: 0;
-            background: #2d8b57;
-            color: #fff;
-            box-shadow: 0 10px 18px rgba(45, 139, 87, .18);
+            background: var(--brand);
+            color: var(--brand-text);
+            box-shadow: 0 10px 18px var(--brand-soft);
         }
 
         .work-packages-secondary-button {
-            border: 1px solid #d9e0ea;
-            background: #fff;
-            color: #16263a;
+            border: 1px solid var(--border);
+            background: var(--surface-strong);
+            color: var(--text);
         }
 
         .work-packages-text-button {
             border: 0;
             background: transparent;
-            color: #2468a8;
+            color: var(--brand);
             padding-inline: 8px;
         }
 
         .work-packages-danger-action {
-            color: #b23a48;
+            color: var(--danger);
         }
 
         .work-packages-view {
@@ -184,10 +184,10 @@ body {
         .work-package-create-panel,
         .project-overview-summary,
         .project-overview-task-column {
-            background: #fff;
-            border: 1px solid #d9e0ea;
-            border-radius: 8px;
-            box-shadow: 0 10px 28px rgba(13, 26, 42, .06);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
         }
 
         .work-packages-project-sidebar {
@@ -197,7 +197,7 @@ body {
         .work-packages-project-sidebar h3,
         .project-overview-section-title {
             margin: 0 0 10px;
-            color: #607086;
+            color: var(--text-soft);
             font-size: 13px;
             text-transform: uppercase;
             letter-spacing: .08em;
@@ -206,9 +206,9 @@ body {
         .work-packages-project-link {
             display: block;
             border: 1px solid transparent;
-            border-radius: 6px;
+            border-radius: var(--radius);
             padding: 10px;
-            color: #16263a;
+            color: var(--text);
             text-decoration: none;
         }
 
@@ -223,21 +223,21 @@ body {
 
         .work-packages-project-link span {
             margin-top: 2px;
-            color: #607086;
+            color: var(--text-soft);
             font-size: 14px;
         }
 
         .work-packages-project-link.active {
-            border-color: #2d8b57;
-            background: #dff2e7;
+            border-color: var(--brand);
+            background: var(--brand-soft);
         }
 
         .work-packages-project-link.active strong {
-            color: #16263a;
+            color: var(--text);
         }
 
         .work-packages-project-link.active span {
-            color: #51627a;
+            color: var(--text-muted);
         }
 
         .work-packages-management-panel {
@@ -260,7 +260,7 @@ body {
         .work-packages-management-panel-header p {
             max-width: 680px;
             margin: 0;
-            color: #51627a;
+            color: var(--text-muted);
         }
 
         .work-packages-stat-grid {
@@ -271,10 +271,10 @@ body {
         }
 
         .work-packages-stat-card {
-            border: 1px solid #d9e0ea;
-            border-radius: 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 12px;
-            background: #fbfcfe;
+            background: var(--surface-soft);
         }
 
         .work-packages-stat-card strong,
@@ -285,12 +285,12 @@ body {
         .work-packages-stat-card strong {
             font-size: 24px;
             line-height: 1.1;
-            color: #16263a;
+            color: var(--text);
         }
 
         .work-packages-stat-card span {
             margin-top: 4px;
-            color: #607086;
+            color: var(--text-soft);
             font-size: 14px;
         }
 
@@ -326,7 +326,7 @@ body {
 
         .work-package-card p {
             margin: 0;
-            color: #607086;
+            color: var(--text-soft);
             font-size: 14px;
         }
 
@@ -342,24 +342,24 @@ body {
         }
 
         .work-packages-stat-cardus.busy {
-            background: #fff3d8;
-            color: #b7791f;
+            background: var(--brand-soft);
+            color: var(--brand);
         }
 
         .work-packages-stat-cardus.open {
-            background: #e4f0fb;
-            color: #2468a8;
+            background: var(--surface-soft);
+            color: var(--text-muted);
         }
 
         .work-packages-stat-cardus.done {
-            background: #dff2e7;
-            color: #2d8b57;
+            background: var(--success-soft);
+            color: var(--success);
         }
 
         .work-package-progress {
             height: 9px;
             overflow: hidden;
-            background: #e7edf4;
+            background: var(--surface-soft);
             border-radius: 999px;
             margin-bottom: 12px;
         }
@@ -368,7 +368,7 @@ body {
             display: block;
             height: 100%;
             border-radius: inherit;
-            background: #2d8b57;
+            background: var(--brand);
         }
 
         .work-package-task-row {
@@ -377,9 +377,9 @@ body {
             gap: 10px;
             align-items: center;
             padding: 10px;
-            border: 1px solid #d9e0ea;
-            border-radius: 6px;
-            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface-strong);
         }
 
         .work-package-task-row + .work-package-task-row {
@@ -389,18 +389,19 @@ body {
         .work-package-task-check {
             width: 22px;
             height: 22px;
-            border-radius: 6px;
-            border: 2px solid #d9e0ea;
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
             display: grid;
             place-items: center;
-            color: #fff;
+            /* wit vinkje op groen */
+            color: #ffffff;
             font-size: 12px;
             font-weight: 900;
         }
 
         .work-package-task-row.done .work-package-task-check {
-            border-color: #2d8b57;
-            background: #2d8b57;
+            border-color: var(--success);
+            background: var(--success);
         }
 
         .work-package-task-row strong,
@@ -410,7 +411,7 @@ body {
 
         .work-package-task-row small {
             margin-top: 2px;
-            color: #607086;
+            color: var(--text-soft);
         }
 
         .work-package-assignee-avatar {
@@ -419,8 +420,8 @@ body {
             border-radius: 50%;
             display: grid;
             place-items: center;
-            background: #514283;
-            color: #fff;
+            background: var(--brand);
+            color: var(--brand-text);
             font-size: 12px;
             font-weight: 900;
         }
@@ -432,7 +433,7 @@ body {
             gap: 10px;
             margin-top: 12px;
             padding-top: 12px;
-            border-top: 1px solid #d9e0ea;
+            border-top: 1px solid var(--border);
         }
 
         .work-package-card-action-group {
@@ -462,17 +463,18 @@ body {
 
         .work-package-form-field label {
             font-weight: 800;
-            color: #16263a;
+            color: var(--text);
         }
 
         .work-package-form-field input,
         .work-package-form-field textarea {
             width: 100%;
             min-height: 42px;
-            border: 1px solid #d9e0ea;
-            border-radius: 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 9px 12px;
-            color: #16263a;
+            color: var(--text);
+            background: var(--surface-strong);
             font: inherit;
         }
 
@@ -493,9 +495,9 @@ body {
         }
 
         .project-overview-hero {
-            background: #16263a;
-            color: #fff;
-            border-radius: 8px;
+            background: var(--page-bg-alt);
+            color: var(--text);
+            border-radius: var(--radius);
             padding: 18px;
             margin-bottom: 14px;
         }
@@ -507,7 +509,7 @@ body {
 
         .project-overview-hero p {
             margin: 0 0 14px;
-            color: #d8e4f1;
+            color: var(--text-muted);
         }
 
         .project-overview-stat-grid {
@@ -517,8 +519,8 @@ body {
         }
 
         .project-overview-stat-grid div {
-            border: 1px solid rgba(255, 255, 255, .18);
-            border-radius: 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 10px;
         }
 
@@ -528,7 +530,7 @@ body {
         }
 
         .project-overview-stat-grid span {
-            color: #bfd0e4;
+            color: var(--text-soft);
             font-size: 13px;
         }
 
@@ -537,7 +539,7 @@ body {
             align-items: center;
             gap: 10px;
             padding: 9px 0;
-            border-bottom: 1px solid #d9e0ea;
+            border-bottom: 1px solid var(--border);
         }
 
         .project-overview-member:last-child {
@@ -550,8 +552,8 @@ body {
             border-radius: 50%;
             display: grid;
             place-items: center;
-            background: #ece8f7;
-            color: #514283;
+            background: var(--brand-soft);
+            color: var(--brand);
             font-weight: 900;
         }
 
@@ -561,7 +563,7 @@ body {
         }
 
         .project-overview-member span {
-            color: #607086;
+            color: var(--text-soft);
             font-size: 13px;
         }
 
@@ -587,7 +589,7 @@ body {
         .project-overview-column-header h3 {
             margin: 0;
             font-size: 18px;
-            color: black;
+            color: var(--text);
         }
 
         .project-overview-column-count {
@@ -596,39 +598,39 @@ body {
             border-radius: 999px;
             display: grid;
             place-items: center;
-            background: #eef2f7;
-            color: #607086;
+            background: var(--surface-soft);
+            color: var(--text-soft);
             font-size: 13px;
             font-weight: 900;
         }
 
         .project-overview-task-card {
             padding: 12px;
-            border: 1px solid #d9e0ea;
-            border-left: 4px solid #2468a8;
-            border-radius: 8px;
-            background: #fff;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--text-soft);
+            border-radius: var(--radius);
+            background: var(--surface-strong);
             margin-bottom: 10px;
         }
 
         .project-overview-task-card.busy {
-            border-left-color: #b7791f;
+            border-left-color: var(--brand);
         }
 
         .project-overview-task-card.done {
-            border-left-color: #2d8b57;
-            background: #fbfefc;
+            border-left-color: var(--success);
+            background: var(--success-soft);
         }
 
         .project-overview-task-card h4 {
             margin: 0 0 7px;
             font-size: 16px;
-            color: black;
+            color: var(--text);
         }
 
         .project-overview-task-card p {
             margin: 0 0 10px;
-            color: #607086;
+            color: var(--text-soft);
             font-size: 14px;
         }
 
@@ -652,8 +654,8 @@ body {
             min-height: 24px;
             border-radius: 999px;
             padding: 3px 8px;
-            background: #eef2f7;
-            color: #607086;
+            background: var(--surface-soft);
+            color: var(--text-soft);
             font-size: 12px;
             font-weight: 800;
             white-space: nowrap;
@@ -696,26 +698,26 @@ body {
 
 .work-package-list-empty-state {
     grid-column: 1 / -1;
-    border: 1px dashed #d9e0ea;
-    border-radius: 8px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
     padding: 24px;
-    background: #fbfcfe;
-    color: #51627a;
+    background: var(--surface-soft);
+    color: var(--text-muted);
 }
 
 .work-package-list-empty-state strong {
     display: block;
-    color: #16263a;
+    color: var(--text);
     margin-bottom: 6px;
 }
 
 .work-package-tasks-empty-state {
     margin: 12px 0 0;
     padding: 12px;
-    border: 1px dashed #d9e0ea;
-    border-radius: 6px;
-    color: #607086;
-    background: #fbfcfe;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--text-soft);
+    background: var(--surface-soft);
 }
 /* Polished task form inside work package cards */
 .work-package-card-grid {
@@ -735,16 +737,16 @@ body {
 .work-package-task-create-box {
     margin-top: 4px;
     padding: 14px;
-    border: 1px solid #d9e0ea;
-    border-radius: 8px;
-    background: #f8fbfd;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface-soft);
 }
 
 .work-package-task-create-box > h4 {
     margin: 0 0 12px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #e4eaf2;
-    color: #16263a;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
     font-size: 16px;
     line-height: 1.2;
 }
@@ -756,12 +758,12 @@ body {
     gap: 12px;
     margin-bottom: 12px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #e4eaf2;
+    border-bottom: 1px solid var(--border);
 }
 
 .work-package-task-create-heading h4 {
     margin: 0;
-    color: #16263a;
+    color: var(--text);
     font-size: 16px;
     line-height: 1.2;
 }
@@ -772,8 +774,8 @@ body {
     min-height: 24px;
     border-radius: 999px;
     padding: 3px 9px;
-    background: #dff2e7;
-    color: #2d8b57;
+    background: var(--success-soft);
+    color: var(--success);
     font-size: 12px;
     font-weight: 800;
     white-space: nowrap;
@@ -800,7 +802,7 @@ body {
 .work-package-task-create-box .work-package-form-field input,
 .work-package-task-create-box .work-package-form-field textarea {
     min-height: 40px;
-    background: #fff;
+    background: var(--surface-strong);
 }
 
 .work-package-task-create-box .work-package-form-field textarea {
@@ -825,14 +827,15 @@ body {
 
 .work-packages-danger-action {
     min-height: 42px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     padding: 9px 12px;
-    background: #fff5f5;
-    color: #b3261e;
+    background: var(--danger-soft);
+    color: var(--danger);
 }
 
 .work-packages-danger-action:hover {
-    background: #ffe8e8;
+    background: var(--danger-soft);
+    color: var(--danger-strong);
 }
 
 @media (max-width: 720px) {

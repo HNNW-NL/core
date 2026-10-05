@@ -4,7 +4,7 @@
     justify-content: center;
     align-items: center;
     row-gap: 1vh;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-sans);
     font-size: 3vh;
 }
 
@@ -13,12 +13,12 @@
 }
 
 .edit-participants-table tbody{
-    background-color: #0f172ab3;
+    background-color: var(--surface);
 }
 
 
 .edit-participants-table tbody tr:hover{
-    background-color: #020617;
+    background-color: var(--surface-soft);
 }
 
 
@@ -32,7 +32,7 @@
 }
 
 .edit-participants-table th.drag-over {
-    outline: 2px dashed #666;
+    outline: 2px dashed var(--text-soft);
 }
 
 .edit-participants-table th.draggable-col {
@@ -45,12 +45,12 @@
 }
 
 .edit-participants-table th.drop-target {
-    border-left: 4px solid #4A90E2 !important;
+    border-left: 4px solid var(--brand) !important;
 }
 
 .edit-participants-table th.dragging-header {
     opacity: 0.5;
-    background-color: #eee;
+    background-color: var(--surface-soft);
 }
 
 .edit-participants-table td{
@@ -58,23 +58,24 @@
 }
 
 .select-role{
-    background-color:  #0f172ab3;
+    background-color: var(--surface-strong);
+    color: var(--text);
     border-collapse: collapse;
     border: none;
     font-size: 3vh;
 }
 
 .submit{
-    background-color: #f4c400;
-    color: white;
+    background-color: var(--brand);
+    color: var(--brand-text);
     border: none;
     cursor: pointer;
     appearance: none;
     font-size: 3vh;
     padding: 0.5vh 0.5vw;
-    border-radius: 0.2vw;
+    border-radius: var(--radius);
 }
 
 .submit:hover{
-    background-color: #f4c400;
+    background-color: var(--brand-strong);
 }
