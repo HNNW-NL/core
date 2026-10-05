@@ -559,10 +559,14 @@ class AcountsControllerTest extends WebTestCase
         $account = $this->loginAs($client, 'Test@test.nl');
         $this->assertTrue($this->findSettings($account)->isEmailNotificationsEnabled());
 
+        // het echte token meesturen, zo weet je zeker dat het de post is die faalt op het onbekende veld en niet op het token
+        $crawler = $client->request('GET', '/account/notifications');
+        $token = $crawler->filter('input[name="notification_settings[_token]"]')->attr('value');
+
         // het oude veld toch meesturen: het formulier kent het niet meer en keurt de hele post af
         $client->request('POST', '/account/notifications', [
             'notification_settings' => [
-                '_token' => 'csrf-token',
+                '_token' => $token,
                 'newsletterEnabled' => '1',
             ],
         ], [], self::ORIGIN);
