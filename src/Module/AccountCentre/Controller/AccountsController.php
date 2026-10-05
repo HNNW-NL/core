@@ -66,12 +66,8 @@ final class AccountsController extends AbstractController
 
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
-
-            if (method_exists($application, 'softDelete')) {
-                $application->softDelete();
-            } else {
-                $application->setDeletedAt(new \DateTimeImmutable());
-            }
+            // de entity heeft zelf een softDelete methode, die zet deletedAt op nu
+            $application->softDelete();
 
             $entityManager->flush();
 
@@ -364,12 +360,8 @@ final class AccountsController extends AbstractController
 
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('delete_experience' . $experience->getId(), $csrfToken)) {
-
-            if (method_exists($experience, 'softDelete')) {
-                $experience->softDelete();
-            } else {
-                $experience->setDeletedAt(new \DateTimeImmutable());
-            }
+            // de entity heeft zelf een softDelete methode, die zet deletedAt op nu
+            $experience->softDelete();
 
             $entityManager->flush();
             $this->addFlash('success', 'Werkervaring succesvol verwijderd.');
