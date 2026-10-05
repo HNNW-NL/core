@@ -148,7 +148,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const card = document.createElement("div");
                 card.className = "project-card";
                 card.dataset.slug = project.slug || '';
-                card.style.cursor = "pointer";
 
                 // Clicking card navigates to project detail page
                 card.addEventListener("click", () => {
@@ -169,6 +168,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     img.alt = project.title ? `Image for ${project.title}` : 'Project image';
                     imageContainer.appendChild(img);
                 } else {
+                    // kaart zonder foto: eigen klasse, zodat de css geen donkere laag over de kaart legt
+                    card.classList.add("project-card--no-image");
                     const missingImage = document.createElement("div");
                     missingImage.className = "project-card-image-missing";
                     missingImage.textContent = "Geen foto gevonden.";

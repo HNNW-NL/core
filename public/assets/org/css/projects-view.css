@@ -19,6 +19,8 @@
 
     padding: 16px;
     box-sizing: border-box;
+    /* de hele kaart is klikbaar (stond eerst als inline style in projects-view.js) */
+    cursor: pointer;
 }
 .project-card:hover {
     transform: translateY(-4px);
@@ -69,6 +71,31 @@
 .project-card > *:not(.project-card-image-container) {
     position: relative;
     z-index: 2;
+}
+
+/* kaart zonder foto: geen donkere laag, gewone kaartkleuren uit de tokens, zo blijft alles leesbaar in licht en donker */
+.project-card--no-image {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+.project-card--no-image::after {
+    display: none;
+}
+.project-card--no-image .project-title {
+    color: var(--text);
+}
+.project-card--no-image .project-summary {
+    color: var(--text-muted);
+}
+.project-card--no-image .project-slug {
+    color: var(--text-soft);
+}
+.project-card--no-image .project-slug:hover {
+    color: var(--text);
+}
+.project-card--no-image .project-card-image-missing {
+    color: var(--text-soft);
 }
 .projects-current-text {
     display: flex;
