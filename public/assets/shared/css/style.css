@@ -312,6 +312,16 @@ textarea.input {
     font-size: 0.875rem;
 }
 
+/* als het goed is zet symfony veldfouten in een ul zonder class, daarom deze regel; de li staat erbij omdat de *-regel bovenaan elke kleur overschrijft */
+.form-group > ul,
+.form-group > ul li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    color: var(--danger);
+    font-size: 0.875rem;
+}
+
 .form-errors,
 .form-errors * {
     color: var(--danger);
