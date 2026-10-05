@@ -139,34 +139,40 @@
                                         <div class="work-package-task-create-box">
                                             <h4>Nieuwe taak toevoegen</h4>
 
-                                            <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-create-form">
+                                            {# formulier omgebouwd naar symfony form, er staat er een per werkpakket dus de controller moet een lijst met formulieren meegeven (taak 4). het verborgen veld _action met waarde create_package_task hoort erbij #}
+                                            {% set taskForm = taskForms[workPackage.id] %}
+                                            {{ form_start(taskForm, {'action': path('org.modifyProject.workPackages', { id: id }), 'attr': {'class': 'work-package-create-form'}}) }}
                                                 <input type="hidden" name="_action" value="create_package_task">
-                                                <input type="hidden" name="workPackageId" value="{{ workPackage.id }}">
+                                                {{ form_widget(taskForm.workPackageId) }}
 
                                                 <div class="work-package-form-field">
                                                     <label for="taskTitle-{{ workPackage.id }}">Taak titel</label>
-                                                    <input id="taskTitle-{{ workPackage.id }}" name="taskTitle" type="text" placeholder="Bijvoorbeeld: Bronnen controleren" required>
+                                                    {{ form_widget(taskForm.taskTitle, {'id': 'taskTitle-' ~ workPackage.id, 'attr': {'placeholder': 'Bijvoorbeeld: Bronnen controleren'}}) }}
+                                                    {{ form_errors(taskForm.taskTitle) }}
                                                 </div>
 
                                                 <div class="work-package-form-field">
                                                     <label for="taskSlug-{{ workPackage.id }}">Taak slug</label>
-                                                    <input id="taskSlug-{{ workPackage.id }}" name="taskSlug" type="text" placeholder="bronnen-controleren" required>
+                                                    {{ form_widget(taskForm.taskSlug, {'id': 'taskSlug-' ~ workPackage.id, 'attr': {'placeholder': 'bronnen-controleren'}}) }}
+                                                    {{ form_errors(taskForm.taskSlug) }}
                                                 </div>
 
                                                 <div class="work-package-form-field">
                                                     <label for="taskDescription-{{ workPackage.id }}">Omschrijving</label>
-                                                    <textarea id="taskDescription-{{ workPackage.id }}" name="taskDescription" placeholder="Beschrijf kort wat deze taak is."></textarea>
+                                                    {{ form_widget(taskForm.taskDescription, {'id': 'taskDescription-' ~ workPackage.id, 'required': false, 'attr': {'placeholder': 'Beschrijf kort wat deze taak is.'}}) }}
+                                                    {{ form_errors(taskForm.taskDescription) }}
                                                 </div>
 
                                                 <div class="work-package-form-field">
                                                     <label for="taskDueDate-{{ workPackage.id }}">Deadline</label>
-                                                    <input id="taskDueDate-{{ workPackage.id }}" name="taskDueDate" type="date">
+                                                    {{ form_widget(taskForm.taskDueDate, {'id': 'taskDueDate-' ~ workPackage.id, 'required': false}) }}
+                                                    {{ form_errors(taskForm.taskDueDate) }}
                                                 </div>
 
-                                                <input type="hidden" name="taskPriority" value="normal">
+                                                {{ form_widget(taskForm.taskPriority) }}
 
                                                 <button class="work-packages-primary-button" type="submit">Taak opslaan</button>
-                                            </form>
+                                            {{ form_end(taskForm) }}
                                         </div>
 
                                         <div class="work-package-card-actions">
@@ -204,31 +210,36 @@
                                 <aside class="work-package-create-panel">
                                     <h3>Nieuw werkpakket</h3>
 
-                                    <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-create-form">
+                                    {# formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4). het verborgen veld _action met waarde create_work_package hoort erbij #}
+                                    {{ form_start(form, {'action': path('org.modifyProject.workPackages', { id: id }), 'attr': {'class': 'work-package-create-form'}}) }}
                                         <input type="hidden" name="_action" value="create_work_package">
 
                                         <div class="work-package-form-field">
                                             <label for="title">Titel</label>
-                                            <input id="title" name="title" type="text" placeholder="Bijvoorbeeld: Inventarisatie databronnen" required>
+                                            {{ form_widget(form.title, {'id': 'title', 'attr': {'placeholder': 'Bijvoorbeeld: Inventarisatie databronnen'}}) }}
+                                            {{ form_errors(form.title) }}
                                         </div>
 
                                         <div class="work-package-form-field">
                                             <label for="slug">Slug</label>
-                                            <input id="slug" name="slug" type="text" placeholder="inventarisatie-databronnen" required>
+                                            {{ form_widget(form.slug, {'id': 'slug', 'attr': {'placeholder': 'inventarisatie-databronnen'}}) }}
+                                            {{ form_errors(form.slug) }}
                                         </div>
 
                                         <div class="work-package-form-field">
                                             <label for="description">Omschrijving</label>
-                                            <textarea id="description" name="description" placeholder="Beschrijf kort wat er binnen dit werkpakket moet gebeuren."></textarea>
+                                            {{ form_widget(form.description, {'id': 'description', 'required': false, 'attr': {'placeholder': 'Beschrijf kort wat er binnen dit werkpakket moet gebeuren.'}}) }}
+                                            {{ form_errors(form.description) }}
                                         </div>
 
                                         <div class="work-package-form-field">
                                             <label for="dueDate">Deadline</label>
-                                            <input id="dueDate" name="dueDate" type="date">
+                                            {{ form_widget(form.dueDate, {'id': 'dueDate', 'required': false}) }}
+                                            {{ form_errors(form.dueDate) }}
                                         </div>
 
                                         <button class="work-packages-primary-button" type="submit">Werkpakket opslaan</button>
-                                    </form>
+                                    {{ form_end(form) }}
                                 </aside>
                             </div>
                         </div>

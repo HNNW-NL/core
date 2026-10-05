@@ -25,11 +25,13 @@
             {% endfor %}
         {% endfor %}
 
-        <form action="{{ path('account.availability') }}" method="POST" id="tidycal-schedule-form">
+        {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4) #}
+        {{ form_start(form, {'action': path('account.availability'), 'attr': {'id': 'tidycal-schedule-form'}}) }}
 
-            <input type="hidden" name="type" value="TidyCal Schema">
-            <input type="hidden" name="hours" id="calculated_hours" value="40">
-            <input type="hidden" name="start_date" value="{{ 'now'|date('Y-m-d') }}">
+            {# drie verborgen velden omgebouwd, hun vaste waardes moeten nu uit php komen: type = TidyCal Schema, hours = 40 (javascript past dit aan), start_date = vandaag #}
+            {{ form_widget(form.availabilityType) }}
+            {{ form_widget(form.hoursPerWeek, {'attr': {'id': 'calculated_hours'}}) }}
+            {{ form_widget(form.startDate) }}
 
             {# WEEKELIJKSE DIENSTREGELING CONTAINER #}
             <div class="tidycal-container">
@@ -37,13 +39,14 @@
                     <span class="tidycal-title">Beschikbaarheid:</span>
                 </div>
 
+                {# de 7 dagen omgebouwd naar form velden, dit weekrooster past nog niet in de database (taak 3) #}
                 <div class="tidycal-days-list">
                     {% for key, day in defaultSchedule %}
                         <div class="day-row" data-day="{{ key }}">
 
                             <div class="day-meta">
                                 <label class="switch">
-                                    <input type="checkbox" name="days_config[{{ key }}][enabled]" class="day-toggle" value="1" {% if day.enabled %}checked{% endif %}>
+                                    {{ form_widget(form.daysConfig[key].enabled, {'attr': {'class': 'day-toggle'}}) }}
                                     <span class="slider"></span>
                                 </label>
                                 <span class="day-name">
@@ -59,9 +62,9 @@
 
                             <div class="time-controls-container">
                                 <div class="time-inputs">
-                                    <input type="time" name="days_config[{{ key }}][start]" value="{{ day.start }}">
+                                    {{ form_widget(form.daysConfig[key].start) }}
                                     <span>-</span>
-                                    <input type="time" name="days_config[{{ key }}][end]" value="{{ day.end }}">
+                                    {{ form_widget(form.daysConfig[key].end) }}
                                 </div>
                                 <div class="unavailable-text">
                                     Niet beschikbaar op {% if day.name == 'Monday' %}maandag{% elseif day.name == 'Tuesday' %}dinsdag{% elseif day.name == 'Wednesday' %}woensdag{% elseif day.name == 'Thursday' %}donderdag{% elseif day.name == 'Friday' %}vrijdag{% elseif day.name == 'Saturday' %}zaterdag{% elseif day.name == 'Sunday' %}zondag{% endif %}
@@ -75,7 +78,7 @@
             <div class="form-actions-container">
                 <button type="submit" class="btn-primary">Schema Opslaan</button>
             </div>
-        </form>
+        {{ form_end(form) }}
 
         {# HISTORIE OVERZICHT #}
         <div class="tidycal-container history-container">

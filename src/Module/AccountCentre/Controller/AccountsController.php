@@ -7,6 +7,14 @@ use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
+use App\Form\AccountCentre\AvailabilityType;
+use App\Form\AccountCentre\ExperienceType;
+use App\Form\AccountCentre\ModifyAccountType;
+use App\Form\AccountCentre\NotificationSettingsType;
+use App\Module\AccountCentre\DTO\AvailabilityDTO;
+use App\Module\AccountCentre\DTO\ExperienceDTO;
+use App\Module\AccountCentre\DTO\ModifyAccountDTO;
+use App\Module\AccountCentre\DTO\NotificationSettingsDTO;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,20 +33,12 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/applications', name: 'applications', methods: ['GET'])]
-    public function applications(Request $request, EntityManagerInterface $entityManager): Response
+    public function applications(EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je aanmeldingen te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        $account = $this->getAuthenticatedAccount();
 
         if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
+            $this->addFlash('error', 'Je moet ingelogd zijn om je aanmeldingen te bekijken.');
             return $this->redirectToRoute('auth.login');
         }
 
@@ -52,17 +52,10 @@ final class AccountsController extends AbstractController
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
     public function applicationsCancel(ProjectApplication $application, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
+        $account = $this->getAuthenticatedAccount();
 
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
         if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
             return $this->redirectToRoute('auth.login');
         }
 
@@ -93,17 +86,10 @@ final class AccountsController extends AbstractController
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
     public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
+        $account = $this->getAuthenticatedAccount();
 
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je beschikbaarheid te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
         if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
+            $this->addFlash('error', 'Je moet ingelogd zijn om je beschikbaarheid te bekijken.');
             return $this->redirectToRoute('auth.login');
         }
 
@@ -113,55 +99,51 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        // POST: Schema opslaan in de `availabilities` tabel
-        if ($request->isMethod('POST')) {
-            $startDate = $request->request->get('start_date') ?: (new \DateTimeImmutable())->format('Y-m-d');
-            $endDate = $request->request->get('end_date') ?: null;
+        $availabilityDTO = new AvailabilityDTO();
+        $form = $this->createForm(AvailabilityType::class, $availabilityDTO);
+        $form->handleRequest($request);
 
-            // Haal de TidyCal dagschema's op uit het formulier
-            $daysInput = $request->request->all('days_config');
-
+        if ($form->isSubmitted() && $form->isValid()) {
             $activeDays = [];
             $startTime = '08:00';
             $endTime = '17:00';
             $totalHours = 0;
 
             foreach (range(0, 6) as $dayNum) {
-                $dayConfig = $daysInput[$dayNum] ?? [];
+                $dayConfig = $availabilityDTO->daysConfig[$dayNum] ?? null;
 
-                if (empty($dayConfig) && isset($daysInput[$dayNum + 1])) {
-                    $dayConfig = $daysInput[$dayNum + 1];
+                if (!$dayConfig || !$dayConfig->enabled) {
+                    continue;
                 }
 
-                if (isset($dayConfig['enabled'])) {
-                    $activeDays[] = $dayNum;
+                $activeDays[] = $dayNum;
 
-                    $start = $dayConfig['start'] ?? '08:00';
-                    $end = $dayConfig['end'] ?? '17:00';
+                $start = substr((string) ($dayConfig->start ?? '08:00'), 0, 5);
+                $end = substr((string) ($dayConfig->end ?? '17:00'), 0, 5);
 
-                    $startTime = $start;
-                    $endTime = $end;
+                $startTime = $start;
+                $endTime = $end;
 
-                    try {
-                        $timeStart = new \DateTime($start);
-                        $timeEnd = new \DateTime($end);
-                        if ($timeEnd > $timeStart) {
-                            $diff = $timeStart->diff($timeEnd);
-                            $totalHours += $diff->h + ($diff->i / 60);
-                        } else {
-                            $totalHours += 8;
-                        }
-                    } catch (\Exception $e) {
+                try {
+                    $timeStart = new \DateTime($start);
+                    $timeEnd = new \DateTime($end);
+                    if ($timeEnd > $timeStart) {
+                        $diff = $timeStart->diff($timeEnd);
+                        $totalHours += $diff->h + ($diff->i / 60);
+                    } else {
                         $totalHours += 8;
                     }
+                } catch (\Exception $e) {
+                    $totalHours += 8;
                 }
             }
 
-            $hours = (int) round($totalHours);
+            $hours = (int) round($totalHours ?: ($availabilityDTO->hoursPerWeek ?? 0));
             $typeCode = ($hours >= 32) ? 'FT' : 'PT';
 
             $compactType = implode('', $activeDays) . '|' . $startTime . '-' . $endTime . '|' . $typeCode;
             $compactType = substr($compactType, 0, 25);
+            $startDate = ($availabilityDTO->startDate ?? new \DateTimeImmutable())->format('Y-m-d');
 
             try {
                 $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
@@ -171,7 +153,7 @@ final class AccountsController extends AbstractController
                     'availability_type' => $compactType,
                     'hours_per_week' => $hours,
                     'start_date' => $startDate,
-                    'end_date' => $endDate,
+                    'end_date' => null,
                     'profile_id' => $profile->getId()->toString(),
                     'created_at' => $now,
                     'last_modified' => $now,
@@ -270,15 +252,15 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/availability.html.twig', [
             'profile' => $profile,
             'availabilities' => $availabilities,
-            'defaultSchedule' => $defaultSchedule
+            'defaultSchedule' => $defaultSchedule,
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
     public function deleteAvailability(string $id, Request $request, Connection $connection): Response
     {
-        $session = $request->getSession();
-        if (!$session->get('account_id')) {
+        if (!$this->getAuthenticatedAccount()) {
             $this->addFlash('error', 'Je moet ingelogd zijn.');
             return $this->redirectToRoute('auth.login');
         }
@@ -305,17 +287,10 @@ final class AccountsController extends AbstractController
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
     public function experience(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
+        $account = $this->getAuthenticatedAccount();
 
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
         if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
             return $this->redirectToRoute('auth.login');
         }
 
@@ -325,55 +300,29 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        if ($request->isMethod('POST')) {
-            $jobTitle = trim((string) $request->request->get('job_title'));
-            $organisationName = trim((string) $request->request->get('organisation_name'));
-            $startDateStr = trim((string) $request->request->get('start_date'));
-            $endDateStr = trim((string) $request->request->get('end_date'));
-            $isCurrent = (bool) $request->request->get('is_current', false);
-            $description = trim((string) $request->request->get('description'));
+        $experienceDTO = new ExperienceDTO();
+        $form = $this->createForm(ExperienceType::class, $experienceDTO);
+        $form->handleRequest($request);
 
-            if (empty($jobTitle) || empty($organisationName) || empty($startDateStr)) {
-                $this->addFlash('error', 'Vul alstublieft alle verplichte velden in.');
-            } else {
-                try {
-                    $experience = new ProfileExperience();
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $experience = new ProfileExperience();
+                $description = trim((string) $experienceDTO->description);
 
-                    if (method_exists($experience, 'setId')) {
-                        $experience->setId(Uuid::v4());
-                    }
+                $experience->setJobTitle(trim((string) $experienceDTO->jobTitle));
+                $experience->setOrganisationName(trim((string) $experienceDTO->organisationName));
+                $experience->setStartDate($experienceDTO->startDate ?? new \DateTimeImmutable());
+                $experience->setIsCurrent($experienceDTO->isCurrent);
+                $experience->setEndDate($experienceDTO->isCurrent ? null : $experienceDTO->endDate);
+                $experience->setDescription($description !== '' ? $description : null);
+                $experience->setProfile($profile);
 
-                    $experience->setJobTitle($jobTitle);
+                $entityManager->persist($experience);
+                $entityManager->flush();
 
-                    // Fixed spelling from setOrganizationName to setOrganisationName
-                    $experience->setOrganisationName($organisationName);
-
-                    $experience->setStartDate(new \DateTimeImmutable($startDateStr));
-                    $experience->setIsCurrent($isCurrent);
-
-                    if ($isCurrent) {
-                        $experience->setEndDate(null);
-                    } else {
-                        $experience->setEndDate(!empty($endDateStr) ? new \DateTimeImmutable($endDateStr) : null);
-                    }
-
-                    $experience->setDescription(!empty($description) ? $description : null);
-                    $experience->setProfile($profile);
-
-                    if (method_exists($experience, 'setCreatedAt')) {
-                        $experience->setCreatedAt(new \DateTimeImmutable());
-                    }
-                    if (method_exists($experience, 'setLastModified')) {
-                        $experience->setLastModified(new \DateTimeImmutable());
-                    }
-
-                    $entityManager->persist($experience);
-                    $entityManager->flush();
-
-                    $this->addFlash('success', 'Je werkervaring is succesvol toegevoegd!');
-                } catch (\Exception $e) {
-                    $this->addFlash('error', 'Fout bij het verwerken van de gegevens: ' . $e->getMessage());
-                }
+                $this->addFlash('success', 'Je werkervaring is succesvol toegevoegd!');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Fout bij het verwerken van de gegevens: ' . $e->getMessage());
             }
 
             return $this->redirectToRoute('account.experience');
@@ -386,16 +335,16 @@ final class AccountsController extends AbstractController
 
         return $this->render('pages/account-centre/experience.html.twig', [
             'experiences' => $experiences,
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
+        $account = $this->getAuthenticatedAccount();
 
-        if (!$accountId) {
+        if (!$account) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
             return $this->redirectToRoute('auth.login');
         }
@@ -407,7 +356,6 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.experience');
         }
 
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         if (!$profile || $experience->getProfile() !== $profile) {
@@ -435,59 +383,59 @@ final class AccountsController extends AbstractController
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        $account = $this->getAuthenticatedAccount();
 
         if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
             return $this->redirectToRoute('auth.login');
         }
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
-        if ($request->isMethod('POST')) {
-            $username = trim((string) $request->request->get('username'));
-            $email = trim((string) $request->request->get('email'));
-            $bio = trim((string) $request->request->get('bio'));
+        $modifyAccountDTO = new ModifyAccountDTO();
+        $modifyAccountDTO->username = $account->getUsername();
+        $modifyAccountDTO->firstName = $profile?->getFirstName();
+        $modifyAccountDTO->lastName = $profile?->getLastName();
+        $modifyAccountDTO->avatarUrl = $profile?->getAvatarUrl();
+        $modifyAccountDTO->location = $profile?->getLocation();
+        $modifyAccountDTO->description = $profile?->getDescription();
+        $modifyAccountDTO->language = $settings?->getLanguage() ?? 'nl-NL';
+        $modifyAccountDTO->theme = $settings?->getTheme() ?? 'dark';
+        $modifyAccountDTO->profileVisibility = $settings?->getProfileVisibility() ?? 'private';
 
-            if (!empty($username)) {
-                $account->setUsername($username);
-            }
-            if (!empty($email)) {
-                $account->setEmail($email);
-            }
+        $form = $this->createForm(ModifyAccountType::class, $modifyAccountDTO);
+        $form->handleRequest($request);
 
-            if ($profile) {
-                $profile->setFirstName(trim((string) $request->request->get('first_name')));
-                $profile->setLastName(trim((string) $request->request->get('last_name')));
-                $profile->setDisplayName(trim((string) $request->request->get('display_name')) ?: null);
-                $profile->setAvatarUrl(trim((string) $request->request->get('avatar_url')));
-                $profile->setLocation(trim((string) $request->request->get('location')) ?: null);
-                $profile->setDescription(!empty($bio) ? $bio : null);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $account->setUsername(trim((string) $modifyAccountDTO->username));
 
-                if (method_exists($profile, 'setLastModified')) {
-                    $profile->setLastModified(new \DateTimeImmutable());
-                }
+            if (!$profile) {
+                $profile = new Profile();
+                $profile->setAccount($account);
+                $entityManager->persist($profile);
             }
 
-            if ($settings) {
-                $settings->setLanguage(trim((string) $request->request->get('language', 'nl')));
-                $settings->setTheme(trim((string) $request->request->get('theme', 'dark')));
-                $settings->setProfileVisibility(trim((string) $request->request->get('profile_visibility', 'public')));
-                $settings->setEmailNotificationsEnabled((bool) $request->request->get('email_notifications_enabled', false));
-
-                if (method_exists($settings, 'setLastModified')) {
-                    $settings->setLastModified(new \DateTimeImmutable());
-                }
+            if (!$settings) {
+                $settings = new AccountSetting();
+                $settings->setAccount($account);
+                $entityManager->persist($settings);
             }
+
+            $avatarUrl = trim((string) $modifyAccountDTO->avatarUrl);
+            $location = trim((string) $modifyAccountDTO->location);
+            $description = trim((string) $modifyAccountDTO->description);
+            $language = trim((string) $modifyAccountDTO->language);
+
+            $profile->setFirstName(trim((string) $modifyAccountDTO->firstName));
+            $profile->setLastName(trim((string) $modifyAccountDTO->lastName));
+            $profile->setAvatarUrl($avatarUrl);
+            $profile->setLocation($location !== '' ? $location : null);
+            $profile->setDescription($description !== '' ? $description : null);
+
+            $settings->setLanguage($language !== '' ? $language : 'nl-NL');
+            $settings->setTheme($modifyAccountDTO->theme ?? 'dark');
+            $settings->setProfileVisibility($modifyAccountDTO->profileVisibility ?? 'private');
 
             $entityManager->flush();
 
@@ -499,25 +447,18 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/modify.html.twig', [
             'account' => $account,
             'profile' => $profile,
-            'settings' => $settings
+            'settings' => $settings,
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
     public function notifications(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        $account = $this->getAuthenticatedAccount();
 
         if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
             return $this->redirectToRoute('auth.login');
         }
 
@@ -526,30 +467,25 @@ final class AccountsController extends AbstractController
         if (!$settings) {
             $settings = new AccountSetting();
             $settings->setAccount($account);
-            $settings->setLanguage('nl');
+            $settings->setLanguage('nl-NL');
             $settings->setTheme('dark');
             $settings->setProfileVisibility('public');
             $settings->setEmailNotificationsEnabled(true);
 
-            if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Uuid::class, 'v4')) {
-                $settings->setId(\Symfony\Component\Uid\Uuid::v4());
-            }
-            if (method_exists($settings, 'setCreatedAt')) {
-                $settings->setCreatedAt(new \DateTimeImmutable());
-            }
-
             $entityManager->persist($settings);
         }
 
-        if ($request->isMethod('POST')) {
-            $notifyProjects = $request->request->has('notify_projects');
-            $notifyNewsletter = $request->request->has('notify_newsletter');
+        $notificationSettingsDTO = new NotificationSettingsDTO();
+        $notificationSettingsDTO->emailNotificationsEnabled = $settings->isEmailNotificationsEnabled();
+        $notificationSettingsDTO->newsletterEnabled = $settings->isEmailNotificationsEnabled();
 
-            $settings->setEmailNotificationsEnabled($notifyProjects || $notifyNewsletter);
+        $form = $this->createForm(NotificationSettingsType::class, $notificationSettingsDTO);
+        $form->handleRequest($request);
 
-            if (method_exists($settings, 'setLastModified')) {
-                $settings->setLastModified(new \DateTimeImmutable());
-            }
+        if ($form->isSubmitted() && $form->isValid()) {
+            $settings->setEmailNotificationsEnabled(
+                $notificationSettingsDTO->emailNotificationsEnabled || $notificationSettingsDTO->newsletterEnabled
+            );
 
             $entityManager->flush();
 
@@ -558,7 +494,8 @@ final class AccountsController extends AbstractController
         }
 
         return $this->render('pages/account-centre/notifications.html.twig', [
-            'settings' => $settings
+            'settings' => $settings,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -596,5 +533,12 @@ final class AccountsController extends AbstractController
     public function skills(): Response
     {
         return $this->render('pages/account-centre/skills.html.twig');
+    }
+
+    private function getAuthenticatedAccount(): ?Account
+    {
+        $user = $this->getUser();
+
+        return $user instanceof Account ? $user : null;
     }
 }

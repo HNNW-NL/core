@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use App\Entity\Account\Account;
@@ -21,7 +22,7 @@ use App\Entity\Common\Status;
 final class AuthController extends AbstractController
 {
     #[Route('/login', name: 'login', methods: ['GET','POST'])]
-    public function login(Request $request, EntityManagerInterface $em): Response
+    public function login(Request $request, EntityManagerInterface $em, AuthenticationUtils $authenticationUtils): Response
     {
         if ($request->isMethod('POST')) {
             $usernameOrEmail = (string)$request->request->get('username', '');
@@ -47,8 +48,12 @@ final class AuthController extends AbstractController
             return new RedirectResponse('/');
         }
 
+        $securityError = $authenticationUtils->getLastAuthenticationError();
+        $lastUsername = $authenticationUtils->getLastUsername();
+
         return $this->render('pages/auth/login.html.twig', [
-            'last_username' => (string)$request->query->get('last', ''),
+            'last_username' => (string)($request->query->get('last') ?: $lastUsername),
+            'error' => $securityError ? 'Ongeldige gebruikersnaam/e-mail of wachtwoord.' : null,
         ]);
     }
 
@@ -104,8 +109,9 @@ final class AuthController extends AbstractController
                 $em->persist($defaultStatus);
             }
 
-            // Wrap in a transaction to prevent partial database data insertions
-            $em->getConnection()->beginTransaction();
+            // Wrap database writes in a transaction to prevent partial data insertions.
+            $connection = $em->getConnection();
+            $connection->beginTransaction();
             try {
                 // 1. Setup Account (Id is automatically instantiated as Uuid object in constructor)
                 $account = new Account();
@@ -142,7 +148,21 @@ final class AuthController extends AbstractController
                 // Sync all relationships securely to the database engine
                 $em->flush();
 
-                // 4. Generate Absolute URL Link & Dispatch Mail
+                $connection->commit();
+
+            } catch (\Throwable $e) {
+                if ($connection->isTransactionActive()) {
+                    $connection->rollBack();
+                }
+
+                $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
+                return $this->render('pages/auth/register.html.twig', [
+                    'old' => $data,
+                ]);
+            }
+
+            // Send verification mail after the account exists. A local mailserver outage should not undo registration.
+            try {
                 $verifyLink = $router->generate('auth.verifyEmail', [
                     'token' => $plainToken,
                     'email' => $account->getEmail(),
@@ -155,19 +175,8 @@ final class AuthController extends AbstractController
                         ->subject('Bevestig je e-mailadres')
                         ->text("Klik op deze link om je e-mailadres te bevestigen:\n\n".$verifyLink."\n\nDeze link is tijdelijk geldig.")
                 );
-
-                $em->getConnection()->commit();
-
-            } catch (\Exception $e) {
-                $em->getConnection()->rollBack();
-
-                // Diagnostic dump to identify missing entity parameters easily
-                dd($e->getMessage(), $e->getTraceAsString());
-
-                $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
-                return $this->render('pages/auth/register.html.twig', [
-                    'old' => $data,
-                ]);
+            } catch (\Throwable $e) {
+                $this->addFlash('warning', 'Account aangemaakt, maar de verificatie-e-mail kon niet worden verzonden. Controleer of Mailpit/MailHog draait.');
             }
 
             $this->addFlash('success', 'Account aangemaakt. Je kunt nu inloggen.');

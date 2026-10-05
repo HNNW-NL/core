@@ -20,7 +20,8 @@
     <h2>Projects - Modify Participants</h2>
     <p>Organization panel - modify project ({{ id }}) participants page.</p>
 
-    <form method="POST" class="edit-participants-form">
+    {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4) #}
+    {{ form_start(form, {'attr': {'class': 'edit-participants-form'}}) }}
         <input type="submit" class="submit" value="Submit Changes">
 
         <table class="edit-participants-table" id="edit-participants-table">
@@ -41,15 +42,10 @@
                         {{ participant.display_name }}
                     </td>
 
+                    {# select per deelnemer omgebouwd, de lijst met rollen moet nu uit php komen in plaats van uit de roles variabele #}
                     <td>
-                        <select name="role[{{ participant.participant_id }}]" class="select-role">
-                            {% for role in roles %}
-                                <option value="{{ role.id }}"
-                                        {% if role.name == participant.role_name %}selected{% endif %}>
-                                    {{ role.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                        {{ form_widget(form.role[participant.participant_id], {'attr': {'class': 'select-role'}}) }}
+                        {{ form_errors(form.role[participant.participant_id]) }}
                     </td>
 
                     <td>
@@ -67,5 +63,5 @@
             {% endfor %}
             </tbody>
         </table>
-    </form>
+    {{ form_end(form) }}
 {% endblock %}
