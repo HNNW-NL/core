@@ -484,6 +484,25 @@ class AcountsControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
     }
 
+    public function testWhenLoggedInSubmitFormWithUsernameOfOtherAccountShouldGiveError(): void
+    {
+        $client = static::createClient();
+        $this->loginAs($client, 'Test@test.nl');
+
+        // de gebruikersnaam van de admin is al in gebruik, die kolom is net als e-mail uniek dus dit mag niet door naar de database
+        $crawler = $client->request('GET', '/account/modify');
+        $form = $crawler->selectButton('Wijzigingen opslaan')->form();
+        $form['modify_account[username]'] = 'AdminUser';
+        $client->submit($form, [], self::ORIGIN);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('form[action="/account/modify"]', 'Deze gebruikersnaam is al in gebruik.');
+
+        // beide accounts staan nog gewoon onder hun eigen naam in de database
+        $this->assertSame('Test@test.nl', $this->findAccountByUsername('TestUser')->getEmail());
+        $this->assertSame('Admin@test.nl', $this->findAccountByUsername('AdminUser')->getEmail());
+    }
+
     // notifications
 
     public function testWhenNotLoggedInShouldRedirectFromNotifications(): void

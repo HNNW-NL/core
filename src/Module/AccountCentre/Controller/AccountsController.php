@@ -264,10 +264,18 @@ final class AccountsController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // de kolom email is uniek in de database, dus als een ander account dit adres al heeft zou flush() een fout van 500 geven; daarom eerst zoeken en een nette fout op het veld zetten (door de fout is het formulier hieronder niet meer geldig)
+            // de kolom email is uniek in de database, dus als een ander account dit adres al heeft
+            // zou flush() een fout van 500 geven; daarom eerst zoeken en een nette fout op het veld zetten
+            // (door de fout is het formulier hieronder niet meer geldig)
             $anderAccount = $entityManager->getRepository(Account::class)->findOneBy(['email' => trim((string) $modifyAccountDTO->email)]);
             if ($anderAccount !== null && !$anderAccount->getId()->equals($account->getId())) {
                 $form->get('email')->addError(new FormError('Dit e-mailadres is al in gebruik.'));
+            }
+
+            // username is ook uniek in de database, dus dezelfde controle als bij e-mail
+            $anderAccountNaam = $entityManager->getRepository(Account::class)->findOneBy(['username' => trim((string) $modifyAccountDTO->username)]);
+            if ($anderAccountNaam !== null && !$anderAccountNaam->getId()->equals($account->getId())) {
+                $form->get('username')->addError(new FormError('Deze gebruikersnaam is al in gebruik.'));
             }
         }
 
