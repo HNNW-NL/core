@@ -270,14 +270,25 @@ final class AccountsController extends AbstractController
             // de kolom email is uniek in de database, dus als een ander account dit adres al heeft
             // zou flush() een fout van 500 geven; daarom eerst zoeken en een nette fout op het veld zetten
             // (door de fout is het formulier hieronder niet meer geldig)
-            $anderAccount = $entityManager->getRepository(Account::class)->findOneBy(['email' => trim((string) $modifyAccountDTO->email)]);
-            if ($anderAccount !== null && !$anderAccount->getId()->equals($account->getId())) {
+            // findOneBy vergelijkt hoofdlettergevoelig, dus 'admin@test.nl' vond 'Admin@test.nl' niet en werd gewoon opgeslagen (de unieke index in postgres let ook op hoofdletters);
+            // als het goed is vinden we met LOWER() aan beide kanten ook hetzelfde adres in andere hoofdletters,
+            // en met a.id != :id slaan we het eigen account over (zo mag je je eigen adres wel anders schrijven)
+            $anderAccount = $entityManager->createQuery('SELECT a FROM App\Entity\Account\Account a WHERE LOWER(a.email) = :e AND a.id != :id')
+                ->setParameter('e', strtolower(trim((string) $modifyAccountDTO->email)))
+                ->setParameter('id', $account->getId()->toRfc4122())
+                ->setMaxResults(1)
+                ->getOneOrNullResult();
+            if ($anderAccount !== null) {
                 $form->get('email')->addError(new FormError('Dit e-mailadres is al in gebruik.'));
             }
 
             // username is ook uniek in de database, dus dezelfde controle als bij e-mail
-            $anderAccountNaam = $entityManager->getRepository(Account::class)->findOneBy(['username' => trim((string) $modifyAccountDTO->username)]);
-            if ($anderAccountNaam !== null && !$anderAccountNaam->getId()->equals($account->getId())) {
+            $anderAccountNaam = $entityManager->createQuery('SELECT a FROM App\Entity\Account\Account a WHERE LOWER(a.username) = :u AND a.id != :id')
+                ->setParameter('u', strtolower(trim((string) $modifyAccountDTO->username)))
+                ->setParameter('id', $account->getId()->toRfc4122())
+                ->setMaxResults(1)
+                ->getOneOrNullResult();
+            if ($anderAccountNaam !== null) {
                 $form->get('username')->addError(new FormError('Deze gebruikersnaam is al in gebruik.'));
             }
         }
