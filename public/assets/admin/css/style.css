@@ -26,9 +26,10 @@ td {
     color: var(--text);
 }
 
+/* geel op lichtgeel is in licht niet te lezen, daarom de gewone tekstkleur op de kop */
 thead th {
     background-color: var(--brand-soft);
-    color: var(--brand);
+    color: var(--text);
     font-weight: 600;
 }
 
