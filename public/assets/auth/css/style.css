@@ -1,34 +1,13 @@
 :root{
     --auth-max-width:860px;
     --auth-gap:1.25rem;
-    --color-bg: var(--background);
-    --color-panel: #0b1220;
-    --color-muted: #9aa4b2;
-    --color-accent: #1f2937;
-    --color-primary: var(--hnnw-yellow-500);
-    --color-success: #2b7a0b;
-    --color-danger: #f44336;
-    --radius:8px;
-
-    --input-bg: #ffffff;
-    --input-fg: #0b1220;
-    --input-border: rgba(11,18,32,0.08);
-    --input-placeholder: #6b7280;
-}
-
-body[data-theme="dark"]{
-    background: var(--background);
-    color: var(--paragraph);
-    --input-bg: rgba(0,0,0,0.36);
-    --input-fg: #e6eef8;
-    --input-border: rgba(255,255,255,0.08);
-    --input-placeholder: rgba(230,238,248,0.6);
 }
 
 html,
 body{height:100%}
 
-body[data-theme="dark"] > main{
+/* geldt voor beide thema's, de kleur komt uit shared */
+body > main{
     min-height:100vh;
     display:flex;
     flex-direction:column;
@@ -40,17 +19,16 @@ body[data-theme="dark"] > main{
     padding-top:.45rem;
     text-align:center;
     font-size:.85rem;
-    color:var(--color-muted);
+    color:var(--text-soft);
 }
 
-body[data-theme="dark"] > main > .auth-footer{margin-top:auto}
-body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
+body > main > .auth-footer{margin-top:auto}
+body > main > .register-page{margin:auto auto .35rem}
 
 .auth-page{
     max-width:var(--auth-max-width);
     margin:2rem auto;
     padding:1rem 1.25rem;
-    font-family:lato, Arial, sans-serif;
 }
 
 .auth-page > h1{
@@ -58,7 +36,6 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
     font-size:clamp(2rem, 3vw, 2.6rem);
     line-height:1.1;
     letter-spacing:-0.02em;
-    font-family:inter, Arial, sans-serif;
 }
 
 .auth-grid{
@@ -72,12 +49,13 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
     .auth-grid{grid-template-columns:1fr;}
 }
 
+/* de kaart met het formulier */
 .auth-form{
-    background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    background:var(--surface);
     padding:1.5rem;
-    border-radius:calc(var(--radius) + 4px);
-    border:none;
-    box-shadow:0 18px 50px rgba(0,0,0,0.18);
+    border-radius:var(--radius-lg);
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
     backdrop-filter:blur(8px);
 }
 
@@ -117,8 +95,8 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
 #register-form .mt-1{margin-top:.75rem}
 
 @media (max-height:920px){
-    body[data-theme="dark"] > main{padding:.55rem .95rem .5rem}
-    body[data-theme="dark"] > main > .register-page{margin:.15rem auto .25rem}
+    body > main{padding:.55rem .95rem .5rem}
+    body > main > .register-page{margin:.15rem auto .25rem}
     .register-page{margin:.3rem auto;padding:.25rem .55rem}
     .register-page > h1{margin:0 0 .3rem;font-size:clamp(1.7rem, 2.2vw, 2.05rem)}
     .register-page .auth-form{padding:1rem}
@@ -150,10 +128,10 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
 }
 
 .auth-form .card-header{margin-bottom:1rem}
-.auth-form h2{margin:0 0 .35rem 0;font-size:1.5rem;font-family:inter, Arial, sans-serif}
-.auth-form p.lead{margin:0 0 1rem 0;color:var(--color-muted);max-width:38ch;line-height:1.5}
+.auth-form h2{margin:0 0 .35rem 0;font-size:1.5rem}
+.auth-form p.lead{margin:0 0 1rem 0;color:var(--text-soft);max-width:38ch;line-height:1.5}
 
-.auth-form label{display:block;font-weight:600;margin-top:.6rem;margin-bottom:.2rem;font-family:inter, Arial, sans-serif}
+.auth-form label{display:block;font-weight:600;margin-top:.6rem;margin-bottom:.2rem}
 .auth-form input,
 .auth-form textarea,
 .auth-form select{
@@ -162,32 +140,34 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
     min-height:2.75rem;
     padding:.75rem .9rem;
     margin:.45rem 0 1rem;
-    border:1px solid var(--input-border);
-    border-radius:10px;
-    background:var(--input-bg);
-    color:var(--input-fg);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    background:var(--surface-strong);
+    color:var(--text);
     transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease, background-color .15s ease;
 }
 
+/* focus: gele rand en zachte gele ring, zoals shared */
 .auth-form input:focus{
     outline:none;
-    border-color:rgba(0,85,164,0.7);
-    box-shadow:0 0 0 4px rgba(0,85,164,0.18), 0 8px 24px rgba(0,0,0,0.12);
+    border-color:var(--brand);
+    box-shadow:0 0 0 3px var(--brand-soft);
     transform:translateY(-1px);
 }
-.auth-form input::placeholder{color:var(--input-placeholder)}
+.auth-form input::placeholder{color:var(--text-soft)}
 
 .form-errors{display:none}
 .form-errors.visible{
     display:block;
     padding:.75rem .9rem;
-    border-radius:10px;
-    background:rgba(244,67,54,0.12);
-    border:1px solid rgba(244,67,54,0.25);
+    border-radius:var(--radius);
+    background:var(--danger-soft);
+    border:1px solid var(--danger);
 }
 
 .input-row{display:flex;gap:.5rem;align-items:center}
 
+/* gewone knop: randje en zacht vlak, zoals de tweede knop op hnnw.nl */
 .btn{
     display:inline-flex;
     align-items:center;
@@ -195,20 +175,21 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
     gap:.5rem;
     min-height:2.75rem;
     padding:.7rem 1rem;
-    background:var(--color-accent);
-    color:#fff;
-    border-radius:10px;
-    border:none;
+    background:var(--surface-soft);
+    color:var(--text);
+    border-radius:var(--radius);
+    border:1px solid var(--border);
     text-decoration:none;
     cursor:pointer;
     transition:transform .15s ease, background-color .15s ease, opacity .15s ease, box-shadow .15s ease;
 }
-.btn:hover{opacity:.98;transform:translateY(-1px);box-shadow:0 10px 22px rgba(0,0,0,0.16)}
+.btn:hover{opacity:.98;transform:translateY(-1px);box-shadow:var(--shadow)}
 
-.btn-primary{background:var(--color-primary)}
-.btn-primary{color:#111827}
+.btn-primary{background:var(--brand);border-color:transparent}
+.btn-primary{color:var(--brand-text)}
+.btn-primary:hover{background:var(--brand-strong)}
 
-.auth-externals{background:rgba(255,255,255,0.02);padding:1rem;border-radius:6px}
+.auth-externals{background:var(--surface-soft);padding:1rem;border-radius:var(--radius)}
 
 .visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
 
@@ -216,11 +197,11 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
     min-width:3.55rem;
     min-height:2.75rem;
     align-self:stretch;
-    background:var(--hnnw-yellow-500);
-    border:1px solid var(--hnnw-yellow-400);
-    color:#111827;
+    background:var(--brand);
+    border:1px solid var(--brand);
+    color:var(--brand-text);
     padding:.35rem .65rem;
-    border-radius:7px;
+    border-radius:var(--radius);
     font-size:.86rem;
     font-weight:600;
     line-height:1;
@@ -228,15 +209,16 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
     transition:background-color .15s ease, border-color .15s ease, transform .15s ease;
 }
 #register-form .input-row > .auth-input{margin:0}
-#register-form .input-row > .toggle-password:hover{background:var(--hnnw-yellow-400);border-color:var(--hnnw-yellow-300);transform:translateY(-1px)}
-#register-form .input-row > .toggle-password:focus-visible{outline:2px solid var(--hnnw-yellow-300);outline-offset:2px}
+#register-form .input-row > .toggle-password:hover{background:var(--brand-strong);border-color:var(--brand-strong);transform:translateY(-1px)}
+#register-form .input-row > .toggle-password:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 
+/* sterkte van het wachtwoord: rood, geel, groen */
 #password-strength{font-weight:600}
-#password-strength[data-score="0"]{color:var(--color-danger)}
-#password-strength[data-score="1"]{color:#e67a00}
-#password-strength[data-score="2"]{color:#c1b400}
-#password-strength[data-score="3"]{color:#3aa33a}
-#password-strength[data-score="4"]{color:var(--color-success)}
+#password-strength[data-score="0"]{color:var(--danger)}
+#password-strength[data-score="1"]{color:var(--danger)}
+#password-strength[data-score="2"]{color:var(--brand)}
+#password-strength[data-score="3"]{color:var(--success)}
+#password-strength[data-score="4"]{color:var(--success)}
 
 .remember-me{
     display:inline-flex;
@@ -253,25 +235,22 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
     margin:0;
     flex:0 0 auto;
     transform:translateY(.15rem);
+    accent-color:var(--brand);
 }
 
-.small{font-size:.875rem;color:var(--color-muted);line-height:1.45}
+.small{font-size:.875rem;color:var(--text-soft);line-height:1.45}
 
-@media (prefers-color-scheme: light){
-    body[data-theme="dark"] main{color:inherit}
-}
-
-.field-error{color:var(--color-danger);margin-top:-0.35rem;margin-bottom:.75rem;line-height:1.4}
+.field-error{color:var(--danger);margin-top:-0.35rem;margin-bottom:.75rem;line-height:1.4}
 .field-error.visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
 
 .pw-strength{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}
-.pw-strength meter{width:min(180px, 100%);height:8px;background:rgba(255,255,255,0.04);border-radius:999px}
-.pw-strength meter::-webkit-meter-bar{background:rgba(255,255,255,0.04);border-radius:6px}
-.pw-strength meter::-webkit-meter-optimum-value{background:var(--color-success);border-radius:6px}
-.pw-strength meter::-webkit-meter-suboptimum-value{background:#c1b400;border-radius:6px}
-.pw-strength meter::-webkit-meter-even-less-good-value{background:var(--color-danger);border-radius:6px}
+.pw-strength meter{width:min(180px, 100%);height:8px;background:var(--border);border-radius:999px}
+.pw-strength meter::-webkit-meter-bar{background:var(--border);border-radius:999px}
+.pw-strength meter::-webkit-meter-optimum-value{background:var(--success);border-radius:999px}
+.pw-strength meter::-webkit-meter-suboptimum-value{background:var(--brand);border-radius:999px}
+.pw-strength meter::-webkit-meter-even-less-good-value{background:var(--danger);border-radius:999px}
 
-.btn[disabled]{opacity:.65;cursor:not-allowed;background:#7c8790;color:#fff;box-shadow:none;transform:none}
+.btn[disabled]{opacity:.6;cursor:not-allowed;background:var(--surface-soft);color:var(--text-soft);border-color:var(--border);box-shadow:none;transform:none}
 
 .mt-1{margin-top:1rem}
 .mb-1{margin-bottom:1rem}
@@ -280,31 +259,31 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
 .auth-form textarea,
 .auth-form select,
 .input-row input{
-    background: var(--input-bg) !important;
-    color: var(--input-fg) !important;
-    border-color: var(--input-border) !important;
+    background: var(--surface-strong) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
 }
 
 .auth-form input,
 .auth-form textarea,
 .auth-form select,
 .input-row input{
-    color: var(--input-fg) !important;
-    -webkit-text-fill-color: var(--input-fg) !important;
-    caret-color: var(--input-fg) !important;
+    color: var(--text) !important;
+    -webkit-text-fill-color: var(--text) !important;
+    caret-color: var(--text) !important;
 }
 
 .auth-form input::placeholder,
 .auth-form textarea::placeholder,
 .input-row input::placeholder{
-    color: var(--input-placeholder) !important;
+    color: var(--text-soft) !important;
     opacity: 1 !important;
 }
 
 input:-webkit-autofill,
 textarea:-webkit-autofill,
 select:-webkit-autofill{
-    -webkit-text-fill-color: var(--input-fg) !important;
+    -webkit-text-fill-color: var(--text) !important;
     transition: background-color 5000s ease-in-out 0s !important;
 }
 
@@ -312,11 +291,17 @@ select:-webkit-autofill{
 .auth-form textarea.auth-input,
 .auth-form select.auth-input,
 .input-row input.auth-input{
-    background: var(--input-bg) !important;
-    color: var(--input-fg) !important;
-    -webkit-text-fill-color: var(--input-fg) !important;
-    caret-color: var(--input-fg) !important;
-    border-color: var(--input-border) !important;
+    background: var(--surface-strong) !important;
+    color: var(--text) !important;
+    -webkit-text-fill-color: var(--text) !important;
+    caret-color: var(--text) !important;
+    border-color: var(--border) !important;
+}
+
+/* focus wint van de !important-randkleur hierboven */
+.auth-form input.auth-input:focus,
+.input-row input.auth-input:focus{
+    border-color: var(--brand) !important;
 }
 
 @media (max-width:520px){
@@ -327,4 +312,3 @@ select:-webkit-autofill{
     #register-form .input-row > .toggle-password{width:100%;min-height:2.75rem;font-size:.9rem}
     .btn{width:100%}
 }
-
