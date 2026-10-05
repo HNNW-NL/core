@@ -15,6 +15,7 @@ use Symfony\Component\Form\FormInterface;
 // daarom gebruiken we de echte form factory uit de kernel en niet de kale TypeTestCase
 class ModifyProjectTypeTest extends KernelTestCase
 {
+    // verzonnen uuid's, het formulier geeft ze alleen door en zoekt er niets mee op in de database
     private const PROJECT_ID = '01a10c37-444c-7151-8802-976a90921ce7';
     private const ORGANISATION_ID = '01a10c37-4373-73b1-9aea-9d7f7e03f295';
 

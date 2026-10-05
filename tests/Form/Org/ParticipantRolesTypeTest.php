@@ -11,6 +11,7 @@ use Symfony\Component\Validator\Validation;
 
 class ParticipantRolesTypeTest extends TypeTestCase
 {
+    // verzonnen uuid's, het formulier geeft ze alleen door en zoekt er niets mee op in de database
     private const PARTICIPANT_ID = '01a10c37-4451-7000-8000-000000000001';
     private const DEVELOPER_ROLE_ID = '01a10c37-4445-7000-8000-000000000001';
     private const TESTER_ROLE_ID = '01a10c37-4445-7000-8000-000000000002';

@@ -11,6 +11,7 @@ use Symfony\Component\Validator\Validation;
 
 class PackageTaskTypeTest extends TypeTestCase
 {
+    // verzonnen uuid, het formulier geeft hem alleen door en zoekt er niets mee op in de database
     private const WORK_PACKAGE_ID = '01a10c37-444f-7b54-abae-e6ab6815b406';
 
     // de basisklasse maakt zelf een mock dispatcher zonder verwachtingen en daar geeft phpunit een notice op, een stub is dan netter

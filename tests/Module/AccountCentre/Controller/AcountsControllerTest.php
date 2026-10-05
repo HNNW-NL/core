@@ -14,7 +14,7 @@ use Symfony\Component\Uid\Uuid;
 
 class AcountsControllerTest extends WebTestCase
 {
-    // symfony's stateless csrf (config/packages/csrf.yaml) keurt een post goed als de Origin-header bij de site hoort, een browser stuurt die zelf mee maar de testclient niet
+    // symfony's stateless csrf (config/packages/csrf.yaml) wil bij een post een Origin- of Referer-header van de site zelf; na een eerder request stuurt de testclient zelf een Referer mee, maar bij een post als allereerste request niet, daarom geven we de Origin mee
     private const ORIGIN = ['HTTP_ORIGIN' => 'http://localhost'];
 
     // index

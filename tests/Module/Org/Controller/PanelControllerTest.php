@@ -911,6 +911,7 @@ class PanelControllerTest extends WebTestCase
         $workPackage = $this->entityManager()->getRepository(WorkPackage::class)->findOneBy(['project' => $project, 'slug' => 'ork-package']);
         $workPackageId = (string) $workPackage->getId();
 
+        // eerst de pagina ophalen, dan stuurt de testclient bij de post zelf een Referer mee en gaat deze test alleen over het ontbrekende _token
         $client->request('GET', '/org/projects/modify/' . $projectId . '/work-packages');
 
         $client->request('POST', '/org/projects/modify/' . $projectId . '/work-packages', [
