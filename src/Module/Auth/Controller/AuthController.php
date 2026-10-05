@@ -60,11 +60,19 @@ final class AuthController extends AbstractController
                 $errors['confirm_password'] = 'Wachtwoorden komen niet overeen.';
             }
 
-            $repo = $em->getRepository(Account::class);
-            if ($repo->findOneBy(['username' => $data['username']])) {
+            // net als bij het inloggen (AccountProvider) vergelijken we in kleine letters, anders kon TEST@test.nl naast Test@test.nl bestaan
+            $sameUsername = $em->createQuery('SELECT a FROM App\Entity\Account\Account a WHERE LOWER(a.username) = :username')
+                ->setParameter('username', strtolower($data['username']))
+                ->setMaxResults(1)
+                ->getOneOrNullResult();
+            if ($sameUsername) {
                 $errors['username'] = 'Deze gebruikersnaam is al in gebruik.';
             }
-            if ($repo->findOneBy(['email' => $data['email']])) {
+            $sameEmail = $em->createQuery('SELECT a FROM App\Entity\Account\Account a WHERE LOWER(a.email) = :email')
+                ->setParameter('email', strtolower($data['email']))
+                ->setMaxResults(1)
+                ->getOneOrNullResult();
+            if ($sameEmail) {
                 $errors['email'] = 'Dit e-mailadres is al in gebruik.';
             }
 

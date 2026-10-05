@@ -177,6 +177,66 @@ class AuthControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
     }
 
+    // registreren
+
+    public function testWhenRegisterPasswordIsTooShortShouldKeepFilledInFields(): void
+    {
+        $client = static::createClient();
+
+        $client->request('POST', '/auth/register', [
+            'full_name' => 'Jan de Vries',
+            'username' => 'nieuwjan',
+            'email' => 'jan@example.nl',
+            'password' => 'kort',
+            'confirm_password' => 'kort',
+        ], [], self::ORIGIN);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('#register-errors', 'Wachtwoord moet minimaal 8 tekens bevatten.');
+
+        // als het goed is staan naam, gebruikersnaam en e-mail er nog, de wachtwoorden niet
+        $this->assertInputValueSame('full_name', 'Jan de Vries');
+        $this->assertInputValueSame('username', 'nieuwjan');
+        $this->assertInputValueSame('email', 'jan@example.nl');
+        $this->assertInputValueSame('password', '');
+    }
+
+    public function testWhenRegisterEmailExistsWithOtherCapitalsShouldShowError(): void
+    {
+        $client = static::createClient();
+
+        // Test@test.nl bestaat al in de fixtures, met andere hoofdletters mag hij niet nog een keer
+        $client->request('POST', '/auth/register', [
+            'full_name' => 'Iemand Anders',
+            'username' => 'iemandanders',
+            'email' => 'TEST@test.nl',
+            'password' => 'lang-genoeg-1',
+            'confirm_password' => 'lang-genoeg-1',
+        ], [], self::ORIGIN);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('#register-errors', 'Dit e-mailadres is al in gebruik.');
+        $this->assertNull($this->findAccountByUsername('iemandanders'));
+    }
+
+    public function testWhenRegisterUsernameExistsWithOtherCapitalsShouldShowError(): void
+    {
+        $client = static::createClient();
+
+        // TestUser bestaat al in de fixtures, TESTUSER is dus ook bezet
+        $client->request('POST', '/auth/register', [
+            'full_name' => 'Iemand Anders',
+            'username' => 'TESTUSER',
+            'email' => 'iemand-anders@example.nl',
+            'password' => 'lang-genoeg-1',
+            'confirm_password' => 'lang-genoeg-1',
+        ], [], self::ORIGIN);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('#register-errors', 'Deze gebruikersnaam is al in gebruik.');
+        $this->assertNull($this->findAccountByUsername('TESTUSER'));
+    }
+
     // hulpfuncties
 
     // haalt een account uit de testdatabase, altijd via de container van dit moment omdat de kernel tussen requests opnieuw start
@@ -185,6 +245,14 @@ class AuthControllerTest extends WebTestCase
         $em = static::getContainer()->get(EntityManagerInterface::class);
 
         return $em->getRepository(Account::class)->findOneBy(['email' => $email]);
+    }
+
+    // zoekt een account op de precies getypte gebruikersnaam, voor de controle dat er niets is aangemaakt
+    private function findAccountByUsername(string $username): ?Account
+    {
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        return $em->getRepository(Account::class)->findOneBy(['username' => $username]);
     }
 
     // vult het echte login-formulier in (met de verborgen _csrf_token) en verstuurt het zoals een browser dat doet
