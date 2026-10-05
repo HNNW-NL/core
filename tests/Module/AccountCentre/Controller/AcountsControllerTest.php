@@ -111,7 +111,7 @@ class AcountsControllerTest extends WebTestCase
         // de fixture heeft zeven rijen (maandag tot en met zondag) en die komen nu uit de entity
         $this->assertCount(7, $crawler->filter('table tbody tr'));
         $this->assertSelectorTextContains('table tbody', 'Monday');
-        // het opslaan-formulier is weggehaald, dat komt uit pr 3 van team 4
+        // het opslaan-formulier is weggehaald, dat komt uit pr 3 van team 4; deze controle mag weg zodra die pr het opslaan terugbrengt
         $this->assertSelectorNotExists('form[action="/account/availability"]');
     }
 
@@ -120,7 +120,7 @@ class AcountsControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginAs($client, 'Test@test.nl');
 
-        // de route staat alleen nog GET toe
+        // de route staat alleen nog GET toe; deze test mag weg zodra pr 3 van team 4 het opslaan terugbrengt
         $client->request('POST', '/account/availability', [], [], self::ORIGIN);
 
         $this->assertResponseStatusCodeSame(405);
