@@ -57,7 +57,7 @@ class ModifyParticipantsTable
         if (!$this->authorizationChecker->isGranted('PROJECT_INVITE', $this->getProject())) {
             return;
         }
-        $this->projectParticipantUpdateRoleHandler->handle($this->rolesByParticipant);
+        $this->projectParticipantUpdateRoleHandler->handle($this->rolesByParticipant, $this->getProject());
         $this->submitted = true;
     }
 }
