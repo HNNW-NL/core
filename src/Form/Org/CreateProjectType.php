@@ -40,6 +40,8 @@ final class CreateProjectType extends AbstractType
                     'Private' => 'private',
                 ],
                 'placeholder' => 'Choose visibility',
+                // de kolom visibility mag niet leeg zijn, dus de lege keuze mag niet verstuurd worden
+                'constraints' => [new NotBlank(message: 'Kies een zichtbaarheid.')],
             ])
             // de statussen stonden eerst in een aparte twig component, nu haalt symfony ze zelf op
             ->add('status', EntityType::class, [

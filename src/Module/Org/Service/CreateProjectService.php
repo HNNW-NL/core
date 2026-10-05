@@ -2,9 +2,6 @@
 
 namespace App\Module\Org\Service;
 
-use App\Entity\Account\Account;
-use App\Entity\Common\Status;
-use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
 use App\Module\Org\DTO\CreateProjectDTO;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,16 +14,21 @@ class CreateProjectService
 
     public function create(CreateProjectDTO $dto): Project
     {
+        // de controller vult deze drie uit de ingelogde gebruiker, zonder kan het project niet opgeslagen worden
+        if ($dto->ownerAccount === null || $dto->ownerOrganisation === null || $dto->status === null) {
+            throw new \RuntimeException('Account, organisatie en status zijn nodig om een project aan te maken.');
+        }
+
         $project = new Project();
 
         $project->setTitle($dto->name);
         $project->setSummary($dto->summary);        
         $project->setDescription($dto->description);
-        $project->setCapacity($dto->capacity);
+        // de kolom capacity mag niet leeg zijn, dus zonder invulling slaan we 0 op
+        $project->setCapacity($dto->capacity ?? 0);
         $project->setVisibility($dto->visibility);
 
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $dto->name)));
-        $project->setSlug($slug);
+        $project->setSlug($this->makeSlug((string) $dto->name));
 
         $project->setStartDate(new \DateTimeImmutable());
 
@@ -34,21 +36,19 @@ class CreateProjectService
             $project->setEndDate($dto->endDate);
         }
 
-        $account = $this->entityManager->getRepository(Account::class)->findOneBy([]);
-        $organisation = $this->entityManager->getRepository(Organisation::class)->findOneBy([]);
-        $status = $this->entityManager->getRepository(Status::class)->findOneBy([]);
-
-        if (!$account || !$organisation || !$status) {
-            throw new \RuntimeException('No valid Account/Organisation/Status found in DB');
-        }
-
-        $project->setOwnerAccount($account);
-        $project->setOwnerOrganisation($organisation);
-        $project->setStatus($status);
+        $project->setOwnerAccount($dto->ownerAccount);
+        $project->setOwnerOrganisation($dto->ownerOrganisation);
+        $project->setStatus($dto->status);
 
         $this->entityManager->persist($project);
         $this->entityManager->flush();
 
         return $project;
+    }
+
+    // maakt van de naam een slug voor in de url, alles behalve letters en cijfers wordt een streepje
+    public function makeSlug(string $name): string
+    {
+        return strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
     }
 }
