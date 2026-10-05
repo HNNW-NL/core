@@ -33,7 +33,7 @@
                 <span class="tidycal-title">Opgeslagen beschikbaarheidsschema's</span>
             </div>
             <div class="table-container">
-                <table class="custom-table dark-table">
+                <table class="custom-table">
                     <thead>
                     <tr>
                         <th>Dag</th>
@@ -47,10 +47,10 @@
                         <tr>
                             {# de kolommen komen nu rechtstreeks uit de availability entity #}
                             <td>
-                                <strong class="text-light">{{ availability.dayOfWeek }}</strong>
+                                <strong>{{ availability.dayOfWeek }}</strong>
                             </td>
-                            <td class="text-light">{{ availability.startTime|date('H:i') }} - {{ availability.endTime|date('H:i') }}</td>
-                            <td class="text-light">{{ availability.validFrom|date('d-m-Y') }}</td>
+                            <td>{{ availability.startTime|date('H:i') }} - {{ availability.endTime|date('H:i') }}</td>
+                            <td>{{ availability.validFrom|date('d-m-Y') }}</td>
                             <td class="text-right">
                                 <form action="{{ path('account.availability_delete', {'id': availability.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je dit schema wilt verwijderen?');">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete_availability' ~ availability.id) }}">
@@ -60,7 +60,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="4" class="text-center text-muted-dark">Nog geen beschikbaarheid opgeslagen.</td>
+                            <td colspan="4">Nog geen beschikbaarheid opgeslagen.</td>
                         </tr>
                     {% endfor %}
                     </tbody>
