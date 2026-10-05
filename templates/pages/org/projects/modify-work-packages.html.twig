@@ -139,7 +139,7 @@
                                         <div class="work-package-task-create-box">
                                             <h4>Nieuwe taak toevoegen</h4>
 
-                                            {# formulier omgebouwd naar symfony form, er staat er een per werkpakket dus de controller moet een lijst met formulieren meegeven (taak 4). het verborgen veld _action met waarde create_package_task hoort erbij #}
+                                            {# formulier omgebouwd naar symfony form, er staat er een per werkpakket dus PanelController::modifyProjectWorkPackages geeft per werkpakket een formulier mee in taskForms. het verborgen veld _action stond al in het oude formulier, de controller kijkt alleen naar delete_work_package #}
                                             {% set taskForm = taskForms[workPackage.id] %}
                                             {{ form_start(taskForm, {'action': path('org.modifyProject.workPackages', { id: id }), 'attr': {'class': 'work-package-create-form'}}) }}
                                                 <input type="hidden" name="_action" value="create_package_task">
@@ -209,7 +209,7 @@
                                 <aside class="work-package-create-panel">
                                     <h3>Nieuw werkpakket</h3>
 
-                                    {# formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4). het verborgen veld _action met waarde create_work_package hoort erbij #}
+                                    {# formulier omgebouwd naar symfony form, de form variabele komt uit PanelController::modifyProjectWorkPackages. het verborgen veld _action stond al in het oude formulier, de controller kijkt alleen naar delete_work_package #}
                                     {{ form_start(form, {'action': path('org.modifyProject.workPackages', { id: id }), 'attr': {'class': 'work-package-create-form'}}) }}
                                         <input type="hidden" name="_action" value="create_work_package">
 

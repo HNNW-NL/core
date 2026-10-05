@@ -47,7 +47,7 @@
 
             {% if project %}
                 {# This one form handles both edit and delete actions; the button value tells the backend which path to take. #}
-                {# hele formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4). het csrf token komt nu uit symfony zelf, dat heette hier org_modify_project_<id>. de id's startDate, endDate en het attribuut data-modify-project-form heb ik niet veranderd, modify-project.js zoekt die op #}
+                {# hele formulier omgebouwd naar symfony form, de form variabele komt uit PanelController::modifyProject. het csrf token komt nu uit symfony zelf, dat heette hier org_modify_project_<id>. de id's startDate, endDate en het attribuut data-modify-project-form heb ik niet veranderd, modify-project.js zoekt die op #}
                 {{ form_start(form, {'action': path('org.modifyProject', { id: id }), 'attr': {'id': 'modifyProjectForm', 'data-modify-project-form': true}}) }}
                     <p class="form-status" role="status" aria-live="polite" hidden></p>
                     {# Hidden fields send the security token, the current organisation, the project id, and the last-loaded timestamp. #}
@@ -98,7 +98,7 @@
                                 {{ form_errors(form.capacity) }}
                                 <p id="capacityHelp" class="field-help">Enter a whole number from {{ capacityMin }} to {{ capacityMax }}.</p>
                             </div>
-                            {# select omgebouwd, de keuzes stonden hier in de twig en moeten nu uit php komen: draft, published, archived #}
+                            {# select omgebouwd, de keuzes stonden hier in de twig en komen nu als EntityType uit de database (statussen met scope project) #}
                             <div>
                                 <label for="statusId">Status</label>
                                 {{ form_widget(form.status, {'id': 'statusId', 'required': false}) }}
