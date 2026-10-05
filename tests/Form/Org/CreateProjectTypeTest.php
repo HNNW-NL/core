@@ -91,6 +91,24 @@ class CreateProjectTypeTest extends KernelTestCase
         $this->assertCount(1, $form->get('visibility')->getErrors());
     }
 
+    public function testWhenNameIsTooLongShouldBeInvalid(): void
+    {
+        self::bootKernel();
+
+        $form = $this->makeForm(new CreateProjectDTO());
+
+        // de kolom title is 255 tekens, dus 256 tekens moet een nette fout geven en geen 500 van de database
+        $form->submit([
+            'name' => str_repeat('t', 256),
+            'summary' => 'Een korte samenvatting',
+            'description' => 'Een langere omschrijving',
+            'visibility' => 'public',
+        ]);
+
+        $this->assertFalse($form->isValid());
+        $this->assertCount(1, $form->get('name')->getErrors());
+    }
+
     public function testStatusShouldBeEntityChoiceWithProjectStatuses(): void
     {
         self::bootKernel();

@@ -84,4 +84,19 @@ class PackageTaskTypeTest extends TypeTestCase
         $this->assertFalse($form->isValid());
         $this->assertCount(1, $form->get('taskTitle')->getErrors());
     }
+
+    public function testWhenTaskTitleIsTooLongShouldBeInvalid(): void
+    {
+        $form = $this->factory->create(PackageTaskType::class, new PackageTaskFormDTO(self::WORK_PACKAGE_ID));
+
+        // de kolom title is 255 tekens, dus 256 tekens moet een nette fout geven en geen 500 van de database
+        $form->submit([
+            'workPackageId' => self::WORK_PACKAGE_ID,
+            'taskTitle' => str_repeat('t', 256),
+            'taskSlug' => 'te-lange-titel',
+        ]);
+
+        $this->assertFalse($form->isValid());
+        $this->assertCount(1, $form->get('taskTitle')->getErrors());
+    }
 }

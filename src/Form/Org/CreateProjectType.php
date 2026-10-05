@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 // formulier om een nieuw project aan te maken
@@ -22,11 +23,18 @@ final class CreateProjectType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            // de kolommen in de database hebben een vaste lengte, zonder deze regels geeft een te lange tekst een 500 in plaats van een nette fout
             ->add('name', TextType::class, [
-                'constraints' => [new NotBlank(message: 'Vul een projectnaam in.')],
+                'constraints' => [
+                    new NotBlank(message: 'Vul een projectnaam in.'),
+                    new Length(max: 255, maxMessage: 'De projectnaam mag maximaal 255 tekens zijn.'),
+                ],
             ])
             ->add('summary', TextareaType::class, [
-                'constraints' => [new NotBlank(message: 'Vul een samenvatting in.')],
+                'constraints' => [
+                    new NotBlank(message: 'Vul een samenvatting in.'),
+                    new Length(max: 500, maxMessage: 'De samenvatting mag maximaal 500 tekens zijn.'),
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'constraints' => [new NotBlank(message: 'Vul een omschrijving in.')],

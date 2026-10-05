@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 // formulier om een taak aan een werkpakket toe te voegen
@@ -20,11 +21,18 @@ final class PackageTaskType extends AbstractType
     {
         $builder
             ->add('workPackageId', HiddenType::class)
+            // de kolommen title en slug zijn 255 tekens in de database, zonder deze regels geeft een te lange tekst een 500
             ->add('taskTitle', TextType::class, [
-                'constraints' => [new NotBlank(message: 'Vul een taaktitel in.')],
+                'constraints' => [
+                    new NotBlank(message: 'Vul een taaktitel in.'),
+                    new Length(max: 255, maxMessage: 'De taaktitel mag maximaal 255 tekens zijn.'),
+                ],
             ])
             ->add('taskSlug', TextType::class, [
-                'constraints' => [new NotBlank(message: 'Vul een slug in.')],
+                'constraints' => [
+                    new NotBlank(message: 'Vul een slug in.'),
+                    new Length(max: 255, maxMessage: 'De slug mag maximaal 255 tekens zijn.'),
+                ],
             ])
             ->add('taskDescription', TextareaType::class, [
                 'required' => false,

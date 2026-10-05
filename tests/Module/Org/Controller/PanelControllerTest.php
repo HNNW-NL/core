@@ -222,6 +222,27 @@ class PanelControllerTest extends WebTestCase
         $this->assertNull($this->entityManager()->getRepository(Project::class)->findOneBy(['slug' => 'project-zonder-zichtbaarheid']));
     }
 
+    public function testWhenSubmitTooLongNameShouldGiveFormErrorFromCreateProject(): void
+    {
+        $client = static::createClient();
+        $client->loginUser($this->findAccount('Test@test.nl'));
+
+        $crawler = $client->request('GET', '/org/projects/create');
+        $form = $crawler->selectButton('Create new project')->form();
+
+        // de kolom title is 255 tekens, zonder de Length regel gaf dit een 500 van de database
+        $client->submit($form, [
+            'create_project[name]' => str_repeat('t', 256),
+            'create_project[summary]' => 'Een korte samenvatting',
+            'create_project[description]' => 'Een langere omschrijving',
+            'create_project[visibility]' => 'public',
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertStringContainsString('De projectnaam mag maximaal 255 tekens zijn.', $client->getResponse()->getContent());
+        $this->assertNull($this->entityManager()->getRepository(Project::class)->findOneBy(['slug' => str_repeat('t', 256)]));
+    }
+
     public function testWhenAdminWithoutOrganisationSubmitsShouldGiveFormErrorFromCreateProject(): void
     {
         $client = static::createClient();

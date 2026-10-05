@@ -72,4 +72,18 @@ class WorkPackageTypeTest extends TypeTestCase
         $this->assertFalse($form->isValid());
         $this->assertCount(1, $form->get('title')->getErrors());
     }
+
+    public function testWhenTitleIsTooLongShouldBeInvalid(): void
+    {
+        $form = $this->factory->create(WorkPackageType::class, new WorkPackageFormDTO());
+
+        // de kolom title is 255 tekens, dus 256 tekens moet een nette fout geven en geen 500 van de database
+        $form->submit([
+            'title' => str_repeat('t', 256),
+            'slug' => 'te-lange-titel',
+        ]);
+
+        $this->assertFalse($form->isValid());
+        $this->assertCount(1, $form->get('title')->getErrors());
+    }
 }

@@ -118,6 +118,27 @@ class ModifyProjectTypeTest extends KernelTestCase
         $this->assertCount(1, $form->get('title')->getErrors());
     }
 
+    public function testWhenTitleIsTooLongShouldBeInvalid(): void
+    {
+        self::bootKernel();
+
+        $form = $this->makeForm(new ModifyProjectFormDTO());
+
+        // de pagina belooft maximaal 120 tekens voor de titel
+        $form->submit([
+            'projectId' => self::PROJECT_ID,
+            'organisationId' => self::ORGANISATION_ID,
+            'title' => str_repeat('t', 121),
+            'summary' => 'Aangepaste samenvatting',
+            'description' => 'Aangepaste omschrijving',
+            'visibility' => 'public',
+            'startDate' => '2026-11-01',
+        ]);
+
+        $this->assertFalse($form->isValid());
+        $this->assertCount(1, $form->get('title')->getErrors());
+    }
+
     public function testStatusShouldBeEntityChoiceWithProjectStatuses(): void
     {
         self::bootKernel();
