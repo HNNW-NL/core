@@ -97,6 +97,11 @@ header nav ul svg:hover path {
     color: var(--text);
 }
 
+/* in licht is de header zelf geel, dan valt een gele rand weg */
+[data-theme="light"] .nav-auth.nav-button.btn-secondary {
+    border-color: var(--text-soft);
+}
+
 /* menu-knop: op desktop verborgen, de svg erin volgt de tekstkleur (currentColor) */
 .hamburger {
     display: none;

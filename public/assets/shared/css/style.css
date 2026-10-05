@@ -16,8 +16,9 @@
     --text-muted: #cbd5e1;
     --text-soft: #94a3b8;
 
-    /* randen */
+    /* randen, invoervelden hebben een eigen rand die altijd goed te zien moet zijn */
     --border: rgba(255, 255, 255, 0.10);
+    --input-border: var(--border);
 
     /* geel accent en de tekst die erop staat */
     --brand: #f4c400;
@@ -49,38 +50,68 @@
 }
 
 /* lichte versie: alleen wat anders is dan donker */
+/* licht thema: warme zandkleuren, rustiger voor de ogen dan fel wit (kleuren gekozen door jnl, contrast nagerekend) */
 [data-theme="light"] {
     color-scheme: light;
 
-    --page-bg: #f8fafc;
-    --page-bg-alt: #e2e8f0;
+    /* achtergrond: licht zand, met zand #ded8bd als tweede vlak */
+    --page-bg: #f4f0e2;
+    --page-bg-alt: #ded8bd;
 
-    --surface: rgba(255, 255, 255, 0.86);
-    --surface-strong: rgba(255, 255, 255, 0.96);
-    --surface-soft: rgba(241, 245, 249, 0.92);
+    /* kaarten zijn zand, invoervelden iets lichter zodat je ziet waar je typt */
+    --surface: #ded8bd;
+    --surface-strong: #f4f0e2;
+    --surface-soft: #e8e2c9;
 
-    --text: #0f172a;
-    --text-muted: #334155;
-    --text-soft: #64748b;
+    /* tekst in warm donkerbruin, oranje alleen voor koppen en accenten */
+    --text: #3b2f1e;
+    --text-muted: #4a3b26;
+    --text-soft: #6b5a3e;
 
-    --border: rgba(15, 23, 42, 0.12);
+    /* randen van kaarten in zacht geel, dat is alleen versiering */
+    --border: #ebd36a;
+    --input-border: #6b5a3e;
 
-    --brand: #eab308;
-    --brand-strong: #ca8a04;
-    --brand-soft: rgba(234, 179, 8, 0.18);
+    /* donker oranje voor knoppen, koppen en links, met zand als tekst op de knop */
+    --brand: #9a3412;
+    --brand-strong: #7c2d12;
+    --brand-soft: rgba(235, 211, 106, 0.45);
+    --brand-text: #ded8bd;
 
-    --danger: #dc2626;
-    --danger-strong: #b91c1c;
-    --danger-soft: rgba(220, 38, 38, 0.12);
-    --success: #16a34a;
-    --success-soft: rgba(22, 163, 74, 0.12);
+    --danger: #b91c1c;
+    --danger-strong: #991b1b;
+    --danger-soft: rgba(185, 28, 28, 0.12);
+    --success: #166534;
+    --success-soft: rgba(22, 101, 52, 0.12);
 
-    --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    --shadow: 0 12px 30px rgba(59, 47, 30, 0.10);
 
     /* aliassen opnieuw zetten, anders houden ze de donkere waarde van :root */
     --background: var(--page-bg);
-    --header-background: rgba(255, 255, 255, 0.70);
+    --header-background: #ebd36a;
     --paragraph: var(--text);
+}
+
+/* in licht zijn de koppen donker oranje */
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4 {
+    color: var(--brand);
+}
+
+/* invoervelden hebben een duidelijke rand nodig, zacht geel is daar te licht voor */
+/* important omdat de sectie-css zelf ook important gebruikt op de velden */
+[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="hidden"]),
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+    border-color: var(--input-border) !important;
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+    border-color: var(--brand) !important;
 }
 
 @font-face {
@@ -408,6 +439,12 @@ textarea.input {
 .theme-toggle .theme-label {
     font-size: 0.75rem;
     font-weight: 600;
+}
+
+/* de thema-knop is nooit breder dan zijn inhoud, ook als pagina-css alle knoppen breed maakt */
+.theme-bar .theme-toggle,
+.nav-theme .theme-toggle {
+    width: auto;
 }
 
 /* smalle balk voor secties die nog geen eigen header hebben */
