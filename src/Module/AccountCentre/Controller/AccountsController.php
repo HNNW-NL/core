@@ -16,6 +16,7 @@ use App\Module\AccountCentre\DTO\ModifyAccountDTO;
 use App\Module\AccountCentre\DTO\NotificationSettingsDTO;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -261,6 +262,14 @@ final class AccountsController extends AbstractController
 
         $form = $this->createForm(ModifyAccountType::class, $modifyAccountDTO);
         $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // de kolom email is uniek in de database, dus als een ander account dit adres al heeft zou flush() een fout van 500 geven; daarom eerst zoeken en een nette fout op het veld zetten (door de fout is het formulier hieronder niet meer geldig)
+            $anderAccount = $entityManager->getRepository(Account::class)->findOneBy(['email' => trim((string) $modifyAccountDTO->email)]);
+            if ($anderAccount !== null && !$anderAccount->getId()->equals($account->getId())) {
+                $form->get('email')->addError(new FormError('Dit e-mailadres is al in gebruik.'));
+            }
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             $account->setUsername(trim((string) $modifyAccountDTO->username));
