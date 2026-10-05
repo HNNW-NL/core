@@ -469,15 +469,12 @@ final class AccountsController extends AbstractController
 
         $notificationSettingsDTO = new NotificationSettingsDTO();
         $notificationSettingsDTO->emailNotificationsEnabled = $settings->isEmailNotificationsEnabled();
-        $notificationSettingsDTO->newsletterEnabled = $settings->isEmailNotificationsEnabled();
 
         $form = $this->createForm(NotificationSettingsType::class, $notificationSettingsDTO);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $settings->setEmailNotificationsEnabled(
-                $notificationSettingsDTO->emailNotificationsEnabled || $notificationSettingsDTO->newsletterEnabled
-            );
+            $settings->setEmailNotificationsEnabled($notificationSettingsDTO->emailNotificationsEnabled);
 
             $entityManager->flush();
 

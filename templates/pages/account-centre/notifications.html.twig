@@ -38,7 +38,7 @@
 
                 {{ form_errors(form) }}
 
-                {# beide vinkjes omgebouwd naar losse form velden, ze schrijven nu nog naar hetzelfde database veld (taak 3) #}
+                {# het nieuwsbrief vinkje is weggehaald, het schreef naar hetzelfde database veld als dit vinkje #}
                 <div class="form-group-checkbox">
                     {{ form_widget(form.emailNotificationsEnabled) }}
                     <label for="{{ form.emailNotificationsEnabled.vars.id }}">
@@ -46,15 +46,6 @@
                         <span>Ontvang direct een melding zodra er een nieuw project start dat matcht met jouw skills.</span>
                     </label>
                     {{ form_errors(form.emailNotificationsEnabled) }}
-                </div>
-
-                <div class="form-group-checkbox">
-                    {{ form_widget(form.newsletterEnabled) }}
-                    <label for="{{ form.newsletterEnabled.vars.id }}">
-                        <strong>Maandelijkse Nieuwsbrief</strong>
-                        <span>Blijf op de hoogte van algemeen nieuws, updates en verhalen binnen de community.</span>
-                    </label>
-                    {{ form_errors(form.newsletterEnabled) }}
                 </div>
 
                 {# dit vinkje staat vast aan en wordt niet verstuurd, dus zo gelaten #}

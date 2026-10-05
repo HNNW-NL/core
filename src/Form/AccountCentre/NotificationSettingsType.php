@@ -9,7 +9,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 // formulier voor de notificatie voorkeuren in het account centre
-// het hangt aan een dto en niet aan de entity, zo kunnen beide vinkjes apart bestaan
+// het hangt aan een dto en niet aan de entity, zo blijft het formulier los van de database
 final class NotificationSettingsType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -17,10 +17,6 @@ final class NotificationSettingsType extends AbstractType
         $builder
             ->add('emailNotificationsEnabled', CheckboxType::class, [
                 'label' => 'Nieuwe projecten',
-                'required' => false,
-            ])
-            ->add('newsletterEnabled', CheckboxType::class, [
-                'label' => 'Maandelijkse nieuwsbrief',
                 'required' => false,
             ]);
     }
