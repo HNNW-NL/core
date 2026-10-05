@@ -603,6 +603,36 @@ class PanelControllerTest extends WebTestCase
         $this->assertSame($oldRoleId, (string) $participant->getRole()->getId());
     }
 
+    public function testWhenSubmitEmptyRoleShouldGiveFormErrorFromModifyProjectParticipants(): void
+    {
+        $client = static::createClient();
+        $project = $this->findTestProject();
+        $projectId = (string) $project->getId();
+        $client->loginUser($this->findAccount('Test@test.nl'));
+
+        $participant = $this->entityManager()->getRepository(ProjectParticipant::class)->findOneBy(['project' => $project]);
+        $participantId = (string) $participant->getId();
+        $oldRoleId = (string) $participant->getRole()->getId();
+
+        $crawler = $client->request('GET', '/org/projects/modify/' . $projectId . '/participants');
+        $token = $crawler->filter('input[name="participant_roles[_token]"]')->attr('value');
+
+        // een lege rol staat niet in de keuzelijst, dus we posten de velden zelf; zonder de NotBlank regel gaf dit een 500 in de handler
+        $client->request('POST', '/org/projects/modify/' . $projectId . '/participants', [
+            'participant_roles' => [
+                'role' => [$participantId => ''],
+                '_token' => $token,
+            ],
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertStringContainsString('Kies een rol.', $client->getResponse()->getContent());
+
+        $participant = $this->entityManager()->getRepository(ProjectParticipant::class)->find($participantId);
+
+        $this->assertSame($oldRoleId, (string) $participant->getRole()->getId());
+    }
+
     // InviteProjectParticipants
 
     public function testWhenNotLoggedInShouldBeRedirectedFromInviteProjectParticipants(): void

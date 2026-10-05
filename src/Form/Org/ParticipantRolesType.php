@@ -8,6 +8,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 // formulier om per deelnemer een rol te kiezen
 // de controller geeft de lijst met rollen mee en welke deelnemers er zijn
@@ -20,6 +21,8 @@ final class ParticipantRolesType extends AbstractType
             'entry_options' => [
                 'choices' => $options['role_choices'],
                 'label' => false,
+                // zonder deze regel laat het keuzeveld een lege waarde door en zoekt de handler een rol met id null, dat gaf een 500
+                'constraints' => [new NotBlank(message: 'Kies een rol.')],
             ],
             'label' => false,
         ]);

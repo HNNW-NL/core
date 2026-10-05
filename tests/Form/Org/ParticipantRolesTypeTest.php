@@ -94,4 +94,24 @@ class ParticipantRolesTypeTest extends TypeTestCase
         $this->assertFalse($form->isValid());
         $this->assertFalse($form->get('role')->get(self::PARTICIPANT_ID)->isSynchronized());
     }
+
+    public function testWhenRoleIsEmptyShouldBeInvalid(): void
+    {
+        $dto = new ParticipantRolesDTO();
+        $dto->role[self::PARTICIPANT_ID] = self::DEVELOPER_ROLE_ID;
+
+        $form = $this->factory->create(ParticipantRolesType::class, $dto, [
+            'role_choices' => $this->roleChoices(),
+        ]);
+
+        // een lege keuze mag niet door, anders zoekt de handler een rol met id null
+        $form->submit([
+            'role' => [
+                self::PARTICIPANT_ID => '',
+            ],
+        ]);
+
+        $this->assertFalse($form->isValid());
+        $this->assertCount(1, $form->get('role')->get(self::PARTICIPANT_ID)->getErrors());
+    }
 }
