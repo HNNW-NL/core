@@ -46,6 +46,13 @@
                     {{ form_errors(form.username) }}
                 </div>
 
+                {# e-mail en weergavenaam waren uit het formulier verdwenen, ze staan er nu weer in #}
+                <div class="form-group">
+                    <label for="{{ form.email.vars.id }}">E-mailadres</label>
+                    {{ form_widget(form.email, {'attr': {'placeholder': 'jij@voorbeeld.nl'}}) }}
+                    {{ form_errors(form.email) }}
+                </div>
+
                 <div class="form-group">
                     <label for="{{ form.firstName.vars.id }}">Voornaam</label>
                     {{ form_widget(form.firstName, {'attr': {'placeholder': 'Voornaam'}}) }}
@@ -56,6 +63,12 @@
                     <label for="{{ form.lastName.vars.id }}">Achternaam</label>
                     {{ form_widget(form.lastName, {'attr': {'placeholder': 'Achternaam'}}) }}
                     {{ form_errors(form.lastName) }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.displayName.vars.id }}">Weergavenaam</label>
+                    {{ form_widget(form.displayName, {'required': false, 'attr': {'placeholder': 'Hoe anderen je zien (optioneel)'}}) }}
+                    {{ form_errors(form.displayName) }}
                 </div>
 
                 <div class="form-group">

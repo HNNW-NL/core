@@ -248,8 +248,10 @@ final class AccountsController extends AbstractController
 
         $modifyAccountDTO = new ModifyAccountDTO();
         $modifyAccountDTO->username = $account->getUsername();
+        $modifyAccountDTO->email = $account->getEmail();
         $modifyAccountDTO->firstName = $profile?->getFirstName();
         $modifyAccountDTO->lastName = $profile?->getLastName();
+        $modifyAccountDTO->displayName = $profile?->getDisplayName();
         $modifyAccountDTO->avatarUrl = $profile?->getAvatarUrl();
         $modifyAccountDTO->location = $profile?->getLocation();
         $modifyAccountDTO->description = $profile?->getDescription();
@@ -262,6 +264,7 @@ final class AccountsController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $account->setUsername(trim((string) $modifyAccountDTO->username));
+            $account->setEmail(trim((string) $modifyAccountDTO->email));
 
             if (!$profile) {
                 $profile = new Profile();
@@ -275,6 +278,7 @@ final class AccountsController extends AbstractController
                 $entityManager->persist($settings);
             }
 
+            $displayName = trim((string) $modifyAccountDTO->displayName);
             $avatarUrl = trim((string) $modifyAccountDTO->avatarUrl);
             $location = trim((string) $modifyAccountDTO->location);
             $description = trim((string) $modifyAccountDTO->description);
@@ -282,6 +286,8 @@ final class AccountsController extends AbstractController
 
             $profile->setFirstName(trim((string) $modifyAccountDTO->firstName));
             $profile->setLastName(trim((string) $modifyAccountDTO->lastName));
+            // een lege weergavenaam wordt null, dan valt de site terug op voor en achternaam
+            $profile->setDisplayName($displayName !== '' ? $displayName : null);
             $profile->setAvatarUrl($avatarUrl);
             $profile->setLocation($location !== '' ? $location : null);
             $profile->setDescription($description !== '' ? $description : null);

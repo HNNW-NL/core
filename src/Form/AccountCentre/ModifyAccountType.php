@@ -5,6 +5,7 @@ namespace App\Form\AccountCentre;
 use App\Module\AccountCentre\DTO\ModifyAccountDTO;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -21,11 +22,16 @@ final class ModifyAccountType extends AbstractType
             ->add('username', TextType::class, [
                 'constraints' => [new NotBlank(message: 'Vul een gebruikersnaam in.')],
             ])
+            // de regels voor e-mail (verplicht en geldig) staan op de dto
+            ->add('email', EmailType::class)
             ->add('firstName', TextType::class, [
                 'constraints' => [new NotBlank(message: 'Vul je voornaam in.')],
             ])
             ->add('lastName', TextType::class, [
                 'constraints' => [new NotBlank(message: 'Vul je achternaam in.')],
+            ])
+            ->add('displayName', TextType::class, [
+                'required' => false,
             ])
             ->add('avatarUrl', TextType::class, [
                 'required' => false,
