@@ -1,0 +1,62 @@
+/* admin-sectie: kleur, rand en letter komen uit de shared-tokens; dit bestand vult alleen aan */
+
+/* wat ruimte rond de inhoud, anders plakt alles tegen de rand */
+main {
+    padding: 1.5rem 1rem;
+}
+
+h2 {
+    margin-bottom: 1rem;
+}
+
+/* tabellen: de html-rand (border="1") is wit, dat past niet bij de huisstijl */
+table {
+    border-collapse: collapse;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+th,
+td {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    text-align: left;
+    color: var(--text);
+}
+
+thead th {
+    background-color: var(--brand-soft);
+    color: var(--brand);
+    font-weight: 600;
+}
+
+tbody tr:hover {
+    background-color: var(--surface-soft);
+}
+
+/* losse links in de admin zijn geel, net als .link in shared */
+main a {
+    color: var(--brand);
+}
+
+main a:hover {
+    text-decoration: underline;
+}
+
+/* kleine tekst en lege-staat teksten */
+small,
+.empty {
+    color: var(--text-soft);
+}
+
+footer {
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+footer p {
+    color: var(--text-soft);
+    font-size: 0.875rem;
+}
