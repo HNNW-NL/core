@@ -32,15 +32,16 @@ header nav ul li a {
     padding: 8px 16px;
     cursor: pointer;
     background-color: transparent;
-    color: #fff;
-    border-radius: 4px;
+    /* menu-links zoals hnnw.nl: gedempt, bij hover de gewone tekstkleur */
+    color: var(--text-muted);
+    border-radius: var(--radius);
     text-decoration: none;
     transition: all 0.5s ease;
-    font-family: inter, sans-serif;
+    font-family: var(--font-sans);
     font-size: 14px;
 }
 .nav-button:hover {
-    color: #ffe36f;
+    color: var(--text);
 }
 
 header nav ul svg:first-of-type {
@@ -53,7 +54,7 @@ header nav ul svg {
 }
 
 header nav ul svg:hover path {
-    fill: #f4c400;
+    fill: var(--brand);
     transition: fill 0.5s ease;
 }
 
@@ -70,7 +71,7 @@ header nav ul svg:hover path {
 }
 
 .main-footer p {
-    color: #64748b;
+    color: var(--text-soft);
     font-size: 0.85rem;
     line-height: 1.5;
     margin: 0;
@@ -137,27 +138,27 @@ header nav ul svg:hover path {
 }
 
 .logo-name-het {
-    color: #ffd400;
+    color: var(--brand);
     font-weight: 600;
     font-size: 18px;
     line-height: 28px;
 }
 
 .logo-name-nieuwe {
-    color: #FFFFFF;
+    color: var(--text);
     font-weight: 600;
     font-size: 18px;
     line-height: 28px;
 }
 
 .logo-name-two {
-    color: #ffe36f;
+    color: var(--brand);
     font-weight: 700;
     font-size: 12px;
 }
 
 .logo-name-werken {
-    color: #626E81;
+    color: var(--text-soft);
     font-weight: 600;
     font-size: 18px;
     line-height: 28px;
