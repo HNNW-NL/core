@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', function () {
 	const terms = form.querySelector('input[name="terms"]');
 	const submitBtn = form.querySelector('button[type="submit"]');
 
+	// zonder deze velden kan het script niets, dan stoppen in plaats van een fout
+	if (!fullName || !username || !email || !password || !confirm || !terms || !submitBtn) return;
+
 	const formErrors = document.getElementById('register-errors');
 	const emailError = document.getElementById('email-error');
 	const fullNameError = document.getElementById('full_name-error');
