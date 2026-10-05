@@ -132,15 +132,11 @@ document.addEventListener('DOMContentLoaded', function () {
 		const ok = validateFormFields();
 		submitBtn.disabled = !ok;
 
-		if (submitBtn.disabled) {
-			submitBtn.classList.remove('btn-primary');
-		} else {
-			submitBtn.classList.add('btn-primary');
-		}
+		// de knop blijft btn-primary, de uitgeschakelde look komt uit de css (.btn[disabled])
+		submitBtn.classList.add('btn-primary');
 	}
 
 	submitBtn.disabled = true;
-	submitBtn.classList.remove('btn-primary');
 	updateStrengthUI();
 
 	form.addEventListener('submit', function (e) {

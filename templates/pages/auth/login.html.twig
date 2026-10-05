@@ -23,7 +23,7 @@
                 <div class="form-errors visible" role="alert" aria-live="assertive">{{ msg }}</div>
             {% endfor %}
             {% for msg in app.flashes('success') %}
-                <div class="form-success" role="status" aria-live="polite">{{ msg }}</div>
+                <div class="alert alert-success" role="status" aria-live="polite">{{ msg }}</div>
             {% endfor %}
 
             {% if error is defined and error %}
@@ -45,13 +45,13 @@
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                     <div class="mt-1">
-                        <button type="submit" class="btn">Log in</button>
+                        <button type="submit" class="btn btn-primary">Log in</button>
                     </div>
                 </fieldset>
             </form>
 
-            <p class="small mt-1">Nog geen account? <a href="/auth/register">Registreren</a></p>
-            <p class="small mt-1"><a href="/auth/forgot-password">Wachtwoord vergeten?</a></p>
+            <p class="small mt-1">Nog geen account? <a class="link" href="/auth/register">Registreren</a></p>
+            <p class="small mt-1"><a class="link" href="/auth/forgot-password">Wachtwoord vergeten?</a></p>
         </section>
     </div>
 </section>

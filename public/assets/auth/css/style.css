@@ -250,7 +250,9 @@ body > main > .register-page{margin:auto auto .35rem}
 .pw-strength meter::-webkit-meter-suboptimum-value{background:var(--brand);border-radius:999px}
 .pw-strength meter::-webkit-meter-even-less-good-value{background:var(--danger);border-radius:999px}
 
-.btn[disabled]{opacity:.6;cursor:not-allowed;background:var(--surface-soft);color:var(--text-soft);border-color:var(--border);box-shadow:none;transform:none}
+.btn[disabled]{opacity:.8;cursor:not-allowed;background:var(--surface-soft);color:var(--text-soft);border-color:var(--border);box-shadow:none;transform:none}
+/* in licht is surface-soft bijna wit, dus daar een iets grijzer vlak zodat de uitgeschakelde knop te zien is */
+[data-theme="light"] .btn[disabled]{background:var(--page-bg-alt)}
 
 .mt-1{margin-top:1rem}
 .mb-1{margin-bottom:1rem}
