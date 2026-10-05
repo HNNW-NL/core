@@ -32,6 +32,8 @@
     {% endif %}
 </head>
 <body data-theme="dark">
+    {# thema-script direct na body, zo staat het thema voor de pagina tekent #}
+    <script src="{{ asset('assets/shared/js/app.js') }}"></script>
 
 {% include "/core/main/_header.html.twig" %}
 
