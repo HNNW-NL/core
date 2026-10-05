@@ -18,7 +18,8 @@
     {% block stylesheets %}{% endblock %}
 
     <!-- JavaScript -->
-    {% block javascripts %}{% endblock %}
+    {# heet javascript zonder s, net als in de andere layouts en de pagina's, anders komt wat een pagina erin zet nooit op de pagina #}
+    {% block javascript %}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
     {% if frankenphpHotReload %}
