@@ -375,6 +375,28 @@ class PanelControllerTest extends WebTestCase
         $this->assertSame(12, $project->getCapacity());
     }
 
+    public function testWhenEndDateIsBeforeStartDateShouldGiveFormErrorFromModifyProject(): void
+    {
+        $client = static::createClient();
+        $project = $this->findTestProject();
+        $projectId = (string) $project->getId();
+        $client->loginUser($this->findAccount('Test@test.nl'));
+
+        $crawler = $client->request('GET', '/org/projects/modify/' . $projectId);
+        $form = $crawler->selectButton('Modify project')->form();
+
+        // de pagina belooft dat de einddatum op of na de startdatum ligt, de controller controleert dat zelf
+        $client->submit($form, [
+            'modify_project[title]' => 'Niet opslaan',
+            'modify_project[startDate]' => '2026-12-01',
+            'modify_project[endDate]' => '2026-01-01',
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertStringContainsString('De einddatum moet op of na de startdatum liggen.', $client->getResponse()->getContent());
+        $this->assertSame('Test Project', $this->findTestProject()->getTitle());
+    }
+
     public function testWhenLastModifiedIsOldShouldGiveErrorAndNotModifyProject(): void
     {
         $client = static::createClient();

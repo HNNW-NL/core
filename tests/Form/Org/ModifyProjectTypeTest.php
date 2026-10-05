@@ -139,6 +139,28 @@ class ModifyProjectTypeTest extends KernelTestCase
         $this->assertCount(1, $form->get('title')->getErrors());
     }
 
+    public function testWhenCapacityIsZeroShouldBeInvalid(): void
+    {
+        self::bootKernel();
+
+        $form = $this->makeForm(new ModifyProjectFormDTO());
+
+        // de pagina belooft een getal van 1 tot 500, dus 0 moet een fout geven
+        $form->submit([
+            'projectId' => self::PROJECT_ID,
+            'organisationId' => self::ORGANISATION_ID,
+            'title' => 'Aangepaste titel',
+            'summary' => 'Aangepaste samenvatting',
+            'description' => 'Aangepaste omschrijving',
+            'visibility' => 'public',
+            'startDate' => '2026-11-01',
+            'capacity' => '0',
+        ]);
+
+        $this->assertFalse($form->isValid());
+        $this->assertCount(1, $form->get('capacity')->getErrors());
+    }
+
     public function testStatusShouldBeEntityChoiceWithProjectStatuses(): void
     {
         self::bootKernel();

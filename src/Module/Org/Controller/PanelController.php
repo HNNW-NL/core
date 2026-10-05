@@ -117,6 +117,13 @@ final class PanelController extends AbstractController
         $form = $this->createForm(ModifyProjectType::class, $modifyProjectDTO);
         $form->handleRequest($request);
 
+        // de regels in het formulier kijken per veld, voor twee velden samen doen we het hier zelf: de pagina belooft dat de einddatum op of na de startdatum ligt
+        $startDate = $modifyProjectDTO->startDate;
+        $endDate = $modifyProjectDTO->endDate;
+        if ($form->isSubmitted() && $startDate !== null && $endDate !== null && $endDate < $startDate) {
+            $form->get('endDate')->addError(new FormError('De einddatum moet op of na de startdatum liggen.'));
+        }
+
         if ($form->isSubmitted() && $form->isValid()) {
             // de knop delete zit in hetzelfde formulier, de waarde van intent zegt wat de gebruiker wil
             if ($request->request->get('intent') === 'delete') {

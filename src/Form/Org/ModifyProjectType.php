@@ -17,6 +17,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Range;
 
 // formulier om een bestaand project te wijzigen
 // de knoppen modify en delete staan los in de twig, die horen niet in dit formulier
@@ -67,8 +68,10 @@ final class ModifyProjectType extends AbstractType
                 'input' => 'datetime_immutable',
                 'required' => false,
             ])
+            // de pagina belooft 1 tot 500, leeg mag wel want de controller maakt daar 0 van
             ->add('capacity', IntegerType::class, [
                 'required' => false,
+                'constraints' => [new Range(min: 1, max: 500, notInRangeMessage: 'Vul een getal van 1 tot 500 in.')],
             ])
             // de statussen draft, published en archived staan niet in de database, daarom haalt symfony ze nu zelf op net als bij aanmaken
             ->add('status', EntityType::class, [
