@@ -4,6 +4,9 @@
     const OPSLAG_SLEUTEL = 'hnnw-theme';
     const systeem = window.matchMedia('(prefers-color-scheme: dark)');
 
+    // de keuze die nu actief is; zo werkt het rondgaan ook als localStorage niet mag
+    let huidigeKeuze = 'auto';
+
     // leest de bewaarde keuze; alles wat geen geldige waarde is wordt auto
     function bewaardeKeuze() {
         let keuze = null;
@@ -26,15 +29,34 @@
         return keuze;
     }
 
-    // zet het thema op body en markeert de actieve knop
+    // zet het thema op body en werkt icoon, tekst en title van de knop bij (zoals op hnnw.nl)
     function pasToe(keuze) {
+        huidigeKeuze = keuze;
         document.body.dataset.theme = echtThema(keuze);
 
-        const knoppen = document.querySelectorAll('.theme-toggle [data-theme-mode]');
-        knoppen.forEach(function (knop) {
-            const actief = knop.dataset.themeMode === keuze;
-            knop.setAttribute('aria-pressed', actief ? 'true' : 'false');
-        });
+        const knop = document.querySelector('.theme-toggle');
+        if (!knop) {
+            return;
+        }
+
+        let icoon = '⟳';
+        let tekst = 'Auto';
+        let titel = 'Automatisch (volgt systeem)';
+        if (keuze === 'light') {
+            icoon = '☀️';
+            tekst = 'Licht';
+            titel = 'Lichte modus';
+        }
+        if (keuze === 'dark') {
+            icoon = '🌙';
+            tekst = 'Donker';
+            titel = 'Donkere modus';
+        }
+
+        knop.querySelector('.theme-icon').textContent = icoon;
+        knop.querySelector('.theme-label').textContent = tekst;
+        knop.title = titel;
+        knop.setAttribute('aria-label', titel + '. Klik om te wisselen');
     }
 
     // dit script staat direct na <body>, dus body bestaat al en het thema staat voor de pagina tekent
@@ -49,12 +71,18 @@
         }
     });
 
-    // de knoppen zitten in de header, die is er pas als de hele pagina geladen is
+    // de knop zit in de header, die is er pas als de hele pagina geladen is
+    // elke klik gaat één stap verder: auto, dan licht, dan donker, dan weer auto
     document.addEventListener('DOMContentLoaded', function () {
-        const knoppen = document.querySelectorAll('.theme-toggle [data-theme-mode]');
-        knoppen.forEach(function (knop) {
+        const knop = document.querySelector('.theme-toggle');
+        if (knop) {
             knop.addEventListener('click', function () {
-                const keuze = knop.dataset.themeMode;
+                let keuze = 'auto';
+                if (huidigeKeuze === 'auto') {
+                    keuze = 'light';
+                } else if (huidigeKeuze === 'light') {
+                    keuze = 'dark';
+                }
                 try {
                     window.localStorage.setItem(OPSLAG_SLEUTEL, keuze);
                 } catch (fout) {
@@ -62,7 +90,7 @@
                 }
                 pasToe(keuze);
             });
-        });
+        }
         pasToe(bewaardeKeuze());
     });
 })();

@@ -369,35 +369,45 @@ textarea.input {
     color: var(--danger);
 }
 
-/* thema-schakelaar: drie knoppen, de actieve is geel */
+/* thema-schakelaar zoals op hnnw.nl: één knop die rondgaat (auto, licht, donker) */
 .theme-toggle {
     display: inline-flex;
-    gap: 0.25rem;
-    padding: 0.25rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 3rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
     border: 1px solid var(--border);
-    border-radius: 999px;
-    background-color: var(--surface);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.theme-toggle button {
-    padding: 0.3rem 0.7rem;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    font: inherit;
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+/* in het lichte thema is wit op wit niet te zien, dus daar een donkere tint */
+[data-theme="light"] .theme-toggle {
+    background: rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+    background: rgba(15, 23, 42, 0.08);
+}
+
+.theme-toggle .theme-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.theme-toggle .theme-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--text-soft);
-    cursor: pointer;
-}
-
-.theme-toggle button:hover {
-    color: var(--text);
-}
-
-.theme-toggle button[aria-pressed="true"] {
-    background-color: var(--brand);
-    color: var(--brand-text);
 }
 
 /* smalle balk voor secties die nog geen eigen header hebben */
