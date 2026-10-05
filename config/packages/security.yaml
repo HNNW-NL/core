@@ -32,6 +32,8 @@ security:
                 check_path: auth.login
                 username_parameter: username
                 password_parameter: password
+                # het login-formulier stuurt _csrf_token mee, hier zeggen we dat symfony hem ook echt moet controleren
+                enable_csrf: true
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
 
