@@ -45,4 +45,15 @@ class AccountRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+
+    public function countActive(): int
+    {
+        return (int) $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->Where('a.emailVerifiedAt IS NOT NULL')
+            ->andWhere('a.deletedAt IS NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

@@ -15,67 +15,28 @@
 
 <div class="dashboard">
 
-    <!-- Logs -->
+    <!-- Accounts -->
     <twig:Shared:Card>
-        <twig:Shared:Card:Header>Nieuwste logs </twig:Shared:Card:Header>
-
-        {% if logs is not empty %}
-            <twig:Shared:Card:List>
-                {% for log in logs %}
-                    <twig:Shared:Card:Item>
-                        {{ log.message }}
-                        <small>{{ log.createdAt|date('d-m-Y H:i') }}</small>
-                    </twig:Shared:Card:Item>
-                {% endfor %}
-            </twig:Shared:Card:List>
-        {% else %}
+        <twig:Shared:Card:Header>Aantal Actieve Accounts </twig:Shared:Card:Header>
             <twig:Shared:Card:Content>
-                <p class="empty">Geen logs gevonden.</p>
+                {{ activeAccounts }}
             </twig:Shared:Card:Content>
-        {% endif %}
-        <twig:Shared:Card:Footer></twig:Shared:Card:Footer>
     </twig:Shared:Card>
 
     <!-- Accounts -->
     <twig:Shared:Card>
-        <twig:Shared:Card:Header>Laatst bijgewerkte accounts </twig:Shared:Card:Header>
-
-        {% if accounts is not empty %}
-            <twig:Shared:Card:List>
-                {% for account in accounts %}
-                    <twig:Shared:Card:Item>
-                        {{ account.username }}
-                        <small>{{ account.createdAt|date('d-m-Y H:i') }}</small>
-                    </twig:Shared:Card:Item>
-                {% endfor %}
-            </twig:Shared:Card:List>
-        {% else %}
-            <twig:Shared:Card:Content>
-                <p class="empty">Geen accounts gevonden.</p>
+        <twig:Shared:Card:Header>Aantal Active Organisaties </twig:Shared:Card:Header>
+        <twig:Shared:Card:Content>
+                {{ activeOrganizations }}
             </twig:Shared:Card:Content>
-        {% endif %}
-        <twig:Shared:Card:Footer></twig:Shared:Card:Footer>
     </twig:Shared:Card>
 
     <!-- Profiles -->
     <twig:Shared:Card>
-        <twig:Shared:Card:Header>Laatst bijgewerkte profielen </twig:Shared:Card:Header>
-
-        {% if profiles is not empty %}
-            <twig:Shared:Card:List>
-                {% for profile in profiles %}
-                    <twig:Shared:Card:Item>
-                        {{ profile.firstName  }} {{ profile.lastName }}
-                        <small>{{ profile.createdAt|date('d-m-Y H:i') }}</small>
-                    </twig:Shared:Card:Item>
-                {% endfor %}
-            </twig:Shared:Card:List>
-        {% else %}
+        <twig:Shared:Card:Header>Aantal Active Projecten</twig:Shared:Card:Header>
             <twig:Shared:Card:Content>
-                <p class="empty">Geen profielen gevonden.</p>
+                {{ activeProjects }}
             </twig:Shared:Card:Content>
-        {% endif %}
-        <twig:Shared:Card:Footer></twig:Shared:Card:Footer>
     </twig:Shared:Card>
 
 </div>

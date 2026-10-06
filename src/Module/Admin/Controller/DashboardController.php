@@ -10,6 +10,8 @@ use App\Repository\Account\ProfileRepository;
 use App\Repository\Log\AuditLogRepository;
 use App\Repository\Log\SystemLogRepository;
 use App\Repository\Org\AccountRepository;
+use App\Repository\Org\OrganisatieRepository;
+use App\Repository\Project\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,18 +24,18 @@ use Symfony\Component\Routing\Attribute\Route;
 final class DashboardController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
-    public function index(SystemLogRepository $systemLogRepository,
-     AccountRepository $accountRepository, ProfileRepository $profileRepository): Response
+    public function index(AccountRepository $accountRepository,
+     OrganisatieRepository $organisatieRepository, ProjectRepository $projectRepository): Response
     {
-        $logs = $systemLogRepository->findLatest(10);
-        $accounts = $accountRepository->findLatestChanged(10);
-        $profiles = $profileRepository->findLatestChanged(10);
+        $activeAccounts = $accountRepository->countActive();
+        $activeOrganizations = $organisatieRepository->countActive();
+        $activeProjects = $projectRepository->Count();
         
         return $this->render('pages/admin/index.html.twig',
         array(
-            'logs' => $logs,
-            'accounts' =>  $accounts,
-            'profiles' =>  $profiles
+            'activeAccounts' => $activeAccounts,
+            'activeOrganizations' =>  $activeOrganizations,
+            'activeProjects' =>  $activeProjects
         ));
     }
 

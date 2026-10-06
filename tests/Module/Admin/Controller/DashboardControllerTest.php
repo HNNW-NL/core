@@ -46,7 +46,7 @@ class DashboardControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    public function testWhenUserIsAdminShouldDisplayLogsInIndex(): void
+    public function testWhenUserIsAdminShouldDisplayActiveAccountsInIndex(): void
     {
         // retrieve the admin user
         $testUser = $this->accountRepository->findOneBy(['email' => 'Admin@test.nl']);
@@ -57,10 +57,25 @@ class DashboardControllerTest extends WebTestCase
         $crawler = $this->client->request('GET', '/admin');
 
         $this->assertResponseIsSuccessful();
-        $this->assertAnySelectorTextContains(".dashboard div:nth-of-type(1)> ul > li","A system message");
+        $this->assertAnySelectorTextContains(".dashboard div:nth-of-type(1)> .content ","1");
     }
 
-    public function testWhenUserIsAdminShouldDisplayAccountsInIndex(): void
+    public function testWhenUserIsAdminShouldDisplayActiveOrganizationsInIndex(): void
+    {
+        // retrieve the admin user
+        $testUser = $this->accountRepository->findOneBy(['email' => 'Admin@test.nl']);
+
+        // simulate $adminUser being logged in
+        $this->client->loginUser($testUser);
+
+        $crawler = $this->client->request('GET', '/admin');
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertAnySelectorTextContains(".dashboard div:nth-of-type(2)> .content ","1");
+    }
+
+    public function testWhenUserIsAdminShouldDisplayActiveProjectsInIndex(): void
     {
         // retrieve the admin user
         $testUser = $this->accountRepository->findOneBy(['email' => 'Admin@test.nl']);
@@ -73,27 +88,7 @@ class DashboardControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
         $crawler->filter(".card")->first()->nextAll()->filter("ul >li");
 
-        $this->assertSelectorTextContains(".dashboard div:nth-of-type(2)  > ul > li:nth-of-type(1)","TestUser");
-
-        $this->assertSelectorTextContains(".dashboard div:nth-of-type(2) > ul > li:nth-of-type(2)","AdminUser");
-    }
-
-    public function testWhenUserIsAdminShouldDisplayProfilesInIndex(): void
-    {
-        // retrieve the admin user
-        $testUser = $this->accountRepository->findOneBy(['email' => 'Admin@test.nl']);
-
-        // simulate $adminUser being logged in
-        $this->client->loginUser($testUser);
-
-        $crawler = $this->client->request('GET', '/admin');
-
-        $this->assertResponseIsSuccessful();
-        $crawler->filter(".card")->first()->nextAll()->filter("ul >li");
-
-        $this->assertSelectorTextContains(".dashboard div:nth-of-type(3)  > ul > li:nth-of-type(1)","Test User");
-
-        $this->assertSelectorTextContains(".dashboard div:nth-of-type(3) > ul > li:nth-of-type(2)","Admin User");
+        $this->assertAnySelectorTextContains(".dashboard div:nth-of-type(3)> .content ","1");
     }
 
     

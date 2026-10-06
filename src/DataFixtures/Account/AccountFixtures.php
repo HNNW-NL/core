@@ -20,12 +20,14 @@ class AccountFixtures extends Fixture implements DependentFixtureInterface
         $account->setUsername("TestUser");
         $account->setEmail("Test@test.nl");
         $account->setPasswordHash(password_hash("test1234", PASSWORD_DEFAULT));
+        $account->verifyEmail();
         $account->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_ACCOUNT_STATUS_REFERENCE, Status::class));
         $manager->persist($account);
 
         $admin = new Account();
         $admin->setUsername("AdminUser");
         $admin->setEmail("Admin@test.nl");
+        $admin->verifyEmail();
         $admin->setPasswordHash(password_hash("test1234", PASSWORD_DEFAULT));
         $admin->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_ACCOUNT_STATUS_REFERENCE, Status::class));
         $manager->persist($admin);
