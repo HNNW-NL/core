@@ -1,0 +1,61 @@
+<div class="auditLogSearch searchTwig" {{ attributes }}>
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('assets/shared/css/searchTwig.css') }}">
+    {% endblock %}
+
+    {{ form_start(form,{
+            attr: {
+                'data-action': 'live#action:prevent',
+                'data-live-action-param': 'search'
+            }
+        }) }}
+        <table>
+            <tr class="form_field">
+                <td>Actor:</td>
+                <td>{{ form_widget(form.actor,{attr:{ 'autocomplete' :'off'}})}}</td>
+            </tr>
+            <tr class="form_field">
+                <td>Start Periode:</td>
+                <td>{{ form_widget(form.startPeriod,{attr:{ 'autocomplete' :'off'}})}}</td>
+            </tr>
+            <tr class="form_field">
+                <td>Eind Periode:</td>
+                <td>{{ form_widget(form.endPeriod,{attr:{ 'autocomplete' :'off'}})}}</td>
+            </tr>
+        </table>
+        <button>Zoek</button>
+        {{ form_rest(form) }}
+    {{ form_end(form) }}
+    <table class="result">
+        <thead>
+            <th>Datum</th>
+            <th>Gebruiker</th>
+            <th>Email</th>
+            <th>Actie</th>
+            <th>Onderdeel</th>
+            <th>Entity ID</th>
+            <th>IP</th>
+        </thead>
+        <tbody>
+        {% if this.auditLogs is empty %}
+            <tr><td Colspan="9">Geen audit logs gevonden</td></tr>
+        {% else %}
+        {% for log in this.auditLogs %}
+            <tr>
+                <td>{{log.createdAt?.format('Y-m-d H:i:s') ?? ''}}</td>
+                <td>{{log.actorUsername ?? ''}}</td>
+                <td>{{log.actorEmail ?? ''}}</td>
+                <td>{{log.action ?? ''}}</td>
+                <td>{{log.entityType ?? ''}}</td>
+                <td>{{log.entityId ?? ''}}</td>
+                <td>{{log.requestIp ?? ''}}</td>
+            </tr>
+        {% endfor %}
+
+        {% endif %}
+        </tbody>
+    </table>
+
+    <button data-action="live#action" data-live-action-param='prev' class="{{ hasPrev ? "" : "hidden"}}">Vorige pagina</button>
+    <button data-action="live#action" data-live-action-param='next' class="{{ hasNext ? "" : "hidden"}}">Volgende pagina</button>
+</div>

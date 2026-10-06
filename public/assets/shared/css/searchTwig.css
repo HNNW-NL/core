@@ -1,5 +1,5 @@
-.notificationSearch{
-    input, #notification_search_user-ts-dropdown *, .item {
+.searchTwig{
+    input, .ts-dropdown-content *, .item {
         background-color: var(--paragraph);
         color: var(--background);
     }

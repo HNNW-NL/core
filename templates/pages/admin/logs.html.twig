@@ -16,41 +16,14 @@
 
 
 <div class="dashboard">
+
+
     <twig:Shared:Card>
-        <twig:Shared:Card:Header>Audit Logs</twig:Shared:Card:Header>
+        <twig:Shared:Card:Header>Zoek Audit Logs</twig:Shared:Card:Header>
         <twig:Shared:Card:Content>
-            <table>
-                <thead>
-                <tr>
-                    <th>Datum</th>
-                    <th>Gebruiker</th>
-                    <th>Email</th>
-                    <th>Actie</th>
-                    <th>Onderdeel</th>
-                    <th>Entity ID</th>
-                    <th>IP</th>
-                </tr>
-                </thead>
-                <tbody id="auditLogsTable">
-                    {% if auditLogs is not empty %}
-                        {% for log in auditLogs %}
-                        <tr>
-                            <td>{{log.createdAt?.format('Y-m-d H:i:s') ?? ''}}</td>
-                            <td>{{log.actorUsername ?? ''}}</td>
-                            <td>{{log.actorEmail ?? ''}}</td>
-                            <td>{{log.action ?? ''}}</td>
-                            <td>{{log.entityType ?? ''}}</td>
-                            <td>{{log.entityId ?? ''}}</td>
-                            <td>{{log.requestIp ?? ''}}</td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td>Geen audit logs gevonden</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+            {{ component('Admin:AuditLogSearch',{
+                formData: null,
+            }) }}
         </twig:Shared:Card:Content>
     </twig:Shared:Card>
 
