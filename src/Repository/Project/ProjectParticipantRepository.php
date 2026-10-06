@@ -27,8 +27,24 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('pp.joinedAt IS NOT NULL')
             ->setParameter('project', $project)
             ->setParameter('profile', $profile)
+            ->orderBy('pp.joinedAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function findLatestActiveParticipantByProjectAndProfile(Project $project, Profile $profile): ?ProjectParticipant
+    {
+        return $this->createQueryBuilder('pp')
+            ->andWhere('pp.project = :project')
+            ->andWhere('pp.profile = :profile')
+            ->andWhere('pp.leftAt IS NULL')
+            ->andWhere('pp.joinedAt IS NOT NULL')
+            ->setParameter('project', $project)
+            ->setParameter('profile', $profile)
+            ->orderBy('pp.joinedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function isActiveParticipant(Project $project, Profile $profile): bool
