@@ -33,9 +33,10 @@ security:
                 username_parameter: username
                 password_parameter: password
                 enable_csrf: true
-
-            logout:
+                
+                logout:
                 path: account.signoff
+           
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
 
