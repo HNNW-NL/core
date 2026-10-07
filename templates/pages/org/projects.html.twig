@@ -26,7 +26,7 @@
         </p>
 
         <div class="search-bar-projects" role="search" aria-controls="projects-app">
-            <label for="search-text" class="search-label" style="color: #fff; margin-right: 5px; font-weight: 500;">Search</label>
+            <label for="search-text" style="display: none;">Search projects</label>
             <input type="text" id="search-text" placeholder="Search projects..." aria-label="Search projects" autocomplete="off">
             <button id="search-button" type="button" aria-label="Search projects">Search</button>
             <button id="reset-button" type="button" class="reset-button" aria-label="Reset project search">Reset</button>
@@ -52,6 +52,10 @@
         {% set data = org_projects(q) %}
         
         <div id="projects-app" data-projects="{{ data.items|json_encode|escape('html_attr') }}" data-search="{{ q|escape('html_attr') }}">
+            <div class="projects-list-header" style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                <h3 style="margin: 0; font-size: 1.25rem;">Project results</h3>
+            </div>
+
             <div class="projects-container">
                 {# JS will populate this #}
             </div>
