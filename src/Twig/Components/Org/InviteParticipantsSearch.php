@@ -6,11 +6,14 @@ use App\Repository\Account\ProfileRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Entity\Account\Profile;
 use App\Module\Org\Service\InviteParticipantsService;
+use App\Entity\Project\Project;
+use App\Repository\Project\ProjectRepository;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 #[AsLiveComponent]
 class InviteParticipantsSearch
@@ -23,11 +26,16 @@ class InviteParticipantsSearch
     #[LiveProp(writable: true)]
     public array $selectedProfileIds = [];
 
-    #[LiveProp(writable: true)]
+    #[LiveProp]
     public string $projectId = '';
 
+    #[LiveProp(writable: true)]
+    public string $errorMessage = '';
+
     public function __construct(readonly private ProfileRepository $profileRepository,
-                                readonly private ProjectParticipantRepository $projectParticipantRepository
+                                readonly private ProjectParticipantRepository $projectParticipantRepository,
+                                readonly private ProjectRepository $projectRepository,
+                                readonly private AuthorizationCheckerInterface $authorizationChecker,
                                 )
     {
     }
@@ -53,6 +61,10 @@ class InviteParticipantsSearch
     #[LiveAction]
     public function inviteSelectedProfiles(InviteParticipantsService $inviteParticipantsService): void
     {
+        if (!$this->authorizationChecker->isGranted('PROJECT_INVITE', $this->getProject())) {
+            $this->errorMessage = 'You are not allowed to invite profile for this project';
+            return;
+        }
         $inviteParticipantsService->addToProject($this->projectId, $this->getSelectedProfiles());
         $this->selectedProfileIds = [];
     }
@@ -90,6 +102,11 @@ class InviteParticipantsSearch
     public function getProfileIdsInProject(): array
     {
         return array_map(fn(Profile $profile) => $profile->getId(), $this->getProfilesInProject());
+    }
+
+    public function getProject(): project
+    {
+        return $this->projectRepository->find($this->projectId);
     }
 
 

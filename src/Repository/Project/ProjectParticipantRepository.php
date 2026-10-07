@@ -18,13 +18,37 @@ class ProjectParticipantRepository extends ServiceEntityRepository
         parent::__construct($registry, ProjectParticipant::class);
     }
 
-    public function findActiveParticipant(Project $project, Profile $profile): \Doctrine\ORM\QueryBuilder
+    public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
     {
+        return $this->createQueryBuilder('pp')
+            ->andWhere('pp.project = :project')
+            ->andWhere('pp.profile = :profile')
+            ->andWhere('pp.leftAt IS NULL')
+            ->andWhere('pp.joinedAt IS NOT NULL')
+            ->setParameter('project', $project)
+            ->setParameter('profile', $profile)
+            ->orderBy('pp.joinedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
+    public function findLatestActiveParticipantByProjectAndProfile(Project $project, Profile $profile): ?ProjectParticipant
+    {
+        return $this->createQueryBuilder('pp')
+            ->andWhere('pp.project = :project')
+            ->andWhere('pp.profile = :profile')
+            ->andWhere('pp.leftAt IS NULL')
+            ->andWhere('pp.joinedAt IS NOT NULL')
+            ->setParameter('project', $project)
+            ->setParameter('profile', $profile)
+            ->orderBy('pp.joinedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function isActiveParticipant(Project $project, Profile $profile): bool
     {
-        return $this->findActiveParticipant($project, $profile) !== null;
+        return $this->findActiveParticipantsByProjectAndProfile($project, $profile) !== null;
     }
 }

@@ -11,6 +11,8 @@ final class ProfileCard
 {
     public ?string $id = null;
 
+    public ?string $type = null;
+
     public function __construct(
         private readonly ProfileRepository $profileRepository
     ) {
