@@ -3,6 +3,7 @@
 namespace App\Module\Org\Security;
 
 use App\Entity\Project\Project;
+use App\Entity\Project\ProjectRole;
 use App\Entity\Account\Profile;
 use SebastianBergmann\CodeCoverage\StaticAnalysis\Visibility;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -17,59 +18,57 @@ abstract class ProjectVoter extends Voter
     public const string EDIT = 'PROJECT_EDIT';
     public const string INVITE = 'PROJECT_INVITE';
 
+    private const int PERMISSION_VIEW = 1 << 0;
+    private const int PERMISSION_EDIT = 1 << 1;
+    private const int PERMISSION_INVITE = 1 << 2;
+
+    public function __construct(
+        private readonly CurrentProfileProvider $currentProfileProvider,
+        private readonly ProjectParticipantRepository $participantRepository,
+    ) { }
+
+
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (in_array($attribute, [self::VIEW, self::EDIT, self::INVITE]) && $subject instanceof Project) {
-            return true;
-        }
-
-        return false;
+        return $subject instanceof Project && in_array($attribute, [ self::VIEW, self::EDIT, self::INVITE, ], true);
     }
 
-    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
+    protected function voteOnAttribute( string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
-        $profile = CurrentProfileProvider::class->getProfile();
+        $profile = $this->currentProfileProvider->getProfile();
+        if (!$profile instanceof Profile)
+        {
+            return false;
+        }
+
+        /** @var Project $project */
+
         $project = $subject;
-
-        return match ($attribute) {
-            self::VIEW => $this->canView($profile, $project),
-            self::INVITE => $this->canInvite($profile, $project),
-            self::EDIT => $this->canEdit($profile, $project)
+        return match ($attribute)
+        {
+            self::VIEW => $this->hasPermission( $profile, $project, self::PERMISSION_VIEW, ),
+            self::EDIT => $this->hasPermission( $profile, $project, self::PERMISSION_EDIT, ),
+            self::INVITE => $this->hasPermission( $profile, $project, self::PERMISSION_INVITE, ),
+            default => false,
         };
-
     }
 
-
-
-
-    private function canView(Profile $profile, Project $project): bool
+    private function hasPermission( Profile $profile, Project $project, int $permission, ): bool
     {
-        // if they can edit, they can view
-        if ($this->canEdit($profile,$project)) {
-            return true;
-        }
-        if (ProjectParticipantRepository::class->isActiveParticipant($project,$profile)) {
-            return true;
+        $participant = $this->participantRepository ->findLatestActiveParticipantByProjectAndProfile($project, $profile);
+        if ($participant === null)
+        {
+            return false;
         }
 
-        return false;
-    }
+        $role = $participant->getRole();
 
-    private function canEdit(Profile $profile, Project $project): bool
-    {
-        if ($profile === $project->getParticipants()) {
-            return true;
+        if ($role === null)
+        {
+            return false;
         }
 
-        return false;
-    }
-
-    private function canInvite(Profile $profile, Project $project): bool
-    {
-        if ($profile === $project->getParticipants()) {
-            return true;
-        }
-        return false;
-    }
+        $permissionMask = $role->getPermissionsMask();
+        return ($permissionMask & $permission) === $permission; }
 
 }

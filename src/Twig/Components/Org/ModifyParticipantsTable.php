@@ -26,6 +26,9 @@ class ModifyParticipantsTable
     #[LiveProp]
     public string $projectId = '';
 
+    #[LiveProp(writable: true)]
+    public string $errorMessage = '';
+
     public bool $submitted = false;
 
     public function __construct(readonly private ProjectParticipantRepository $projectParticipantRepository,
@@ -54,7 +57,8 @@ class ModifyParticipantsTable
     #[LiveAction]
     public function updateParticipants(): void
     {
-        if (!$this->authorizationChecker->isGranted('PROJECT_INVITE', $this->getProject())) {
+        if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
+            $this->errorMessage = 'You are not allowed to invite profile for this project';
             return;
         }
         $this->projectParticipantUpdateRoleHandler->handle($this->rolesByParticipant, $this->getProject());

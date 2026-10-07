@@ -4,6 +4,11 @@
             The changes were saved.
         </twig:Shared:Alert>
     {% endif %}
+    {% if this.errorMessage %}
+        <twig:Shared:Alert variant="error">
+            {{ this.errorMessage }}
+        </twig:Shared:Alert>
+    {% endif %}
     <button
         type="button"
         data-action="live#action"
