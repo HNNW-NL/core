@@ -58,7 +58,7 @@ class ModifyParticipantsTable
     public function updateParticipants(): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
-            $this->errorMessage = 'You are not allowed to invite profile for this project';
+            $this->errorMessage = 'You are not allowed to invite people for this project';
             return;
         }
         $this->projectParticipantUpdateRoleHandler->handle($this->rolesByParticipant, $this->getProject());

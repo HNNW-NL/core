@@ -21,14 +21,14 @@
     </div>
 
     <div class="projects-container size-{{ this.cardSize }}">
-        {% if this.projects == [] %}
+        {% if this.projects is empty %}
             <p>No projects found</p>
         {% endif %}
         {% for project in this.projects %}
             <div class="project-card">
                 <h3 class="project-title">{{ project.title }}</h3>
                 <p class="project-summary">{{ project.summary }}</p>
-                <a href="org/projects/{{ project.slug }}" class="project-slug">{{ project.slug }}</a>
+                <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">{{ project.slug }}</a>
             </div>
         {% endfor %}
     </div>

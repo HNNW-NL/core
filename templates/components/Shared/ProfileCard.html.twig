@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="{{ asset('assets/shared/css/profile-card.css') }}">
 {% endblock %}
 
-<div class="profile-card-type-{{ type }}">
+<div class="profile-card-type-{{ this.type }}">
     {% if this.profile %}
         <img src="{{ this.profile.avatarUrl }}" alt="Profile picture">
         <div class="info">
