@@ -4,14 +4,16 @@
 {% block title %}Projects{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/projects.css') }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <div id="account-centre-container">
+    <div id="account-centre-container" class="projects-page">
         <a href="{{ path('account.home') }}" class="btn-back">
             Terug naar dashboard
         </a>
