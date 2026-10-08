@@ -5,11 +5,13 @@
 
 {# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/projects.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/accountprojects.css') }}">
 {% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascripts %}
+    <script src="{{ asset('assets/account-centre/js/accountprojects.js') }}" defer></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
@@ -23,30 +25,51 @@
             <p>Bekijk de projecten die aan jouw account gekoppeld zijn.</p>
         </div>
 
-        <div class="account-grid">
-            <article class="account-card">
+        <section class="projects-tools" aria-label="Projecten zoeken en filteren">
+            <div class="projects-search">
+                <label for="project-search">Zoeken</label>
+                <input type="search" id="project-search" placeholder="Zoek op project of omschrijving" autocomplete="off">
+            </div>
+            <div class="projects-status-filter">
+                <label for="project-status">Status</label>
+                <select id="project-status">
+                    <option value="all">Alle statussen</option>
+                    <option value="active">Actief</option>
+                    <option value="preparation">In voorbereiding</option>
+                    <option value="completed">Afgerond</option>
+                </select>
+            </div>
+            <button type="button" class="projects-reset" id="projects-reset">Wis filters</button>
+        </section>
+
+        <p class="projects-result-count" id="projects-result-count" aria-live="polite"></p>
+
+        <div class="account-grid projects-grid" id="projects-list">
+            <article class="account-card project-card" data-status="active">
                 <div class="account-card-content">
                     <h3>Buurtmoestuin Noord</h3>
                     <p>Werk samen met buurtbewoners aan een groene en toegankelijke ontmoetingsplek.</p>
                 </div>
-                <p><strong>Status:</strong> Actief</p>
+                <span class="project-status status-active">Actief</span>
             </article>
 
-            <article class="account-card">
+            <article class="account-card project-card" data-status="preparation">
                 <div class="account-card-content">
                     <h3>Digitale hulp voor iedereen</h3>
                     <p>Help inwoners met praktische vragen over digitale diensten en apparaten.</p>
                 </div>
-                <p><strong>Status:</strong> In voorbereiding</p>
+                <span class="project-status status-preparation">In voorbereiding</span>
             </article>
 
-            <article class="account-card">
+            <article class="account-card project-card" data-status="completed">
                 <div class="account-card-content">
                     <h3>Jongeren in beweging</h3>
                     <p>Draag bij aan activiteiten die jongeren in de wijk samenbrengen.</p>
                 </div>
-                <p><strong>Status:</strong> Afgerond</p>
+                <span class="project-status status-completed">Afgerond</span>
             </article>
         </div>
+
+        <p class="projects-empty" id="projects-empty" hidden>Geen projecten gevonden. Pas je zoekopdracht of filters aan.</p>
     </div>
 {% endblock %}
