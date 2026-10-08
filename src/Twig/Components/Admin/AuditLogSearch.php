@@ -35,6 +35,9 @@ class AuditLogSearch extends AbstractController
     #[LiveProp]
     public bool $hasPrev = false;
 
+     #[LiveProp]
+    public bool $hasSearched = false;
+
     #[LiveProp]
     public ?AuditLogSearchDTO $formData = null;
 
@@ -66,13 +69,14 @@ class AuditLogSearch extends AbstractController
                 $this->cursorStart = null;
                 $this->hasPrev = false;
                 $this->cursorEnd = end($this->auditLogs);
-                $this->hasNext = $auditLogRepository->hasNext($this->cursorEnd->getId(),$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod);
+                $this->hasNext = $auditLogRepository->hasNext($this->cursorEnd,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod);
             }  else{
                 $this->hasPrev = false;
                 $this->hasNext = false;
                 $this->cursorStart = null;
                 $this->cursorEnd = null;
             }
+            $this->hasSearched = true;
         }
     }
 
@@ -81,10 +85,10 @@ class AuditLogSearch extends AbstractController
     {        
         if($this->hasPrev)
         {
-            $this->auditLogs = $auditLogRepository->findAuditLogByCursor($this->cursorStart->getId(),$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod,false); 
+            $this->auditLogs = $auditLogRepository->findAuditLogByCursor($this->cursorStart,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod,false); 
             $this->hasNext = true; 
             $this->cursorEnd = end($this->auditLogs);
-            $this->hasPrev = $auditLogRepository->hasPrev($this->auditLogs[0]->getId(),$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
+            $this->hasPrev = $auditLogRepository->hasPrev($this->auditLogs[0],$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
             $this->cursorStart = $this->auditLogs[0];
         }
     }
@@ -94,8 +98,8 @@ class AuditLogSearch extends AbstractController
     {        
         if($this->hasNext)
         {
-            $this->auditLogs = $auditLogRepository->findAuditLogByCursor($this->cursorEnd->getId(),$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
-            $this->hasNext = $auditLogRepository->hasNext(end($this->auditLogs)->getId(),$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod);
+            $this->auditLogs = $auditLogRepository->findAuditLogByCursor($this->cursorEnd,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
+            $this->hasNext = $auditLogRepository->hasNext(end($this->auditLogs),$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod);
             $this->cursorEnd = end($this->auditLogs); 
             $this->hasPrev = true;      
             $this->cursorStart = $this->auditLogs[0];   

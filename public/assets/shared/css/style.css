@@ -70,3 +70,8 @@ body {
 .hidden{
     display: none;
 }
+
+.error, .error *{
+    color: red !important;
+
+}
