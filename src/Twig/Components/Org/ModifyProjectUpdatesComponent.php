@@ -22,9 +22,6 @@ class ModifyProjectUpdatesComponent
     #[LiveProp]
     public string $projectId = '';
 
-    #[LiveProp(writable: true)]
-    public array $updateMap = [];
-
     public string $errorMessage = '';
 
     public bool $submitted = false;
@@ -43,7 +40,7 @@ class ModifyProjectUpdatesComponent
 
     public function getProjectUpdates() : array
     {
-        return $this->projectUpdateRepository->findBy(['project', $this->projectId]);
+        return $this->projectUpdateRepository->findBy(['project' => $this->projectId]);
     }
 
     public function getProject(): project
@@ -52,18 +49,18 @@ class ModifyProjectUpdatesComponent
     }
 
     #[LiveAction]
-    public function updateProjectUpdates(): void
+    public function updateProjectUpdates($updateMap): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
         }
-        $this->modifyProjectUpdatesHandler->handle($this->updateMap);
+        $this->modifyProjectUpdatesHandler->handleModifyUpdate($updateMap, $this->getProject());
         $this->submitted = true;
     }
 
     #[LiveAction]
-    public function deleteProjectUpdate($projectUpdateId): void
+    public function deleteProjectUpdate(#[LiveArg] string $projectUpdateId): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';
@@ -73,7 +70,7 @@ class ModifyProjectUpdatesComponent
     }
 
     #[LiveAction]
-    public function restoreProjectUpdate($projectUpdateId): void
+    public function restoreProjectUpdate( #[LiveArg] string$projectUpdateId): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';

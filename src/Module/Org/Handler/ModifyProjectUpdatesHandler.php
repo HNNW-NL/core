@@ -3,6 +3,7 @@
 
 namespace App\Module\Org\Handler;
 
+use App\Entity\Project\Project;
 use App\Entity\Project\ProjectUpdate;
 use App\Repository\Project\ProjectUpdateRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,21 +18,22 @@ class ModifyProjectUpdatesHandler
     /**
      * @param array<int, int> $roleMap [participantId => roleId]
      */
-    public function handle(array $updateMap): void
+    public function handleModifyUpdate(array $updateMap, Project $project): void
     {
-        foreach ($updateMap as $projectUpdate) {
+        $update = $this->projectUpdateRepository->find($updateMap['id']);
 
-            $update = $this->projectUpdateRepository->find($projectUpdate['id']);
-            $update->setTitle($projectUpdate['title']);
-            $update->setContent($projectUpdate['content']);
-
-            if ($projectUpdate['public'] and !$update->isPublic()){
-                $update->makePublic();
-            } elseif (!$projectUpdate['public'] and $update->isPublic()){
-                $update->makePrivate();
-            }
-
+        if (!$update || $update->getProject() !== $project) {
+            return; // or throw an exception
         }
+        $update->setTitle($updateMap['title']);
+        $update->setContent($updateMap['content']);
+
+        if ($updateMap['public'] and !$update->isPublic()){
+            $update->makePublic();
+        } elseif (!$updateMap['public'] and $update->isPublic()){
+            $update->makePrivate();
+        }
+
 
         $this->em->flush();
     }
