@@ -42,7 +42,7 @@ class AuditLogSearch extends AbstractController
     public ?AuditLogSearchDTO $formData = null;
 
 
-    public function __construct(private AuditLogRepository $auditLogRepository)
+    public function __construct()
     {
     }
 
@@ -63,7 +63,7 @@ class AuditLogSearch extends AbstractController
         if($form->isValid())
         {
             $data = $this->getForm()->getData();
-            $this->auditLogs = $auditLogRepository->findAuditLogByCursor(null,$data->actor,$data->startPeriod,$data->endPeriod); 
+            $this->auditLogs = $auditLogRepository->findByCursor(null,$data->actor,$data->startPeriod,$data->endPeriod); 
             if(count($this->auditLogs) > 0)
             {
                 $this->cursorStart = null;
@@ -85,7 +85,7 @@ class AuditLogSearch extends AbstractController
     {        
         if($this->hasPrev)
         {
-            $this->auditLogs = $auditLogRepository->findAuditLogByCursor($this->cursorStart,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod,false); 
+            $this->auditLogs = $auditLogRepository->findByCursor($this->cursorStart,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod,false); 
             $this->hasNext = true; 
             $this->cursorEnd = end($this->auditLogs);
             $this->hasPrev = $auditLogRepository->hasPrev($this->auditLogs[0],$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
@@ -98,7 +98,7 @@ class AuditLogSearch extends AbstractController
     {        
         if($this->hasNext)
         {
-            $this->auditLogs = $auditLogRepository->findAuditLogByCursor($this->cursorEnd,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
+            $this->auditLogs = $auditLogRepository->findByCursor($this->cursorEnd,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
             $this->hasNext = $auditLogRepository->hasNext(end($this->auditLogs),$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod);
             $this->cursorEnd = end($this->auditLogs); 
             $this->hasPrev = true;      

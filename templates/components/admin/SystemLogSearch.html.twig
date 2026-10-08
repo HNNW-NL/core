@@ -1,0 +1,71 @@
+<div class="systemLogSearch searchTwig" {{ attributes }}>
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('assets/shared/css/searchTwig.css') }}">
+    {% endblock %}
+
+    {{ form_start(form,{
+            attr: {
+                'data-action': 'live#action:prevent',
+                'data-live-action-param': 'search'
+            }
+        }) }}
+        <table>
+            <tr class="form_field">
+                <td>Level:</td>
+                <td>
+                    {{ form_widget(form.level,{attr:{ 'autocomplete' :'off'}})}}  
+                    <div class="error"> {{ form_errors(form.level) }}</div>
+                </td>
+            </tr>
+            <tr class="form_field">
+                <td>Start Periode:</td>
+                <td>
+                    {{ form_widget(form.startPeriod,{attr:{ 'autocomplete' :'off'}})}}  
+                    <div class="error"> {{ form_errors(form.startPeriod) }}</div>
+                </td>
+            </tr>
+            <tr class="form_field">
+                <td>Eind Periode:</td>
+                <td>
+                    {{ form_widget(form.endPeriod,{attr:{ 'autocomplete' :'off'}})}} 
+                    <div class="error"> {{ form_errors(form.endPeriod) }}</div>
+                </td>
+            </tr>
+        </table>
+        <button>Zoek</button>
+        {{ form_rest(form) }}
+    {{ form_end(form) }}
+    <table class="result">
+        <thead>
+            <th>Datum</th>
+            <th>Code</th>
+            <th>Level</th>
+            <th>Bericht</th>
+            <th>Route</th>
+            <th>Methode</th>
+            <th>IP</th>
+        </thead>
+        <tbody>
+        {% if this.systemLogs is empty and this.hasSearched %}
+            <tr><td Colspan="9">Geen system logs gevonden</td></tr>
+        {% elseif this.hasSearched == false %}
+            <tr><td Colspan="9">Klik op zoeken om system logs te vinden</td></tr>
+        {% else %}
+            {% for log in this.systemLogs %}
+                <tr>
+                    <td>{{log.createdAt?.format('Y-m-d H:i:s') ?? ''}}</td>
+                    <td>{{log.code ?? ''}}</td>
+                    <td>{{log.level ?? ''}}</td>
+                    <td>{{log.message ?? ''}}</td>
+                    <td>{{log.route ?? ''}}</td>
+                    <td>{{log.method ?? ''}}</td>
+                    <td>{{log.requestIp ?? ''}}</td>
+                </tr>
+            {% endfor %}
+        {% endif %}
+        </tbody>
+    </table>
+
+    <button data-action="live#action" data-live-action-param='prev' class="{{ hasPrev ? "" : "hidden"}}">Vorige pagina</button>
+    <button data-action="live#action" data-live-action-param='next' class="{{ hasNext ? "" : "hidden"}}">Volgende pagina</button>
+</div>

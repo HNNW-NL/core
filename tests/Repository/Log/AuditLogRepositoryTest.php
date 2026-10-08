@@ -31,11 +31,11 @@ class AuditLogRepositoryTest extends KernelTestCase
         $this->assertEquals("login",$result[0]->getAction());
     }
 
-    // findAuditLogByCursor
+    // findByCursor
 
     public function testWhenMoreThanLimitExistShouldReturnOrderedByLatestCreatedAndOrderedById(): void
     {
-        $result = $this->auditLogRepository->findAuditLogByCursor();
+        $result = $this->auditLogRepository->findByCursor();
 
         $this->assertEquals(20,count($result));
         $this->assertEquals("login",$result[0]->getAction());
@@ -43,7 +43,7 @@ class AuditLogRepositoryTest extends KernelTestCase
 
     public function testWhenStartDateTodayShouldReturnNoResults(): void
     {
-        $result = $this->auditLogRepository->findAuditLogByCursor(null,null,new DateTimeImmutable());
+        $result = $this->auditLogRepository->findByCursor(null,null,new DateTimeImmutable());
 
         $this->assertEquals(0,count($result));
     }
@@ -51,7 +51,7 @@ class AuditLogRepositoryTest extends KernelTestCase
     public function testWhenActorHasNoAuditLogsShouldReturnNoResults(): void
     {
         $actor = $this->accountRepository->findBy(['username' => 'AdminUser'])[0];
-        $result = $this->auditLogRepository->findAuditLogByCursor(null,$actor);
+        $result = $this->auditLogRepository->findByCursor(null,$actor);
 
         $this->assertEquals(0,count($result));
     }
@@ -59,7 +59,7 @@ class AuditLogRepositoryTest extends KernelTestCase
     public function testWhenActorHasAuditLogsShouldReturnResults(): void
     {
         $actor = $this->accountRepository->findBy(['username' => 'TestUser'])[0];
-        $result = $this->auditLogRepository->findAuditLogByCursor(null,$actor);
+        $result = $this->auditLogRepository->findByCursor(null,$actor);
 
         $this->assertEquals(20,count($result));
     }
@@ -67,7 +67,7 @@ class AuditLogRepositoryTest extends KernelTestCase
     public function testWhenUsingCursorShouldReturnNextResults(): void
     {
         $cursor = $this->auditLogRepository->findBy(['action' => 'login'])[0];
-        $result = $this->auditLogRepository->findAuditLogByCursor($cursor,null,null,null,true,5);
+        $result = $this->auditLogRepository->findByCursor($cursor,null,null,null,true,5);
 
         $this->assertEquals(5,count($result));
         $this->assertEquals('test',$result[0]->getAction());
@@ -76,7 +76,7 @@ class AuditLogRepositoryTest extends KernelTestCase
     public function testWhenUsingCursorwithForwardFalseShouldReturnPreviousResults(): void
     {
         $cursor = $this->auditLogRepository->findBy(['action' => 'test5'])[0];
-        $result = $this->auditLogRepository->findAuditLogByCursor($cursor,null,null,null,false,5);
+        $result = $this->auditLogRepository->findByCursor($cursor,null,null,null,false,5);
 
         $this->assertEquals(5,count($result));
         $this->assertEquals('login',$result[0]->getAction());

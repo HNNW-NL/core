@@ -28,7 +28,7 @@ class AuditLogRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findAuditLogByCursor(?AuditLog $cursor = null,?Account $actor = null,?DateTimeImmutable $startPeriod = null , ?DateTimeImmutable $endPeriod = null,bool $isForward = true, int $limit = 20) : array
+    public function findByCursor(?AuditLog $cursor = null,?Account $actor = null,?DateTimeImmutable $startPeriod = null , ?DateTimeImmutable $endPeriod = null,bool $isForward = true, int $limit = 20) : array
     {
         $qb =  $this->createQueryBuilder('auditLog');
         $query =   $qb->orderBy('auditLog.id', ($isForward)?'ASC':'DESC')
@@ -81,13 +81,13 @@ class AuditLogRepository extends ServiceEntityRepository
 
     public function hasNext(AuditLog $cursor,?Account $actor = null,?DateTimeImmutable $startPeriod = null , ?DateTimeImmutable $endPeriod = null) : Bool
     {
-        $result = $this->findAuditLogByCursor($cursor,$actor,$startPeriod,$endPeriod,true,1);
+        $result = $this->findByCursor($cursor,$actor,$startPeriod,$endPeriod,true,1);
         return count($result) > 0;
     }
 
     public function hasPrev(AuditLog $cursor,?Account $actor = null,?DateTimeImmutable $startPeriod = null , ?DateTimeImmutable $endPeriod = null) : Bool
     {
-        $result = $this->findAuditLogByCursor($cursor,$actor,$startPeriod,$endPeriod,false,1);
+        $result = $this->findByCursor($cursor,$actor,$startPeriod,$endPeriod,false,1);
         return count($result)> 0;
     }
 }

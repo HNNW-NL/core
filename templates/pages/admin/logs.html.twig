@@ -30,40 +30,11 @@
     <br><br>
 
     <twig:Shared:Card>
-        <twig:Shared:Card:Header>System Logs</twig:Shared:Card:Header>
+        <twig:Shared:Card:Header>Zoek System Logs</twig:Shared:Card:Header>
         <twig:Shared:Card:Content>
-            <table>
-                <thead>
-                <tr>
-                    <th>Datum</th>
-                    <th>Code</th>
-                    <th>Level</th>
-                    <th>Bericht</th>
-                    <th>Route</th>
-                    <th>Methode</th>
-                    <th>IP</th>
-                </tr>
-                </thead>
-                <tbody id="systemLogsTable">
-                    {% if systemLogs is not empty %}
-                        {% for log in systemLogs %}
-                        <tr>
-                            <td>{{log.createdAt?.format('Y-m-d H:i:s') ?? ''}}</td>
-                            <td>{{log.code ?? ''}}</td>
-                            <td>{{log.level ?? ''}}</td>
-                            <td>{{log.message ?? ''}}</td>
-                            <td>{{log.route ?? ''}}</td>
-                            <td>{{log.method ?? ''}}</td>
-                            <td>{{log.requestIp ?? ''}}</td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td>Geen system logs gevonden</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+            {{ component('Admin:SystemLogSearch',{
+                formData: null,
+            }) }}
         </twig:Shared:Card:Content>
     </twig:Shared:Card>
 </div>
