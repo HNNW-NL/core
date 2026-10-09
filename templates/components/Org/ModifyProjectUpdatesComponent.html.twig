@@ -1,4 +1,4 @@
-<div {{ attributes }} class="page-content">
+<div {{ attributes }} class="modify-updates-container">
     {% if this.errorMessage %}
         {# <twig:Shared:Alert variant="error"> #}
         <p>{{ this.errorMessage }}</p>
@@ -6,7 +6,7 @@
     {% endif %}
 
 
-    <table>
+    <table class="modify-updates-table">
         <thead>
 
         </thead>
@@ -22,9 +22,7 @@
                         rows="10"
                         cols="50"
                         data-model="norender|updateMap[{{ update.id }}].content"
-                    >
-                        {{ update.content }}
-                    </textarea>
+                    >{{ update.content }}</textarea>
                 </td>
                 <td>
                     <label>

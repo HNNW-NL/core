@@ -4,7 +4,9 @@
 {% block title %}Modify project {{ id }} updates{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/org/css/modify-updates.css") }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{{ importmap('app') }}{% endblock %}
