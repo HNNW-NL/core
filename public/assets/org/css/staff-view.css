@@ -151,3 +151,79 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Formulier medewerker toevoegen */
+
+#staff-add-form {
+    margin-top: 20px;
+    margin-bottom: 24px;
+    max-width: 520px;
+}
+
+#staff-add-form[hidden] {
+    display: none;
+}
+
+#staff-add-form h3 {
+    margin: 0 0 12px;
+    color: var(--text-light);
+}
+
+#staff-add-form > p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.staff-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.staff-form-field label {
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.staff-form-field input,
+.staff-form-field select {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--dark-bg);
+    color: var(--text-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font: inherit;
+}
+
+.staff-form-field input:focus,
+.staff-form-field select:focus {
+    outline: 2px solid var(--accent-yellow);
+    outline-offset: 2px;
+}
+
+.staff-form-field input::placeholder {
+    color: var(--text-secondary);
+}
+
+.staff-search {
+    margin-top: 24px;
+}
+
+.staff-search input {
+    width: 100%;
+    max-width: 520px;
+    padding: 12px;
+    background-color: var(--dark-secondary);
+    color: var(--text-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font: inherit;
+}
+
+.staff-search input:focus {
+    outline: 2px solid var(--accent-yellow);
+    outline-offset: 2px;
+}
+
