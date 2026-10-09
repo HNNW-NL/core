@@ -438,19 +438,15 @@
   transform: translate(9px, 9px) rotate(45deg);
 }
 
-.home-page .feature-icon-share::before {
-  width: 9px;
-  height: 9px;
-  border: 3px solid var(--accent);
-  border-radius: 50%;
-  box-shadow: 16px 9px 0 -3px var(--panel), 16px 9px 0 0 var(--accent), 0 18px 0 -3px var(--panel), 0 18px 0 0 var(--accent);
-}
-
-.home-page .feature-icon-share::after {
-  width: 18px;
-  height: 3px;
-  background: var(--accent);
-  transform: translate(5px, 14px) rotate(28deg);
+.home-page .feature-icon-share svg {
+  display: block;
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 
 .home-page .feature-icon-impact::before {
