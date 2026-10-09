@@ -309,6 +309,13 @@
   margin-bottom: 14px;
 }
 
+.home-page .hero-reassurance {
+  margin: 16px 0 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .home-page .hero-text {
   max-width: 650px;
   margin: 26px 0 30px;
