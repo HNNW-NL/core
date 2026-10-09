@@ -16,25 +16,48 @@
 {# Page content #}
 {% block body %}
     <div class="projects-main">
-        <h2>Projects - Overview</h2>
-        <p>Organization panel - projects overview page.</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+                <h2>Projects - Overview</h2>
+                <p>Organization panel - projects overview page.</p>
+            </div>
+            <a href="#" id="create-project-button" style="background-color: #2b6cb0; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 0.9rem;" aria-label="Create new project">+ Create project</a>
+        </div>
 
         <div class="projects-current-text"><h2>Current projects</h2></div>
-        <div class="search-bar-projects">
-            <input type="text" id="search-text" placeholder="Search projects...">
-            <button id="search-button">Search</button>
-            <button id="reset-button" type="button" class="reset-button">Reset</button>
-            <label for="card-size-select" class="card-size-label">Size</label>
+
+        <p class="projects-description">
+            Browse the current projects within the organization.
+        </p>
+
+        <div class="search-bar-projects" role="search" aria-controls="projects-app">
+            <label for="search-text" style="display: none;">Search projects</label>
+            <input type="text" id="search-text" placeholder="Search projects..." aria-label="Search projects" autocomplete="off">
+            <button id="search-button" type="button" aria-label="Search projects">Search</button>
+            <button id="reset-button" type="button" class="reset-button" aria-label="Reset project search">Reset</button>
+
+            <label for="status-filter-select" class="card-size-label">Status</label>
             <div class="card-size-wrapper">
-                <select id="card-size-select" aria-label="Card size" class="card-size-select">
-                <option value="small">Small</option>
-                <option value="medium" selected>Medium</option>
-                <option value="large">Large</option>
+                <select id="status-filter-select" class="card-size-select" aria-label="Filter by status" title="Filter by status">
+                    <option value="">All statuses</option>
+                    <option value="draft">Draft</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
                 </select>
             </div>
+
+            <label for="card-size-select" class="card-size-label">Size</label>
+            <div class="card-size-wrapper">
+                <select id="card-size-select" aria-label="Card size" title="Select card size" class="card-size-select">
+                    <option value="small">Small</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="large">Large</option>
+                </select>
+            </div>
+
             <label for="per-page-select" class="per-page-label">Items</label>
             <div class="card-size-wrapper">
-                <select id="per-page-select" class="card-size-select" aria-label="Items per page">
+                <select id="per-page-select" class="card-size-select" aria-label="Items per page" title="Select items per page">
                     <option value="8">8</option>
                     <option value="16">16</option>
                     <option value="32">32</option>
@@ -44,22 +67,26 @@
 
         {% set q = app.request.query.get('q')|default('') %}
         {% set data = org_projects(q) %}
-        
+
         <div id="projects-app" data-projects="{{ data.items|json_encode|escape('html_attr') }}" data-search="{{ q|escape('html_attr') }}">
+            <div class="projects-list-header" style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                <h3 style="margin: 0; font-size: 1.25rem;">Project results</h3>
+            </div>
+
             <div class="projects-container">
                 {# JS will populate this #}
             </div>
 
-            <div class="projects-count" id="projects-count">
+            <div class="projects-count" id="projects-count" aria-live="polite">
                 Showing <span id="projects-count-start">0</span>–<span id="projects-count-end">0</span> of <span id="projects-count-total">0</span> projects
             </div>
 
-            <div class="projects-pagination">
+            <nav class="projects-pagination" aria-label="Pagination navigation">
                 <div>Page <span id="current-page">1</span> of <span id="total-pages">1</span></div>
                 <div class="projects-pagination-controls" id="pagination-controls">
                     {# JS will populate this #}
                 </div>
-            </div>
+            </nav>
         </div>
     </div>
 {% endblock %}
