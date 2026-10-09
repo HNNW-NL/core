@@ -16,8 +16,13 @@
 {# Page content #}
 {% block body %}
     <div class="projects-main">
-        <h2>Projects - Overview</h2>
-        <p>Organization panel - projects overview page.</p>
+        <div class="projects-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+                <h2>Projects - Overview</h2>
+                <p>Organization panel - projects overview page.</p>
+            </div>
+            <a href="#" class="btn btn-primary" aria-label="Create new project">+ Create project</a>
+        </div>
 
         <div class="projects-current-text"><h2>Current projects</h2></div>
 
@@ -31,7 +36,7 @@
             <button id="search-button" type="button" aria-label="Search projects">Search</button>
             <button id="reset-button" type="button" class="reset-button" aria-label="Reset project search">Reset</button>
 
-            <label for="status-filter-select" class="status-filter-label" style="display: none;">Status</label>
+            <label for="status-filter-select" class="card-size-label">Status</label>
             <div class="card-size-wrapper">
                 <select id="status-filter-select" class="card-size-select" aria-label="Filter by status" title="Filter by status">
                     <option value="">All statuses</option>
