@@ -5,7 +5,7 @@
 
 {# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="../../../public/assets/account-centre/css/settings.css">
+    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/settings.css') }}">
 {% endblock %}
 
 {# JavaScript #}
@@ -13,6 +13,9 @@
 
 {# Page content #}
 {% block body %}
+    {% set profile = app.user ? app.user.profile : null %}
+    {% set settings = app.user ? app.user.setting : null %}
+
     <div id="account-centre-container" class="settings-page">
         <a href="{{ path('account.home') }}" class="btn-back">
             Terug naar dashboard
@@ -32,18 +35,21 @@
         <div class="account-form-container">
             <div class="form-internal-header">
                 <h2>Accountgegevens</h2>
-                <p>Laat een veld leeg als je die gegevens niet wilt wijzigen.</p>
+                <p>Je huidige gegevens zijn vooraf ingevuld. Controleer ze voordat je opslaat.</p>
             </div>
 
             <form action="{{ path('account.modify') }}" method="POST" class="account-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('account.modify') }}">
+                <input type="hidden" name="avatar_url" value="{{ profile.avatarUrl|default('') }}">
+
                 <div class="form-group">
                     <label for="username">Gebruikersnaam</label>
-                    <input type="text" id="username" name="username" placeholder="Nieuwe gebruikersnaam">
+                    <input type="text" id="username" name="username" value="{{ app.user.username|default('') }}" placeholder="Gebruikersnaam">
                 </div>
 
                 <div class="form-group">
                     <label for="email">E-mailadres</label>
-                    <input type="email" id="email" name="email" placeholder="nieuw e-mailadres">
+                    <input type="email" id="email" name="email" value="{{ app.user.email|default('') }}" placeholder="E-mailadres">
                 </div>
 
                 <div class="settings-form-divider">
@@ -52,27 +58,27 @@
 
                 <div class="form-group">
                     <label for="first_name">Voornaam</label>
-                    <input type="text" id="first_name" name="first_name" placeholder="Voornaam">
+                    <input type="text" id="first_name" name="first_name" value="{{ profile.firstName|default('') }}" placeholder="Voornaam">
                 </div>
 
                 <div class="form-group">
                     <label for="last_name">Achternaam</label>
-                    <input type="text" id="last_name" name="last_name" placeholder="Achternaam">
+                    <input type="text" id="last_name" name="last_name" value="{{ profile.lastName|default('') }}" placeholder="Achternaam">
                 </div>
 
                 <div class="form-group">
                     <label for="display_name">Weergavenaam</label>
-                    <input type="text" id="display_name" name="display_name" placeholder="Naam die anderen zien">
+                    <input type="text" id="display_name" name="display_name" value="{{ profile.displayName|default('') }}" placeholder="Naam die anderen zien">
                 </div>
 
                 <div class="form-group">
                     <label for="location">Locatie</label>
-                    <input type="text" id="location" name="location" placeholder="Bijv. Amsterdam, Nederland">
+                    <input type="text" id="location" name="location" value="{{ profile.location|default('') }}" placeholder="Bijv. Amsterdam, Nederland">
                 </div>
 
                 <div class="form-group">
                     <label for="bio">Over jezelf</label>
-                    <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf..."></textarea>
+                    <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf...">{{ profile.description|default('') }}</textarea>
                 </div>
 
                 <div class="settings-form-divider">
@@ -81,23 +87,31 @@
 
                 <div class="form-group">
                     <label for="language">Taal</label>
-                    <input type="text" id="language" name="language" maxlength="5" value="nl" placeholder="nl">
+                    <input type="text" id="language" name="language" maxlength="5" value="{{ settings.language|default('nl') }}" placeholder="nl">
                 </div>
 
                 <div class="form-group">
                     <label for="theme">Thema</label>
                     <select id="theme" name="theme">
-                        <option value="dark" selected>Donker</option>
-                        <option value="light">Licht</option>
+                        <option value="dark" {% if settings.theme|default('dark') == 'dark' %}selected{% endif %}>Donker</option>
+                        <option value="light" {% if settings.theme|default('dark') == 'light' %}selected{% endif %}>Licht</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="profile_visibility">Profielzichtbaarheid</label>
                     <select id="profile_visibility" name="profile_visibility">
-                        <option value="public" selected>Openbaar</option>
-                        <option value="private">Privé</option>
+                        <option value="public" {% if settings.profileVisibility|default('private') == 'public' %}selected{% endif %}>Openbaar</option>
+                        <option value="private" {% if settings.profileVisibility|default('private') == 'private' %}selected{% endif %}>Privé</option>
                     </select>
+                </div>
+
+                <div class="form-group-checkbox">
+                    <input type="checkbox" id="email_notifications_enabled" name="email_notifications_enabled" value="1" {% if settings.emailNotificationsEnabled|default(false) %}checked{% endif %}>
+                    <label for="email_notifications_enabled">
+                        <strong>E-mailnotificaties</strong>
+                        <span>Ontvang updates over je account en projecten per e-mail.</span>
+                    </label>
                 </div>
 
                 <button type="submit" class="btn-primary">Wijzigingen opslaan</button>
