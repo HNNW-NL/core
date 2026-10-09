@@ -16,12 +16,12 @@
 {# Page content #}
 {% block body %}
     <div class="projects-main">
-        <div class="projects-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
             <div>
                 <h2>Projects - Overview</h2>
                 <p>Organization panel - projects overview page.</p>
             </div>
-            <a href="#" class="btn btn-primary" aria-label="Create new project">+ Create project</a>
+            <a href="#" id="create-project-button" style="background-color: #2b6cb0; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 0.9rem;" aria-label="Create new project">+ Create project</a>
         </div>
 
         <div class="projects-current-text"><h2>Current projects</h2></div>
@@ -54,6 +54,7 @@
                     <option value="large">Large</option>
                 </select>
             </div>
+
             <label for="per-page-select" class="per-page-label">Items</label>
             <div class="card-size-wrapper">
                 <select id="per-page-select" class="card-size-select" aria-label="Items per page" title="Select items per page">
