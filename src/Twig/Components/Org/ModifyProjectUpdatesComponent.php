@@ -27,7 +27,6 @@ class ModifyProjectUpdatesComponent
 
     public string $errorMessage = '';
 
-    public bool $submitted = false;
 
 
 
@@ -66,7 +65,6 @@ class ModifyProjectUpdatesComponent
         $updateData['id'] = $id;
 
         $this->modifyProjectUpdatesHandler->handleModifyUpdate($updateData, $this->getProject());
-        $this->submitted = true;
     }
 
     #[LiveAction]
