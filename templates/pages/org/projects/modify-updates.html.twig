@@ -4,13 +4,18 @@
 {% block title %}Modify project {{ id }} updates{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/org/css/modify-updates.css") }}">
+{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}{{ importmap('app') }}{% endblock %}
 
 {# Page content #}
 {% block body %}
     <h2>Projects - Modify Updates</h2>
     <p>Organization panel - modify project ({{ id }}) updates page.</p>
+    {{ component('Org:ModifyProjectUpdatesComponent',{
+        projectId: id
+    }) }}
 {% endblock %}
