@@ -5,19 +5,28 @@ namespace App\Module\Org\Service;
 use App\Entity\Account\Account;
 use App\Entity\Org\OrgMember;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 final class StaffViewService
 {
     public function __construct(
         private ManagerRegistry $doctrine,
-        private Security $security,
+        private RequestStack $requestStack,
     ) {
     }
 
     public function getStaff(): array
     {
-        $user = $this->security->getUser();
+        $session = $this->requestStack->getCurrentRequest()?->getSession();
+        $accountId = $session?->get('account_id');
+
+        if (!$accountId) {
+            return ['items' => []];
+        }
+
+        $user = $this->doctrine
+            ->getRepository(Account::class)
+            ->find($accountId);
 
         if (!$user instanceof Account) {
             return ['items' => []];
