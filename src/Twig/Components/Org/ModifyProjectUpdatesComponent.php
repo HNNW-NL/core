@@ -22,6 +22,9 @@ class ModifyProjectUpdatesComponent
     #[LiveProp]
     public string $projectId = '';
 
+    #[LiveProp(writable: true)]
+    public array $updateMap = [];
+
     public string $errorMessage = '';
 
     public bool $submitted = false;
@@ -49,34 +52,41 @@ class ModifyProjectUpdatesComponent
     }
 
     #[LiveAction]
-    public function updateProjectUpdates($updateMap): void
+    public function updateProjectUpdate(#[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
         }
-        $this->modifyProjectUpdatesHandler->handleModifyUpdate($updateMap, $this->getProject());
+        if (!isset($this->updateMap[$id])) {
+            return;
+        }
+
+        $updateData = $this->updateMap[$id];
+        $updateData['id'] = $id;
+
+        $this->modifyProjectUpdatesHandler->handleModifyUpdate($updateData, $this->getProject());
         $this->submitted = true;
     }
 
     #[LiveAction]
-    public function deleteProjectUpdate(#[LiveArg] string $projectUpdateId): void
+    public function deleteProjectUpdate(#[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
         }
-        $this->modifyProjectUpdatesHandler->deleteProjectUpdateById($projectUpdateId);
+        $this->modifyProjectUpdatesHandler->deleteProjectUpdateById($id);
     }
 
     #[LiveAction]
-    public function restoreProjectUpdate( #[LiveArg] string$projectUpdateId): void
+    public function restoreProjectUpdate( #[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
         }
-        $this->modifyProjectUpdatesHandler->restoreProjectUpdateById($projectUpdateId);
+        $this->modifyProjectUpdatesHandler->restoreProjectUpdateById($id);
     }
 
 }

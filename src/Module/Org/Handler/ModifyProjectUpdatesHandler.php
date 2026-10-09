@@ -23,14 +23,20 @@ class ModifyProjectUpdatesHandler
         $update = $this->projectUpdateRepository->find($updateMap['id']);
 
         if (!$update || $update->getProject() !== $project) {
-            return; // or throw an exception
+            return; // throw an exception
         }
+        if (!isset($updateMap['title'], $updateMap['content'])) {
+            return; // throw en exception
+        }
+
         $update->setTitle($updateMap['title']);
         $update->setContent($updateMap['content']);
 
-        if ($updateMap['public'] and !$update->isPublic()){
+        $isPublic = (bool) ($updateMap['public'] ?? false);
+
+        if ($isPublic && !$update->isPublic()){
             $update->makePublic();
-        } elseif (!$updateMap['public'] and $update->isPublic()){
+        } elseif ($isPublic && $update->isPublic()){
             $update->makePrivate();
         }
 

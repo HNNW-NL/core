@@ -13,4 +13,7 @@
 {% block body %}
     <h2>Projects - Modify Updates</h2>
     <p>Organization panel - modify project ({{ id }}) updates page.</p>
+    {{ component('Org:ModifyProjectUpdatesComponent',{
+        projectId: id
+    }) }}
 {% endblock %}

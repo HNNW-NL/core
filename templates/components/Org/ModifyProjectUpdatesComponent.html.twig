@@ -1,0 +1,67 @@
+{% block stylesheets %}{{ importmap('app') }}{% endblock %}
+
+<div {{ attributes }} class="page-content">
+    {% if this.submitted == true %}
+        {# <twig:Shared:Alert variant="success"> #}
+        <p>The changes were saved.</p>
+        {# </twig:Shared:Alert> #}
+    {% endif %}
+    {% if this.errorMessage %}
+        {# <twig:Shared:Alert variant="error"> #}
+        <p>{{ this.errorMessage }}</p>
+        {# </twig:Shared:Alert> #}
+    {% endif %}
+
+
+    <table>
+        <thead>
+
+        </thead>
+        <tbody>
+        {% for update in this.projectUpdates %}
+            <tr id="{{ update.id }}" class="update-row">
+                <td>Created by:{{ update.author.displayName }}</td> {# link to profile page #}
+                <td>
+                    <input type="text" value="{{ update.title }}" data-model="updateMap[{{ update.id }}].title" >
+                </td>
+                <td>
+                    <textarea
+                        rows="10"
+                        cols="50"
+                        data-model="updateMap[{{ update.id }}].content"
+                    >
+                        {{ update.content }}
+                    </textarea>
+                </td>
+                <td>
+                    <label>
+                        <input
+                            type="checkbox"
+                            data-model="updateMap[{{ update.id }}].public"
+                            {% if update.isPublic %}checked{% endif %} >
+                        Public
+                    </label>
+                </td>
+                <td>
+                    <button
+                        type="button"
+                        data-action="live#action"
+                        data-live-action-param="updateProjectUpdate"
+                        data-live-id-param="{{ update.id }}"
+                    >
+                        Update
+                    </button>
+                    <button
+                        type="button"
+                        data-action="live#action"
+                        data-live-action-param="deleteProjectUpdate"
+                        data-live-id-param="{{ update.id }}"
+                    >
+                        Remove
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
