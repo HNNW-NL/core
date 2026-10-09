@@ -1,42 +1,30 @@
 {% extends 'layouts/main.base.html.twig' %}
-
 {# Page title meta tag #}
 {% block title %}About{% endblock %}
-
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
 {% block seoDescription %}{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
-
 {# CSS #}
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('assets/main/css/about.css') }}">
 {% endblock %}
-
 {# JavaScript #}
 {% block javascript %}{% endblock %}
-
 {# Page content #}
 {% block body %}
     <div class="about-page">
-
 <main>
-
     <!-- HERO -->
-
     <section class="hero">
-
         <div>
-
             <div class="eyebrow">
                 Over Het Nieuwe² Werken
             </div>
-
             <h1>
                 Samenwerken
                 <span>zonder grenzen.</span>
             </h1>
-
             <p class="hero-description">
                 Het Nieuwe² Werken is een open platform voor de overheid
                 waarmee organisaties vraag en aanbod van werk bij elkaar
@@ -44,294 +32,198 @@
                 samen projecten uit te voeren en kennis te delen over
                 organisatiegrenzen heen.
             </p>
-
         </div>
-
         <div class="visual">
-
             <div class="orbit">
-
                 <div class="node node-1"></div>
                 <div class="node node-2"></div>
                 <div class="node node-3"></div>
-
                 <div class="center">
                     {{ ux_icon('mdi:handshake', { 'aria-hidden': 'true' }) }}
                 </div>
-
             </div>
-
         </div>
-
     </section>
-
     <!-- MISSIE -->
-
     <section class="section">
-
         <div class="section-label">
             Onze missie
         </div>
-
         <h2 class="section-title">
             Eén plek voor samenwerking binnen de overheid.
         </h2>
-
         <p class="section-intro">
             Overheidsorganisaties beschikken over veel kennis, ervaring
             en capaciteit. Het Nieuwe² Werken maakt deze mogelijkheden
             beter vindbaar en helpt mensen om elkaar rond concrete
             projecten en werkzaamheden te vinden.
         </p>
-
         <div class="mission-grid">
-
             <article class="mission-card">
-
                 <div class="icon">
                     {{ ux_icon('mdi:magnify', { 'aria-hidden': 'true' }) }}
                 </div>
-
                 <h3>
                     Vind expertise
                 </h3>
-
                 <p>
                     Maak zichtbaar welke kennis, vaardigheden en ervaring
                     beschikbaar zijn binnen en buiten je organisatie.
                 </p>
-
             </article>
-
             <article class="mission-card">
-
                 <div class="icon">
                     {{ ux_icon('mdi:puzzle', { 'aria-hidden': 'true' }) }}
                 </div>
-
                 <h3>
                     Werk samen
                 </h3>
-
                 <p>
                     Breng mensen samen rond projecten, werkpakketten en
                     gezamenlijke vraagstukken.
                 </p>
-
             </article>
-
             <article class="mission-card">
-
                 <div class="icon">
                     {{ ux_icon('mdi:web', { 'aria-hidden': 'true' }) }}
                 </div>
-
                 <h3>
                     Deel over grenzen heen
                 </h3>
-
                 <p>
                     Stimuleer samenwerking tussen teams, organisaties
                     en departementen zonder onnodige barrières.
                 </p>
-
             </article>
-
         </div>
-
     </section>
-
     <!-- HOE HET WERKT -->
-
     <section class="how">
-
         <div class="section">
-
             <div class="section-label">
                 Hoe het werkt
             </div>
-
             <h2 class="section-title">
                 Van hulpvraag naar samenwerking.
             </h2>
-
             <p class="section-intro">
                 Het platform is opgebouwd rondom concrete vragen en
                 beschikbare expertise.
             </p>
-
             <div class="steps">
-
                 <div class="step">
-
                     <div class="step-number">
                         01
                     </div>
-
                     <h3>
                         Publiceer
                     </h3>
-
                     <p>
                         Plaats een project, hulpvraag of werkpakket
                         waarvoor je capaciteit of expertise zoekt.
                     </p>
-
                 </div>
-
                 <div class="step">
-
                     <div class="step-number">
                         02
                     </div>
-
                     <h3>
                         Ontdek
                     </h3>
-
                     <p>
                         Zoek naar relevante projecten, mensen,
                         groepen en werkzaamheden.
                     </p>
-
                 </div>
-
                 <div class="step">
-
                     <div class="step-number">
                         03
                     </div>
-
                     <h3>
                         Verbind
                     </h3>
-
                     <p>
                         Kom in contact met andere professionals en
                         vorm een team rondom het vraagstuk.
                     </p>
-
                 </div>
-
                 <div class="step">
-
                     <div class="step-number">
                         04
                     </div>
-
                     <h3>
                         Bouw mee
                     </h3>
-
                     <p>
                         Werk samen, deel kennis en draag bij aan
                         interdepartementale impact.
                     </p>
-
                 </div>
-
             </div>
-
         </div>
-
     </section>
-
     <!-- OPEN SOURCE -->
-
     <section class="section">
-
         <div class="source">
-
             <div class="source-number">
-
                 <strong>100%</strong>
-
                 <span>
                     Open source
                 </span>
-
             </div>
-
             <div class="source-content">
-
                 <div class="section-label">
                     Open & transparant
                 </div>
-
                 <h2 class="section-title">
                     Het platform bouwen we samen.
                 </h2>
-
                 <p>
                     Het Nieuwe² Werken is open source. De ontwikkeling
                     vindt transparant plaats en de community kan bijdragen
                     aan de verdere ontwikkeling van het platform.
                 </p>
-
                 <p>
                     Van design en UX tot code, documentatie en ideeën:
                     iedereen kan bijdragen aan een platform dat aansluit
                     op de praktijk van de overheid.
                 </p>
-
                 <ul class="source-list">
-
                     <li>
                         Broncode publiek beschikbaar
                     </li>
-
                     <li>
                         Issues en roadmap openbaar
                     </li>
-
                     <li>
                         Open bèta en feedback uit de praktijk
                     </li>
-
                     <li>
                         Community via Slack
                     </li>
-
                 </ul>
-
             </div>
-
         </div>
-
     </section>
-
     <!-- CTA -->
-
     <section class="cta">
-
         <div class="cta-inner">
-
             <div>
-
                 <h2>
                     Bouw je mee?
                 </h2>
-
                 <p>
                     De open bèta is begonnen. Organisaties binnen de
                     overheid kunnen meedoen, feedback geven en helpen
                     het platform verder te ontwikkelen.
                 </p>
-
             </div>
-
             <a href="index.html#aanmelden" class="button">
                 Naar de open bèta →
             </a>
-
         </div>
-
     </section>
-
 </main>
-
 <!-- FOOTER -->
-
     </div>
-
 {% endblock %}
