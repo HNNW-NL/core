@@ -99,3 +99,55 @@
         padding: 20px;
     }
 }
+
+/* Staff Management knoppen */
+
+.staff-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.staff-btn {
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.staff-btn-primary {
+    background-color: var(--accent-yellow);
+    color: #000;
+}
+
+.staff-btn-primary:hover {
+    background-color: #e6a500;
+}
+
+.staff-btn-secondary {
+    background-color: transparent;
+    border-color: var(--accent-yellow);
+    color: var(--accent-yellow);
+}
+
+.staff-btn-secondary:hover {
+    background-color: rgba(253, 185, 19, 0.12);
+}
+
+.staff-btn-danger {
+    background-color: transparent;
+    border-color: #ef4444;
+    color: #f87171;
+}
+
+.staff-btn-danger:hover {
+    background-color: rgba(239, 68, 68, 0.12);
+}
+
+.staff-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

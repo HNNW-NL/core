@@ -30,7 +30,6 @@
                     ].join(' ').toLowerCase();
 
                     const matches = staffText.includes(searchTerm);
-
                     card.style.display = matches ? '' : 'none';
 
                     if (matches) {
@@ -52,6 +51,17 @@
     <div class="staff-header">
         <h2>Staff Management</h2>
         <p>View and manage the staff members of your organization.</p>
+    </div>
+
+    <div class="staff-actions">
+        <button
+            type="button"
+            class="staff-btn staff-btn-primary"
+            disabled
+            title="Toevoegen wordt later beschikbaar"
+        >
+            + Medewerker toevoegen
+        </button>
     </div>
 
     <div class="staff-search">
@@ -79,30 +89,55 @@
                         {% endif %}
                     </h3>
 
-                    <p class="staff-email">
-                        {{ member.email }}
-                    </p>
+                    <p class="staff-email">{{ member.email }}</p>
 
                     <p class="staff-role">
                         Role: {{ member.role|default('No role') }}
                     </p>
 
-                    <a
-                        class="staff-view-link"
-                        href="{{ path('org.viewStaff', {id: member.id}) }}"
-                    >
+                    <div class="staff-actions">
+                        <button
+                            type="button"
+                            class="staff-btn staff-btn-secondary"
+                            disabled
+                            title="Rol wijzigen wordt later beschikbaar"
+                        >
+                            Rol wijzigen
+                        </button>
+
+                        <button
+                            type="button"
+                            class="staff-btn staff-btn-danger"
+                            disabled
+                            title="Verwijderen wordt later beschikbaar"
+                        >
+                            Verwijderen
+                        </button>
+                    </div>
+
+                    <a class="staff-view-link" href="{{ path('org.viewStaff', {id: member.id}) }}">
                         View staff member
                     </a>
                 </div>
             {% endfor %}
         </div>
 
-        <div
-            id="staff-no-results"
-            class="staff-empty"
-            hidden
-        >
+        <div id="staff-no-results" class="staff-empty" hidden>
             <p>Geen medewerkers gevonden voor deze zoekopdracht.</p>
         </div>
     {% endif %}
+
+    <section class="staff-roles">
+        <h3>Beschikbare organisatierollen</h3>
+
+        {% if data.roles is defined and data.roles is not empty %}
+            <ul>
+                {% for role in data.roles %}
+                    <li>{{ role.name }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Er zijn nog geen organisatierollen beschikbaar.</p>
+        {% endif %}
+    </section>
 {% endblock %}
