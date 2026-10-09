@@ -1,19 +1,66 @@
+
 {% extends 'layouts/org.base.html.twig' %}
 
-{% block title %}Staff{% endblock %}
+{% block title %}Staff Management{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('assets/org/css/staff-view.css') }}">
 {% endblock %}
 
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('staff-search');
+            const staffCards = document.querySelectorAll('.staff-card');
+            const noResults = document.getElementById('staff-no-results');
+
+            if (!searchInput) {
+                return;
+            }
+
+            searchInput.addEventListener('input', function () {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                staffCards.forEach(function (card) {
+                    const staffText = [
+                        card.querySelector('.staff-name')?.textContent || '',
+                        card.querySelector('.staff-email')?.textContent || '',
+                        card.querySelector('.staff-role')?.textContent || ''
+                    ].join(' ').toLowerCase();
+
+                    const matches = staffText.includes(searchTerm);
+
+                    card.style.display = matches ? '' : 'none';
+
+                    if (matches) {
+                        visibleCount++;
+                    }
+                });
+
+                if (noResults) {
+                    noResults.hidden = visibleCount > 0;
+                }
+            });
+        });
+    </script>
+{% endblock %}
 
 {% block body %}
     {% set data = org_staff() %}
 
     <div class="staff-header">
-        <h2>Organization Staff</h2>
-        <p>View the staff members of your organization.</p>
+        <h2>Staff Management</h2>
+        <p>View and manage the staff members of your organization.</p>
+    </div>
+
+    <div class="staff-search">
+        <input
+            type="search"
+            id="staff-search"
+            placeholder="Zoek op naam, e-mail of rol..."
+            aria-label="Zoek medewerkers"
+        >
     </div>
 
     {% if data.items is empty %}
@@ -48,6 +95,14 @@
                     </a>
                 </div>
             {% endfor %}
+        </div>
+
+        <div
+            id="staff-no-results"
+            class="staff-empty"
+            hidden
+        >
+            <p>Geen medewerkers gevonden voor deze zoekopdracht.</p>
         </div>
     {% endif %}
 {% endblock %}
