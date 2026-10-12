@@ -14,7 +14,8 @@
 }
 
 #account-centre-container.projects-page .projects-search,
-#account-centre-container.projects-page .projects-status-filter {
+#account-centre-container.projects-page .projects-status-filter,
+#account-centre-container.projects-page .projects-sort {
 	display: flex;
 	flex: 1 1 14rem;
 	flex-direction: column;
@@ -145,7 +146,8 @@
 	}
 
 	#account-centre-container.projects-page .projects-search,
-	#account-centre-container.projects-page .projects-status-filter {
+	#account-centre-container.projects-page .projects-status-filter,
+	#account-centre-container.projects-page .projects-sort {
 		flex-basis: auto;
 	}
 
