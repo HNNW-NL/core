@@ -369,6 +369,66 @@
   padding: 0 0 84px;
 }
 
+.home-page .workflow {
+  padding-bottom: 76px;
+}
+
+.home-page .workflow-card {
+  padding: 34px;
+  border: 1px solid rgba(110, 198, 212, 0.18);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(18, 29, 48, 0.92), rgba(11, 18, 32, 0.82));
+  box-shadow: 0 18px 36px rgba(4, 9, 18, 0.2);
+}
+
+.home-page .workflow-intro {
+  max-width: 720px;
+  margin-bottom: 28px;
+}
+
+.home-page .workflow-intro h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.home-page .workflow-intro > p:last-child,
+.home-page .workflow-steps p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.home-page .workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-page .workflow-steps li {
+  padding: 20px;
+  border: 1px solid rgba(110, 198, 212, 0.12);
+  border-radius: 16px;
+  background: rgba(7, 13, 24, 0.45);
+}
+
+.home-page .workflow-step-number {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.home-page .workflow-steps h3 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
 .home-page .section-heading {
   max-width: 700px;
   margin: 0 auto 30px;
@@ -695,7 +755,8 @@
   }
 
   .home-page .feature-grid,
-  .home-page .stats-grid {
+  .home-page .stats-grid,
+  .home-page .workflow-steps {
     grid-template-columns: 1fr;
   }
 
@@ -710,6 +771,27 @@
 }
 
 @media (max-width: 620px) {
+  .home-page .hero-visual {
+    width: min(78vw, 340px);
+  }
+
+  .home-page .workflow {
+    padding-bottom: 56px;
+  }
+
+  .home-page .workflow-card {
+    padding: 24px 20px;
+    border-radius: 20px;
+  }
+
+  .home-page .workflow-steps {
+    gap: 12px;
+  }
+
+  .home-page .workflow-steps li {
+    padding: 16px;
+  }
+
   .home-page .nav {
     flex-wrap: wrap;
     gap: 15px 22px;
