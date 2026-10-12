@@ -4,7 +4,6 @@
 namespace App\Module\Org\Handler;
 
 use App\Entity\Project\Project;
-use App\Entity\Project\ProjectUpdate;
 use App\Repository\Project\ProjectUpdateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -15,18 +14,16 @@ class ModifyProjectUpdatesHandler
         private EntityManagerInterface $em
     ) {}
 
-    /**
-     * @param array<int, int> $roleMap [participantId => roleId]
-     */
+
     public function handleModifyUpdate(array $updateMap, Project $project): void
     {
         $update = $this->projectUpdateRepository->find($updateMap['id']);
 
         if (!$update || $update->getProject() !== $project) {
-            return; // throw an exception
+            return;
         }
         if (!isset($updateMap['title'], $updateMap['content'])) {
-            return; // throw en exception
+            return;
         }
 
         $update->setTitle($updateMap['title']);
@@ -36,22 +33,34 @@ class ModifyProjectUpdatesHandler
 
         if ($isPublic && !$update->isPublic()){
             $update->makePublic();
-        } elseif ($isPublic && $update->isPublic()){
+        } elseif (!$isPublic && $update->isPublic()){
             $update->makePrivate();
         }
 
 
         $this->em->flush();
     }
-    public function deleteProjectUpdateById($projectUpdateId): void
+    public function deleteProjectUpdateById($projectUpdateId, $project): void
     {
         $update = $this->projectUpdateRepository->find($projectUpdateId);
+
+        if (!$update || $update->getProject() !== $project) {
+            return; // throw an exception
+        }
+
         $update->softDelete();
+        $this->em->flush();
     }
 
-    public function restoreProjectUpdateById($projectUpdateId): void
+    public function restoreProjectUpdateById($projectUpdateId, $project): void
     {
         $update = $this->projectUpdateRepository->find($projectUpdateId);
+
+        if (!$update || $update->getProject() !== $project) {
+            return; // throw an exception
+        }
+
         $update->restore();
+        $this->em->flush();
     }
 }

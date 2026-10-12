@@ -3,7 +3,6 @@
 namespace App\Twig\Components\Org;
 
 use App\Entity\Project\Project;
-use App\Entity\Project\ProjectUpdate;
 use App\Repository\Project\ProjectRepository;
 use App\Repository\Project\ProjectUpdateRepository;
 use App\Module\Org\Handler\ModifyProjectUpdatesHandler;
@@ -13,6 +12,7 @@ use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 #[AsLiveComponent]
 class ModifyProjectUpdatesComponent
@@ -25,6 +25,7 @@ class ModifyProjectUpdatesComponent
     #[LiveProp(writable: true)]
     public array $updateMap = [];
 
+    #[LiveProp]
     public string $errorMessage = '';
 
 
@@ -45,9 +46,9 @@ class ModifyProjectUpdatesComponent
         return $this->projectUpdateRepository->findBy(['project' => $this->projectId]);
     }
 
-    public function getProject(): project
+    public function getProject(): Project
     {
-        return $this->projectRepository->find($this->projectId);
+        return $this->projectRepository->find($this->projectId) ?? throw new NotFoundHttpException();
     }
 
     #[LiveAction]
@@ -74,7 +75,7 @@ class ModifyProjectUpdatesComponent
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
         }
-        $this->modifyProjectUpdatesHandler->deleteProjectUpdateById($id);
+        $this->modifyProjectUpdatesHandler->deleteProjectUpdateById($id, $this->getProject());
     }
 
     #[LiveAction]
@@ -84,7 +85,7 @@ class ModifyProjectUpdatesComponent
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
         }
-        $this->modifyProjectUpdatesHandler->restoreProjectUpdateById($id);
+        $this->modifyProjectUpdatesHandler->restoreProjectUpdateById($id, $this->getProject());
     }
 
 }

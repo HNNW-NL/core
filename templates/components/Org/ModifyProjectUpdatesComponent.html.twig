@@ -7,28 +7,25 @@
 
 
     <table class="modify-updates-table">
-        <thead>
-
-        </thead>
         <tbody>
         {% for update in this.projectUpdates %}
             <tr id="{{ update.id }}" class="update-row">
                 <td>Created by:{{ update.author.displayName }}</td> {# link to profile page #}
                 <td>
-                    <input type="text" value="{{ update.title }}" data-model="norender|updateMap[{{ update.id }}].title" >
+                    <input type="text" value="{{ update.title }}" data-model="updateMap[{{ update.id }}].title" >
                 </td>
                 <td>
                     <textarea
                         rows="10"
                         cols="50"
-                        data-model="norender|updateMap[{{ update.id }}].content"
+                        data-model="updateMap[{{ update.id }}].content"
                     >{{ update.content }}</textarea>
                 </td>
                 <td>
                     <label>
                         <input
                             type="checkbox"
-                            data-model="norender|updateMap[{{ update.id }}].public"
+                            data-model="updateMap[{{ update.id }}].public"
                             {% if update.isPublic %}checked{% endif %} >
                         Public
                     </label>
@@ -50,6 +47,16 @@
                     >
                         Remove
                     </button>
+                    {% if update.deletedAt %}
+                        <button
+                            type="button"
+                            data-action="live#action"
+                            data-live-action-param="restoreProjectUpdate"
+                            data-live-id-param="{{ update.id }}"
+                        >
+                            Restore
+                        </button>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
