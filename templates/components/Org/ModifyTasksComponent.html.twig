@@ -1,5 +1,95 @@
-<div {{ attributes }}>
+<div {{ attributes }} class="modify-tasks-container">
+    {% if this.errorMessage %}
+        {# <twig:Shared:Alert variant="error"> #}
+        <p>{{ this.errorMessage }}</p>
+        {# </twig:Shared:Alert> #}
+    {% endif %}
 
-    {% for task in tasks %}
-    {% endfor %}
+
+    <table class="modify-tasks-table">
+        <thead>
+
+        </thead>
+        <tbody>
+        {% for task in this.tasks %}
+            <tr id="{{ task.id }}" class="task-row">
+                <td>Created by:{{ task.assignedProfile.displayName }}</td> {# link to profile page #}
+                <td>
+                    <input type="text" value="{{ task.title }}" data-model="norender|updateMap[{{ task.id }}].title" >
+                </td>
+                <td>
+                    <textarea
+                        rows="10"
+                        cols="50"
+                        data-model="norender|updateMap[{{ task.id }}].description"
+                    >{{ task.description }}</textarea>
+                </td>
+                <td>
+                    <label>
+                        Work Package
+                        <select data-model="norender|updateMap[{{ task.id }}].workPackage">
+                            {% for workPackage in this.workPackages %}
+                                <option value="{{ workPackage.id }}"
+                                        {% if task.workPackage == workPackage %}selected{% endif %}
+                                >
+                                    {{ workPackage.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </td>
+                <td>
+                    <label>
+                        Status
+                        <select data-model="norender|updateMap[{{ task.id }}].status">
+                            {% for status in this.statuses %}
+                                <option value="{{ status.id }}"
+                                        {% if task.status == status %}selected{% endif %}
+                                >
+                                    {{ status.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                </td>
+                <td>
+                    <label>
+                        Priority
+                        <input type="text" value="{{ task.priority }}" data-model="norender|updateMap[{{ task.id }}].priority">
+                    </label>
+                </td>
+                <td>
+                    <label>
+                        Slug
+                        <input type="text" value="{{ task.slug }}" data-model="norender|updateMap[{{ task.id }}].slug">
+                    </label>
+                </td>
+                <td>
+                    <label>
+                        Due date
+                        <input type="datetime-local" data-model="norender|updateMap[{{ task.id }}].dueDate">
+                    </label>
+                </td>
+                <td>
+                    <button
+                        type="button"
+                        data-action="live#action"
+                        data-live-action-param="updateTask"
+                        data-live-id-param="{{ task.id }}"
+                    >
+                        Update
+                    </button>
+                    <button
+                        type="button"
+                        data-action="live#action"
+                        data-live-action-param="deleteTask"
+                        data-live-id-param="{{ task.id }}"
+                    >
+                        Remove
+                    </button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>

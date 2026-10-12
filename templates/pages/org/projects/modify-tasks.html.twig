@@ -4,10 +4,12 @@
 {% block title %}Modify project {{ id }} tasks{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/org/css/modify-tasks.css") }}">
+{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}{{ importmap('app') }}{% endblock %}
 
 {# Page content #}
 {% block body %}

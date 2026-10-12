@@ -5,6 +5,7 @@ namespace App\Twig\Components\Org;
 use App\Repository\Project\ProjectRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\WorkPackageRepository;
+use App\Repository\Common\StatusRepository;
 use App\Entity\Project\Project;
 use App\Entity\Project\PackageTask;
 use App\Module\Org\Handler\ModifyTasksHandler;
@@ -26,7 +27,7 @@ class ModifyTaskComponent
     public string $errorMessage = '';
 
     #[LiveProp(writable: true)]
-    public array $updateMap = [];
+    public array $taskMap = [];
 
 
     public function __construct(readonly private AuthorizationCheckerInterface $authorizationChecker,
@@ -34,6 +35,7 @@ class ModifyTaskComponent
                                 readonly private PackageTaskRepository         $packageTaskRepository,
                                 readonly private WorkPackageRepository         $workPackageRepository,
                                 readonly private ModifyTasksHandler            $modifyTasksHandler,
+                                readonly private StatusRepository $statusRepository,
     )
     {
     }
@@ -54,6 +56,11 @@ class ModifyTaskComponent
         return $this->workPackageRepository->findActiveByProject($this->getProject());
     }
 
+    public function getStatuses(): iterable
+    {
+        return $this->statusRepository->findAll();
+    }
+
     public function updateTask(#[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
@@ -68,6 +75,26 @@ class ModifyTaskComponent
         $updateData['id'] = $id;
 
         $this->modifyTasksHandler->handleModifyTask($updateData, $this->getProject());
+    }
+
+    #[LiveAction]
+    public function deleteProjectUpdate(#[LiveArg] string $id): void
+    {
+        if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
+            $this->errorMessage = 'You are not allowed to edit tasks for this project';
+            return;
+        }
+        $this->modifyTasksHandler->deleteTaskById($id);
+    }
+
+    #[LiveAction]
+    public function restoreProjectUpdate( #[LiveArg] string $id): void
+    {
+        if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
+            $this->errorMessage = 'You are not allowed to edit tasks for this project';
+            return;
+        }
+        $this->modifyTasksHandler->restoreTaskById($id);
     }
 
 }
