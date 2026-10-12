@@ -15,4 +15,5 @@ class AuditLogSearchDTO
    )]
    public ?DateTimeImmutable $endPeriod = null;
    public ?Account $actor  = null;
+   
 }

@@ -1,0 +1,37 @@
+<div class="auditLogSearch searchTwig" {{ attributes }}>
+    {% block stylesheets %}
+        <link rel="stylesheet" href="{{ asset('assets/shared/css/searchTwig.css') }}">
+    {% endblock %}
+
+    {{ form_start(form,{
+            attr: {
+                'data-action': 'live#action:prevent',
+                'data-live-action-param': 'search'
+            }
+        }) }}
+        <table>
+            
+        </table>
+        <button>Zoek</button>
+        {{ form_rest(form) }}
+    {{ form_end(form) }}
+    <table class="result">
+        <thead>
+            
+        </thead>
+        <tbody>
+        {% if this.results is empty and this.hasSearched %}
+            <tr><td Colspan="9">Geen resultaten gevonden</td></tr>
+        {% elseif this.hasSearched == false %}
+            <tr><td Colspan="9">Klik op zoeken om resultaten te vinden</td></tr>
+        {% else %}
+            {% for result in this.results %}
+                
+            {% endfor %}
+        {% endif %}
+        </tbody>
+    </table>
+
+    <button data-action="live#action" data-live-action-param='prev' class="{{ hasPrev ? "" : "hidden"}}">Vorige pagina</button>
+    <button data-action="live#action" data-live-action-param='next' class="{{ hasNext ? "" : "hidden"}}">Volgende pagina</button>
+</div>
