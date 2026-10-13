@@ -13,6 +13,7 @@ use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\UX\TwigComponent\Attribute\PostMount;
 
 #[AsLiveComponent]
 class ModifyProjectUpdatesComponent
@@ -51,6 +52,7 @@ class ModifyProjectUpdatesComponent
         return $this->projectRepository->find($this->projectId) ?? throw new NotFoundHttpException();
     }
 
+    #[PostMount]
     public function mount(): void
     {
         foreach ($this->getProjectUpdates() as $update) {
