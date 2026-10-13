@@ -40,24 +40,24 @@ class ModifyProjectUpdatesHandler
 
         $this->em->flush();
     }
-    public function deleteProjectUpdateById($projectUpdateId, $project): void
+    public function deleteProjectUpdateById(string $projectUpdateId, Project $project): void
     {
         $update = $this->projectUpdateRepository->find($projectUpdateId);
 
         if (!$update || $update->getProject() !== $project) {
-            return; // throw an exception
+            return;
         }
 
         $update->softDelete();
         $this->em->flush();
     }
 
-    public function restoreProjectUpdateById($projectUpdateId, $project): void
+    public function restoreProjectUpdateById(string $projectUpdateId, Project $project): void
     {
         $update = $this->projectUpdateRepository->find($projectUpdateId);
 
         if (!$update || $update->getProject() !== $project) {
-            return; // throw an exception
+            return;
         }
 
         $update->restore();

@@ -10,7 +10,11 @@
         <tbody>
         {% for update in this.projectUpdates %}
             <tr id="{{ update.id }}" class="update-row">
-                <td>Created by:{{ update.author.displayName }}</td> {# link to profile page #}
+                <td>Created by:{{ update.author.displayName }} {# link to profile page #}
+                    {% if update.deletedAt %}
+                        Project delete at:{{ update.deleteAt ? update.deleteAt|date('d/m/Y') : '-' }} }}
+                    {% endif %}
+                </td>
                 <td>
                     <input type="text" value="{{ update.title }}" data-model="updateMap[{{ update.id }}].title" >
                 </td>
@@ -31,23 +35,24 @@
                     </label>
                 </td>
                 <td>
-                    <button
-                        type="button"
-                        data-action="live#action"
-                        data-live-action-param="updateProjectUpdate"
-                        data-live-id-param="{{ update.id }}"
-                    >
-                        Update
-                    </button>
-                    <button
-                        type="button"
-                        data-action="live#action"
-                        data-live-action-param="deleteProjectUpdate"
-                        data-live-id-param="{{ update.id }}"
-                    >
-                        Remove
-                    </button>
-                    {% if update.deletedAt %}
+                    {% if not update.deletedAt %}
+                        <button
+                            type="button"
+                            data-action="live#action"
+                            data-live-action-param="updateProjectUpdate"
+                            data-live-id-param="{{ update.id }}"
+                        >
+                            Update
+                        </button>
+                        <button
+                            type="button"
+                            data-action="live#action"
+                            data-live-action-param="deleteProjectUpdate"
+                            data-live-id-param="{{ update.id }}"
+                        >
+                            Remove
+                        </button>
+                    {% elseif update.deletedAt %}
                         <button
                             type="button"
                             data-action="live#action"
@@ -56,6 +61,8 @@
                         >
                             Restore
                         </button>
+                    {% else %}
+                        <p>No actions available</p>
                     {% endif %}
                 </td>
             </tr>

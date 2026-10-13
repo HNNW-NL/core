@@ -51,6 +51,17 @@ class ModifyProjectUpdatesComponent
         return $this->projectRepository->find($this->projectId) ?? throw new NotFoundHttpException();
     }
 
+    public function mount(): void
+    {
+        foreach ($this->getProjectUpdates() as $update) {
+            $this->updateMap[(string) $update->getId()] = [
+                'title' => $update->getTitle(),
+                'content' => $update->getContent(),
+                'public' => $update->isPublic(),
+            ];
+        }
+    }
+
     #[LiveAction]
     public function updateProjectUpdate(#[LiveArg] string $id): void
     {
@@ -59,6 +70,7 @@ class ModifyProjectUpdatesComponent
             return;
         }
         if (!isset($this->updateMap[$id])) {
+            $this->errorMessage = 'Update not found';
             return;
         }
 
@@ -75,6 +87,11 @@ class ModifyProjectUpdatesComponent
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
         }
+        if (!isset($this->updateMap[$id])) {
+            $this->errorMessage = 'Update not found';
+            return;
+        }
+
         $this->modifyProjectUpdatesHandler->deleteProjectUpdateById($id, $this->getProject());
     }
 
@@ -85,6 +102,11 @@ class ModifyProjectUpdatesComponent
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
         }
+        if (!isset($this->updateMap[$id])) {
+            $this->errorMessage = 'Update not found';
+            return;
+        }
+
         $this->modifyProjectUpdatesHandler->restoreProjectUpdateById($id, $this->getProject());
     }
 
