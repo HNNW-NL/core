@@ -21,17 +21,21 @@
 {# Keep homepage content inside the scope used by the dedicated homepage stylesheet. #}
 <div class="home-page">
 {# Skip link keeps keyboard users able to jump straight to the main page content. #}
-<a class="skip-link" href="#about">Direct naar de inhoud</a>
+<a class="skip-link" href="#inhoud">Direct naar de inhoud</a>
 
 {# Hero section introduces the platform and the primary action for new visitors. #}
-<section class="hero container" id="about" aria-labelledby="hero-title">
+<section class="hero container" id="inhoud" aria-labelledby="hero-title">
     <div class="hero-copy">
         <p class="eyebrow">Open platform voor de overheid</p>
         <h1 id="hero-title">De juiste mensen voor publieke opgaven. <span>Open, eerlijk en transparant.</span></h1>
         <p class="hero-text">Vind expertise, deel hulpvragen en werk veilig samen aan maatschappelijke opgaven.</p>
         <div class="hero-actions">
-            <a class="button button-primary" href="{{ path('auth.register') }}">Doe mee aan de open bèta</a>
-            <a class="button button-secondary" href="https://hnnw.nl">Bezoek HNNW</a>
+            <a class="button button-primary" href="{{ path('main.projects.home') }}">Bekijk projecten</a>
+            {% if app.session.get('account_id') %}
+                <a class="button button-secondary" href="{{ path('account.home') }}">Mijn account</a>
+            {% else %}
+                <a class="button button-secondary" href="{{ path('auth.register') }}">Maak een account</a>
+            {% endif %}
         </div>
         <p class="hero-reassurance">Voor ambtenaren en publieke teams.</p>
         <p class="hero-note">Open source platform voor de overheid</p>
@@ -46,6 +50,33 @@
         <div class="visual-label label-bottom">Taken</div>
         <div class="visual-caption">Verbind projecten,<br>mensen en taken</div>
     </div>
+</section>
+
+<section class="open-projects container" id="projects" aria-labelledby="open-projects-title">
+    <div class="open-projects-heading">
+        <div>
+            <p class="eyebrow">Doe mee</p>
+            <h2 id="open-projects-title">Projecten met open aanmelding</h2>
+        </div>
+        <a class="open-projects-all" href="{{ path('main.projects.home') }}">Bekijk alle projecten</a>
+    </div>
+
+    {% if openProjects is defined and openProjects is not empty %}
+        <div class="open-projects-grid">
+            {% for project in openProjects|slice(0, 6) %}
+                <article class="open-project-card">
+                    <h3><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h3>
+                    <p class="open-project-organisation">{{ project.ownerOrganisation.name }}</p>
+                    <p class="open-project-summary">{{ project.summary }}</p>
+                    <a class="open-project-link" href="{{ path('main.projects.detail', { slug: project.slug }) }}">Bekijk project</a>
+                </article>
+            {% endfor %}
+        </div>
+    {% elseif openProjects is defined %}
+        <p class="open-projects-empty">Er zijn op dit moment geen gepubliceerde projecten waarvoor je je kunt aanmelden.</p>
+    {% else %}
+        <p class="open-projects-empty">Projectinformatie is op dit moment niet beschikbaar.</p>
+    {% endif %}
 </section>
 
 <section class="workflow container" aria-labelledby="workflow-title">
@@ -76,7 +107,7 @@
 </section>
 
 {# Core platform benefits. #}
-<section class="features" id="projects" aria-labelledby="features-title">
+<section class="features" id="voordelen" aria-labelledby="features-title">
     <div class="container">
         <div class="section-heading">
             <p class="eyebrow">Waarom HNNW</p>
