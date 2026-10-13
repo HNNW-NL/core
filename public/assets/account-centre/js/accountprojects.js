@@ -36,13 +36,19 @@
 		}
 	};
 
+	const normalizeText = (value) => value
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLocaleLowerCase('nl');
+
 	const updateProjects = () => {
-		const query = searchInput.value.trim().toLocaleLowerCase();
+		const query = normalizeText(searchInput.value.trim());
 		const selectedStatus = statusSelect.value;
 		const statusOrder = { active: 0, preparation: 1, completed: 2 };
 		const sortedCards = [...projectCards].sort((first, second) => {
 			if (sortSelect.value === 'status') {
-				return statusOrder[first.dataset.status] - statusOrder[second.dataset.status];
+				const statusDifference = statusOrder[first.dataset.status] - statusOrder[second.dataset.status];
+				if (statusDifference !== 0) return statusDifference;
 			}
 
 			const nameOrder = first.querySelector('h3').textContent.localeCompare(second.querySelector('h3').textContent, 'nl');
@@ -52,7 +58,7 @@
 
 		sortedCards.forEach((card) => {
 			projectsList.append(card);
-			const matchesQuery = card.textContent.toLocaleLowerCase().includes(query);
+			const matchesQuery = normalizeText(card.textContent).includes(query);
 			const matchesStatus = selectedStatus === 'all' || card.dataset.status === selectedStatus;
 			const isVisible = matchesQuery && matchesStatus;
 
@@ -62,6 +68,9 @@
 
 		resultCount.textContent = `${visibleCount} ${visibleCount === 1 ? 'project' : 'projecten'} gevonden`;
 		emptyMessage.hidden = visibleCount !== 0;
+		resetButton.disabled = searchInput.value.length === 0
+			&& statusSelect.value === 'all'
+			&& sortSelect.value === 'name-asc';
 		saveFilters();
 	};
 
@@ -80,6 +89,13 @@
 		const target = event.target;
 		const isTyping = target instanceof HTMLElement
 			&& (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+
+		if (event.key === 'Escape' && searchInput.value.length > 0) {
+			searchInput.value = '';
+			updateProjects();
+			searchInput.focus();
+			return;
+		}
 
 		if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !isTyping) {
 			event.preventDefault();
