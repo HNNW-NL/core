@@ -28,7 +28,8 @@
             <div class="project-card">
                 <h3 class="project-title">{{ project.title }}</h3>
                 <p class="project-summary">{{ project.summary }}</p>
-                <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">{{ project.slug }}</a>
+                <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Public page:{{ project.slug }}</a>
+                <a href="{{ path('org.modifyProject', {'id': project.id}) }}" class="project-slug">Edit page:{{ project.slug }}</a>
             </div>
         {% endfor %}
     </div>

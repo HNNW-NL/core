@@ -40,7 +40,10 @@ class ProjectsView
 
     public function getProjects(): array
     {
-        $profile = $this->currentProfileProvider->getProfile(); // use symfony security to find logged-in user $this->security->getUser()
+        $profile = $this->currentProfileProvider->getProfile();
+        if (!$profile) {
+            return[];
+        }
 
         return $this->projectRepository->findByProfileOnQuery($this->query,$profile);
     }

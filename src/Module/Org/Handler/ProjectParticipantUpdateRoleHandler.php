@@ -24,7 +24,9 @@ class ProjectParticipantUpdateRoleHandler
 
             $participant = $this->participantRepo->find($participantId);
             $role = $this->roleRepo->find($roleId);
-
+            if (!$role) {
+                continue;
+            }
             if (!$participant) {
                 continue;
             }

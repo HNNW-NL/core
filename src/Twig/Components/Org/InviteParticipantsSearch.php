@@ -29,7 +29,7 @@ class InviteParticipantsSearch
     #[LiveProp]
     public string $projectId = '';
 
-    #[LiveProp(writable: true)]
+    #[LiveProp]
     public string $errorMessage = '';
 
     public function __construct(readonly private ProfileRepository $profileRepository,
@@ -104,9 +104,13 @@ class InviteParticipantsSearch
         return array_map(fn(Profile $profile) => $profile->getId(), $this->getProfilesInProject());
     }
 
-    public function getProject(): project
+    public function getProject(): Project
     {
-        return $this->projectRepository->find($this->projectId);
+        $project = $this->projectRepository->find($this->projectId);
+        if (!$project) {
+            $this->errorMessage = 'No projects found';
+        }
+        return $project;
     }
 
 

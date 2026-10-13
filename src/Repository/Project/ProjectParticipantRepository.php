@@ -18,6 +18,19 @@ class ProjectParticipantRepository extends ServiceEntityRepository
         parent::__construct($registry, ProjectParticipant::class);
     }
 
+    public function findActiveParticipant(Project $project, Profile $profile): ?ProjectParticipant
+    {
+
+        return $this->createQueryBuilder('participant')
+            ->andWhere('participant.project = :project')
+            ->andWhere('participant.profile = :profile')
+            ->setParameter('project', $project)
+            ->setParameter('profile', $profile)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+
     public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
     {
         return $this->createQueryBuilder('pp')
@@ -49,6 +62,6 @@ class ProjectParticipantRepository extends ServiceEntityRepository
 
     public function isActiveParticipant(Project $project, Profile $profile): bool
     {
-        return $this->findActiveParticipantsByProjectAndProfile($project, $profile) !== null;
+        return $this->findActiveParticipantsByProjectAndProfile($project, $profile) !== [];
     }
 }
