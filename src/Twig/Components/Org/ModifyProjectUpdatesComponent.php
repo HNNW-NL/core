@@ -53,7 +53,7 @@ class ModifyProjectUpdatesComponent
     }
 
     #[PostMount]
-    public function mount(): void
+    public function postMount(): void
     {
         foreach ($this->getProjectUpdates() as $update) {
             $this->updateMap[(string) $update->getId()] = [

@@ -12,7 +12,7 @@
             <tr id="{{ update.id }}" class="update-row">
                 <td>Created by:{{ update.author.displayName }} {# link to profile page #}
                     {% if update.deletedAt %}
-                        Project delete at:{{ update.deleteAt ? update.deletedAt|date('d/m/Y') : '-' }} }}
+                        Project delete at:{{ update.deletedAt ? update.deletedAt|date('d/m/Y') : '-' }} }}
                     {% endif %}
                 </td>
                 <td>
