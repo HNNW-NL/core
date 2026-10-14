@@ -17,7 +17,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 #[AsLiveComponent]
-class ModifyTaskComponent
+class ModifyTasksComponent
 {
     use DefaultActionTrait;
 
