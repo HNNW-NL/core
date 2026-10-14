@@ -15,11 +15,25 @@
 
 #account-centre-container.projects-page .projects-search,
 #account-centre-container.projects-page .projects-status-filter,
-#account-centre-container.projects-page .projects-sort {
+#account-centre-container.projects-page .projects-sort,
+#account-centre-container.projects-page .projects-toggle {
 	display: flex;
 	flex: 1 1 14rem;
 	flex-direction: column;
 	gap: 0.4rem;
+}
+
+#account-centre-container.projects-page .projects-toggle {
+	justify-content: flex-end;
+	min-height: 2.75rem;
+	padding: 0.5rem 0.25rem 0.1rem;
+	font-size: 0.82rem;
+	color: var(--hnnw-secondary-text);
+}
+
+#account-centre-container.projects-page .projects-toggle input {
+	margin: 0;
+	accent-color: var(--hnnw-yellow-400);
 }
 
 #account-centre-container.projects-page .projects-tools label {
@@ -154,7 +168,8 @@
 
 	#account-centre-container.projects-page .projects-search,
 	#account-centre-container.projects-page .projects-status-filter,
-	#account-centre-container.projects-page .projects-sort {
+	#account-centre-container.projects-page .projects-sort,
+	#account-centre-container.projects-page .projects-toggle {
 		flex-basis: auto;
 	}
 

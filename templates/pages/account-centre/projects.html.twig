@@ -47,7 +47,11 @@
                     <option value="status">Status</option>
                 </select>
             </div>
-            <button type="button" class="projects-reset" id="projects-reset" disabled>Wis filters</button>
+            <label class="projects-toggle" for="project-active-only">
+                <input type="checkbox" id="project-active-only">
+                <span>Alleen actieve projecten</span>
+            </label>
+            <button type="button" class="projects-reset" id="projects-reset" disabled>Reset alles</button>
         </section>
 
         <p class="projects-result-count" id="projects-result-count" aria-live="polite"></p>

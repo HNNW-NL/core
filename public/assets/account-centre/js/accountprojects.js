@@ -2,6 +2,7 @@
 	const searchInput = document.querySelector('#project-search');
 	const statusSelect = document.querySelector('#project-status');
 	const sortSelect = document.querySelector('#project-sort');
+	const activeOnlyToggle = document.querySelector('#project-active-only');
 	const resetButton = document.querySelector('#projects-reset');
 	const resultCount = document.querySelector('#projects-result-count');
 	const emptyMessage = document.querySelector('#projects-empty');
@@ -9,7 +10,7 @@
 	const projectsList = document.querySelector('#projects-list');
 	const storageKey = 'account-centre.projects.filters';
 
-	if (!searchInput || !statusSelect || !sortSelect || !resetButton || !resultCount || !emptyMessage || !projectsList) {
+	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !resetButton || !resultCount || !emptyMessage || !projectsList) {
 		return;
 	}
 
@@ -19,6 +20,7 @@
 			if (typeof saved.query === 'string') searchInput.value = saved.query;
 			if (['all', 'active', 'preparation', 'completed'].includes(saved.status)) statusSelect.value = saved.status;
 			if (['name-asc', 'name-desc', 'status'].includes(saved.sort)) sortSelect.value = saved.sort;
+			if (typeof saved.activeOnly === 'boolean') activeOnlyToggle.checked = saved.activeOnly;
 		} catch {
 			// Storage can be unavailable in private browsing or restricted contexts.
 		}
@@ -30,6 +32,7 @@
 				query: searchInput.value,
 				status: statusSelect.value,
 				sort: sortSelect.value,
+				activeOnly: activeOnlyToggle.checked,
 			}));
 		} catch {
 			// Filtering remains usable when storage is unavailable.
@@ -44,6 +47,7 @@
 	const updateProjects = () => {
 		const query = normalizeText(searchInput.value.trim());
 		const selectedStatus = statusSelect.value;
+		const activeOnly = activeOnlyToggle.checked;
 		const statusOrder = { active: 0, preparation: 1, completed: 2 };
 		const sortedCards = [...projectCards].sort((first, second) => {
 			if (sortSelect.value === 'status') {
@@ -60,7 +64,8 @@
 			projectsList.append(card);
 			const matchesQuery = normalizeText(card.textContent).includes(query);
 			const matchesStatus = selectedStatus === 'all' || card.dataset.status === selectedStatus;
-			const isVisible = matchesQuery && matchesStatus;
+			const matchesActiveOnly = !activeOnly || card.dataset.status === 'active';
+			const isVisible = matchesQuery && matchesStatus && matchesActiveOnly;
 
 			card.hidden = !isVisible;
 			visibleCount += Number(isVisible);
@@ -70,17 +75,20 @@
 		emptyMessage.hidden = visibleCount !== 0;
 		resetButton.disabled = searchInput.value.length === 0
 			&& statusSelect.value === 'all'
-			&& sortSelect.value === 'name-asc';
+			&& sortSelect.value === 'name-asc'
+			&& !activeOnlyToggle.checked;
 		saveFilters();
 	};
 
 	searchInput.addEventListener('input', updateProjects);
 	statusSelect.addEventListener('change', updateProjects);
 	sortSelect.addEventListener('change', updateProjects);
+	activeOnlyToggle.addEventListener('change', updateProjects);
 	resetButton.addEventListener('click', () => {
 		searchInput.value = '';
 		statusSelect.value = 'all';
 		sortSelect.value = 'name-asc';
+		activeOnlyToggle.checked = false;
 		updateProjects();
 		searchInput.focus();
 	});
