@@ -5,7 +5,6 @@ namespace App\Module\Org\Service;
 use App\Entity\Project\ProjectParticipant;
 use App\Repository\Project\ProjectRepository;
 use App\Entity\Common\Status;
-use App\DataFixtures\Common\StatusFixtures;
 use Doctrine\ORM\EntityManagerInterface;
 
 class InviteParticipantsService

@@ -11,7 +11,6 @@ use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
-use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
@@ -26,7 +25,7 @@ class ModifyParticipantsTable
     #[LiveProp]
     public string $projectId = '';
 
-    #[LiveProp(writable: true)]
+    #[LiveProp]
     public string $errorMessage = '';
 
     public bool $submitted = false;
@@ -49,19 +48,28 @@ class ModifyParticipantsTable
         return $this->projectRoleRepository->findBy(['project' => $this->projectId]);
     }
 
-    public function getProject(): project
+    public function getProject(): ?Project
     {
-        return $this->projectRepository->find($this->projectId);
+        $project = $this->projectRepository->find($this->projectId);
+        if (!$project) {
+            $this->errorMessage = 'No project found';
+            return null;
+        }
+        return $project;
     }
 
     #[LiveAction]
     public function updateParticipants(): void
     {
-        if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
-            $this->errorMessage = 'You are not allowed to invite people for this project';
+        $project = $this->getProject();
+        if ($project === null){
             return;
         }
-        $this->projectParticipantUpdateRoleHandler->handle($this->rolesByParticipant, $this->getProject());
+        if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $project)) {
+            $this->errorMessage = 'You are not allowed to modify participants for this project';
+            return;
+        }
+        $this->projectParticipantUpdateRoleHandler->handle($this->rolesByParticipant, $project);
         $this->submitted = true;
     }
 }

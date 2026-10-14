@@ -61,7 +61,11 @@ class InviteParticipantsSearch
     #[LiveAction]
     public function inviteSelectedProfiles(InviteParticipantsService $inviteParticipantsService): void
     {
-        if (!$this->authorizationChecker->isGranted('PROJECT_INVITE', $this->getProject())) {
+        $project = $this->getProject();
+        if ($project === null){
+            return;
+        }
+        if (!$this->authorizationChecker->isGranted('PROJECT_INVITE',$project)) {
             $this->errorMessage = 'You are not allowed to invite profile for this project';
             return;
         }
@@ -104,11 +108,12 @@ class InviteParticipantsSearch
         return array_map(fn(Profile $profile) => $profile->getId(), $this->getProfilesInProject());
     }
 
-    public function getProject(): Project
+    public function getProject(): ?Project
     {
         $project = $this->projectRepository->find($this->projectId);
         if (!$project) {
-            $this->errorMessage = 'No projects found';
+            $this->errorMessage = 'No project found';
+            return null;
         }
         return $project;
     }
