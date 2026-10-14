@@ -37,8 +37,6 @@
                             {% endfor %}
                         </select>
                     </label>
-                </td>
-                <td>
                     <label>
                         Status
                         <select data-model="norender|updateMap[{{ task.id }}].status">
@@ -57,8 +55,6 @@
                         Priority
                         <input type="text" value="{{ task.priority }}" data-model="norender|updateMap[{{ task.id }}].priority">
                     </label>
-                </td>
-                <td>
                     <label>
                         Slug
                         <input type="text" value="{{ task.slug }}" data-model="norender|updateMap[{{ task.id }}].slug">
