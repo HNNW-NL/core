@@ -12,7 +12,7 @@
             <tr id="{{ update.id }}" class="update-row">
                 <td>Created by:{{ update.author.displayName }} {# link to profile page #}
                     {% if update.deletedAt %}
-                        Project delete at:{{ update.deletedAt ? update.deletedAt|date('d/m/Y') : '-' }} }}
+                        Deleted at:{{ update.deletedAt ? update.deletedAt|date('d/m/Y') : '-' }}
                     {% endif %}
                 </td>
                 <td>
@@ -52,7 +52,7 @@
                         >
                             Remove
                         </button>
-                    {% elseif update.deletedAt %}
+                    {% else %}
                         <button
                             type="button"
                             data-action="live#action"
@@ -61,9 +61,6 @@
                         >
                             Restore
                         </button>
-                    {% else %}
-                        <p>No actions available</p>
-                    {% endif %}
                 </td>
             </tr>
         {% endfor %}

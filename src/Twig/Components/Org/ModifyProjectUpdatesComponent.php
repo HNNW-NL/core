@@ -30,9 +30,6 @@ class ModifyProjectUpdatesComponent
     public string $errorMessage = '';
 
 
-
-
-
     public function __construct(readonly private ProjectRepository $projectRepository,
                                 readonly private ProjectUpdateRepository $projectUpdateRepository,
                                 readonly private AuthorizationCheckerInterface $authorizationChecker,
@@ -79,7 +76,13 @@ class ModifyProjectUpdatesComponent
         $updateData = $this->updateMap[$id];
         $updateData['id'] = $id;
 
-        $this->modifyProjectUpdatesHandler->handleModifyUpdate($updateData, $this->getProject());
+        try {
+            $this->modifyProjectUpdatesHandler->handleModifyUpdate($updateData, $this->getProject());
+        } catch (\InvalidArgumentException $e) {
+            $this->errorMessage = $e->getMessage();
+        }
+
+
     }
 
     #[LiveAction]
@@ -94,7 +97,13 @@ class ModifyProjectUpdatesComponent
             return;
         }
 
-        $this->modifyProjectUpdatesHandler->deleteProjectUpdateById($id, $this->getProject());
+        try {
+            $this->modifyProjectUpdatesHandler->deleteProjectUpdateById($id, $this->getProject());
+        } catch (\InvalidArgumentException $e) {
+            $this->errorMessage = $e->getMessage();
+        }
+
+
     }
 
     #[LiveAction]
@@ -109,7 +118,12 @@ class ModifyProjectUpdatesComponent
             return;
         }
 
-        $this->modifyProjectUpdatesHandler->restoreProjectUpdateById($id, $this->getProject());
+        try {
+            $this->modifyProjectUpdatesHandler->restoreProjectUpdateById($id, $this->getProject());
+        } catch (\InvalidArgumentException $e) {
+            $this->errorMessage = $e->getMessage();
+        }
+
     }
 
 }

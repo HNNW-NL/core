@@ -6,6 +6,7 @@ namespace App\Module\Org\Handler;
 use App\Entity\Project\Project;
 use App\Repository\Project\ProjectUpdateRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use http\Exception;
 
 class ModifyProjectUpdatesHandler
 {
@@ -20,10 +21,10 @@ class ModifyProjectUpdatesHandler
         $update = $this->projectUpdateRepository->find($updateMap['id']);
 
         if (!$update || $update->getProject() !== $project) {
-            return;
+            throw new \InvalidArgumentException('Invalid project update id');
         }
         if (!isset($updateMap['title'], $updateMap['content'])) {
-            return;
+            throw new \InvalidArgumentException('Title and Content cant be empty');
         }
 
         $update->setTitle($updateMap['title']);
@@ -45,7 +46,7 @@ class ModifyProjectUpdatesHandler
         $update = $this->projectUpdateRepository->find($projectUpdateId);
 
         if (!$update || $update->getProject() !== $project) {
-            return;
+            throw new \InvalidArgumentException('Invalid project update id');
         }
 
         $update->softDelete();
@@ -57,7 +58,7 @@ class ModifyProjectUpdatesHandler
         $update = $this->projectUpdateRepository->find($projectUpdateId);
 
         if (!$update || $update->getProject() !== $project) {
-            return;
+            throw new \InvalidArgumentException('Invalid project update id');
         }
 
         $update->restore();
