@@ -18,9 +18,9 @@
 
 {# Page content #}
 {% block body %}
-{# Keep homepage content inside the scope used by the dedicated homepage stylesheet. #}
+{# Keep homepage content inside the dedicated homepage styling scope. #}
 <div class="home-page">
-{# Skip link keeps keyboard users able to jump straight to the main page content. #}
+{# Skip link keeps keyboard users able to jump straight to the main content. #}
 <a class="skip-link" href="#inhoud">Direct naar de inhoud</a>
 
 {# Hero section introduces the platform and the primary action for new visitors. #}
@@ -52,6 +52,7 @@
     </div>
 </section>
 
+{# Open projects highlight current opportunities for new contributors. #}
 <section class="open-projects container" id="projects" aria-labelledby="open-projects-title">
     <div class="open-projects-heading">
         <div>
@@ -79,6 +80,7 @@
     {% endif %}
 </section>
 
+{# Example workflow explains how collaboration starts on the platform. #}
 <section class="workflow container" aria-labelledby="workflow-title">
     <div class="workflow-card">
         <div class="workflow-intro">
@@ -106,7 +108,7 @@
     </div>
 </section>
 
-{# Core platform benefits. #}
+{# Core platform benefits explain the value proposition for public teams. #}
 <section class="features" id="voordelen" aria-labelledby="features-title">
     <div class="container">
         <div class="section-heading">
