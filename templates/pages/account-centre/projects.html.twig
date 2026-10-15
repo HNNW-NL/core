@@ -51,10 +51,14 @@
                 <input type="checkbox" id="project-active-only">
                 <span>Alleen actieve projecten</span>
             </label>
-            <button type="button" class="projects-reset" id="projects-reset" disabled>Reset alles</button>
+            <div class="projects-actions">
+                <button type="button" class="projects-show-all" id="projects-show-all">Alles weergeven</button>
+                <button type="button" class="projects-reset" id="projects-reset" disabled>Reset alles</button>
+            </div>
         </section>
 
         <p class="projects-result-count" id="projects-result-count" aria-live="polite"></p>
+        <p class="projects-filter-status" id="projects-filter-status" aria-live="polite"></p>
 
         <div class="account-grid projects-grid" id="projects-list">
             <article class="account-card project-card" data-status="active">

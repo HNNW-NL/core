@@ -3,14 +3,16 @@
 	const statusSelect = document.querySelector('#project-status');
 	const sortSelect = document.querySelector('#project-sort');
 	const activeOnlyToggle = document.querySelector('#project-active-only');
+	const showAllButton = document.querySelector('#projects-show-all');
 	const resetButton = document.querySelector('#projects-reset');
 	const resultCount = document.querySelector('#projects-result-count');
+	const filterStatus = document.querySelector('#projects-filter-status');
 	const emptyMessage = document.querySelector('#projects-empty');
 	const projectCards = Array.from(document.querySelectorAll('.project-card'));
 	const projectsList = document.querySelector('#projects-list');
 	const storageKey = 'account-centre.projects.filters';
 
-	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !resetButton || !resultCount || !emptyMessage || !projectsList) {
+	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !showAllButton || !resetButton || !resultCount || !filterStatus || !emptyMessage || !projectsList) {
 		return;
 	}
 
@@ -71,12 +73,18 @@
 			visibleCount += Number(isVisible);
 		});
 
+		const filtersActive = searchInput.value.length > 0
+			|| statusSelect.value !== 'all'
+			|| sortSelect.value !== 'name-asc'
+			|| activeOnlyToggle.checked;
+
 		resultCount.textContent = `${visibleCount} ${visibleCount === 1 ? 'project' : 'projecten'} gevonden`;
 		emptyMessage.hidden = visibleCount !== 0;
-		resetButton.disabled = searchInput.value.length === 0
-			&& statusSelect.value === 'all'
-			&& sortSelect.value === 'name-asc'
-			&& !activeOnlyToggle.checked;
+		filterStatus.textContent = filtersActive
+			? `Actieve filters: ${searchInput.value ? 'zoekterm' : ''}${searchInput.value && (statusSelect.value !== 'all' || sortSelect.value !== 'name-asc' || activeOnlyToggle.checked) ? ', ' : ''}${statusSelect.value !== 'all' ? 'status' : ''}${statusSelect.value !== 'all' && (sortSelect.value !== 'name-asc' || activeOnlyToggle.checked) ? ', ' : ''}${sortSelect.value !== 'name-asc' ? 'sortering' : ''}${sortSelect.value !== 'name-asc' && activeOnlyToggle.checked ? ', ' : ''}${activeOnlyToggle.checked ? 'alleen actief' : ''}`
+			: 'Geen filters actief';
+		resetButton.disabled = !filtersActive;
+		showAllButton.disabled = !filtersActive;
 		saveFilters();
 	};
 
@@ -84,6 +92,14 @@
 	statusSelect.addEventListener('change', updateProjects);
 	sortSelect.addEventListener('change', updateProjects);
 	activeOnlyToggle.addEventListener('change', updateProjects);
+	showAllButton.addEventListener('click', () => {
+		searchInput.value = '';
+		statusSelect.value = 'all';
+		sortSelect.value = 'name-asc';
+		activeOnlyToggle.checked = false;
+		updateProjects();
+		searchInput.focus();
+	});
 	resetButton.addEventListener('click', () => {
 		searchInput.value = '';
 		statusSelect.value = 'all';
