@@ -27,14 +27,15 @@ class ProjectRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findByProfileOnQuery(string $query, Profile $profile): array
+    public function findByProfileOnQuery(string $query, Profile $profile, $maxResults=30): array
     {
         $qb = $this->createQueryBuilder('project')
             ->distinct()
             ->innerJoin('project.participants', 'participant')
             ->andWhere('participant.profile = :profile')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('profile', $profile);
+            ->setParameter('profile', $profile)
+            ->setMaxResults($maxResults);
 
         $query = trim($query);
 

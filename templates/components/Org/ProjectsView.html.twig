@@ -8,6 +8,14 @@
             data-model="debounce(300)|query"
             value="{{ this.query }}"
         >
+        <label for="input-max-result">Max Results</label>
+        <input
+            type="number"
+            id="input-max-result"
+            name="input-max-result"
+            data-model="debounce(300)|maxResults"
+            value="{{ this.maxResults }}"
+        >
         <button id="reset-button" type="button" class="reset-button" data-action="click->live#action" data-live-action-param="reset">Reset</button>
 
         <label for="card-size-select" class="card-size-label">Size</label>
@@ -28,8 +36,8 @@
             <div class="project-card">
                 <h3 class="project-title">{{ project.title }}</h3>
                 <p class="project-summary">{{ project.summary }}</p>
-                <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Public page:{{ project.slug }}</a>
-                <a href="{{ path('org.modifyProject', {'id': project.id}) }}" class="project-slug">Edit page:{{ project.slug }}</a>
+                <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Public page: {{ project.slug }}</a>
+                <a href="{{ path('org.modifyProject', {'id': project.id}) }}" class="project-slug">Edit page: {{ project.slug }}</a>
             </div>
         {% endfor %}
     </div>

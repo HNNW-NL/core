@@ -65,7 +65,7 @@ class InviteParticipantsSearch
         if ($project === null){
             return;
         }
-        if (!$this->authorizationChecker->isGranted('PROJECT_INVITE',$project)) {
+        if (!$this->authorizationChecker->isGranted('PROJECT_INVITE', $project)) {
             $this->errorMessage = 'You are not allowed to invite profile for this project';
             return;
         }

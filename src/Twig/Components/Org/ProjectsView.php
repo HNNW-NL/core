@@ -3,8 +3,6 @@
 namespace App\Twig\Components\Org;
 
 use App\Repository\Project\ProjectRepository;
-use App\Repository\Project\ProjectParticipantRepository;
-use App\Repository\Account\ProfileRepository;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -22,9 +20,10 @@ class ProjectsView
     #[LiveProp(writable: true)]
     public string $cardSize = 'medium';
 
+    #[LiveProp(writable: true)]
+    public int $maxResults = 30;
+
     public function __construct(readonly private ProjectRepository $projectRepository,
-                                readonly private ProfileRepository $profileRepository,
-                                private readonly ProjectParticipantRepository $projectParticipantRepository,
                                 private readonly CurrentProfileProvider $currentProfileProvider,)
     {
     }
@@ -40,7 +39,7 @@ class ProjectsView
     {
         $profile = $this->currentProfileProvider->getProfile();
         if (!$profile) {
-            return[];
+            return [];
         }
 
         return $this->projectRepository->findByProfileOnQuery($this->query,$profile);
