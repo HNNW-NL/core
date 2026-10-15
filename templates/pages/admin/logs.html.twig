@@ -21,8 +21,9 @@
     <twig:Shared:Card>
         <twig:Shared:Card:Header>Zoek Audit Logs</twig:Shared:Card:Header>
         <twig:Shared:Card:Content>
-            {{ component('Admin:AuditLogSearch',{
+            {{ component('Shared:Search',{
                 formData: null,
+                searchDTO: auditLogSearch,
             }) }}
         </twig:Shared:Card:Content>
     </twig:Shared:Card>
@@ -32,8 +33,9 @@
     <twig:Shared:Card>
         <twig:Shared:Card:Header>Zoek System Logs</twig:Shared:Card:Header>
         <twig:Shared:Card:Content>
-            {{ component('Admin:SystemLogSearch',{
+            {{ component('Shared:Search',{
                 formData: null,
+                searchDTO: systemLogSearch,
             }) }}
         </twig:Shared:Card:Content>
     </twig:Shared:Card>

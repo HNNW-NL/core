@@ -25,4 +25,10 @@ class SearchDTO{
     * dto class that determines what property are displayed in the search result
     */
     public string $displayDTO;
+
+    /**
+     * Colums that object are sorted by sorted 
+     * key column to sort value is direction (asc of desc)
+     */
+    public array $orderBy;
 }

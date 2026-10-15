@@ -3,8 +3,16 @@
 namespace App\Module\Admin\Controller;
 
 use App\Entity\Account\Notification;
+use App\Entity\Log\AuditLog;
+use App\Entity\Log\SystemLog;
+use App\Form\Admin\AuditLogSearchType;
 use App\Form\Admin\CreateNotificationType;
+use App\Form\Admin\SystemLogSearchType;
+use App\Module\Admin\DTO\AuditLogSearchDisplayDTO;
+use App\Module\Admin\DTO\AuditLogSearchDTO;
 use App\Module\Admin\DTO\CreateNotificationDTO;
+use App\Module\Admin\DTO\SystemLogSearchDisplayDTO;
+use App\Module\Admin\DTO\SystemLogSearchDTO;
 use App\Repository\Account\NotificationRepository;
 use App\Repository\Account\ProfileRepository;
 use App\Repository\Log\AuditLogRepository;
@@ -12,6 +20,8 @@ use App\Repository\Log\SystemLogRepository;
 use App\Repository\Org\AccountRepository;
 use App\Repository\Org\OrganisatieRepository;
 use App\Repository\Project\ProjectRepository;
+use App\Tests\Twig\Components\Admin\AuditLogSearchTest;
+use App\Twig\Components\Shared\SearchDTO;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,16 +50,26 @@ final class DashboardController extends AbstractController
     }
 
     #[Route('/logs', name: 'logs', methods: ['GET'])]
-    public function logs(SystemLogRepository $systemLogRepository, AuditLogRepository $auditLogRepository): Response
+    public function logs(AuditLogRepository $auditLogRepository): Response
     {
-        $auditLogs = $auditLogRepository->findLatest(100);
-        $systemLogs = $systemLogRepository->findLatest(100);
+        $auditLogSearch = new SearchDTO();
+        $auditLogSearch->dto = AuditLogSearchDTO::class;
+        $auditLogSearch->displayDTO = AuditLogSearchDisplayDTO::class;
+        $auditLogSearch->entity = AuditLog::class;
+        $auditLogSearch->form = AuditLogSearchType::class;
+        $auditLogSearch->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
 
+        $systemLogSearch = new SearchDTO();
+        $systemLogSearch->dto = SystemLogSearchDTO::class;
+        $systemLogSearch->displayDTO = SystemLogSearchDisplayDTO::class;
+        $systemLogSearch->entity = SystemLog::class;
+        $systemLogSearch->form = SystemLogSearchType::class;
+        $systemLogSearch->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
         
         return $this->render('pages/admin/logs.html.twig',
         array(
-            'auditLogs' => $auditLogs,
-            'systemLogs' => $systemLogs
+            'auditLogSearch' => $auditLogSearch,
+            'systemLogSearch' => $systemLogSearch
         ));
     }
 

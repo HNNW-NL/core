@@ -1,10 +1,8 @@
 <?php
 namespace App\Twig\Components\Shared;
 
-use App\Entity\Log\AuditLog;
-use App\Module\Admin\DTO\AuditLogSearchDTO;
+use App\Module\Admin\Service\Paginate\PaginateService;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -12,6 +10,9 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\ComponentWithFormTrait;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
+use Symfony\UX\TwigComponent\Attribute\PostMount;
+use Symfony\Component\ObjectMapper\ObjectMapperInterface;
+use Symfony\UX\LiveComponent\Attribute\LiveArg;
 
 #[AsLiveComponent]
 class Search extends AbstractController
@@ -19,31 +20,27 @@ class Search extends AbstractController
     use DefaultActionTrait;
     use ComponentWithFormTrait;
 
-    
     public array $results = [];
     
     #[LiveProp]
-    public ?AuditLogSearchDTO $cursorStart = null;
-
-    #[LiveProp]
-    public ?AuditLogSearchDTO $cursorEnd = null;
-
-    #[LiveProp]
-    public bool $hasNext = false;
-
-    #[LiveProp]
-    public bool $hasPrev = false;
+    public ?array $links = [];
 
     #[LiveProp]
     public bool $hasSearched = false;
+
+    #[LiveProp(hydrateWith: 'hydrateMultiLevelArray', dehydrateWith: 'dehydrateMultiLevelArray')]
+    public array $where = [];
 
     public ?object $formData = null;
 
     #[LiveProp]
     public SearchDTO $searchDTO;
 
+    #[LiveProp]
+    public array $displayFields = [];
 
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(private EntityManagerInterface $entityManager, private PaginateService $paginate,
+    private ObjectMapperInterface $objectMapper)
     {
     }
 
@@ -56,6 +53,13 @@ class Search extends AbstractController
         return $this->createForm($this->searchDTO->form, $this->formData);
     }
 
+    #[PostMount]
+    public function postMount() : void
+    {
+        $this->displayFields = get_class_vars($this->searchDTO->displayDTO); 
+    }
+    
+
     #[LiveAction]
     public function search()
     {        
@@ -64,52 +68,45 @@ class Search extends AbstractController
         if($form->isValid())
         {
             $data = $this->getForm()->getData();
-            $this->results =$this->getRepository()->findByCursor(null,$data->actor,$data->startPeriod,$data->endPeriod);  
-            if(count($this->results) > 0)
-            {
-                $this->cursorStart = null;
-                $this->hasPrev = false;
-                $this->cursorEnd = end($this->results);
-                $this->hasNext = $this->getRepository()->hasNext($this->cursorEnd,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod);
-            }  else{
-                $this->hasPrev = false;
-                $this->hasNext = false;
-                $this->cursorStart = null;
-                $this->cursorEnd = null;
-            }
+            $this->paginate->paginate($this->getRepository(),$data,$this->searchDTO->orderBy);
+            $results = $this->paginate->getPage();  
+            $this->where = $this->paginate->getWhere();
+            $this->links = $this->paginate->getLinks();
             $this->hasSearched = true;
+            $this->results = $this->toDisplayDto($results);
         }
         
     }
 
     #[LiveAction]
-    public function prev()
-    {        
-        $repository = $this->getRepository();
-        if($this->hasPrev)
-        {
-            $this->results = $repository->findByCursor($this->cursorStart,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod,false); 
-            $this->hasNext = true; 
-            $this->cursorEnd = end($this->results);
-            $this->hasPrev = $repository->hasPrev($this->results[0],$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
-            $this->cursorStart = $this->results[0];
-        }
+    public function navigate(#[LiveArg] string $link)
+    {  
+        $this->paginate->paginate($this->getRepository(),$this->where,$this->searchDTO->orderBy);
+        $results = $this->paginate->getPage($link); 
+        $this->links = $this->paginate->getLinks();
+        $this->results = $this->toDisplayDto($results);
     }
 
-    #[LiveAction]
-    public function next()
-    {        
-        $repository = $this->getRepository();
-        if($this->hasNext)
-        {
-            $this->results = $repository->findByCursor($this->cursorEnd,$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod); 
-            $this->hasNext = $repository->hasNext(end($this->results),$this->formData->actor,$this->formData->startPeriod,$this->formData->endPeriod);
-            $this->cursorEnd = end($this->results); 
-            $this->hasPrev = true;      
-            $this->cursorStart = $this->results[0];   
-        }
+    public function dehydrateMultiLevelArray(array $where)
+    {
+        return $where;
     }
 
+    public function hydrateMultiLevelArray(array $data)
+    {
+        return $data;
+    }
+
+    private function toDisplayDto(array $array) : array
+    {
+        $result = [];
+        foreach($array as $object )
+        {            
+            array_push($result,$this->objectMapper->map($object,$this->searchDTO->displayDTO));
+        }
+
+        return $result;
+    }
 
     private function getRepository()
     {

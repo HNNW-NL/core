@@ -15,11 +15,11 @@ class SystemLogSearchType extends AbstractType
     {
         $builder            
              ->add('level', TextType::class,
-             ['required' => false]
+             ['required' => false,'attr' =>['autocomplete' => 'off']]
             )->add('startPeriod', DateTimeType::class,
-                ['required' => false])
+                ['required' => false,'attr' =>['autocomplete' => 'off']])
             ->add('endPeriod', DateTimeType::class,
-                ['required' => false])
+                ['required' => false,'attr' =>['autocomplete' => 'off']])
         ;
     }
 

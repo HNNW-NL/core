@@ -3,35 +3,64 @@
         <link rel="stylesheet" href="{{ asset('assets/shared/css/searchTwig.css') }}">
     {% endblock %}
 
-    {{ form_start(form,{
-            attr: {
-                'data-action': 'live#action:prevent',
-                'data-live-action-param': 'search'
-            }
-        }) }}
-        <table>
-            
-        </table>
-        <button>Zoek</button>
-        {{ form_rest(form) }}
-    {{ form_end(form) }}
-    <table class="result">
-        <thead>
-            
-        </thead>
-        <tbody>
-        {% if this.results is empty and this.hasSearched %}
-            <tr><td Colspan="9">Geen resultaten gevonden</td></tr>
-        {% elseif this.hasSearched == false %}
-            <tr><td Colspan="9">Klik op zoeken om resultaten te vinden</td></tr>
-        {% else %}
-            {% for result in this.results %}
+    <div>
+        {{ form_start(form,{
+                attr: {
+                    'data-action': 'live#action:prevent',
+                    'data-live-action-param': 'search',
+                    'data-model': 'norender|*'
+                }
+            }) }}
+            <table>
                 
-            {% endfor %}
-        {% endif %}
-        </tbody>
-    </table>
+            </table>
+            {{ form_rest(form) }}
 
-    <button data-action="live#action" data-live-action-param='prev' class="{{ hasPrev ? "" : "hidden"}}">Vorige pagina</button>
-    <button data-action="live#action" data-live-action-param='next' class="{{ hasNext ? "" : "hidden"}}">Volgende pagina</button>
+            <button data-loading="addAttribute(disabled)">Zoek</button>
+            
+        {{ form_end(form) }}
+
+        
+        <span data-loading>Loading</span>
+        <table data-loading='hide' class="result">
+            <thead>
+                {% for key, value in displayFields %}
+                    <th>{{ key }}</th>
+                {% endfor %}
+            </thead>
+            <tbody>
+            {% if this.results is empty and this.hasSearched %}
+                <tr><td Colspan="9">Geen resultaten gevonden</td></tr>
+            {% elseif this.hasSearched == false %}
+                <tr><td Colspan="9">Klik op zoeken om resultaten te vinden</td></tr>
+            {% else %}
+                {% for result in this.results %}
+                    <tr>
+                        {% for key, value in result|cast_to_array  %}   
+                            {% if value is not empty %}                        
+                                <td>{{ value|display}}</td>  
+                            {% else %}
+                                <td>-</td>   
+                            {% endif %}                        
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
+        
+        {% for key, value in links %}
+            {% if value is not empty %}            
+                    {% if key == 'prev' %}
+                        <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">Vorige pagina</button>                    
+                    {% elseif key == 'next'%}
+                        <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">Volgende pagina</button>
+                    {% else %}
+                        <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">value</button>
+                    {% endif %}
+            {% endif %}       
+            
+        {% endfor %}
+        
+    </div>
 </div>

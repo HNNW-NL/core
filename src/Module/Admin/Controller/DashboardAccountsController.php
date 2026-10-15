@@ -3,8 +3,12 @@
 namespace App\Module\Admin\Controller;
 
 use App\Entity\Log\AuditLog;
+use App\Entity\Log\SystemLog;
 use App\Form\Admin\AuditLogSearchType;
+use App\Form\Admin\SystemLogSearchType;
 use App\Module\Admin\DTO\AuditLogSearchDTO;
+use App\Module\Admin\DTO\SystemLogSearchDisplayDTO;
+use App\Module\Admin\DTO\SystemLogSearchDTO;
 use App\Repository\Log\AuditLogRepository;
 use App\Twig\Components\Shared\SearchDTO;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,10 +22,12 @@ final class DashboardAccountsController extends AbstractController
     public function index(): Response
     {
         $search = new SearchDTO();
-        $search->dto = AuditLogSearchDTO::class;
-        $search->displayDTO = AuditLogSearchDTO::class;
-        $search->entity = AuditLog::class;
-        $search->form = AuditLogSearchType::class;
+        $search->dto = SystemLogSearchDTO::class;
+        $search->displayDTO = SystemLogSearchDisplayDTO::class;
+        $search->entity = SystemLog::class;
+        $search->form = SystemLogSearchType::class;
+        $search->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
+
         return $this->render('pages/admin/accounts/index.html.twig',
         array(
             'search' => $search
