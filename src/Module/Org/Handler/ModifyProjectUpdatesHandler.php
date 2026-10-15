@@ -6,7 +6,6 @@ namespace App\Module\Org\Handler;
 use App\Entity\Project\Project;
 use App\Repository\Project\ProjectUpdateRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use http\Exception;
 
 class ModifyProjectUpdatesHandler
 {
@@ -23,7 +22,10 @@ class ModifyProjectUpdatesHandler
         if (!$update || $update->getProject() !== $project) {
             throw new \InvalidArgumentException('Invalid project update id');
         }
-        if (!isset($updateMap['title'], $updateMap['content'])) {
+        if (!isset($updateMap['title'], $updateMap['content'])
+            || trim($updateMap['title']) === ''
+            || trim($updateMap['content']) === ''
+        ) {
             throw new \InvalidArgumentException('Title and Content cant be empty');
         }
 

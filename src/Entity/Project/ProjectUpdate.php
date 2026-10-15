@@ -2,11 +2,12 @@
 namespace App\Entity\Project;
 
 use App\Entity\Account\Profile;
+use App\Repository\Project\ProjectUpdateRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: ProjectUpdateRepository::class)]
 #[ORM\Table(name: 'project_updates')]
 #[ORM\HasLifecycleCallbacks]
 class ProjectUpdate

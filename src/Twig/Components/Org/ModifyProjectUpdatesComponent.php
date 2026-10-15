@@ -64,6 +64,7 @@ class ModifyProjectUpdatesComponent
     #[LiveAction]
     public function updateProjectUpdate(#[LiveArg] string $id): void
     {
+        $this->errorMessage = '';
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
@@ -81,13 +82,12 @@ class ModifyProjectUpdatesComponent
         } catch (\InvalidArgumentException $e) {
             $this->errorMessage = $e->getMessage();
         }
-
-
     }
 
     #[LiveAction]
     public function deleteProjectUpdate(#[LiveArg] string $id): void
     {
+        $this->errorMessage = '';
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
@@ -102,13 +102,12 @@ class ModifyProjectUpdatesComponent
         } catch (\InvalidArgumentException $e) {
             $this->errorMessage = $e->getMessage();
         }
-
-
     }
 
     #[LiveAction]
     public function restoreProjectUpdate( #[LiveArg] string $id): void
     {
+        $this->errorMessage = '';
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit updates for this project';
             return;
@@ -123,7 +122,5 @@ class ModifyProjectUpdatesComponent
         } catch (\InvalidArgumentException $e) {
             $this->errorMessage = $e->getMessage();
         }
-
     }
-
 }
