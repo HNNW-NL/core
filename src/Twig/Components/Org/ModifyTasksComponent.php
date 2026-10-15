@@ -7,7 +7,6 @@ use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\WorkPackageRepository;
 use App\Repository\Common\StatusRepository;
 use App\Entity\Project\Project;
-use App\Entity\Project\PackageTask;
 use App\Module\Org\Handler\ModifyTasksHandler;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
@@ -67,34 +66,34 @@ class ModifyTasksComponent
             $this->errorMessage = 'You are not allowed to edit tasks for this project';
             return;
         }
-        if (!isset($this->updateMap[$id])) {
+        if (!isset($this->taskMap[$id])) {
             return;
         }
 
-        $updateData = $this->updateMap[$id];
-        $updateData['id'] = $id;
+        $taskData = $this->taskMap[$id];
+        $taskData['id'] = $id;
 
-        $this->modifyTasksHandler->handleModifyTask($updateData, $this->getProject());
+        $this->modifyTasksHandler->handleModifyTask($taskData, $this->getProject());
     }
 
     #[LiveAction]
-    public function deleteProjectUpdate(#[LiveArg] string $id): void
+    public function deleteProjectTask(#[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit tasks for this project';
             return;
         }
-        $this->modifyTasksHandler->deleteTaskById($id);
+        $this->modifyTasksHandler->deleteTaskById($id, $this->getProject());
     }
 
     #[LiveAction]
-    public function restoreProjectUpdate( #[LiveArg] string $id): void
+    public function restoreProjectTask( #[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit tasks for this project';
             return;
         }
-        $this->modifyTasksHandler->restoreTaskById($id);
+        $this->modifyTasksHandler->restoreTaskById($id, $this->getProject());
     }
 
 }
