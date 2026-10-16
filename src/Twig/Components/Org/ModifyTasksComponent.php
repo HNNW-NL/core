@@ -5,6 +5,7 @@ namespace App\Twig\Components\Org;
 use App\Repository\Project\ProjectRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\WorkPackageRepository;
+use App\Repository\Account\ProfileRepository;
 use App\Repository\Common\StatusRepository;
 use App\Entity\Project\Project;
 use App\Module\Org\Handler\ModifyTasksHandler;
@@ -35,12 +36,13 @@ class ModifyTasksComponent
                                 readonly private WorkPackageRepository         $workPackageRepository,
                                 readonly private ModifyTasksHandler            $modifyTasksHandler,
                                 readonly private StatusRepository $statusRepository,
+                                readonly private ProfileRepository $profileRepository,
     )
     {
     }
 
 
-    public function getProject(): project
+    public function getProject(): Project
     {
         return $this->projectRepository->find($this->projectId);
     }
@@ -60,6 +62,11 @@ class ModifyTasksComponent
         return $this->statusRepository->findAll();
     }
 
+    public function getProfiles(): iterable
+    {
+        return $this->profileRepository->findByProject($this->getProject());
+    }
+
     public function updateTask(#[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
@@ -77,7 +84,7 @@ class ModifyTasksComponent
     }
 
     #[LiveAction]
-    public function deleteProjectTask(#[LiveArg] string $id): void
+    public function deleteTask(#[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit tasks for this project';
@@ -87,7 +94,7 @@ class ModifyTasksComponent
     }
 
     #[LiveAction]
-    public function restoreProjectTask( #[LiveArg] string $id): void
+    public function restoreTask( #[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit tasks for this project';

@@ -14,8 +14,26 @@
         {% for task in this.tasks %}
             <tr id="{{ task.id }}" class="task-row">
                 <td>Created by:{{ task.assignedProfile.displayName }}</td> {# link to profile page #}
+                {% if task.deletedAt %}
+                    Deleted at:{{ task.deletedAt|date('d/m/Y') }}
+                {% endif %}
                 <td>
-                    <input type="text" value="{{ task.title }}" data-model="norender|updateMap[{{ task.id }}].title" >
+                    <label>
+                        Name
+                        <input type="text" value="{{ task.title }}" data-model="norender|updateMap[{{ task.id }}].title" >
+                    </label>
+                    <label>
+                        Assigned Profile
+                        <select data-model="norender|updateMap[{{ task.id }}].assignedProfile">
+                            {% for profile in this.profiles %}
+                                <option value="{{ profile.id }}"
+                                        {% if task.assignedProfile == profile %}selected{% endif %}
+                                >
+                                    {{ profile.displayName }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </label>
                 </td>
                 <td>
                     <textarea
@@ -67,22 +85,34 @@
                     </label>
                 </td>
                 <td>
-                    <button
-                        type="button"
-                        data-action="live#action"
-                        data-live-action-param="updateTask"
-                        data-live-id-param="{{ task.id }}"
-                    >
-                        Update
-                    </button>
-                    <button
-                        type="button"
-                        data-action="live#action"
-                        data-live-action-param="deleteTask"
-                        data-live-id-param="{{ task.id }}"
-                    >
-                        Remove
-                    </button>
+                    {% if not task.deletedAt %}
+                        <button
+                            type="button"
+                            data-action="live#action"
+                            data-live-action-param="updateTask"
+                            data-live-id-param="{{ task.id }}"
+                        >
+                            Update
+                        </button>
+                        <button
+                            type="button"
+                            data-action="live#action"
+                            data-live-action-param="deleteTask"
+                            data-live-id-param="{{ task.id }}"
+                        >
+                            Remove
+                        </button>
+                    {% else %}
+                        <button
+                            type="button"
+                            data-action="live#action"
+                            data-live-action-param="restoreTask"
+                            data-live-id-param="{{ task.id }}"
+                        >
+                            Restore
+                        </button>
+                    {% endif %}
+
                 </td>
             </tr>
         {% endfor %}
