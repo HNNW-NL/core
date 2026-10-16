@@ -51,6 +51,10 @@
                 <input type="checkbox" id="project-active-only">
                 <span>Alleen actieve projecten</span>
             </label>
+            <label class="projects-toggle" for="project-favorites-only">
+                <input type="checkbox" id="project-favorites-only">
+                <span>Alleen favorieten</span>
+            </label>
             <div class="projects-actions">
                 <button type="button" class="projects-show-all" id="projects-show-all">Alles weergeven</button>
                 <button type="button" class="projects-reset" id="projects-reset" disabled>Reset alles</button>
@@ -61,28 +65,31 @@
         <p class="projects-filter-status" id="projects-filter-status" aria-live="polite"></p>
 
         <div class="account-grid projects-grid" id="projects-list">
-            <article class="account-card project-card" data-status="active">
+            <article class="account-card project-card" data-project-id="buurtmoestuin-noord" data-status="active">
                 <div class="account-card-content">
                     <h3>Buurtmoestuin Noord</h3>
                     <p>Werk samen met buurtbewoners aan een groene en toegankelijke ontmoetingsplek.</p>
                 </div>
                 <span class="project-status status-active">Actief</span>
+                <button type="button" class="project-favorite" aria-pressed="false">Bewaar</button>
             </article>
 
-            <article class="account-card project-card" data-status="preparation">
+            <article class="account-card project-card" data-project-id="digitale-hulp" data-status="preparation">
                 <div class="account-card-content">
                     <h3>Digitale hulp voor iedereen</h3>
                     <p>Help inwoners met praktische vragen over digitale diensten en apparaten.</p>
                 </div>
                 <span class="project-status status-preparation">In voorbereiding</span>
+                <button type="button" class="project-favorite" aria-pressed="false">Bewaar</button>
             </article>
 
-            <article class="account-card project-card" data-status="completed">
+            <article class="account-card project-card" data-project-id="jongeren-in-beweging" data-status="completed">
                 <div class="account-card-content">
                     <h3>Jongeren in beweging</h3>
                     <p>Draag bij aan activiteiten die jongeren in de wijk samenbrengen.</p>
                 </div>
                 <span class="project-status status-completed">Afgerond</span>
+                <button type="button" class="project-favorite" aria-pressed="false">Bewaar</button>
             </article>
         </div>
 

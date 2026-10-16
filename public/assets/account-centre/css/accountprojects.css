@@ -36,6 +36,11 @@
 	accent-color: var(--hnnw-yellow-400);
 }
 
+#account-centre-container.projects-page .projects-toggle:has(input:focus-visible) {
+	outline: 2px solid var(--hnnw-yellow-400);
+	outline-offset: 3px;
+}
+
 #account-centre-container.projects-page .projects-tools label {
 	color: var(--hnnw-secondary-text);
 	font-size: 0.85rem;
@@ -162,6 +167,31 @@
 	white-space: nowrap;
 }
 
+#account-centre-container.projects-page .project-favorite {
+	flex: 0 0 auto;
+	min-height: 2.25rem;
+	padding: 0.4rem 0.7rem;
+	border: 1px solid #596579;
+	border-radius: 6px;
+	background: transparent;
+	color: #d2d8e0;
+	font: inherit;
+	font-size: 0.85rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+#account-centre-container.projects-page .project-favorite:hover,
+#account-centre-container.projects-page .project-favorite[aria-pressed="true"] {
+	border-color: var(--hnnw-yellow-400);
+	color: var(--hnnw-yellow-400);
+}
+
+#account-centre-container.projects-page .project-favorite:focus-visible {
+	outline: 2px solid var(--hnnw-yellow-400);
+	outline-offset: 2px;
+}
+
 #account-centre-container.projects-page .status-active {
 	border-color: #287a56;
 	background: rgba(40, 122, 86, 0.15);
@@ -216,5 +246,9 @@
 
 	#account-centre-container.projects-page .project-status {
 		white-space: normal;
+	}
+
+	#account-centre-container.projects-page .project-favorite {
+		align-self: flex-start;
 	}
 }

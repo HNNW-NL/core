@@ -3,6 +3,7 @@
 	const statusSelect = document.querySelector('#project-status');
 	const sortSelect = document.querySelector('#project-sort');
 	const activeOnlyToggle = document.querySelector('#project-active-only');
+	const favoritesOnlyToggle = document.querySelector('#project-favorites-only');
 	const showAllButton = document.querySelector('#projects-show-all');
 	const resetButton = document.querySelector('#projects-reset');
 	const resultCount = document.querySelector('#projects-result-count');
@@ -11,8 +12,10 @@
 	const projectCards = Array.from(document.querySelectorAll('.project-card'));
 	const projectsList = document.querySelector('#projects-list');
 	const storageKey = 'account-centre.projects.filters';
+	const favoritesStorageKey = 'account-centre.projects.favorites';
+	let favoriteIds = new Set();
 
-	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !showAllButton || !resetButton || !resultCount || !filterStatus || !emptyMessage || !projectsList) {
+	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !favoritesOnlyToggle || !showAllButton || !resetButton || !resultCount || !filterStatus || !emptyMessage || !projectsList) {
 		return;
 	}
 
@@ -23,6 +26,7 @@
 			if (['all', 'active', 'preparation', 'completed'].includes(saved.status)) statusSelect.value = saved.status;
 			if (['name-asc', 'name-desc', 'status'].includes(saved.sort)) sortSelect.value = saved.sort;
 			if (typeof saved.activeOnly === 'boolean') activeOnlyToggle.checked = saved.activeOnly;
+			if (typeof saved.favoritesOnly === 'boolean') favoritesOnlyToggle.checked = saved.favoritesOnly;
 		} catch {
 			// Storage can be unavailable in private browsing or restricted contexts.
 		}
@@ -35,10 +39,37 @@
 				status: statusSelect.value,
 				sort: sortSelect.value,
 				activeOnly: activeOnlyToggle.checked,
+				favoritesOnly: favoritesOnlyToggle.checked,
 			}));
 		} catch {
 			// Filtering remains usable when storage is unavailable.
 		}
+	};
+
+	const readSavedFavorites = () => {
+		try {
+			const saved = JSON.parse(window.localStorage.getItem(favoritesStorageKey) || '[]');
+			if (Array.isArray(saved)) favoriteIds = new Set(saved.filter((id) => typeof id === 'string'));
+		} catch {
+			// Favorites remain usable for the current page when storage is unavailable.
+		}
+	};
+
+	const saveFavorites = () => {
+		try {
+			window.localStorage.setItem(favoritesStorageKey, JSON.stringify([...favoriteIds]));
+		} catch {
+			// Favorites remain usable for the current page when storage is unavailable.
+		}
+	};
+
+	const updateFavoriteButton = (card) => {
+		const button = card.querySelector('.project-favorite');
+		const isFavorite = favoriteIds.has(card.dataset.projectId);
+		button.setAttribute('aria-pressed', String(isFavorite));
+		button.textContent = isFavorite ? 'Bewaard' : 'Bewaar';
+		button.setAttribute('aria-label', `${isFavorite ? 'Verwijder' : 'Bewaar'} ${card.querySelector('h3').textContent} ${isFavorite ? 'uit' : 'als'} favoriet`);
+		card.classList.toggle('is-favorite', isFavorite);
 	};
 
 	const normalizeText = (value) => value
@@ -50,6 +81,7 @@
 		const query = normalizeText(searchInput.value.trim());
 		const selectedStatus = statusSelect.value;
 		const activeOnly = activeOnlyToggle.checked;
+		const favoritesOnly = favoritesOnlyToggle.checked;
 		const statusOrder = { active: 0, preparation: 1, completed: 2 };
 		const sortedCards = [...projectCards].sort((first, second) => {
 			if (sortSelect.value === 'status') {
@@ -64,10 +96,12 @@
 
 		sortedCards.forEach((card) => {
 			projectsList.append(card);
-			const matchesQuery = normalizeText(card.textContent).includes(query);
+			const searchableText = card.querySelector('.account-card-content').textContent;
+			const matchesQuery = normalizeText(searchableText).includes(query);
 			const matchesStatus = selectedStatus === 'all' || card.dataset.status === selectedStatus;
 			const matchesActiveOnly = !activeOnly || card.dataset.status === 'active';
-			const isVisible = matchesQuery && matchesStatus && matchesActiveOnly;
+			const matchesFavorite = !favoritesOnly || favoriteIds.has(card.dataset.projectId);
+			const isVisible = matchesQuery && matchesStatus && matchesActiveOnly && matchesFavorite;
 
 			card.hidden = !isVisible;
 			visibleCount += Number(isVisible);
@@ -76,12 +110,19 @@
 		const filtersActive = searchInput.value.length > 0
 			|| statusSelect.value !== 'all'
 			|| sortSelect.value !== 'name-asc'
-			|| activeOnlyToggle.checked;
+			|| activeOnlyToggle.checked
+			|| favoritesOnlyToggle.checked;
 
 		resultCount.textContent = `${visibleCount} ${visibleCount === 1 ? 'project' : 'projecten'} gevonden`;
 		emptyMessage.hidden = visibleCount !== 0;
 		filterStatus.textContent = filtersActive
-			? `Actieve filters: ${searchInput.value ? 'zoekterm' : ''}${searchInput.value && (statusSelect.value !== 'all' || sortSelect.value !== 'name-asc' || activeOnlyToggle.checked) ? ', ' : ''}${statusSelect.value !== 'all' ? 'status' : ''}${statusSelect.value !== 'all' && (sortSelect.value !== 'name-asc' || activeOnlyToggle.checked) ? ', ' : ''}${sortSelect.value !== 'name-asc' ? 'sortering' : ''}${sortSelect.value !== 'name-asc' && activeOnlyToggle.checked ? ', ' : ''}${activeOnlyToggle.checked ? 'alleen actief' : ''}`
+			? `Actieve filters: ${[
+				searchInput.value ? 'zoekterm' : '',
+				statusSelect.value !== 'all' ? 'status' : '',
+				sortSelect.value !== 'name-asc' ? 'sortering' : '',
+				activeOnlyToggle.checked ? 'alleen actief' : '',
+				favoritesOnlyToggle.checked ? 'alleen favorieten' : '',
+			].filter(Boolean).join(', ')}`
 			: 'Geen filters actief';
 		resetButton.disabled = !filtersActive;
 		showAllButton.disabled = !filtersActive;
@@ -92,11 +133,31 @@
 	statusSelect.addEventListener('change', updateProjects);
 	sortSelect.addEventListener('change', updateProjects);
 	activeOnlyToggle.addEventListener('change', updateProjects);
+	favoritesOnlyToggle.addEventListener('change', updateProjects);
+	readSavedFilters();
+	readSavedFavorites();
+
+	projectCards.forEach((card) => {
+		const button = card.querySelector('.project-favorite');
+		updateFavoriteButton(card);
+		button.addEventListener('click', () => {
+			const projectId = card.dataset.projectId;
+			if (favoriteIds.has(projectId)) {
+				favoriteIds.delete(projectId);
+			} else {
+				favoriteIds.add(projectId);
+			}
+			updateFavoriteButton(card);
+			saveFavorites();
+			updateProjects();
+		});
+	});
 	showAllButton.addEventListener('click', () => {
 		searchInput.value = '';
 		statusSelect.value = 'all';
 		sortSelect.value = 'name-asc';
 		activeOnlyToggle.checked = false;
+		favoritesOnlyToggle.checked = false;
 		updateProjects();
 		searchInput.focus();
 	});
@@ -105,6 +166,7 @@
 		statusSelect.value = 'all';
 		sortSelect.value = 'name-asc';
 		activeOnlyToggle.checked = false;
+		favoritesOnlyToggle.checked = false;
 		updateProjects();
 		searchInput.focus();
 	});
@@ -127,6 +189,5 @@
 		}
 	});
 
-	readSavedFilters();
 	updateProjects();
 })();
