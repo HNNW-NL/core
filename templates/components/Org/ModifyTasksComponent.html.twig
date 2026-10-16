@@ -81,7 +81,11 @@
                 <td>
                     <label>
                         Due date
-                        <input type="datetime-local" data-model="norender|updateMap[{{ task.id }}].dueDate">
+                        <input
+                            type="datetime-local"
+                            value="{{ task.dueDate ? task.dueDate|date('Y-m-d\\TH:i') : '' }}"
+                            data-model="norender|updateMap[{{ task.id }}].dueDate"
+                        >
                     </label>
                 </td>
                 <td>
