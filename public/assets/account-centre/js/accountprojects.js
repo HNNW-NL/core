@@ -4,7 +4,6 @@
 	const sortSelect = document.querySelector('#project-sort');
 	const activeOnlyToggle = document.querySelector('#project-active-only');
 	const favoritesOnlyToggle = document.querySelector('#project-favorites-only');
-	const showAllButton = document.querySelector('#projects-show-all');
 	const resetButton = document.querySelector('#projects-reset');
 	const resultCount = document.querySelector('#projects-result-count');
 	const filterStatus = document.querySelector('#projects-filter-status');
@@ -15,7 +14,7 @@
 	const favoritesStorageKey = 'account-centre.projects.favorites';
 	let favoriteIds = new Set();
 
-	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !favoritesOnlyToggle || !showAllButton || !resetButton || !resultCount || !filterStatus || !emptyMessage || !projectsList) {
+	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !favoritesOnlyToggle || !resetButton || !resultCount || !filterStatus || !emptyMessage || !projectsList) {
 		return;
 	}
 
@@ -113,8 +112,11 @@
 			|| activeOnlyToggle.checked
 			|| favoritesOnlyToggle.checked;
 
-		resultCount.textContent = `${visibleCount} ${visibleCount === 1 ? 'project' : 'projecten'} gevonden`;
+		resultCount.textContent = `${visibleCount} van ${projectCards.length} projecten gevonden`;
 		emptyMessage.hidden = visibleCount !== 0;
+		emptyMessage.textContent = favoritesOnly && favoriteIds.size === 0
+			? 'Je hebt nog geen favorieten. Bewaar een project met de knop Bewaar.'
+			: 'Geen projecten gevonden. Pas je zoekopdracht of filters aan.';
 		filterStatus.textContent = filtersActive
 			? `Actieve filters: ${[
 				searchInput.value ? 'zoekterm' : '',
@@ -125,7 +127,6 @@
 			].filter(Boolean).join(', ')}`
 			: 'Geen filters actief';
 		resetButton.disabled = !filtersActive;
-		showAllButton.disabled = !filtersActive;
 		saveFilters();
 	};
 
@@ -151,15 +152,6 @@
 			saveFavorites();
 			updateProjects();
 		});
-	});
-	showAllButton.addEventListener('click', () => {
-		searchInput.value = '';
-		statusSelect.value = 'all';
-		sortSelect.value = 'name-asc';
-		activeOnlyToggle.checked = false;
-		favoritesOnlyToggle.checked = false;
-		updateProjects();
-		searchInput.focus();
 	});
 	resetButton.addEventListener('click', () => {
 		searchInput.value = '';
