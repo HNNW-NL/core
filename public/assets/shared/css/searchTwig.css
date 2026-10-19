@@ -8,6 +8,7 @@
     .ts-wrapper{
         display: inline-block;
         min-height: 0px;
+        left: -3px;
     }
     .ts-control{
         padding: 0px;

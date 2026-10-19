@@ -15,11 +15,11 @@ class AuditLogSearchType extends AbstractType
     {
         $builder            
              ->add('actor', AccountAutocompleteField::class,
-                ['multiple' => false]
+                ['multiple' => false,'attr' =>['autocomplete' => 'off']]
             )->add('startPeriod', DateTimeType::class,
-                ['required' => false])
+                ['required' => false,'attr' =>['autocomplete' => 'off']])
             ->add('endPeriod', DateTimeType::class,
-                ['required' => false])
+                ['required' => false,'attr' =>['autocomplete' => 'off']])
         ;
     }
 

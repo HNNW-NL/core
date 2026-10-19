@@ -8,13 +8,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class SystemLogSearchDTO
 {
-   #[Paginate\WhereTarget('createdAt','>')]
+   #[Paginate\Where('createdAt','>')]
    public ?DateTimeImmutable $startPeriod = null;   
    #[Assert\Expression(
        "this.startPeriod == null or this.endPeriod == null or this.startPeriod <= this.endPeriod",
         message:"De einddatum moet na of hetzelfde als de startdatum zijn"
    )]
-   #[Paginate\WhereTarget('createdAt','<')]
+   #[Paginate\Where('createdAt','<')]
    public ?DateTimeImmutable $endPeriod = null;
    public ?string $level    = null;
 }

@@ -50,7 +50,7 @@ final class DashboardController extends AbstractController
     }
 
     #[Route('/logs', name: 'logs', methods: ['GET'])]
-    public function logs(AuditLogRepository $auditLogRepository): Response
+    public function logs(): Response
     {
         $auditLogSearch = new SearchDTO();
         $auditLogSearch->dto = AuditLogSearchDTO::class;

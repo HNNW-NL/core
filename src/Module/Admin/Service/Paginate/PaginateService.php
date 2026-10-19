@@ -3,7 +3,9 @@
 namespace App\Module\Admin\Service\Paginate;
 
 use App\Module\Admin\Service\Paginate\Attributes\Join;
-use App\Module\Admin\Service\Paginate\Attributes\WhereTarget;
+use App\Module\Admin\Service\Paginate\Attributes\Where;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use ReflectionProperty;
@@ -57,7 +59,10 @@ class PaginateService
         return $this->cachedItems[0];
     }
 
-    public function getWhere()
+    /**
+     * returns the where condition used to create the current pagination
+     */
+    public function getWhere() :array
     {
         return $this->where;
     }
@@ -72,7 +77,7 @@ class PaginateService
     }
 
     /**
-     * Return if there exist a previous page
+     * Returns if there exist a previous page
      */
     public function hasPrevPage() : bool
     {
@@ -81,7 +86,7 @@ class PaginateService
     }
 
     /**
-     * 
+     * Returns links to all pages that can be navigated to from last page
      */
     public function getLinks(): array
     {
@@ -90,13 +95,13 @@ class PaginateService
 
     private function toWhereArray(object $where) : array
     {
-        $whereArray = [];
+        $whereArray = [[],[]];
 
         foreach($where as $key => $value)
         {
-            $compare = '=';
+            $compare = '=';            
             $property = new ReflectionProperty($where::class, $key);
-            $whereAttributes = $property->getAttributes(WhereTarget::class);
+            $whereAttributes = $property->getAttributes(Where::class);
             $alias = 'q';
             if(count($whereAttributes) > 0)
             {
@@ -115,11 +120,19 @@ class PaginateService
                 {
                     $value = (string) $value->getId();
                 }
+            } 
+
+            if(is_object($value))
+            {
+                if(is_subclass_of($value,DateTimeInterface::class))
+                {
+                    $value = $value->format(DateTime::RFC3339);
+                }else{
+                    $value = (string) $value;
+                }
             }
 
-            
-
-            $whereArray[0][$key] = [$value,$compare,$alias];
+            array_push($whereArray[0],[$value,$compare,$alias,$key]);
         }
 
         return $whereArray;
@@ -136,6 +149,7 @@ class PaginateService
 
     private function fetchItems(?string $cursor = null, bool $isForward = true)
     {
+        $this->hasFetched = true;
         $qb = $this->repository->createQueryBuilder('q');
         $qb->setMaxResults($this->limit);
 
@@ -146,7 +160,6 @@ class PaginateService
         }
 
         $this->addWhere($qb);
-        $this->addJoins($qb);
         $this->addOrder($qb,!$isForward);
 
         $this->cachedItems[0] = $qb->getQuery()->getResult();
@@ -164,10 +177,14 @@ class PaginateService
         if(count($this->cachedItems[0]) == $this->limit)
         {
             $this->cachedItems[2] = $this->getNextPageLink(end($this->cachedItems[0])->getId());
+        }else {
+            $this->cachedItems[2] = null;
         }
         if(count($this->cachedItems[0]) > 0)
         {
             $this->cachedItems[1] = $cursor == null ? null : $this->getPrevPageLink($this->cachedItems[0][0]->getId());            
+        }else {
+             $this->cachedItems[1] = null;
         }
     }
 
@@ -182,7 +199,6 @@ class PaginateService
         }
 
         $this->addWhere($qb);
-        $this->addJoins($qb);
         $this->addOrder($qb);
 
         $results = $qb->getQuery()->getResult();
@@ -200,7 +216,6 @@ class PaginateService
         }
 
         $this->addWhere($qb);
-        $this->addJoins($qb);
         $this->addOrder($qb,true);
         
         $results = $qb->getQuery()->getResult();
@@ -219,27 +234,31 @@ class PaginateService
         }
     }
 
-    private function addJoins(QueryBuilder $qb)
+    private function addWhere(QueryBuilder $qb)
     {
+        foreach($this->where[0] as $where)
+        {
+            
+            if($where != null)
+            {
+                $value = $where[0];
+                $compare = $where[1];
+                $alias = $where[2];
+                $key = $where[3];
+
+                if($value != null)
+                {                    
+                    $whereQuery = $alias.'.'.$key;
+                    $parameter = uniqid('parameter');
+                    $qb->andWhere($whereQuery .' '.$compare.' :'. $parameter)
+                        ->setParameter($parameter, $value);
+                }
+            }
+        }
+
         foreach($this->where[1] as $key => $value)
         {
             $qb->join('q.'.$key ,$value);
         }
     }
-
-    private function addWhere(QueryBuilder $qb)
-    {
-        foreach($this->where[0] as $key => $value)
-        {
-            if($value[0] != null)
-            {
-                $compare = $value[1];
-                $whereQuery = $value[2].'.'.$key;
-                $qb->andWhere($whereQuery .' '.$compare.' :'.$key)
-                    ->setParameter($key, $value[0]);
-            }
-        }
-    }
-
-    
 }
