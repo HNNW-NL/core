@@ -10,9 +10,9 @@
         <tbody>
         {% for update in this.projectUpdates %}
             <tr id="{{ update.id }}" class="update-row">
-                <td>Created by:{{ update.author.displayName }} {# link to profile page #}
+                <td>Created by: {{ update.author.displayName }} {# link to profile page #}
                     {% if update.deletedAt %}
-                        Deleted at:{{ update.deletedAt|date('d/m/Y') }}
+                        Deleted at: {{ update.deletedAt|date('d/m/Y') }}
                     {% endif %}
                 </td>
                 <td>

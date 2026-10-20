@@ -40,7 +40,6 @@ class ModifyProjectUpdatesHandler
             $update->makePrivate();
         }
 
-
         $this->em->flush();
     }
     public function deleteProjectUpdateById(string $projectUpdateId, Project $project): void

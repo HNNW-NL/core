@@ -29,7 +29,6 @@ class ModifyProjectUpdatesComponent
     #[LiveProp]
     public string $errorMessage = '';
 
-
     public function __construct(readonly private ProjectRepository $projectRepository,
                                 readonly private ProjectUpdateRepository $projectUpdateRepository,
                                 readonly private AuthorizationCheckerInterface $authorizationChecker,
@@ -37,7 +36,6 @@ class ModifyProjectUpdatesComponent
     )
     {
     }
-
 
     public function getProjectUpdates() : array
     {
@@ -105,7 +103,7 @@ class ModifyProjectUpdatesComponent
     }
 
     #[LiveAction]
-    public function restoreProjectUpdate( #[LiveArg] string $id): void
+    public function restoreProjectUpdate(#[LiveArg] string $id): void
     {
         $this->errorMessage = '';
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
