@@ -56,12 +56,14 @@
                 <span>Alleen favorieten</span>
             </label>
             <div class="projects-actions">
+                <button type="button" class="projects-export" id="projects-export" disabled>Download CSV</button>
                 <button type="button" class="projects-reset" id="projects-reset" disabled>Wis filters</button>
             </div>
         </section>
 
         <p class="projects-result-count" id="projects-result-count" aria-live="polite"></p>
         <p class="projects-filter-status" id="projects-filter-status" aria-live="polite"></p>
+        <p class="projects-export-status" id="projects-export-status" aria-live="polite"></p>
 
         <div class="account-grid projects-grid" id="projects-list">
             <article class="account-card project-card" data-project-id="buurtmoestuin-noord" data-status="active">

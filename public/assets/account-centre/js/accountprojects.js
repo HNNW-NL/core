@@ -4,9 +4,11 @@
 	const sortSelect = document.querySelector('#project-sort');
 	const activeOnlyToggle = document.querySelector('#project-active-only');
 	const favoritesOnlyToggle = document.querySelector('#project-favorites-only');
+	const exportButton = document.querySelector('#projects-export');
 	const resetButton = document.querySelector('#projects-reset');
 	const resultCount = document.querySelector('#projects-result-count');
 	const filterStatus = document.querySelector('#projects-filter-status');
+	const exportStatus = document.querySelector('#projects-export-status');
 	const emptyMessage = document.querySelector('#projects-empty');
 	const projectCards = Array.from(document.querySelectorAll('.project-card'));
 	const projectsList = document.querySelector('#projects-list');
@@ -14,7 +16,7 @@
 	const favoritesStorageKey = 'account-centre.projects.favorites';
 	let favoriteIds = new Set();
 
-	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !favoritesOnlyToggle || !resetButton || !resultCount || !filterStatus || !emptyMessage || !projectsList) {
+	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !favoritesOnlyToggle || !exportButton || !resetButton || !resultCount || !filterStatus || !exportStatus || !emptyMessage || !projectsList) {
 		return;
 	}
 
@@ -114,6 +116,7 @@
 
 		resultCount.textContent = `${visibleCount} van ${projectCards.length} projecten gevonden`;
 		emptyMessage.hidden = visibleCount !== 0;
+		exportButton.disabled = visibleCount === 0;
 		emptyMessage.textContent = favoritesOnly && favoriteIds.size === 0
 			? 'Je hebt nog geen favorieten. Bewaar een project met de knop Bewaar.'
 			: 'Geen projecten gevonden. Pas je zoekopdracht of filters aan.';
@@ -161,6 +164,25 @@
 		favoritesOnlyToggle.checked = false;
 		updateProjects();
 		searchInput.focus();
+	});
+	exportButton.addEventListener('click', () => {
+		const rows = projectCards
+			.filter((card) => !card.hidden)
+			.map((card) => [
+				card.querySelector('h3').textContent.trim(),
+				card.querySelector('.account-card-content p').textContent.trim(),
+				card.querySelector('.project-status').textContent.trim(),
+			]);
+		const escapeCsv = (value) => `"${value.replaceAll('"', '""')}"`;
+		const csv = ['Project,Omschrijving,Status', ...rows.map((row) => row.map(escapeCsv).join(','))].join('\r\n');
+		const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' });
+		const downloadUrl = URL.createObjectURL(blob);
+		const downloadLink = document.createElement('a');
+		downloadLink.href = downloadUrl;
+		downloadLink.download = `mijn-projecten-${new Date().toISOString().slice(0, 10)}.csv`;
+		downloadLink.click();
+		URL.revokeObjectURL(downloadUrl);
+		exportStatus.textContent = `${rows.length} ${rows.length === 1 ? 'project' : 'projecten'} gedownload.`;
 	});
 
 	document.addEventListener('keydown', (event) => {
