@@ -33,6 +33,7 @@ class ProjectsView
     {
         $this->query = '';
         $this->cardSize = 'medium';
+        $this->maxResults = 30;
     }
 
     public function getProjects(): array
@@ -42,6 +43,6 @@ class ProjectsView
             return [];
         }
 
-        return $this->projectRepository->findByProfileOnQuery($this->query,$profile);
+        return $this->projectRepository->findByProfileOnQuery($this->query, $profile, max(1, min($this->maxResults, 100)));
     }
 }

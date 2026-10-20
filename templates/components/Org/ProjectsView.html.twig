@@ -15,6 +15,8 @@
             name="input-max-result"
             data-model="debounce(300)|maxResults"
             value="{{ this.maxResults }}"
+            min="1"
+            max="100"
         >
         <button id="reset-button" type="button" class="reset-button" data-action="click->live#action" data-live-action-param="reset">Reset</button>
 
