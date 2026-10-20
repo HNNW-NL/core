@@ -67,6 +67,7 @@ class ModifyTasksComponent
         return $this->profileRepository->findByProject($this->getProject());
     }
 
+    #[LiveAction]
     public function updateTask(#[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
