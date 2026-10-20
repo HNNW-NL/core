@@ -10,9 +10,9 @@ use App\Module\Admin\DTO\SystemLogSearchDTO;
 use App\Module\Admin\Service\Paginate\PaginateService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use App\Module\Admin\Service\Paginate\Attributes as Paginate;
 
 class PaginateServiceTest extends KernelTestCase
 {
@@ -275,4 +275,18 @@ class PaginateServiceTest extends KernelTestCase
         $this->paginateService = null;
         $this->entityManager = null;
     }
+}
+
+
+class AuditLogMutpleWheresDTOTest{
+
+   #[Paginate\Where('createdAt','>')]
+   public ?DateTimeImmutable $startPeriod = null;   
+
+   #[Paginate\Where('createdAt','<')]
+   public ?DateTimeImmutable $endPeriod = null;
+
+   #[Paginate\Join('Account','actorAccount')]
+   public ?Account $actor  = null;
+
 }

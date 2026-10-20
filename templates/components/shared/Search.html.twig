@@ -25,7 +25,7 @@
         <table data-loading='hide' class="result">
             <thead>
                 {% for key, value in displayFields %}
-                    <th>{{ key }}</th>
+                    <th>{{ value[0] }}</th>
                 {% endfor %}
             </thead>
             <tbody>
@@ -37,8 +37,12 @@
                 {% for result in this.results %}
                     <tr>
                         {% for key, value in result|cast_to_array  %}   
-                            {% if value is not empty %}                        
-                                <td>{{ value|display}}</td>  
+                            {% if value is not empty %}       
+                                {% if displayFields[key][1] is not empty %}                 
+                                    <td><a href="{{path(displayFields[key][1],pathParameters[loop.index0])}}">{{ value|display}}</a></td>  
+                                {% else %}
+                                    <td>{{ value|display}}</td> 
+                                {% endif %}  
                             {% else %}
                                 <td>-</td>   
                             {% endif %}                        

@@ -20,7 +20,6 @@ class AuditLogSearchDTO
    public ?DateTimeImmutable $endPeriod = null;
 
    #[Paginate\Join('Account','actorAccount')]
-   #[Paginate\Where('id','=')]
    public ?Account $actor  = null;
    
 }

@@ -3,14 +3,28 @@
 namespace App\Module\Admin\DTO;
 
 use DateTimeImmutable;
+use App\Twig\Components\Shared\Search;
 
 class SystemLogSearchDisplayDTO
-{
-   public ?DateTimeImmutable $createdAt = null;   
+{   
+   #[Search\Label("Gemaakt op")]
+   public ?DateTimeImmutable $createdAt = null;  
+
+   #[Search\Label("Code")]
    public ?int $code = null;   
-   public ?string $level = '';
-   public ?string $message = '';
-   public ?string $route = '';
+
+   #[Search\Label("Level")] 
+   public ?string $level = ''; 
+
+   #[Search\Label("Berricht")]
+   public ?string $message = '';  
+
+   #[Search\Label("Route")]
+   public ?string $route = '';  
+    
+   #[Search\Label("Methode")]
    public ?string $method = '';
+
+   #[Search\Label("Ip")]
    public ?string $requestIp = '';
 }

@@ -2,7 +2,14 @@
 namespace App\Twig\Components\Shared;
 
 use App\Module\Admin\Service\Paginate\PaginateService;
+use App\Twig\Components\Shared\Search\Label;
+use App\Twig\Components\Shared\Search\Path;
+use App\Twig\Components\Shared\Search\PathParameter;
+use App\Twig\Components\Shared\Search\SearchDTO;
+use BadFunctionCallException;
 use Doctrine\ORM\EntityManagerInterface;
+use ReflectionClass;
+use ReflectionProperty;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -20,17 +27,41 @@ class Search extends AbstractController
     use DefaultActionTrait;
     use ComponentWithFormTrait;
 
+    /**
+    * @var array $results that is display in the display table
+    */ 
     public array $results = [];
+    /** 
+    * @var array $pathParameters that are passed to links created in the result table
+    */ 
+    public array $pathParameters = [];
+    /**
+     * @var array $pathParametersFields of parameters of result that should be saved
+     */ 
+    #[LiveProp]
+    public array $pathParametersFields = [];
     
+    /**
+    * @var array $links paginate links to all possible pages
+    */ 
     #[LiveProp]
     public ?array $links = [];
 
+    /**
+    * @var bool $hasSearched if there already has been search once
+    */ 
     #[LiveProp]
     public bool $hasSearched = false;
 
+    /**
+    * @var array $where paginateService where clause
+    */ 
     #[LiveProp(hydrateWith: 'hydrateMultiLevelArray', dehydrateWith: 'dehydrateMultiLevelArray')]
     public array $where = [];
 
+    /**
+    * @var ?object $formData inital form data
+    */
     public ?object $formData = null;
 
     #[LiveProp]
@@ -56,7 +87,42 @@ class Search extends AbstractController
     #[PostMount]
     public function postMount() : void
     {
-        $this->displayFields = get_class_vars($this->searchDTO->displayDTO); 
+        $displayFields =  get_class_vars($this->searchDTO->displayDTO); 
+
+        $reflectionObject = new ReflectionClass($this->searchDTO->displayDTO);
+        $pathParameters = $reflectionObject->getAttributes(PathParameter::class);
+        foreach($pathParameters as  $pathParameter)
+        {
+            $value = $pathParameter->getArguments();
+            if(count($value) == 2)
+            {
+                $this->pathParametersFields[$value[0]] = $value[1]; 
+            }else{
+                $this->pathParametersFields[$value[0]] = 'get'.ucfirst($value[0]);
+            }
+            
+        }
+
+        foreach($displayFields as $field => $value)
+        {
+            $property = new ReflectionProperty($this->searchDTO->displayDTO, $field);
+            $link = $property->getAttributes(Path::class);
+            $linkValue = null;
+            $count = count($link);
+            if($count > 0)
+            {
+                $linkValue = $link[0]->getArguments()[0];
+            }
+            $label = $property->getAttributes(Label::class);
+            $count = count($label);
+            if($count > 0)
+            {
+                $arguments = $label[0]->getArguments();
+                $this->displayFields[$field] = [$arguments[0],$linkValue];
+            }else{
+                $this->displayFields[$field] = [$field,$linkValue];
+            }
+        }
     }
     
 
@@ -74,6 +140,7 @@ class Search extends AbstractController
             $this->links = $this->paginate->getLinks();
             $this->hasSearched = true;
             $this->results = $this->toDisplayDto($results);
+            $this->pathParameters = $this->getPathParameters($results);
         }
         
     }
@@ -85,6 +152,7 @@ class Search extends AbstractController
         $results = $this->paginate->getPage($link); 
         $this->links = $this->paginate->getLinks();
         $this->results = $this->toDisplayDto($results);
+        $this->pathParameters = $this->getPathParameters($results);
     }
 
     public function dehydrateMultiLevelArray(array $where)
@@ -106,6 +174,28 @@ class Search extends AbstractController
         }
 
         return $result;
+    }
+
+    private function getPathParameters(array $array)
+    {
+        $pathParameters = [];
+        foreach($array as $object )
+        {          
+            $parameters = [];
+            foreach($this->pathParametersFields as $parameter => $method)  
+            {
+                if(method_exists($object,$method))
+                {
+                   $parameters[$parameter] = $object->$method();
+                }else
+                {
+                    throw new BadFunctionCallException("Method '".$method. "' does not exist");
+                }
+            }
+            array_push($pathParameters, $parameters);
+        }
+
+        return $pathParameters;
     }
 
     private function getRepository()

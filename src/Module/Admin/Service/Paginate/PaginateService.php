@@ -4,25 +4,43 @@ namespace App\Module\Admin\Service\Paginate;
 
 use App\Module\Admin\Service\Paginate\Attributes\Join;
 use App\Module\Admin\Service\Paginate\Attributes\Where;
+use BadFunctionCallException;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use LogicException;
 use ReflectionProperty;
-
-use function PHPUnit\Framework\isArray;
 
 class PaginateService
 {
 
+    /**
+     * @var EntityRepository $repository repository of entity
+     */
     private EntityRepository $repository;
 
+    /**
+     * @var int $limit amount of results per page
+     */
     private int $limit = 20;
 
+    /**
+     * @var bool $hasFetched if results have already been fetched
+     */
     private bool $hasFetched = false;
 
+    /**
+     * @var array $cachedItems fetched results
+     */
     private array $cachedItems = [null,null,null];
+    /**
+     * @var array $where multi array of where and join conditions
+     */
     private array $where = [[],[]];
+    /**
+     * @var array $orderBy how results are ordered
+     */
     private ?array $orderBy = null;
 
     public function __construct(
@@ -61,6 +79,7 @@ class PaginateService
 
     /**
      * returns the where condition used to create the current pagination
+     * @return array current in use where condition
      */
     public function getWhere() :array
     {
@@ -69,6 +88,7 @@ class PaginateService
 
     /**
      * Return if there exist a next page
+     * @return bool bool if next page exist
      */
     public function hasNextPage() : bool
     {
@@ -78,6 +98,7 @@ class PaginateService
 
     /**
      * Returns if there exist a previous page
+     * @return bool bool if previous page exist
      */
     public function hasPrevPage() : bool
     {
@@ -87,6 +108,7 @@ class PaginateService
 
     /**
      * Returns links to all pages that can be navigated to from last page
+     * @return array links of all pages
      */
     public function getLinks(): array
     {
@@ -96,19 +118,14 @@ class PaginateService
     private function toWhereArray(object $where) : array
     {
         $whereArray = [[],[]];
+        $value = null;
 
         foreach($where as $key => $value)
         {
             $compare = '=';            
             $property = new ReflectionProperty($where::class, $key);
-            $whereAttributes = $property->getAttributes(Where::class);
             $alias = 'q';
-            if(count($whereAttributes) > 0)
-            {
-                $arguments = $whereAttributes[0]->getArguments();
-                $key = $arguments[0];
-                $compare = $arguments[1];
-            }            
+                       
             $joinAttributes = $property->getAttributes(Join::class);
             if(count($joinAttributes) > 0)
             {
@@ -116,10 +133,16 @@ class PaginateService
                 $alias = $arguments[0];
                 $whereArray[1][$arguments[1]] = $arguments[0];
                 
-                if(is_object($value)  && method_exists($value,'getId') )
+                if(is_object($value))
                 {
-                    $value = (string) $value->getId();
+                    if(method_exists($value,'getId'))
+                    {                        
+                        $value = (string) $value->getId();
+                    }else{
+                        throw new BadFunctionCallException("Expected object to have method 'getId'");
+                    }
                 }
+                array_push($whereArray[0],[$value,'=',$alias,'id']);
             } 
 
             if(is_object($value))
@@ -132,7 +155,17 @@ class PaginateService
                 }
             }
 
-            array_push($whereArray[0],[$value,$compare,$alias,$key]);
+            $whereAttributes = $property->getAttributes(Where::class);
+            if(count($whereAttributes) > 0)
+            {
+                $arguments = $whereAttributes[0]->getArguments();
+                $key = $arguments[0];
+                $compare = $arguments[1];
+                array_push($whereArray[0],[$value,$compare,$alias,$key]);                
+                
+            } else if(count($joinAttributes) == 0){
+                array_push($whereArray[0],[$value,$compare,$alias,$key]);
+            }            
         }
 
         return $whereArray;
@@ -149,6 +182,10 @@ class PaginateService
 
     private function fetchItems(?string $cursor = null, bool $isForward = true)
     {
+        if($this->repository == null)
+        {
+            throw new LogicException("PaginateService is not initialized call the method 'paginate' first");
+        }
         $this->hasFetched = true;
         $qb = $this->repository->createQueryBuilder('q');
         $qb->setMaxResults($this->limit);

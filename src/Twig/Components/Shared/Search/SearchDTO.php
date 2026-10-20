@@ -1,8 +1,5 @@
 <?php
-namespace App\Twig\Components\Shared;
-
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Symfony\Component\Form\AbstractType;
+namespace App\Twig\Components\Shared\Search;
 
 class SearchDTO{
 

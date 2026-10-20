@@ -10,7 +10,7 @@ use App\Module\Admin\DTO\AuditLogSearchDTO;
 use App\Module\Admin\DTO\SystemLogSearchDisplayDTO;
 use App\Module\Admin\DTO\SystemLogSearchDTO;
 use App\Repository\Log\AuditLogRepository;
-use App\Twig\Components\Shared\SearchDTO;
+use App\Twig\Components\Shared\Search\SearchDTO;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;

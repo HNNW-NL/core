@@ -10,7 +10,8 @@ use App\Twig\Components\Shared\Search;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
 use App\Repository\Org\AccountRepository;
-use App\Twig\Components\Shared\SearchDTO;
+use App\Twig\Components\Shared\Search\SearchDTO;
+use BadFunctionCallException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use DateTime;
 use DateTimeImmutable;
@@ -44,6 +45,49 @@ class SearchTest extends KernelTestCase
         $this->assertStringContainsString('Klik op zoeken om resultaten te vinden',$testComponent->render());
     }
 
+    //postMount
+
+    public function testWhenDisplayDTOHasLabelShouldOverideColumnNames()
+    {
+        $searchDTO = new SearchDTO();
+        $searchDTO->dto = AuditLogSearchDTO::class;
+        $searchDTO->displayDTO = AuditLogDisplayDTOTest::class;
+        $searchDTO->entity = AuditLog::class;
+        $searchDTO->form = AuditLogSearchType::class;
+        $searchDTO->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
+        $testComponent = $this->createLiveComponent(
+            Search::class, ["searchDTO" => $searchDTO]
+        );
+
+        $render = $testComponent->render();
+
+        $this->assertStringContainsString('Gemaakt op',$render);
+        $this->assertStringContainsString('Gebruikersnaam',$render);
+        $this->assertStringContainsString('Gebruikersemail',$render);
+        $this->assertStringContainsString('Actie',$render);
+        $this->assertStringContainsString('Entiteittype',$render);
+        $this->assertStringContainsString('Entiteitid',$render);
+        $this->assertStringContainsString('Ip',$render);
+    }
+
+    public function testWhenPathParametersShouldSaveFields()
+    {
+        $searchDTO = new SearchDTO();
+        $searchDTO->dto = AuditLogSearchDTO::class;
+        $searchDTO->displayDTO = AuditLogDisplayDTOTest::class;
+        $searchDTO->entity = AuditLog::class;
+        $searchDTO->form = AuditLogSearchType::class;
+        $searchDTO->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
+        $testComponent = $this->createLiveComponent(
+            Search::class, ["searchDTO" => $searchDTO]
+        );
+
+        $components = $testComponent->component();
+
+        $this->assertEquals(['actorEmail' => 'getActorEmail','actorUsername' => 'getActorUsername'],$components->pathParametersFields);
+    }
+
+    // search
 
     #[DataProvider('provideSearchData')]
     public function testWhenSearchingShouldReturnResults(string $expectedResult ,array $input): void
@@ -111,6 +155,47 @@ class SearchTest extends KernelTestCase
         
         $this->assertStringContainsString('Geen resultaten gevonden',$testComponent->render());
     }
+
+    public function testWhenPathShouldCreateLink()
+    {
+        $searchDTO = new SearchDTO();
+        $searchDTO->dto = AuditLogSearchDTO::class;
+        $searchDTO->displayDTO = AuditLogDisplayDTOTest::class;
+        $searchDTO->entity = AuditLog::class;
+        $searchDTO->form = AuditLogSearchType::class;
+        $searchDTO->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
+        $testComponent = $this->createLiveComponent(
+            Search::class, ["searchDTO" => $searchDTO]
+        );
+
+        $testComponent->submitForm([],'search');  
+
+       $this->assertStringContainsString('href="/admin/logs?actorEmail=Test@test.nl&amp;actorUsername=TestUser"',$testComponent->render());
+    }
+
+    public function testWhenPathParameterMethodIsInvalidShouldGiveBadFunctionCallException()
+    {
+        $searchDTO = new SearchDTO();
+        $searchDTO->dto = AuditLogSearchDTO::class;
+        $searchDTO->displayDTO = InvalidDisplayDTOTest::class;
+        $searchDTO->entity = AuditLog::class;
+        $searchDTO->form = AuditLogSearchType::class;
+        $searchDTO->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
+        $testComponent = $this->createLiveComponent(
+            Search::class, ["searchDTO" => $searchDTO]
+        );
+
+        try {
+            $testComponent->submitForm([],'search');  
+        }catch(BadFunctionCallException $e)
+        {
+            $this->assertStringContainsString("Method 'invalidMethod' does not exist",$e->getMessage());
+        }
+
+       
+    }
+
+    // naviagate
 
     public function testWhenNoResultsShouldNotHaveNextAndPrev(): void
     {
@@ -195,4 +280,57 @@ class SearchTest extends KernelTestCase
         parent::tearDown();
         $this->accountRepository = null;
     }
+}
+
+#[Search\PathParameter('actorEmail'),Search\PathParameter('actorUsername')]
+class AuditLogDisplayDTOTest{
+
+   #[Search\Label("Gemaakt op")]
+   #[Search\Path('admin.logs')]
+   public ?DateTimeImmutable $createdAt = null; 
+
+   #[Search\Label("Gebruikersnaam")]
+   public ?string $actorUsername = '';
+
+   #[Search\Label("Gebruikersemail")]
+   public ?string $actorEmail = '';
+
+   #[Search\Label("Actie")]
+   public ?string $action = '';
+
+   #[Search\Label("Entiteittype")]
+   public ?string $entityType = '';
+
+   #[Search\Label("Entiteitid")]
+   public ?string $entityId = '';
+
+   #[Search\Label("Ip")]
+   public ?string $requestIp = '';
+}
+
+#[Search\PathParameter('actorEmail','invalidMethod'),Search\PathParameter('actorUsername')]
+class InvalidDisplayDTOTest{
+
+   #[Search\Label("Gemaakt op")]
+   #[Search\Path('admin.logs')]
+   public ?DateTimeImmutable $createdAt = null; 
+
+   #[Search\Label("Gebruikersnaam")]
+   public ?string $actorUsername = '';
+
+   #[Search\Label("Gebruikersemail")]
+   public ?string $actorEmail = '';
+
+   #[Search\Label("Actie")]
+   public ?string $action = '';
+
+   #[Search\Label("Entiteittype")]
+   public ?string $entityType = '';
+
+   #[Search\Label("Entiteitid")]
+   public ?string $entityId = '';
+
+   #[Search\Label("Ip")]
+   public ?string $requestIp = '';
+
 }
