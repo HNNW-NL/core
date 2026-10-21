@@ -1,6 +1,7 @@
 <?php
 namespace App\Twig\Components\Shared;
 
+use App\Module\Admin\Service\Paginate\Adapters\PaginateAdapterMode;
 use App\Module\Admin\Service\Paginate\PaginateService;
 use App\Twig\Components\Shared\Search\Label;
 use App\Twig\Components\Shared\Search\Path;
@@ -70,6 +71,18 @@ class Search extends AbstractController
     #[LiveProp]
     public array $displayFields = [];
 
+    /**
+     * @var PaginateAdapterMode $mode mode that paginate uses to get data from the database
+     */
+    #[LiveProp]
+    public PaginateAdapterMode $mode = PaginateAdapterMode::CursorMode;
+
+    /**
+     * @var int $limit amount of results per page
+     */
+    #[LiveProp]
+    public int $limit = 20;
+
     public function __construct(private EntityManagerInterface $entityManager, private PaginateService $paginate,
     private ObjectMapperInterface $objectMapper)
     {
@@ -134,7 +147,8 @@ class Search extends AbstractController
         if($form->isValid())
         {
             $data = $this->getForm()->getData();
-            $this->paginate->paginate($this->getRepository(),$data,$this->searchDTO->orderBy);
+            $this->paginate->setMode($this->mode);
+            $this->paginate->paginate($this->getRepository(),$data,$this->searchDTO->orderBy,$this->limit);
             $results = $this->paginate->getPage();  
             $this->where = $this->paginate->getWhere();
             $this->links = $this->paginate->getLinks();
@@ -148,7 +162,8 @@ class Search extends AbstractController
     #[LiveAction]
     public function navigate(#[LiveArg] string $link)
     {  
-        $this->paginate->paginate($this->getRepository(),$this->where,$this->searchDTO->orderBy);
+        $this->paginate->setMode($this->mode);
+        $this->paginate->paginate($this->getRepository(),$this->where,$this->searchDTO->orderBy,$this->limit);
         $results = $this->paginate->getPage($link); 
         $this->links = $this->paginate->getLinks();
         $this->results = $this->toDisplayDto($results);

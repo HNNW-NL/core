@@ -90,6 +90,11 @@ class Status
         return $this->id;
     }
 
+    public function __toString()
+    {
+        return $this->name;
+    }
+
 
     /// Getters & Setters Functions
 

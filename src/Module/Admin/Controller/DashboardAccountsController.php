@@ -2,14 +2,11 @@
 
 namespace App\Module\Admin\Controller;
 
-use App\Entity\Log\AuditLog;
-use App\Entity\Log\SystemLog;
-use App\Form\Admin\AuditLogSearchType;
-use App\Form\Admin\SystemLogSearchType;
-use App\Module\Admin\DTO\AuditLogSearchDTO;
-use App\Module\Admin\DTO\SystemLogSearchDisplayDTO;
-use App\Module\Admin\DTO\SystemLogSearchDTO;
-use App\Repository\Log\AuditLogRepository;
+use App\Entity\Account\Account;
+use App\Form\Admin\AccountSearchType;
+use App\Module\Admin\DTO\AccountSearchDisplayDTO;
+use App\Module\Admin\DTO\AccountSearchDTO;
+use App\Module\Admin\Service\Paginate\Adapters\PaginateAdapterMode;
 use App\Twig\Components\Shared\Search\SearchDTO;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,15 +19,16 @@ final class DashboardAccountsController extends AbstractController
     public function index(): Response
     {
         $search = new SearchDTO();
-        $search->dto = SystemLogSearchDTO::class;
-        $search->displayDTO = SystemLogSearchDisplayDTO::class;
-        $search->entity = SystemLog::class;
-        $search->form = SystemLogSearchType::class;
+        $search->dto = AccountSearchDTO::class;
+        $search->displayDTO = AccountSearchDisplayDTO::class;
+        $search->entity = Account::class;
+        $search->form = AccountSearchType::class;
         $search->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
 
         return $this->render('pages/admin/accounts/index.html.twig',
         array(
-            'search' => $search
+            'search' => $search,
+            'mode' => PaginateAdapterMode::OffsetMode
         ));
     }
 

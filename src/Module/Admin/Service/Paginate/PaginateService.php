@@ -2,38 +2,32 @@
 
 namespace App\Module\Admin\Service\Paginate;
 
+use App\Module\Admin\Service\Paginate\Adapters\PaginateAdapterInterface;
+use App\Module\Admin\Service\Paginate\Adapters\CursorAdapter;
+use App\Module\Admin\Service\Paginate\Adapters\OffsetAdapter;
+use App\Module\Admin\Service\Paginate\Adapters\PaginateAdapterMode;
 use App\Module\Admin\Service\Paginate\Attributes\Join;
 use App\Module\Admin\Service\Paginate\Attributes\Where;
 use BadFunctionCallException;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\QueryBuilder;
 use LogicException;
 use ReflectionProperty;
+use UnexpectedValueException;
 
 class PaginateService
 {
 
     /**
-     * @var EntityRepository $repository repository of entity
-     */
-    private EntityRepository $repository;
+    * @var ?EntityRepository $repository repository of entity
+    */
+    private ?EntityRepository $repository = null;
 
     /**
      * @var int $limit amount of results per page
      */
     private int $limit = 20;
-
-    /**
-     * @var bool $hasFetched if results have already been fetched
-     */
-    private bool $hasFetched = false;
-
-    /**
-     * @var array $cachedItems fetched results
-     */
-    private array $cachedItems = [null,null,null];
     /**
      * @var array $where multi array of where and join conditions
      */
@@ -43,12 +37,21 @@ class PaginateService
      */
     private ?array $orderBy = null;
 
+    private PaginateAdapterInterface $adapter;
+
+    private PaginateAdapterMode $mode;
+
+    private bool $isInitialized = false;
+
     public function __construct(
-    ) {}
+    ) {
+        $this->adapter = new CursorAdapter();
+        $this->mode = PaginateAdapterMode::CursorMode;
+    }
 
     /**
      * @param EntityRepository $repository repository of entity that should be paginate
-     * @param object $where object which detriments which colums in the database are search
+     * @param mixed $where object which detriments which colums in the database are search
      * @param array $orderBy key column to sort value is direction (asc of desc)
      * @param int $limit amount pof results returned per page
      */
@@ -58,6 +61,32 @@ class PaginateService
         $this->limit = $limit;
         $this->where = (is_array($where)) ? $where : $this->toWhereArray($where);
         $this->orderBy = $orderBy;
+        $this->isInitialized = true;
+        $this->adapter->initialize($this->repository,$this->where,$this->orderBy,$this->limit);
+    }
+
+    public function setMode(PaginateAdapterMode $mode)
+    {
+        if($mode == $this->mode)
+        {
+            return;
+        }
+        $this->mode = $mode;
+        switch ($mode) {
+            case PaginateAdapterMode::CursorMode:
+                $this->adapter = new CursorAdapter();
+                break;
+            case PaginateAdapterMode::OffsetMode:
+                $this->adapter = new OffsetAdapter();
+                break;
+            default:
+                throw new UnexpectedValueException("Unexpected value of mode");
+        }
+        if($this->isInitialized)
+        {
+            $this->adapter->initialize($this->repository,$this->where,$this->orderBy,$this->limit);
+        }
+        
     }
 
 
@@ -66,15 +95,11 @@ class PaginateService
      */
     public function getPage(?string $link = null) : array
     {
-        if($link == null)
+        if(!$this->isInitialized)
         {
-            $this->ensureFetch();
-            return $this->cachedItems[0];
-        }      
-        parse_str($link , $output);
-        $this->fetchItems($output['id'],$output['forward'] == 'true');
-        
-        return $this->cachedItems[0];
+            throw new LogicException("PaginateService is not initialized call the method 'paginate' first");
+        }        
+        return $this->adapter->getPage($link);
     }
 
     /**
@@ -92,8 +117,7 @@ class PaginateService
      */
     public function hasNextPage() : bool
     {
-        $this->ensureFetch();
-        return $this->cachedItems[2] != null;
+        return $this->adapter->hasNextPage();
     }
 
     /**
@@ -102,8 +126,7 @@ class PaginateService
      */
     public function hasPrevPage() : bool
     {
-        $this->ensureFetch();
-        return $this->cachedItems[1] != null;
+        return $this->adapter->hasPrevPage();
     }
 
     /**
@@ -112,7 +135,7 @@ class PaginateService
      */
     public function getLinks(): array
     {
-        return ['prev' => $this->cachedItems[1],'next' => $this->cachedItems[2]];
+        return $this->adapter->getLinks();
     }
 
     private function toWhereArray(object $where) : array
@@ -169,133 +192,5 @@ class PaginateService
         }
 
         return $whereArray;
-    }
-
-    private function ensureFetch()
-    {
-        if($this->hasFetched)
-        {
-            return;
-        }
-        $this->fetchItems();
-    }
-
-    private function fetchItems(?string $cursor = null, bool $isForward = true)
-    {
-        if($this->repository == null)
-        {
-            throw new LogicException("PaginateService is not initialized call the method 'paginate' first");
-        }
-        $this->hasFetched = true;
-        $qb = $this->repository->createQueryBuilder('q');
-        $qb->setMaxResults($this->limit);
-
-        if($cursor)
-        {
-            $compare = $isForward ? '>' : '<'; 
-            $qb->andWhere('q.id '.$compare.' :cursorId')->setParameter('cursorId',$cursor);
-        }
-
-        $this->addWhere($qb);
-        $this->addOrder($qb,!$isForward);
-
-        $this->cachedItems[0] = $qb->getQuery()->getResult();
-
-        if(!$isForward)
-        {
-            $qb = $this->repository->createQueryBuilder('q');
-            $ids = array_map(fn($value) : string => (string)$value->getId(),$this->cachedItems[0]);
-            $this->addOrder($qb);
-            $qb->where('q.id in(:ids)')
-                ->setParameter(':ids',$ids);
-            $this->cachedItems[0] = $qb->getQuery()->getResult();
-        }
-
-        if(count($this->cachedItems[0]) == $this->limit)
-        {
-            $this->cachedItems[2] = $this->getNextPageLink(end($this->cachedItems[0])->getId());
-        }else {
-            $this->cachedItems[2] = null;
-        }
-        if(count($this->cachedItems[0]) > 0)
-        {
-            $this->cachedItems[1] = $cursor == null ? null : $this->getPrevPageLink($this->cachedItems[0][0]->getId());            
-        }else {
-             $this->cachedItems[1] = null;
-        }
-    }
-
-    private function getNextPageLink(string $cursor) : ?string
-    {
-        $qb = $this->repository->createQueryBuilder('q');
-        $qb->setMaxResults(1);
-
-        if($cursor)
-        {
-            $qb->andWhere('q.id > :cursorId')->setParameter('cursorId',$cursor);
-        }
-
-        $this->addWhere($qb);
-        $this->addOrder($qb);
-
-        $results = $qb->getQuery()->getResult();
-        return (count($results) > 0) ? "forward=true&id=".$cursor: null;
-    }
-
-    private function getPrevPageLink(string $cursor) : ?string
-    {
-        $qb = $this->repository->createQueryBuilder('q');
-        $qb->setMaxResults(1);
-
-        if($cursor)
-        {
-            $qb->andWhere('q.id < :cursorId')->setParameter('cursorId',$cursor);
-        }
-
-        $this->addWhere($qb);
-        $this->addOrder($qb,true);
-        
-        $results = $qb->getQuery()->getResult();
-        return (count($results) > 0) ?  "forward=false&id=".$cursor : null;
-    }
-
-    private function addOrder(QueryBuilder $qb, bool $inverse = false)
-    {
-        foreach($this->orderBy as $key => $value)
-        {
-            if($inverse)
-            { 
-                $value = strtoupper($value) == 'ASC' ? 'DESC' : 'ASC'; 
-            }
-            $qb->addOrderBy('q.'.$key,$value);
-        }
-    }
-
-    private function addWhere(QueryBuilder $qb)
-    {
-        foreach($this->where[0] as $where)
-        {
-            
-            if($where != null)
-            {
-                $value = $where[0];
-                $compare = $where[1];
-                $alias = $where[2];
-                $key = $where[3];
-
-                if($value != null)
-                {                    
-                    $whereQuery = $alias.'.'.$key;
-                    $parameter = uniqid('parameter');
-                    $qb->andWhere($whereQuery .' '.$compare.' :'. $parameter)
-                        ->setParameter($parameter, $value);
-                }
-            }
-        }
-
-        foreach($this->where[1] as $key => $value)
-        {
-            $qb->join('q.'.$key ,$value);
-        }
     }
 }

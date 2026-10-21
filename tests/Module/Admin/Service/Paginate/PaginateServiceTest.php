@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManager;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use App\Module\Admin\Service\Paginate\Attributes as Paginate;
+use LogicException;
 
 class PaginateServiceTest extends KernelTestCase
 {
@@ -196,7 +197,7 @@ class PaginateServiceTest extends KernelTestCase
 
     // getLinks
     #[DataProvider('providerGetLinks')]
-    public function testWhengetLinksShouldReturnCorrectLinks(array $expectedResult ,array $input): void
+    public function testWhenGetLinksShouldReturnCorrectLinks(array $expectedResult ,array $input): void
     {
         $this->paginateService->paginate($this->entityManager->getRepository($input[0]),$input[1],['id' => 'ASC','createdAt'=>'ASC'],$input[3]);
 
@@ -232,6 +233,18 @@ class PaginateServiceTest extends KernelTestCase
             "When getting second page with low limit should have next link and have previous link" =>
             [['next'=> ['forward=true&id=',1],'prev' => ['forward=false&id=',0]],[AuditLog::class,new AuditLogSearchDTO(),['next'],2]],
         );
+    }
+
+
+    public function testWhenPaginateNotCalledBeforeGetPageShouldGiveLogicException(): void
+    {
+        try{
+         $result = $this->paginateService->getPage();
+        }
+        catch(LogicException $e)
+        {
+            $this->assertEquals("PaginateService is not initialized call the method 'paginate' first",$e->getMessage());
+        }        
     }
 
     // hasPrevPage && hasNextPage

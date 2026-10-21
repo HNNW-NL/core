@@ -16,7 +16,7 @@
             </table>
             {{ form_rest(form) }}
 
-            <button data-loading="addAttribute(disabled)" disabled>Zoek</button>
+            <button data-loading="addAttribute(disabled)">Zoek</button>
             
         {{ form_end(form) }}
 
@@ -35,11 +35,12 @@
                 <tr><td Colspan="9">Klik op zoeken om resultaten te vinden</td></tr>
             {% else %}
                 {% for result in this.results %}
+                    {% set loopIndex = loop.index0 %}
                     <tr>
                         {% for key, value in result|cast_to_array  %}   
                             {% if value is not empty %}       
                                 {% if displayFields[key][1] is not empty %}                 
-                                    <td><a href="{{path(displayFields[key][1],pathParameters[loop.index0])}}">{{ value|display}}</a></td>  
+                                    <td><a href="{{path(displayFields[key][1],pathParameters[loopIndex])}}">{{ value|display}}</a></td>  
                                 {% else %}
                                     <td>{{ value|display}}</td> 
                                 {% endif %}  
@@ -60,7 +61,7 @@
                     {% elseif key == 'next'%}
                         <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">Volgende pagina</button>
                     {% else %}
-                        <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">value</button>
+                        <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">{{key}}</button>
                     {% endif %}
             {% endif %}       
             

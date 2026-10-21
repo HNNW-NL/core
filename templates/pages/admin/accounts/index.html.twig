@@ -18,11 +18,12 @@
 </header>
 
 <twig:Shared:Card>
-        <twig:Shared:Card:Header>Zoek Audit Logs</twig:Shared:Card:Header>
+        <twig:Shared:Card:Header>Zoek Accounts</twig:Shared:Card:Header>
         <twig:Shared:Card:Content>
             {{ component('Shared:Search',{
                 formData: null,
                 searchDTO: search,
+                mode: mode
             }) }}
         </twig:Shared:Card:Content>
     </twig:Shared:Card>

@@ -16,7 +16,7 @@ class SystemLogSearchDisplayDTO
    #[Search\Label("Level")] 
    public ?string $level = ''; 
 
-   #[Search\Label("Berricht")]
+   #[Search\Label("Bericht")]
    public ?string $message = '';  
 
    #[Search\Label("Route")]
