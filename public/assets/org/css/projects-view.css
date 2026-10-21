@@ -95,7 +95,7 @@
     background-color: #115480;
     border-radius: 8px;
     width: 100%;
-    max-width: 750px;
+    max-width: 800px;
     align-items: center;
     justify-content: center;
 }
@@ -349,7 +349,7 @@
     flex-wrap: wrap;
     align-items: center;
 }
-.projects-pagination-controls a {
+.projects-pagination-controls button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -363,9 +363,23 @@
     border: 1px solid rgba(255,255,255,0.06);
     transition: background-color 150ms ease;
 }
-.projects-pagination-controls a:hover {
+.projects-pagination-controls button:hover {
     background-color: #0d3b58;
 }
+
+.projects-pagination-controls button:disabled {
+    background-color: #6b8798;
+    color: #cbd5e1;
+    border-color: rgba(255, 255, 255, 0.04);
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.projects-pagination-controls button:disabled:hover {
+    background-color: #6b8798;
+}
+
 .projects-pagination-controls strong {
     display: inline-flex;
     align-items: center;

@@ -8,13 +8,13 @@
             data-model="debounce(300)|query"
             value="{{ this.query }}"
         >
-        <label for="input-max-result">Max Results</label>
+        <label for="input-max-result">Results per Page</label>
         <input
             type="number"
             id="input-max-result"
             name="input-max-result"
-            data-model="debounce(300)|maxResults"
-            value="{{ this.maxResults }}"
+            data-model="debounce(300)|maxResultsPerPage"
+            value="{{ this.maxResultsPerPage }}"
             min="1"
             max="100"
         >
@@ -43,4 +43,33 @@
             </div>
         {% endfor %}
     </div>
+    <div class="projects-count" id="projects-count">
+        Showing {{ (this.page - 1) * this.maxResultsPerPage + 1 > this.projectAmount ? this.projectAmount }}
+        –
+        {{ this.page * this.maxResultsPerPage > this.projectAmount ? this.projectAmount }}
+        of
+        {{ this.ProjectAmount }} projects
+    </div>
+
+    <div class="projects-pagination">
+        <div>
+            Page
+            <span id="current-page">
+                {{ this.page > this.pageCount ? this.pageCount }}
+            </span>
+            of
+            <span id="total-pages">
+                {{ this.pageCount }}
+            </span>
+        </div>
+        <div class="projects-pagination-controls" id="pagination-controls">
+            <button data-action="live#action" data-live-action-param="lastPage" {% if this.page <= 1 %} disabled {% endif %}>
+                Last Page
+            </button>
+            <button data-action="live#action" data-live-action-param="nextPage" {% if this.page > this.pageCount %} disabled {% endif %}>
+                Next Page
+            </button>
+        </div>
+    </div>
+
 </div>

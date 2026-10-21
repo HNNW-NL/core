@@ -27,7 +27,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findByProfileOnQuery(string $query, Profile $profile, int $maxResults=30): array
+    public function findByProfileOnQuery(string $query, Profile $profile): array
     {
         $qb = $this->createQueryBuilder('project')
             ->distinct()
@@ -35,7 +35,31 @@ class ProjectRepository extends ServiceEntityRepository
             ->andWhere('participant.profile = :profile')
             ->andWhere('project.deletedAt IS NULL')
             ->setParameter('profile', $profile)
-            ->setMaxResults($maxResults)
+            ->orderBy('project.title', 'ASC');
+
+        $query = trim($query);
+
+        if ($query !== '') {
+            $qb
+                ->andWhere('LOWER(project.title) LIKE :query')
+                ->setParameter('query', '%' . mb_strtolower($query) . '%');
+        }
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findPaginatedByProfileOnQuery(string $query, Profile $profile, int $maxResultsPerPage, int $page): array
+    {
+        $qb = $this->createQueryBuilder('project')
+            ->distinct()
+            ->innerJoin('project.participants', 'participant')
+            ->andWhere('participant.profile = :profile')
+            ->andWhere('project.deletedAt IS NULL')
+            ->setParameter('profile', $profile)
+            ->setMaxResults($maxResultsPerPage)
+            ->setFirstResult(($page - 1) * $maxResultsPerPage)
             ->orderBy('project.title', 'ASC');
 
         $query = trim($query);
