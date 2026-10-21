@@ -14,7 +14,9 @@ use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\Attribute\LiveArg;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
+use Symfony\UX\TwigComponent\Attribute\PostMount;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 #[AsLiveComponent]
 class ModifyTasksComponent
@@ -29,7 +31,6 @@ class ModifyTasksComponent
     #[LiveProp(writable: true)]
     public array $taskMap = [];
 
-
     public function __construct(readonly private AuthorizationCheckerInterface $authorizationChecker,
                                 readonly private ProjectRepository             $projectRepository,
                                 readonly private PackageTaskRepository         $packageTaskRepository,
@@ -41,10 +42,9 @@ class ModifyTasksComponent
     {
     }
 
-
     public function getProject(): Project
     {
-        return $this->projectRepository->find($this->projectId);
+        return $this->projectRepository->find($this->projectId) ?? throw new NotFoundHttpException();
     }
 
     public function getTasks(): iterable
@@ -59,12 +59,29 @@ class ModifyTasksComponent
 
     public function getStatuses(): iterable
     {
-        return $this->statusRepository->findAll();
+        return $this->statusRepository->findBy(['scope' => 'PackageTask']);
     }
 
     public function getProfiles(): iterable
     {
         return $this->profileRepository->findByProject($this->getProject());
+    }
+
+    #[PostMount]
+    public function postMount(): void
+    {
+        foreach ($this->getTasks() as $task) {
+            $this->taskMap[(string) $task->getId()] = [
+                'title' => $task->getTitle(),
+                'assignedProfile' => (string) $task->getAssignedProfile()->getId(),
+                'description' => $task->getDescription(),
+                'workPackage' => (string) $task->getWorkPackage()->getId(),
+                'status' => (string) $task->getStatus()->getId(),
+                'priority' => $task->getPriority(),
+                'slug' => $task->getSlug(),
+                'dueDate' => $task->getDueDate()->format('Y-m-d\TH:i'),
+            ];
+        }
     }
 
     #[LiveAction]
@@ -81,7 +98,12 @@ class ModifyTasksComponent
         $taskData = $this->taskMap[$id];
         $taskData['id'] = $id;
 
-        $this->modifyTasksHandler->handleModifyTask($taskData, $this->getProject());
+        try {
+            $this->modifyTasksHandler->handleModifyTask($taskData, $this->getProject());
+        } catch (\InvalidArgumentException $e) {
+            $this->errorMessage = $e->getMessage();
+        }
+
     }
 
     #[LiveAction]
@@ -91,7 +113,13 @@ class ModifyTasksComponent
             $this->errorMessage = 'You are not allowed to edit tasks for this project';
             return;
         }
-        $this->modifyTasksHandler->deleteTaskById($id, $this->getProject());
+
+        try {
+            $this->modifyTasksHandler->deleteTaskById($id, $this->getProject());
+        } catch (\InvalidArgumentException $e) {
+            $this->errorMessage = $e->getMessage();
+        }
+
     }
 
     #[LiveAction]
@@ -101,7 +129,13 @@ class ModifyTasksComponent
             $this->errorMessage = 'You are not allowed to edit tasks for this project';
             return;
         }
-        $this->modifyTasksHandler->restoreTaskById($id, $this->getProject());
+
+        try {
+            $this->modifyTasksHandler->restoreTaskById($id, $this->getProject());
+        } catch (\InvalidArgumentException $e) {
+            $this->errorMessage = $e->getMessage();
+        }
+
     }
 
 }

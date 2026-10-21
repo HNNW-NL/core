@@ -5,29 +5,28 @@
         {# </twig:Shared:Alert> #}
     {% endif %}
 
-
     <table class="modify-tasks-table">
-        <thead>
-
-        </thead>
         <tbody>
         {% for task in this.tasks %}
             <tr id="{{ task.id }}" class="task-row">
-                <td>Created by:{{ task.assignedProfile.displayName }}</td> {# link to profile page #}
                 {% if task.deletedAt %}
-                    Deleted at:{{ task.deletedAt|date('d/m/Y') }}
+                    <td>
+                    Deleted at: {{ task.deletedAt|date('d/m/Y') }}
+                    </td>
                 {% endif %}
                 <td>
                     <label>
                         Name
-                        <input type="text" value="{{ task.title }}" data-model="norender|updateMap[{{ task.id }}].title" >
+                        <input type="text" value="{{ task.title }}" data-model="norender|taskMap[{{ task.id }}].title" >
                     </label>
                     <label>
                         Assigned Profile
-                        <select data-model="norender|updateMap[{{ task.id }}].assignedProfile">
+                        <select data-model="norender|taskMap[{{ task.id }}].assignedProfile">
                             {% for profile in this.profiles %}
                                 <option value="{{ profile.id }}"
-                                        {% if task.assignedProfile == profile %}selected{% endif %}
+                                        {% if task.assignedProfile and task.assignedProfile.id == profile.id %}
+                                            selected
+                                        {% endif %}
                                 >
                                     {{ profile.displayName }}
                                 </option>
@@ -39,13 +38,13 @@
                     <textarea
                         rows="7"
                         cols="50"
-                        data-model="norender|updateMap[{{ task.id }}].description"
+                        data-model="norender|taskMap[{{ task.id }}].description"
                     >{{ task.description }}</textarea>
                 </td>
                 <td>
                     <label>
                         Work Package
-                        <select data-model="norender|updateMap[{{ task.id }}].workPackage">
+                        <select data-model="norender|taskMap[{{ task.id }}].workPackage">
                             {% for workPackage in this.workPackages %}
                                 <option value="{{ workPackage.id }}"
                                         {% if task.workPackage == workPackage %}selected{% endif %}
@@ -57,7 +56,7 @@
                     </label>
                     <label>
                         Status
-                        <select data-model="norender|updateMap[{{ task.id }}].status">
+                        <select data-model="norender|taskMap[{{ task.id }}].status">
                             {% for status in this.statuses %}
                                 <option value="{{ status.id }}"
                                         {% if task.status == status %}selected{% endif %}
@@ -71,11 +70,18 @@
                 <td>
                     <label>
                         Priority
-                        <input type="text" value="{{ task.priority }}" data-model="norender|updateMap[{{ task.id }}].priority">
+                        <select data-model="norender|taskMap[{{ task.id }}].priority">
+                            <option value="High" {% if task.status == 'High' %}selected{% endif %}
+                            >High</option>
+                            <option value="Medium" {% if task.status == 'Medium' %}selected{% endif %}
+                            >Medium</option>
+                            <option value="Low" {% if task.status == 'Low' %}selected{% endif %}
+                            >Low</option>
+                        </select>
                     </label>
                     <label>
                         Slug
-                        <input type="text" value="{{ task.slug }}" data-model="norender|updateMap[{{ task.id }}].slug">
+                        <input type="text" value="{{ task.slug }}" data-model="norender|taskMap[{{ task.id }}].slug">
                     </label>
                 </td>
                 <td>
@@ -84,7 +90,7 @@
                         <input
                             type="datetime-local"
                             value="{{ task.dueDate ? task.dueDate|date('Y-m-d\\TH:i') : '' }}"
-                            data-model="norender|updateMap[{{ task.id }}].dueDate"
+                            data-model="norender|taskMap[{{ task.id }}].dueDate"
                         >
                     </label>
                 </td>
