@@ -10,13 +10,16 @@
 	const filterStatus = document.querySelector('#projects-filter-status');
 	const exportStatus = document.querySelector('#projects-export-status');
 	const emptyMessage = document.querySelector('#projects-empty');
+	const emptyMessageText = document.querySelector('#projects-empty-text');
+	const emptyResetButton = document.querySelector('#projects-empty-reset');
+	const favoritesCount = document.querySelector('#project-favorites-count');
 	const projectCards = Array.from(document.querySelectorAll('.project-card'));
 	const projectsList = document.querySelector('#projects-list');
 	const storageKey = 'account-centre.projects.filters';
 	const favoritesStorageKey = 'account-centre.projects.favorites';
 	let favoriteIds = new Set();
 
-	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !favoritesOnlyToggle || !exportButton || !resetButton || !resultCount || !filterStatus || !exportStatus || !emptyMessage || !projectsList) {
+	if (!searchInput || !statusSelect || !sortSelect || !activeOnlyToggle || !favoritesOnlyToggle || !exportButton || !resetButton || !resultCount || !filterStatus || !exportStatus || !emptyMessage || !emptyMessageText || !emptyResetButton || !favoritesCount || !projectsList) {
 		return;
 	}
 
@@ -117,7 +120,8 @@
 		resultCount.textContent = `${visibleCount} van ${projectCards.length} projecten gevonden`;
 		emptyMessage.hidden = visibleCount !== 0;
 		exportButton.disabled = visibleCount === 0;
-		emptyMessage.textContent = favoritesOnly && favoriteIds.size === 0
+		favoritesCount.textContent = String(projectCards.filter((card) => favoriteIds.has(card.dataset.projectId)).length);
+		emptyMessageText.textContent = favoritesOnly && favoriteIds.size === 0
 			? 'Je hebt nog geen favorieten. Bewaar een project met de knop Bewaar.'
 			: 'Geen projecten gevonden. Pas je zoekopdracht of filters aan.';
 		filterStatus.textContent = filtersActive
@@ -165,6 +169,7 @@
 		updateProjects();
 		searchInput.focus();
 	});
+	emptyResetButton.addEventListener('click', () => resetButton.click());
 	exportButton.addEventListener('click', () => {
 		const rows = projectCards
 			.filter((card) => !card.hidden)

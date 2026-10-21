@@ -53,7 +53,7 @@
             </label>
             <label class="projects-toggle" for="project-favorites-only">
                 <input type="checkbox" id="project-favorites-only">
-                <span>Alleen favorieten</span>
+                <span>Alleen favorieten (<span id="project-favorites-count">0</span>)</span>
             </label>
             <div class="projects-actions">
                 <button type="button" class="projects-export" id="projects-export" disabled>Download CSV</button>
@@ -94,6 +94,9 @@
             </article>
         </div>
 
-        <p class="projects-empty" id="projects-empty" hidden></p>
+        <div class="projects-empty" id="projects-empty" role="status" hidden>
+            <p id="projects-empty-text"></p>
+            <button type="button" class="projects-empty-reset" id="projects-empty-reset">Wis filters</button>
+        </div>
     </div>
 {% endblock %}
