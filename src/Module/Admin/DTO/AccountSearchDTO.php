@@ -11,5 +11,6 @@ class AccountSearchDTO
    #[Paginate\Join('Status','status')]
    public ?Status $status  = null;
 
+   #[Paginate\Where('id','=')]
    public ?Account $account = null;
 }

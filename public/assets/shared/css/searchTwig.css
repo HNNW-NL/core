@@ -42,5 +42,9 @@
             padding: 5px;
             border:1px solid var(--accent);
         }
+
+        button, .currentPage{
+            padding:5px;
+        }
     } 
 }

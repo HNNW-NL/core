@@ -83,6 +83,8 @@ class Search extends AbstractController
     #[LiveProp]
     public int $limit = 20;
 
+    public int $currentPage = -1;
+
     public function __construct(private EntityManagerInterface $entityManager, private PaginateService $paginate,
     private ObjectMapperInterface $objectMapper)
     {
@@ -155,6 +157,10 @@ class Search extends AbstractController
             $this->hasSearched = true;
             $this->results = $this->toDisplayDto($results);
             $this->pathParameters = $this->getPathParameters($results);
+            if($this->mode == PaginateAdapterMode::OffsetMode)
+            {
+                $this->currentPage =  1;
+            }
         }
         
     }
@@ -162,12 +168,18 @@ class Search extends AbstractController
     #[LiveAction]
     public function navigate(#[LiveArg] string $link)
     {  
+        if($this->mode == PaginateAdapterMode::OffsetMode)
+        {
+            parse_str($link , $output);
+            $this->currentPage =  intval($output['page']);
+        }
         $this->paginate->setMode($this->mode);
         $this->paginate->paginate($this->getRepository(),$this->where,$this->searchDTO->orderBy,$this->limit);
         $results = $this->paginate->getPage($link); 
         $this->links = $this->paginate->getLinks();
         $this->results = $this->toDisplayDto($results);
         $this->pathParameters = $this->getPathParameters($results);
+        
     }
 
     public function dehydrateMultiLevelArray(array $where)

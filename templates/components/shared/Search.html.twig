@@ -37,7 +37,7 @@
                 {% for result in this.results %}
                     {% set loopIndex = loop.index0 %}
                     <tr>
-                        {% for key, value in result|cast_to_array  %}   
+                        {% for key, value in result|cast_to_array  %}                           
                             {% if value is not empty %}       
                                 {% if displayFields[key][1] is not empty %}                 
                                     <td><a href="{{path(displayFields[key][1],pathParameters[loopIndex])}}">{{ value|display}}</a></td>  
@@ -55,12 +55,15 @@
         </table>
         
         {% for key, value in links %}
-            {% if value is not empty %}            
+            {% if value is not empty %}    
                     {% if key == 'prev' %}
                         <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">Vorige pagina</button>                    
                     {% elseif key == 'next'%}
                         <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">Volgende pagina</button>
                     {% else %}
+                        {% if key-1 == currentPage %}
+                            <span class="currentPage">{{ key-1 }}</span>
+                        {% endif %}
                         <button data-loading='hide' data-action="live#action" data-live-action-param='navigate' data-live-link-param="{{ value }}">{{key}}</button>
                     {% endif %}
             {% endif %}       

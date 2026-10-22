@@ -173,6 +173,8 @@ class PaginateService
                 if(is_subclass_of($value,DateTimeInterface::class))
                 {
                     $value = $value->format(DateTime::RFC3339);
+                }else if(method_exists($value,'getId')){
+                     $value = $value->getId();
                 }else{
                     $value = (string) $value;
                 }

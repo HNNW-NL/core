@@ -6,6 +6,7 @@ use App\Entity\Log\AuditLog;
 use App\Form\Admin\AuditLogSearchType;
 use App\Module\Admin\DTO\AuditLogSearchDisplayDTO;
 use App\Module\Admin\DTO\AuditLogSearchDTO;
+use App\Module\Admin\Service\Paginate\Adapters\PaginateAdapterMode;
 use App\Twig\Components\Shared\Search;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\UX\LiveComponent\Test\InteractsWithLiveComponents;
@@ -195,8 +196,6 @@ class SearchTest extends KernelTestCase
        
     }
 
-    // naviagate
-
     public function testWhenNoResultsShouldNotHaveNextAndPrev(): void
     {
         $searchDTO = new SearchDTO();
@@ -220,6 +219,8 @@ class SearchTest extends KernelTestCase
         $this->assertNull($component->links['next']);
     }
 
+    // navigate
+
     public function testWhenMoreThan20ResultsShouldHaveNextPage(): void
     {
         $searchDTO = new SearchDTO();
@@ -241,6 +242,34 @@ class SearchTest extends KernelTestCase
         $this->assertNotNull($component->links['next']);
 
         $testComponent->call('navigate',['link' => $component->links['next']]);  
+        
+
+        $this->assertStringContainsString('test20',$testComponent->render());
+    }
+
+    public function testWhenInOffsetModeMoreThan20ResultsShouldHavePage2AndShowCurrentPage(): void
+    {
+        $searchDTO = new SearchDTO();
+        $searchDTO->dto = AuditLogSearchDTO::class;
+        $searchDTO->displayDTO = AuditLogSearchDisplayDTO::class;
+        $searchDTO->entity = AuditLog::class;
+        $searchDTO->form = AuditLogSearchType::class;
+        $searchDTO->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
+        $testComponent = $this->createLiveComponent(
+            Search::class, ["searchDTO" => $searchDTO,'mode' => PaginateAdapterMode::OffsetMode]
+        );
+
+        $admin = $this->accountRepository->findBy(['username'=> 'TestUser'])[0];
+        $input = ['audit_log_search'=>['actor' => $admin->getId()]];
+              
+        $testComponent->submitForm($input,'search');  
+        $component = $testComponent->component();
+
+        $this->assertNotNull($component->links[2]);
+
+        $this->assertStringContainsString('<span class="currentPage">1</span>',$testComponent->render());
+
+        $testComponent->call('navigate',['link' => $component->links[2]]);  
         
 
         $this->assertStringContainsString('test20',$testComponent->render());

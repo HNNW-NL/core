@@ -147,6 +147,11 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     public function restore(): void
     {
         $this->deletedAt = null;
+    }    
+
+    /** @return string of username + email*/
+    public function __toString() : string {
+        return $this->getUsername()." ".$this->getEmail();
     }
 
 
@@ -343,10 +348,5 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     public function getVerifyEmailTokens(): Collection
     {
         return $this->verifyEmailTokens;
-    }
-
-    /** @return string */
-    public function __toString() : string {
-        return $this->getUsername()." ".$this->getEmail();
     }
 }
