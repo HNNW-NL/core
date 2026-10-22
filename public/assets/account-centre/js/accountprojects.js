@@ -28,7 +28,7 @@
 			const saved = JSON.parse(window.localStorage.getItem(storageKey) || '{}');
 			if (typeof saved.query === 'string') searchInput.value = saved.query;
 			if (['all', 'active', 'preparation', 'completed'].includes(saved.status)) statusSelect.value = saved.status;
-			if (['name-asc', 'name-desc', 'status'].includes(saved.sort)) sortSelect.value = saved.sort;
+			if (['name-asc', 'name-desc', 'status', 'favorites-first'].includes(saved.sort)) sortSelect.value = saved.sort;
 			if (typeof saved.activeOnly === 'boolean') activeOnlyToggle.checked = saved.activeOnly;
 			if (typeof saved.favoritesOnly === 'boolean') favoritesOnlyToggle.checked = saved.favoritesOnly;
 		} catch {
@@ -88,6 +88,11 @@
 		const favoritesOnly = favoritesOnlyToggle.checked;
 		const statusOrder = { active: 0, preparation: 1, completed: 2 };
 		const sortedCards = [...projectCards].sort((first, second) => {
+			if (sortSelect.value === 'favorites-first') {
+				const favoriteDifference = Number(favoriteIds.has(second.dataset.projectId)) - Number(favoriteIds.has(first.dataset.projectId));
+				if (favoriteDifference !== 0) return favoriteDifference;
+			}
+
 			if (sortSelect.value === 'status') {
 				const statusDifference = statusOrder[first.dataset.status] - statusOrder[second.dataset.status];
 				if (statusDifference !== 0) return statusDifference;
@@ -128,7 +133,7 @@
 			? `Actieve filters: ${[
 				searchInput.value ? 'zoekterm' : '',
 				statusSelect.value !== 'all' ? 'status' : '',
-				sortSelect.value !== 'name-asc' ? 'sortering' : '',
+				sortSelect.value === 'favorites-first' ? 'favorieten eerst' : sortSelect.value !== 'name-asc' ? 'sortering' : '',
 				activeOnlyToggle.checked ? 'alleen actief' : '',
 				favoritesOnlyToggle.checked ? 'alleen favorieten' : '',
 			].filter(Boolean).join(', ')}`
