@@ -1,19 +1,17 @@
 <div {{ attributes }} class="modify-tasks-container">
     {% if this.errorMessage %}
-        {# <twig:Shared:Alert variant="error"> #}
         <p>{{ this.errorMessage }}</p>
-        {# </twig:Shared:Alert> #}
     {% endif %}
 
     <table class="modify-tasks-table">
         <tbody>
         {% for task in this.tasks %}
             <tr id="{{ task.id }}" class="task-row">
-                {% if task.deletedAt %}
-                    <td>
-                    Deleted at: {{ task.deletedAt|date('d/m/Y') }}
-                    </td>
-                {% endif %}
+                <td>
+                    {% if task.deletedAt %}
+                        Deleted at: {{ task.deletedAt|date('d/m/Y') }}
+                    {% endif %}
+                </td>
                 <td>
                     <label>
                         Name
@@ -71,11 +69,11 @@
                     <label>
                         Priority
                         <select data-model="norender|taskMap[{{ task.id }}].priority">
-                            <option value="High" {% if task.status == 'High' %}selected{% endif %}
+                            <option value="High" {% if task.priority == 'high' %}selected{% endif %}
                             >High</option>
-                            <option value="Medium" {% if task.status == 'Medium' %}selected{% endif %}
+                            <option value="Medium" {% if task.priority == 'medium' %}selected{% endif %}
                             >Medium</option>
-                            <option value="Low" {% if task.status == 'Low' %}selected{% endif %}
+                            <option value="Low" {% if task.priority == 'low' %}selected{% endif %}
                             >Low</option>
                         </select>
                     </label>

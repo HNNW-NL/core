@@ -73,13 +73,13 @@ class ModifyTasksComponent
         foreach ($this->getTasks() as $task) {
             $this->taskMap[(string) $task->getId()] = [
                 'title' => $task->getTitle(),
-                'assignedProfile' => (string) $task->getAssignedProfile()->getId(),
+                'assignedProfile' => (string) $task->getAssignedProfile()->getId() ?? '',
                 'description' => $task->getDescription(),
                 'workPackage' => (string) $task->getWorkPackage()->getId(),
                 'status' => (string) $task->getStatus()->getId(),
                 'priority' => $task->getPriority(),
                 'slug' => $task->getSlug(),
-                'dueDate' => $task->getDueDate()->format('Y-m-d\TH:i'),
+                'dueDate' => $task->getDueDate()->format('Y-m-d\TH:i') ?? ''
             ];
         }
     }
@@ -103,7 +103,6 @@ class ModifyTasksComponent
         } catch (\InvalidArgumentException $e) {
             $this->errorMessage = $e->getMessage();
         }
-
     }
 
     #[LiveAction]
@@ -119,11 +118,10 @@ class ModifyTasksComponent
         } catch (\InvalidArgumentException $e) {
             $this->errorMessage = $e->getMessage();
         }
-
     }
 
     #[LiveAction]
-    public function restoreTask( #[LiveArg] string $id): void
+    public function restoreTask(#[LiveArg] string $id): void
     {
         if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
             $this->errorMessage = 'You are not allowed to edit tasks for this project';
@@ -135,7 +133,6 @@ class ModifyTasksComponent
         } catch (\InvalidArgumentException $e) {
             $this->errorMessage = $e->getMessage();
         }
-
     }
 
 }

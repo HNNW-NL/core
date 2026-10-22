@@ -10,6 +10,7 @@ use App\Repository\Account\ProfileRepository;
 use App\Repository\Common\StatusRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 class ModifyTasksHandler
 {
@@ -25,30 +26,35 @@ class ModifyTasksHandler
     public function handleModifyTask(array $taskData, Project $project): void
     {
         $task = $this->packageTaskRepository->find($taskData['id']);
-        $assignedProfile = $this->profileRepository->find($taskData['assignedProfile']);
-
         $workPackage = $this->workPackageRepository->find($taskData['workPackage']);
         $status = $this->statusRepository->find($taskData['status']);
 
-        if (!$task || $task->getWorkpackage()->getProject() !== $project) {
-            throw new \InvalidArgumentException('Invalid task or project id');
+        if (!$task || $task->getWorkPackage()->getProject() !== $project) {
+            throw new InvalidArgumentException('Invalid task or project id');
         }
 
-        $profileInProject = array_map(
-            fn($participant) => $participant->getProfile()->getId(),
-            $this->projectParticipantRepository->findBy(['project' => $project])
-        );
-
-        if (!in_array($assignedProfile->getId(), $profileInProject)) {
-            throw new \InvalidArgumentException('Invalid Profile id');
+        if (!$workPackage || $workPackage->getProject() !== $project) {
+            throw new InvalidArgumentException('Invalid work package id');
         }
 
-        if (!$workPackage->getProject() === $project) {
-            throw new \InvalidArgumentException('Invalid work package id');
+        if (!$status || $status->getScope() !== 'PackageTask') {
+            throw new InvalidArgumentException('Invalid status id');
         }
 
-        if (!$status->getScope() == 'PackageTask') {
-            throw new \InvalidArgumentException('Invalid status id');
+        $assignedProfile = null;
+
+        if (!empty($taskData['assignedProfile'])) {
+            $assignedProfile = $this->profileRepository->find($taskData['assignedProfile']);
+
+            if (!$assignedProfile) {
+                throw new InvalidArgumentException('Invalid Profile id');
+            }
+
+            $participant = $this->projectParticipantRepository->findOneBy(['project' => $project, 'profile' => $assignedProfile]);
+
+            if (!$participant) {
+                throw new InvalidArgumentException('Profile not in project');
+            }
         }
 
         $task->setTitle($taskData['title']);
@@ -58,7 +64,7 @@ class ModifyTasksHandler
         $task->setStatus($status);
         $task->setPriority($taskData['priority']);
         $task->setSlug($taskData['slug']);
-        $task->setDueDate(new DateTimeImmutable($taskData['dueDate']));
+        $task->setDueDate($taskData['dueDate'] !== '' ? new DateTimeImmutable($taskData['dueDate']) : null);
         $this->em->flush();
 
     }
@@ -67,8 +73,8 @@ class ModifyTasksHandler
     {
         $task = $this->packageTaskRepository->find($taskId);
 
-        if (!$task || $task->getWorkpackage()->getProject() !== $project) {
-            throw new \InvalidArgumentException('Invalid task or project id');
+        if (!$task || $task->getWorkPackage()->getProject() !== $project) {
+            throw new InvalidArgumentException('Invalid task or project id');
         }
 
         $task->softDelete();
@@ -79,8 +85,8 @@ class ModifyTasksHandler
     {
         $task = $this->packageTaskRepository->find($taskId);
 
-        if (!$task || $task->getWorkpackage()->getProject() !== $project) {
-            throw new \InvalidArgumentException('Invalid task or project id');
+        if (!$task || $task->getWorkPackage()->getProject() !== $project) {
+            throw new InvalidArgumentException('Invalid task or project id');
         }
 
         $task->restore();
