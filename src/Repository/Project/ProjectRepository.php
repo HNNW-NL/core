@@ -50,6 +50,19 @@ class ProjectRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function countByProfileOnQuery(string $query, Profile $profile): int
+    {
+        $qb = $this->createQueryBuilder('project')
+            ->distinct()
+            ->innerJoin('project.participants', 'participant')
+            ->andWhere('participant.profile = :profile')
+            ->andWhere('project.deletedAt IS NULL')
+            ->setParameter('profile', $profile)
+            ->select('COUNT(project.id)');
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
     public function findPaginatedByProfileOnQuery(string $query, Profile $profile, int $maxResultsPerPage, int $page): array
     {
         $qb = $this->createQueryBuilder('project')

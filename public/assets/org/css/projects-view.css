@@ -410,7 +410,7 @@
     color: #fff;
 }
 @media (max-width: 600px) {
-    .projects-pagination-controls a,
+    .projects-pagination-controls button,
     .projects-pagination-controls strong,
     .projects-pagination-controls .disabled {
         min-width: 32px;

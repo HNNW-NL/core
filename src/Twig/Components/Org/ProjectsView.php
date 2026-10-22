@@ -23,7 +23,7 @@ class ProjectsView
     #[LiveProp(writable: true)]
     public int $maxResultsPerPage = 16;
 
-    #[LiveProp(writable: true)]
+    #[LiveProp(writable: true, onUpdated: 1)]
     public int $page = 1;
 
     public function __construct(readonly private ProjectRepository $projectRepository,
@@ -40,19 +40,30 @@ class ProjectsView
         $this->page = 1;
     }
 
-    public function getProjectAmount(): ?int
+    private function getSafeMaxResultsPerPage(): int
+    {
+        return max(1, min($this->maxResultsPerPage, 100));
+    }
+
+    private function getSafePage(): int
+    {
+        return max(1, $this->page);
+    }
+
+
+    public function getProjectAmount(): int
     {
         $profile = $this->currentProfileProvider->getProfile();
         if (!$profile) {
             return 0;
         }
 
-        return count($this->projectRepository->findByProfileOnQuery($this->query, $profile));
+        return $this->projectRepository->countByProfileOnQuery($this->query, $profile);
     }
 
     public function getPageCount(): int
     {
-        return $this->getProjectAmount() / $this->maxResultsPerPage;
+        return (int) ceil($this->getProjectAmount() / $this->getSafeMaxResultsPerPage());
     }
 
     public function getProjects(): array
@@ -62,22 +73,26 @@ class ProjectsView
             return [];
         }
 
-        return $this->projectRepository->findPaginatedByProfileOnQuery($this->query, $profile, $this->maxResultsPerPage, $this->page);
+        return $this->projectRepository->findPaginatedByProfileOnQuery(
+            $this->query,
+            $profile,
+            $this->getSafeMaxResultsPerPage(),
+            $this->getSafePage());
     }
 
     #[LiveAction]
     public function nextPage(): void
     {
-        if ($this->page + 1 > $this->getPageCount()){
+        if ($this->page + 1 > $this->getPageCount()) {
             return;
         }
         $this->page += 1;
     }
 
     #[LiveAction]
-    public function lastPage(): void
+    public function previousPage(): void
     {
-        if ($this->page - 1 <= 0){
+        if ($this->page - 1 <= 0) {
             return;
         }
         $this->page -= 1;
