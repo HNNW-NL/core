@@ -73,13 +73,13 @@ class ModifyTasksComponent
         foreach ($this->getTasks() as $task) {
             $this->taskMap[(string) $task->getId()] = [
                 'title' => $task->getTitle(),
-                'assignedProfile' => (string) $task->getAssignedProfile()->getId() ?? '',
+                'assignedProfile' => (string) $task->getAssignedProfile()?->getId() ?? '',
                 'description' => $task->getDescription(),
                 'workPackage' => (string) $task->getWorkPackage()->getId(),
                 'status' => (string) $task->getStatus()->getId(),
                 'priority' => $task->getPriority(),
                 'slug' => $task->getSlug(),
-                'dueDate' => $task->getDueDate()->format('Y-m-d\TH:i') ?? ''
+                'dueDate' => $task->getDueDate()?->format('Y-m-d\TH:i') ?? ''
             ];
         }
     }

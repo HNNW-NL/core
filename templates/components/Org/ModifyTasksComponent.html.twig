@@ -20,6 +20,7 @@
                     <label>
                         Assigned Profile
                         <select data-model="norender|taskMap[{{ task.id }}].assignedProfile">
+                            <option value="">Niemand</option>
                             {% for profile in this.profiles %}
                                 <option value="{{ profile.id }}"
                                         {% if task.assignedProfile and task.assignedProfile.id == profile.id %}
@@ -69,11 +70,11 @@
                     <label>
                         Priority
                         <select data-model="norender|taskMap[{{ task.id }}].priority">
-                            <option value="High" {% if task.priority == 'high' %}selected{% endif %}
+                            <option value="high" {% if task.priority == 'high' %}selected{% endif %}
                             >High</option>
-                            <option value="Medium" {% if task.priority == 'medium' %}selected{% endif %}
+                            <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}
                             >Medium</option>
-                            <option value="Low" {% if task.priority == 'low' %}selected{% endif %}
+                            <option value="low" {% if task.priority == 'low' %}selected{% endif %}
                             >Low</option>
                         </select>
                     </label>
