@@ -45,9 +45,9 @@
     </div>
     {% if this.projects is not empty %}
         <div class="projects-count" id="projects-count">
-            showing{{ this.projectAmount == 0 ? 0 : (this.page - 1) * this.maxResultsPerPage + 1 }}
+            showing {{ this.projectAmount == 0 ? 0 : (this.safePage - 1) * this.safeMaxResultsPerPage + 1 }}
             –
-            {{ min(this.page * this.maxResultsPerPage, this.projectAmount) }}
+            {{ min(this.safePage * this.safeMaxResultsPerPage, this.projectAmount) }}
             of
             {{ this.projectAmount }} projects
         </div>
@@ -56,7 +56,7 @@
             <div>
                 Page
                 <span id="current-page">
-                    {{ this.page }}
+                    {{ this.safePage }}
                 </span>
                 of
                 <span id="total-pages">
@@ -64,10 +64,10 @@
                 </span>
             </div>
             <div class="projects-pagination-controls" id="pagination-controls">
-                <button data-action="live#action" data-live-action-param="previousPage" {% if this.page <= 1 %} disabled {% endif %}>
+                <button data-action="live#action" data-live-action-param="previousPage" {% if this.safePage <= 1 %} disabled {% endif %}>
                     Previous Page
                 </button>
-                <button data-action="live#action" data-live-action-param="nextPage" {% if this.page >= this.pageCount %} disabled {% endif %}>
+                <button data-action="live#action" data-live-action-param="nextPage" {% if this.safePage >= this.pageCount %} disabled {% endif %}>
                     Next Page
                 </button>
             </div>

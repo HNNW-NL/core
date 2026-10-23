@@ -62,7 +62,7 @@ class InviteParticipantsSearch
     public function inviteSelectedProfiles(InviteParticipantsService $inviteParticipantsService): void
     {
         $project = $this->getProject();
-        if ($project === null){
+        if ($project === null) {
             return;
         }
         if (!$this->authorizationChecker->isGranted('PROJECT_INVITE', $project)) {

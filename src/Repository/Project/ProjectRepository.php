@@ -5,6 +5,7 @@ namespace App\Repository\Project;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -27,53 +28,32 @@ class ProjectRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findByProfileOnQuery(string $query, Profile $profile): array
-    {
-        $qb = $this->createQueryBuilder('project')
-            ->distinct()
-            ->innerJoin('project.participants', 'participant')
-            ->andWhere('participant.profile = :profile')
-            ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('profile', $profile)
-            ->orderBy('project.title', 'ASC');
-
-        $query = trim($query);
-
-        if ($query !== '') {
-            $qb
-                ->andWhere('LOWER(project.title) LIKE :query')
-                ->setParameter('query', '%' . mb_strtolower($query) . '%');
-        }
-
-        return $qb
-            ->getQuery()
-            ->getResult();
-    }
-
     public function countByProfileOnQuery(string $query, Profile $profile): int
     {
-        $qb = $this->createQueryBuilder('project')
-            ->distinct()
-            ->innerJoin('project.participants', 'participant')
-            ->andWhere('participant.profile = :profile')
-            ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('profile', $profile)
-            ->select('COUNT(project.id)');
-
-        return (int) $qb->getQuery()->getSingleScalarResult();
+        return (int) $this->createProfileQueryBuilder($query, $profile)
+            ->select('COUNT(DISTINCT project.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findPaginatedByProfileOnQuery(string $query, Profile $profile, int $maxResultsPerPage, int $page): array
     {
+        return $this->createProfileQueryBuilder($query, $profile)
+            ->orderBy('project.title', 'ASC')
+            ->setMaxResults($maxResultsPerPage)
+            ->setFirstResult(($page - 1) * $maxResultsPerPage)
+            ->getQuery()
+            ->getResult();
+    }
+
+    private function createProfileQueryBuilder(string $query, Profile $profile): QueryBuilder
+    {
         $qb = $this->createQueryBuilder('project')
             ->distinct()
             ->innerJoin('project.participants', 'participant')
             ->andWhere('participant.profile = :profile')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('profile', $profile)
-            ->setMaxResults($maxResultsPerPage)
-            ->setFirstResult(($page - 1) * $maxResultsPerPage)
-            ->orderBy('project.title', 'ASC');
+            ->setParameter('profile', $profile);
 
         $query = trim($query);
 
@@ -83,9 +63,7 @@ class ProjectRepository extends ServiceEntityRepository
                 ->setParameter('query', '%' . mb_strtolower($query) . '%');
         }
 
-        return $qb
-            ->getQuery()
-            ->getResult();
+        return $qb;
     }
 
 }

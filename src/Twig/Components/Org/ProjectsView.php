@@ -14,16 +14,16 @@ class ProjectsView
 {
     use DefaultActionTrait;
 
-    #[LiveProp(writable: true)]
+    #[LiveProp(writable: true, onUpdated: 'resetPage')]
     public string $query = '';
 
     #[LiveProp(writable: true)]
     public string $cardSize = 'medium';
 
-    #[LiveProp(writable: true)]
+    #[LiveProp(writable: true, onUpdated: 'resetPage')]
     public int $maxResultsPerPage = 16;
 
-    #[LiveProp(writable: true, onUpdated: 1)]
+    #[LiveProp(writable: true)]
     public int $page = 1;
 
     public function __construct(readonly private ProjectRepository $projectRepository,
@@ -37,6 +37,11 @@ class ProjectsView
         $this->query = '';
         $this->cardSize = 'medium';
         $this->maxResultsPerPage = 16;
+        $this->page = 1;
+    }
+
+    public function resetPage(): void
+    {
         $this->page = 1;
     }
 
