@@ -151,6 +151,13 @@
 	readSavedFavorites();
 
 	projectCards.forEach((card) => {
+		const statusButton = card.querySelector('[data-filter-status]');
+		statusButton.addEventListener('click', () => {
+			statusSelect.value = statusButton.dataset.filterStatus;
+			updateProjects();
+			statusSelect.focus();
+		});
+
 		const button = card.querySelector('.project-favorite');
 		updateFavoriteButton(card);
 		button.addEventListener('click', () => {

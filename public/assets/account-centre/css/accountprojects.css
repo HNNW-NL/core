@@ -189,9 +189,23 @@
 	padding: 0.45rem 0.75rem;
 	border: 1px solid #3b4658;
 	border-radius: 6px;
+	background: transparent;
+	font: inherit;
 	font-size: 0.85rem;
 	font-weight: 600;
 	white-space: nowrap;
+	cursor: pointer;
+	transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+#account-centre-container.projects-page .project-status:hover {
+	filter: brightness(1.2);
+	transform: translateY(-1px);
+}
+
+#account-centre-container.projects-page .project-status:focus-visible {
+	outline: 2px solid var(--hnnw-yellow-400);
+	outline-offset: 2px;
 }
 
 #account-centre-container.projects-page .project-favorite {
