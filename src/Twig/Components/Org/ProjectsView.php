@@ -45,16 +45,15 @@ class ProjectsView
         $this->page = 1;
     }
 
-    private function getSafeMaxResultsPerPage(): int
+    public function getSafeMaxResultsPerPage(): int
     {
         return max(1, min($this->maxResultsPerPage, 100));
     }
 
-    private function getSafePage(): int
+    public function getSafePage(): int
     {
         return max(1, $this->page);
     }
-
 
     public function getProjectAmount(): int
     {

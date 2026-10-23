@@ -45,7 +45,7 @@
     </div>
     {% if this.projects is not empty %}
         <div class="projects-count" id="projects-count">
-            showing {{ this.projectAmount == 0 ? 0 : (this.safePage - 1) * this.safeMaxResultsPerPage + 1 }}
+            Showing {{ this.projectAmount == 0 ? 0 : (this.safePage - 1) * this.safeMaxResultsPerPage + 1 }}
             –
             {{ min(this.safePage * this.safeMaxResultsPerPage, this.projectAmount) }}
             of
