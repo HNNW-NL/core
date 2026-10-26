@@ -142,6 +142,7 @@
                                             {# formulier omgebouwd naar symfony form, er staat er een per werkpakket dus de controller moet een lijst met formulieren meegeven (taak 4). het verborgen veld _action met waarde create_package_task hoort erbij #}
                                             {% set taskForm = taskForms[workPackage.id] %}
                                             {{ form_start(taskForm, {'action': path('org.modifyProject.workPackages', { id: id }), 'attr': {'class': 'work-package-create-form'}}) }}
+                                                {{ form_errors(taskForm) }}
                                                 <input type="hidden" name="_action" value="create_package_task">
                                                 {{ form_widget(taskForm.workPackageId) }}
 
@@ -180,6 +181,7 @@
 
                                                 <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-delete-form">
                                                     <input type="hidden" name="_action" value="delete_work_package">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_work_package_' ~ workPackage.id) }}">
                                                     <input type="hidden" name="workPackageId" value="{{ workPackage.id }}">
 
                                                     <button class="work-packages-text-button work-packages-danger-action" type="submit">
@@ -212,6 +214,7 @@
 
                                     {# formulier omgebouwd naar symfony form, de form variabele moet nog uit de controller komen (taak 4). het verborgen veld _action met waarde create_work_package hoort erbij #}
                                     {{ form_start(form, {'action': path('org.modifyProject.workPackages', { id: id }), 'attr': {'class': 'work-package-create-form'}}) }}
+                                        {{ form_errors(form) }}
                                         <input type="hidden" name="_action" value="create_work_package">
 
                                         <div class="work-package-form-field">

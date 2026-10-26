@@ -38,7 +38,6 @@
 
                 {{ form_errors(form) }}
 
-                {# beide vinkjes omgebouwd naar losse form velden, ze schrijven nu nog naar hetzelfde database veld (taak 3) #}
                 <div class="form-group-checkbox">
                     {{ form_widget(form.emailNotificationsEnabled) }}
                     <label for="{{ form.emailNotificationsEnabled.vars.id }}">
@@ -51,7 +50,7 @@
                 <div class="form-group-checkbox">
                     {{ form_widget(form.newsletterEnabled) }}
                     <label for="{{ form.newsletterEnabled.vars.id }}">
-                        <strong>Maandelijkse Nieuwsbrief</strong>
+                        <strong>Maandelijkse Nieuwsbrief (nog niet beschikbaar)</strong>
                         <span>Blijf op de hoogte van algemeen nieuws, updates en verhalen binnen de community.</span>
                     </label>
                     {{ form_errors(form.newsletterEnabled) }}

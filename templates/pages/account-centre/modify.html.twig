@@ -41,6 +41,18 @@
                 {{ form_errors(form) }}
 
                 <div class="form-group">
+                    <label for="{{ form.email.vars.id }}">E-mailadres</label>
+                    {{ form_widget(form.email, {'attr': {'autocomplete': 'email', 'maxlength': 255}}) }}
+                    {{ form_errors(form.email) }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.displayName.vars.id }}">Weergavenaam</label>
+                    {{ form_widget(form.displayName, {'attr': {'maxlength': 255}}) }}
+                    {{ form_errors(form.displayName) }}
+                </div>
+
+                <div class="form-group">
                     <label for="{{ form.username.vars.id }}">Gebruikersnaam</label>
                     {{ form_widget(form.username, {'attr': {'placeholder': 'Kies een gebruikersnaam'}}) }}
                     {{ form_errors(form.username) }}

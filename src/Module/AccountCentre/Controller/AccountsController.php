@@ -17,10 +17,18 @@ use App\Module\AccountCentre\DTO\ModifyAccountDTO;
 use App\Module\AccountCentre\DTO\NotificationSettingsDTO;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Uid\Uuid;
 
 #[Route('/account', name: 'account.')]
@@ -33,15 +41,8 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/applications', name: 'applications', methods: ['GET'])]
-    public function applications(EntityManagerInterface $entityManager): Response
+    public function applications(EntityManagerInterface $entityManager, #[CurrentUser] Account $account): Response
     {
-        $account = $this->getAuthenticatedAccount();
-
-        if (!$account) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je aanmeldingen te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         return $this->render('pages/account-centre/applications.html.twig', [
@@ -50,15 +51,8 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
-    public function applicationsCancel(ProjectApplication $application, Request $request, EntityManagerInterface $entityManager): Response
+    public function applicationsCancel(ProjectApplication $application, Request $request, EntityManagerInterface $entityManager, #[CurrentUser] Account $account): Response
     {
-        $account = $this->getAuthenticatedAccount();
-
-        if (!$account) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
-            return $this->redirectToRoute('auth.login');
-        }
-
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile || $application->getProfile() !== $profile) {
             throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze aanmelding.');
@@ -67,11 +61,7 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
 
-            if (method_exists($application, 'softDelete')) {
-                $application->softDelete();
-            } else {
-                $application->setDeletedAt(new \DateTimeImmutable());
-            }
+            $application->softDelete();
 
             $entityManager->flush();
 
@@ -84,15 +74,8 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
-    public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
+    public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection, #[CurrentUser] Account $account): Response
     {
-        $account = $this->getAuthenticatedAccount();
-
-        if (!$account) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je beschikbaarheid te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
             $this->addFlash('error', 'Profiel niet gevonden.');
@@ -258,20 +241,15 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
-    public function deleteAvailability(string $id, Request $request, Connection $connection): Response
+    public function deleteAvailability(string $id, Request $request, Connection $connection, #[CurrentUser] Account $account): Response
     {
-        if (!$this->getAuthenticatedAccount()) {
-            $this->addFlash('error', 'Je moet ingelogd zijn.');
-            return $this->redirectToRoute('auth.login');
-        }
-
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
             try {
                 $connection->update(
                     'availabilities',
                     ['deleted_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
-                    ['id' => $id]
+                    ['id' => $id, 'profile_id' => $account->getProfile()?->getId()->toRfc4122()]
                 );
                 $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd (soft delete).');
             } catch (\Exception $e) {
@@ -285,15 +263,8 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
-    public function experience(Request $request, EntityManagerInterface $entityManager): Response
+    public function experience(Request $request, EntityManagerInterface $entityManager, #[CurrentUser] Account $account): Response
     {
-        $account = $this->getAuthenticatedAccount();
-
-        if (!$account) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
             $this->addFlash('error', 'Profiel niet gevonden.');
@@ -340,15 +311,8 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
-    public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
+    public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager, #[CurrentUser] Account $account): Response
     {
-        $account = $this->getAuthenticatedAccount();
-
-        if (!$account) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
-            return $this->redirectToRoute('auth.login');
-        }
-
         $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
 
         if (!$experience) {
@@ -365,11 +329,7 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('delete_experience' . $experience->getId(), $csrfToken)) {
 
-            if (method_exists($experience, 'softDelete')) {
-                $experience->softDelete();
-            } else {
-                $experience->setDeletedAt(new \DateTimeImmutable());
-            }
+            $experience->softDelete();
 
             $entityManager->flush();
             $this->addFlash('success', 'Werkervaring succesvol verwijderd.');
@@ -381,15 +341,8 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
-    public function modify(Request $request, EntityManagerInterface $entityManager): Response
+    public function modify(Request $request, EntityManagerInterface $entityManager, #[CurrentUser] Account $account): Response
     {
-        $account = $this->getAuthenticatedAccount();
-
-        if (!$account) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
@@ -405,10 +358,37 @@ final class AccountsController extends AbstractController
         $modifyAccountDTO->profileVisibility = $settings?->getProfileVisibility() ?? 'private';
 
         $form = $this->createForm(ModifyAccountType::class, $modifyAccountDTO);
+        // These fields use existing entity properties, without extending the shared form DTO.
+        $form->add('email', EmailType::class, [
+            'mapped' => false,
+            'data' => $account->getEmail(),
+            'constraints' => [new NotBlank(), new Email(), new Length(max: 255)],
+        ]);
+        $form->add('displayName', TextType::class, [
+            'mapped' => false,
+            'required' => false,
+            'data' => $profile?->getDisplayName(),
+            'constraints' => [new Length(max: 255)],
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $accountRepository = $entityManager->getRepository(Account::class);
+            foreach (['email' => $form->get('email')->getData(), 'username' => $modifyAccountDTO->username] as $field => $value) {
+                $existing = $accountRepository->findOneBy([$field => trim((string) $value)]);
+                if ($existing && !$existing->getId()->equals($account->getId())) {
+                    $form->get($field)->addError(new FormError('Deze waarde is al in gebruik.'));
+                }
+            }
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
             $account->setUsername(trim((string) $modifyAccountDTO->username));
+            $email = trim((string) $form->get('email')->getData());
+            if ($email !== $account->getEmail()) {
+                $account->setEmail($email);
+                $account->unverifyEmail();
+            }
 
             if (!$profile) {
                 $profile = new Profile();
@@ -429,6 +409,8 @@ final class AccountsController extends AbstractController
 
             $profile->setFirstName(trim((string) $modifyAccountDTO->firstName));
             $profile->setLastName(trim((string) $modifyAccountDTO->lastName));
+            $displayName = trim((string) $form->get('displayName')->getData());
+            $profile->setDisplayName($displayName !== '' ? $displayName : null);
             $profile->setAvatarUrl($avatarUrl);
             $profile->setLocation($location !== '' ? $location : null);
             $profile->setDescription($description !== '' ? $description : null);
@@ -453,15 +435,8 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
-    public function notifications(Request $request, EntityManagerInterface $entityManager): Response
+    public function notifications(Request $request, EntityManagerInterface $entityManager, #[CurrentUser] Account $account): Response
     {
-        $account = $this->getAuthenticatedAccount();
-
-        if (!$account) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
         if (!$settings) {
@@ -477,15 +452,19 @@ final class AccountsController extends AbstractController
 
         $notificationSettingsDTO = new NotificationSettingsDTO();
         $notificationSettingsDTO->emailNotificationsEnabled = $settings->isEmailNotificationsEnabled();
-        $notificationSettingsDTO->newsletterEnabled = $settings->isEmailNotificationsEnabled();
 
         $form = $this->createForm(NotificationSettingsType::class, $notificationSettingsDTO);
+        // Newsletter consent needs its own backend field before it can be offered here.
+        $form->add('newsletterEnabled', CheckboxType::class, [
+            'mapped' => false,
+            'disabled' => true,
+            'required' => false,
+            'data' => false,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $settings->setEmailNotificationsEnabled(
-                $notificationSettingsDTO->emailNotificationsEnabled || $notificationSettingsDTO->newsletterEnabled
-            );
+            $settings->setEmailNotificationsEnabled($notificationSettingsDTO->emailNotificationsEnabled);
 
             $entityManager->flush();
 
@@ -535,10 +514,4 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/skills.html.twig');
     }
 
-    private function getAuthenticatedAccount(): ?Account
-    {
-        $user = $this->getUser();
-
-        return $user instanceof Account ? $user : null;
-    }
 }
