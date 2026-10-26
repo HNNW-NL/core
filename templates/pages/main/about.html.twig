@@ -1,11 +1,11 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}About{% endblock %}
+{% block title %}Over ons{% endblock %}
 
 {# SEO #}
-{% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
+{% block seoKeywords %}samenwerken, overheid, expertise, open platform{% endblock %}
+{% block seoDescription %}Ontdek hoe Het Nieuwe² Werken samenwerking en kennisdeling tussen overheidsorganisaties ondersteunt.{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
 {# CSS #}
@@ -20,22 +20,20 @@
 {% block body %}
     <div class="about-page">
 
-    <div class="nav">
+    <div class="topbar">
+        <div class="nav">
 
-        <a href="{{ path('main.home') }}" class="logo">
-            Het Nieuwe<sup>2</sup> Werken
-        </a>
+            <a href="{{ path('main.home') }}" class="logo">
+                Het Nieuwe<sup>2</sup> Werken
+            </a>
 
-        <nav class="nav-links">
-            <a href="{{ path('main.home') }}">Home</a>
-            <a href="{{ path('main.about') }}">Over ons</a>
-        </nav>
+            <nav class="nav-links" aria-label="Hoofdnavigatie">
+                <a href="{{ path('main.home') }}">Home</a>
+                <a href="{{ path('main.about') }}" class="active" aria-current="page">Over ons</a>
+            </nav>
 
+        </div>
     </div>
-
-
-
-<main>
 
     <!-- HERO -->
 
@@ -350,22 +348,13 @@
             </div>
 
 
-            <a href="index.html#aanmelden" class="button">
-                Naar de open bèta →
+            <a href="{{ path('main.contact') }}" class="button">
+                Neem contact op
             </a>
 
         </div>
 
     </section>
-
-</main>
-
-
-<!-- FOOTER -->
-
-
-
-
 
     </div>
 
