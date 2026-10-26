@@ -12,7 +12,6 @@
 }
 
 /* RESET */
-
 * {
     margin: 0;
     padding: 0;
@@ -20,6 +19,10 @@
 }
 
 body {
+    background: var(--dark-bg);
+    color: #ffffff;
+    min-height: 100svh;
+
    header {
        position: sticky;
        top: 0;

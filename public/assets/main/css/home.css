@@ -1,14 +1,3 @@
-/* BACKGROUND */
-
-body {
-    background: var(--dark-bg);
-
-    color: #ffffff;
-     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
 /* PAGE */
 
 .page {
