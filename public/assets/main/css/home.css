@@ -1,28 +1,3 @@
-/* RESET */
-
-* {
-    margin: 0;
-
-    padding: 0;
-
-    box-sizing: border-box;
-    font-family: Inter, sans-serif;
-}
-
-/* VARIABLES */
-
-:root {
-    --dark-bg: #050a18;
-
-    --card-bg: #141b2e;
-
-    --accent-yellow: #ffd400;
-
-    --text-gray: #aab3c5;
-
-    --icon-bg: #161e2e;
-}
-
 /* BACKGROUND */
 
 body {

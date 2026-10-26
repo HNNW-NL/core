@@ -1,3 +1,24 @@
+/* VARIABLES */
+:root {
+    --dark-bg: #050a18;
+
+    --card-bg: #141b2e;
+
+    --accent-yellow: #ffd400;
+
+    --text-gray: #aab3c5;
+
+    --icon-bg: #161e2e;
+}
+
+/* RESET */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
    header {
        position: sticky;
