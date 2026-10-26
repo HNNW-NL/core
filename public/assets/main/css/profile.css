@@ -1,0 +1,85 @@
+body {
+    main {
+        padding: 1%;
+        display: flex;
+        justify-content: center;
+
+        #inner-main {
+            width: 80%;
+            min-height: 100svh;
+            display: flex;
+            justify-content: space-between;
+
+            #profile, #suggestions {
+                section {
+                    background: var(--card-bg);
+                    width: 100%;
+                    border-radius: 10px;
+                    overflow: hidden;
+                    margin-bottom: 1svh;
+                }
+            }
+
+            #profile {
+                width: 75%;
+                min-height: 50%;
+
+                #p-cover{
+                    aspect-ratio: 4/1;
+                    width: 100%;
+                    position: relative;
+                    z-index: 1;
+
+                    #pc-img {
+                        z-index: 1;
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+                }
+
+                #p-image {
+                    position: relative;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                    padding: 0 3% 2.5%;
+                    margin-top: -12.5%;
+                    z-index: 5;
+
+                    #p-avatar {
+                        background: var(--dark-bg);
+                        aspect-ratio: 1/1;
+                        border-radius: 50%;
+                        width: 20%;
+                        padding: -1%;
+
+                        img {
+                            aspect-ratio: 1/1;
+                            width: 100%;
+                            object-fit: cover;
+                            border-radius: 50%;
+                            border: 5px solid var(--dark-bg);
+                        }
+                    }
+
+                    #pi-icon {
+                        aspect-ratio: 1/1;
+                        width: 3%;
+
+                        svg {
+                            aspect-ratio: 1/1;
+                            width: 100%;
+                        }
+                    }
+                }
+            }
+
+            #suggestions {
+                background-color: green;
+                width: 22.5%;
+                min-height: 50%;
+            }
+        }
+    }
+}
