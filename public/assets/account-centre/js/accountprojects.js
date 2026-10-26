@@ -154,6 +154,8 @@
 		const statusButton = card.querySelector('[data-filter-status]');
 		statusButton.addEventListener('click', () => {
 			statusSelect.value = statusButton.dataset.filterStatus;
+			activeOnlyToggle.checked = false;
+			favoritesOnlyToggle.checked = false;
 			updateProjects();
 			statusSelect.focus();
 		});

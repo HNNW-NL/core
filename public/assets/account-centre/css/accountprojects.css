@@ -64,6 +64,21 @@
 	color: #9aa4b2;
 }
 
+#account-centre-container.projects-page .projects-search-help {
+	margin: 0;
+	color: var(--hnnw-secondary-text);
+	font-size: 0.75rem;
+}
+
+#account-centre-container.projects-page .projects-search-help kbd {
+	padding: 0.1rem 0.3rem;
+	border: 1px solid #596579;
+	border-radius: 4px;
+	background: #111625;
+	color: #ffffff;
+	font: inherit;
+}
+
 #account-centre-container.projects-page .projects-tools input:focus-visible,
 #account-centre-container.projects-page .projects-tools select:focus-visible,
 #account-centre-container.projects-page .projects-reset:focus-visible {
