@@ -497,3 +497,15 @@
         align-items: flex-start;
     }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .about-page .mission-card,
+    .about-page .button {
+        transition: none;
+    }
+
+    .about-page .mission-card:hover,
+    .about-page .button:hover {
+        transform: none;
+    }
+}
