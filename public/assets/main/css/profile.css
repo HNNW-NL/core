@@ -80,10 +80,18 @@ body {
 
                     #p-info {
                         width: 100%;
-                        padding: .5% 1.75% 1.75%;
+                        padding: 0 1.75% 1.75%;
 
                         div {
-                            margin: .35% 0;
+                            margin: .6% 0;
+                        }
+
+                        &:first-child {
+                            margin-top: 0;
+                        }
+
+                        &:last-child {
+                            margin-bottom: 0;
                         }
 
                         #pi-core {
@@ -145,6 +153,30 @@ body {
 
                             #pc-companies {
                                 width: 33%;
+                            }
+                        }
+
+                        #pi-website {
+                            #piw-link {
+                                display: flex;
+                                white-space: nowrap;
+
+                                p {
+                                    margin-right: .25em;
+                                    color: var(--hnnw-yellow-500);
+                                }
+
+                                svg {
+                                    aspect-ratio: 1/1;
+                                    width: 1em;
+                                    fill: var(--hnnw-yellow-500);
+                                }
+
+                                &:hover {
+                                    p {
+                                        text-decoration: underline;
+                                    }
+                                }
                             }
                         }
                     }
