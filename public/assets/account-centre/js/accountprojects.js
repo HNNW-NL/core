@@ -81,6 +81,18 @@
 		.replace(/[\u0300-\u036f]/g, '')
 		.toLocaleLowerCase('nl');
 
+	const updateStatusCounts = () => {
+		const counts = projectCards.reduce((totals, card) => {
+			totals[card.dataset.status] = (totals[card.dataset.status] || 0) + 1;
+			return totals;
+		}, {});
+
+		statusSelect.querySelectorAll('option').forEach((option) => {
+			const count = option.value === 'all' ? projectCards.length : counts[option.value] || 0;
+			option.textContent = `${option.dataset.label} (${count})`;
+		});
+	};
+
 	const updateProjects = () => {
 		const query = normalizeText(searchInput.value.trim());
 		const selectedStatus = statusSelect.value;
@@ -185,7 +197,7 @@
 	});
 	emptyResetButton.addEventListener('click', () => resetButton.click());
 	exportButton.addEventListener('click', () => {
-		const rows = projectCards
+		const rows = Array.from(projectsList.querySelectorAll('.project-card'))
 			.filter((card) => !card.hidden)
 			.map((card) => [
 				card.querySelector('h3').textContent.trim(),
@@ -200,7 +212,7 @@
 		downloadLink.href = downloadUrl;
 		downloadLink.download = `mijn-projecten-${new Date().toISOString().slice(0, 10)}.csv`;
 		downloadLink.click();
-		URL.revokeObjectURL(downloadUrl);
+		window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 		exportStatus.textContent = `${rows.length} ${rows.length === 1 ? 'project' : 'projecten'} gedownload.`;
 	});
 
@@ -222,5 +234,6 @@
 		}
 	});
 
+	updateStatusCounts();
 	updateProjects();
 })();
