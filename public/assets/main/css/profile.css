@@ -157,6 +157,32 @@ body {
 
                             #pc-companies {
                                 width: 33%;
+
+                                .company {
+                                    display: flex;
+                                    align-items: center;
+                                    width: 100%;
+                                    margin-bottom: .75em;
+
+                                    .comp-icon {
+                                        aspect-ratio: 1/1;
+                                        width: 2.35em;
+                                        border-radius: 5px;
+                                        overflow: hidden;
+                                        margin-right: 2.5%;
+                                        border: 2px solid var(--background);
+
+                                        img {
+                                            width: 100%;
+                                            height: 100%;
+                                            object-fit: cover;
+                                        }
+                                    }
+
+                                    p {
+                                        font-weight: bold;
+                                    }
+                                }
                             }
                         }
 
