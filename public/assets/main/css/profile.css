@@ -24,52 +24,80 @@ body {
                 width: 75%;
                 min-height: 50%;
 
-                #p-cover{
-                    aspect-ratio: 4/1;
-                    width: 100%;
-                    position: relative;
-                    z-index: 1;
+                #basic-info {
 
-                    #pc-img {
-                        z-index: 1;
+                    #p-cover {
+                        aspect-ratio: 4/1;
                         width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                    }
-                }
+                        position: relative;
+                        z-index: 1;
 
-                #p-image {
-                    position: relative;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-end;
-                    padding: 0 3% 2.5%;
-                    margin-top: -12.5%;
-                    z-index: 5;
-
-                    #p-avatar {
-                        background: var(--dark-bg);
-                        aspect-ratio: 1/1;
-                        border-radius: 50%;
-                        width: 20%;
-                        padding: -1%;
-
-                        img {
-                            aspect-ratio: 1/1;
+                        #pc-img {
+                            z-index: 1;
                             width: 100%;
+                            height: 100%;
                             object-fit: cover;
-                            border-radius: 50%;
-                            border: 5px solid var(--dark-bg);
                         }
                     }
 
-                    #pi-icon {
-                        aspect-ratio: 1/1;
-                        width: 3%;
+                    #p-image {
+                        position: relative;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-end;
+                        padding: 0 3% 2.5%;
+                        margin-top: -12.5%;
+                        z-index: 5;
 
-                        svg {
+                        #p-avatar {
+                            background: var(--dark-bg);
                             aspect-ratio: 1/1;
+                            border-radius: 50%;
+                            width: 20%;
+                            padding: 0;
+                            margin: 0;
+                            border: 6px solid var(--dark-bg);
+                            overflow: hidden;
+
+                            img {
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                            }
+                        }
+
+                        #pi-icon {
+                            aspect-ratio: 1/1;
+                            width: 3%;
+                            opacity: .75;
+
+                            svg {
+                                aspect-ratio: 1/1;
+                                width: 100%;
+                            }
+                        }
+                    }
+
+                    #p-info {
+                        width: 100%;
+                        padding: .5% 1.75% 1.75%;
+
+                        div {
+                            margin: .35% 0;
+                        }
+
+                        #pi-core {
                             width: 100%;
+                            display: flex;
+                            justify-content: space-between;
+
+                            #pc-info {
+                                width: 66%;
+                            }
+
+                            #pc-companies {
+                                width: 33%;
+                            }
                         }
                     }
                 }
