@@ -183,6 +183,19 @@ body {
                                 }
                             }
                         }
+
+                        #pi-stats {
+                            margin: 1% 0;
+
+                            p {
+                                color: var(--paragraph-grey);
+
+                                span {
+                                    color: var(--paragraph-grey);
+                                    font-weight: bold;
+                                }
+                            }
+                        }
                     }
                 }
             }
