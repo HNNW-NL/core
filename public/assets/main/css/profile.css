@@ -147,7 +147,11 @@ body {
 
                                 #pci-headline {
                                     max-width: 95%;
-                                    margin: .75% 0;
+                                    margin: .75% 0 1%;
+                                }
+
+                                #pci-location{
+                                    color: var(--paragraph-grey);
                                 }
                             }
 
