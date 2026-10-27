@@ -1,8 +1,10 @@
 :root {
     --background: #020617;
-    --header-background: #0f172ab3;
+    --header-background: #0f172AB3;
+    --card-background: #141B2E;
 
     --paragraph: #FFFFFF;
+    --paragraph-grey: #AAB3C5;
 
     --hnnw-yellow-300: #ffe36f;
     --hnnw-yellow-400: #ffd736;
@@ -40,9 +42,11 @@
 
 body {
     background-color: var(--background);
+    min-height: 100svh;
 
     h1, h2, h3 {
-        font-family: inter;
+        font-family: 'Inter', sans-serif;
+        font-weight: bold;
     }
 
     p {

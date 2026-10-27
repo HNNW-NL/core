@@ -12,7 +12,7 @@ body {
 
             #profile, #suggestions {
                 section {
-                    background: var(--card-bg);
+                    background: var(--header-background);
                     width: 100%;
                     border-radius: 10px;
                     overflow: hidden;
@@ -93,6 +93,16 @@ body {
 
                             #pc-info {
                                 width: 66%;
+
+                                #pci-title {
+                                    #pci-name {
+                                        #pcin-name {
+                                            h1 {
+                                                font-weight: bold;
+                                            }
+                                        }
+                                    }
+                                }
                             }
 
                             #pc-companies {
@@ -104,7 +114,6 @@ body {
             }
 
             #suggestions {
-                background-color: green;
                 width: 22.5%;
                 min-height: 50%;
             }
