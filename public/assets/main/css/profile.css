@@ -16,7 +16,11 @@ body {
                     width: 100%;
                     border-radius: 10px;
                     overflow: hidden;
-                    margin-bottom: 1svh;
+                    margin-bottom: 1.5svh;
+                }
+
+                .section {
+                    padding: 2.5%;
                 }
             }
 
@@ -116,10 +120,6 @@ body {
                                         #pcin-name {
                                             margin-right: 1.5%;
                                             white-space: nowrap;
-
-                                            h1 {
-                                                font-size: 2.1em;
-                                            }
                                         }
 
                                         #pcin-verification {
@@ -220,6 +220,32 @@ body {
                                     color: var(--paragraph-grey);
                                     font-weight: bold;
                                 }
+                            }
+                        }
+                    }
+                }
+
+                #about {
+                    #a-descr {
+                        margin: 2svh 0;
+                    }
+
+                    #top-skills {
+                        border-radius: 5px;
+                        border: 1px solid var(--paragraph-grey);
+                        padding: .5%;
+                        display: flex;
+
+                        #ts-icon {
+                            aspect-ratio: 1/1.5;
+                            width: 5%
+                        }
+
+                        #ts-content {
+                            #ts-title {
+                                font-family: 'Inter', sans-serif;
+                                font-weight: 600;
+                                font-size: 1.2em;
                             }
                         }
                     }
