@@ -81,14 +81,18 @@
 		.replace(/[\u0300-\u036f]/g, '')
 		.toLocaleLowerCase('nl');
 
-	const updateStatusCounts = () => {
-		const counts = projectCards.reduce((totals, card) => {
-			totals[card.dataset.status] = (totals[card.dataset.status] || 0) + 1;
-			return totals;
-		}, {});
+	const updateStatusCounts = (query, activeOnly, favoritesOnly) => {
+		const availableCards = projectCards.filter((card) => {
+			const searchableText = card.querySelector('.account-card-content').textContent;
+			return normalizeText(searchableText).includes(query)
+				&& (!activeOnly || card.dataset.status === 'active')
+				&& (!favoritesOnly || favoriteIds.has(card.dataset.projectId));
+		});
 
 		statusSelect.querySelectorAll('option').forEach((option) => {
-			const count = option.value === 'all' ? projectCards.length : counts[option.value] || 0;
+			const count = option.value === 'all'
+				? availableCards.length
+				: availableCards.filter((card) => card.dataset.status === option.value).length;
 			option.textContent = `${option.dataset.label} (${count})`;
 		});
 	};
@@ -98,6 +102,7 @@
 		const selectedStatus = statusSelect.value;
 		const activeOnly = activeOnlyToggle.checked;
 		const favoritesOnly = favoritesOnlyToggle.checked;
+		updateStatusCounts(query, activeOnly, favoritesOnly);
 		const statusOrder = { active: 0, preparation: 1, completed: 2 };
 		const sortedCards = [...projectCards].sort((first, second) => {
 			if (sortSelect.value === 'favorites-first') {
@@ -234,6 +239,5 @@
 		}
 	});
 
-	updateStatusCounts();
 	updateProjects();
 })();
