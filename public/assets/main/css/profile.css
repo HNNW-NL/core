@@ -233,12 +233,20 @@ body {
                     #top-skills {
                         border-radius: 5px;
                         border: 1px solid var(--paragraph-grey);
-                        padding: .5%;
+                        padding: 1%;
                         display: flex;
 
                         #ts-icon {
                             aspect-ratio: 1/1.5;
-                            width: 5%
+                            display: flex;
+                            justify-content: center;
+                            align-items: flex-start;
+                            margin-right: .5em;
+
+                            svg {
+                                aspect-ratio: 1/1;
+                                width: 1.75em;
+                            }
                         }
 
                         #ts-content {
@@ -246,6 +254,7 @@ body {
                                 font-family: 'Inter', sans-serif;
                                 font-weight: 600;
                                 font-size: 1.2em;
+                                margin-bottom: .35em;
                             }
                         }
                     }
