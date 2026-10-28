@@ -1,15 +1,24 @@
 .about-page {
-    --bg: #08111f;
-    --bg-soft: #0c1625;
-    --panel: #101d30;
-    --panel-hover: #14243a;
-    --text: #f2f6ff;
-    --muted: #9eafc7;
-    --blue: #4b9cf5;
-    --blue-light: #65b0ff;
-    --line: rgba(130, 166, 210, 0.17);
-    --line-blue: rgba(75, 156, 245, 0.35);
-    --radius: 20px;
+    --background: #010412;
+    --header-background: #0f172ab3;
+
+    --text: #c1ccdc;
+    --paragraph: #FFFFFF;
+    --line: #26344a;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
+}
+[data-theme="light"] {
+    --background: #FFFFFF;
+    --header-background: #0f172ab3;
+
+    --paragraph: #020617;
+
+    --hnnw-yellow-300: #ffe36f;
+    --hnnw-yellow-400: #ffd736;
+    --hnnw-yellow-500: #f4c400;
 }
 
 .about-page,
@@ -95,7 +104,7 @@
 }
 
 .about-page .eyebrow {
-    color: var(--blue-light);
+    color: var(--hnnw-yellow-500);
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 12px;
@@ -117,8 +126,8 @@
 
 .about-page .hero-description {
     max-width: 650px;
-    color: var(--muted);
-    font-size: 18px;
+    color: var(--text);
+    font-size: 16px;
     line-height: 1.75;
 }
 
@@ -206,7 +215,7 @@
 }
 
 .about-page .section-label {
-    color: var(--blue-light);
+    color: var(--hnnw-yellow-500);
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 12px;
@@ -224,8 +233,8 @@
 
 .about-page .section-intro {
     max-width: 700px;
-    color: var(--muted);
-    font-size: 17px;
+    color: var(--text);
+    font-size: 16px;
 }
 
 .about-page .mission-grid {
@@ -237,16 +246,16 @@
 
 .about-page .mission-card {
     padding: 32px;
-    background: var(--panel);
+    background: var(--header-background);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: 15px;
     transition: transform .2s ease, background .2s ease, border-color .2s ease;
 }
 
 .about-page .mission-card:hover {
     transform: translateY(-5px);
-    background: var(--panel-hover);
-    border-color: var(--line-blue);
+    background: var(--header-background);
+    border-color: var(--line);
 }
 
 .about-page .icon {
@@ -258,6 +267,7 @@
     border-radius: 13px;
     background: rgba(75, 156, 245, .12);
     border: 1px solid rgba(75, 156, 245, .2);
+    color: red;
     font-size: 21px;
     margin-bottom: 24px;
 }
@@ -268,7 +278,7 @@
 }
 
 .about-page .mission-card p {
-    color: var(--muted);
+    color: var(--text);
     font-size: 15px;
     line-height: 1.7;
 }
@@ -293,7 +303,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--blue);
+    background: var(--hnnw-yellow-500);
     color: white;
     font-size: 13px;
     font-weight: 800;
@@ -306,7 +316,7 @@
 }
 
 .about-page .step p {
-    color: var(--muted);
+    color: var(--text);
     font-size: 14px;
 }
 
