@@ -52,11 +52,12 @@ class WorkPackage
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
-    #[ORM\OneToMany(
-        targetEntity: PackageTask::class,
-        mappedBy: 'workPackage'
-    )]
+    // Reverse FKs
+
+    #[ORM\OneToMany(targetEntity: PackageTask::class, mappedBy: 'workPackage')]
     private Collection $workPackageTasks;
+
+    // Functions
 
     public function __construct()
     {
