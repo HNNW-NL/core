@@ -5,6 +5,8 @@ security:
 
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
+        users_in_memory: { memory: null }
+
         users_by_email:
             entity:
                 class: App\Entity\Account\Account
@@ -17,7 +19,7 @@ security:
 
         app_user_provider:
             chain:
-                providers: ["users_by_email", "users_by_username"]
+                providers: [ "users_by_email", "users_by_username" ]
 
     firewalls:
         dev:
@@ -33,10 +35,10 @@ security:
                 username_parameter: username
                 password_parameter: password
                 enable_csrf: true
-                
+
             logout:
                 path: account.signoff
-           
+
             # Activate different ways to authenticate:
             # https://symfony.com/doc/current/security.html#the-firewall
 
