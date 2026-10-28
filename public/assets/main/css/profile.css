@@ -190,6 +190,7 @@ body {
                             #piw-link {
                                 display: flex;
                                 white-space: nowrap;
+                                width: fit-content;
 
                                 p {
                                     margin-right: .25em;
