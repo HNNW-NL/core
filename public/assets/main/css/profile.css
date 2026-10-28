@@ -18,15 +18,15 @@ body {
                     overflow: hidden;
                     margin-bottom: 1.5svh;
                 }
-
-                .section {
-                    padding: 2.5%;
-                }
             }
 
             #profile {
                 width: 75%;
                 min-height: 50%;
+
+                .section {
+                    padding: 2.5%;
+                }
 
                 #basic-info {
 
@@ -264,6 +264,14 @@ body {
             #suggestions {
                 width: 22.5%;
                 min-height: 50%;
+
+                .section {
+                    padding: 4%;
+                }
+
+                h3 {
+                    font-size: 1.2em;
+                }
             }
         }
     }
