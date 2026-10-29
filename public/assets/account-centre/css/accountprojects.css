@@ -24,15 +24,25 @@
 }
 
 #account-centre-container.projects-page .projects-toggle {
+	align-items: center;
 	justify-content: flex-end;
+	flex-direction: row;
 	min-height: 2.75rem;
 	padding: 0.5rem 0.25rem 0.1rem;
 	font-size: 0.82rem;
 	color: var(--hnnw-secondary-text);
+	cursor: pointer;
 }
 
 #account-centre-container.projects-page .projects-toggle input {
+	flex: 0 0 1rem;
+	width: 1rem;
+	height: 1rem;
+	min-height: 1rem;
 	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
 	accent-color: var(--hnnw-yellow-400);
 }
 
@@ -47,7 +57,7 @@
 	font-weight: 600;
 }
 
-#account-centre-container.projects-page .projects-tools input,
+#account-centre-container.projects-page .projects-tools input[type="search"],
 #account-centre-container.projects-page .projects-tools select {
 	min-height: 2.75rem;
 	width: 100%;
@@ -60,7 +70,7 @@
 	font: inherit;
 }
 
-#account-centre-container.projects-page .projects-tools input::placeholder {
+#account-centre-container.projects-page .projects-tools input[type="search"]::placeholder {
 	color: #9aa4b2;
 }
 
@@ -79,8 +89,9 @@
 	font: inherit;
 }
 
-#account-centre-container.projects-page .projects-tools input:focus-visible,
+#account-centre-container.projects-page .projects-tools input[type="search"]:focus-visible,
 #account-centre-container.projects-page .projects-tools select:focus-visible,
+#account-centre-container.projects-page .projects-toggle input:focus-visible,
 #account-centre-container.projects-page .projects-reset:focus-visible {
 	outline: 2px solid var(--hnnw-yellow-400);
 	outline-offset: 2px;
