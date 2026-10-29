@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Geen toegang (403){% endblock %}
+
+{% block body %}
+    <h1>Toegang geweigerd</h1>
+    <p>Je hebt geen toestemming om deze pagina te bekijken.</p>
+    <a href="{{ path('home') }}">Terug naar de homepage</a>
+{% endblock %}
