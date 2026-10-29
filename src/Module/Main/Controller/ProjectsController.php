@@ -149,9 +149,7 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        if ($project->getVisibility() == 'private') {
-            $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
-        }
+        $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
 
         $packageTask = $packageTaskRepository->findOneForProject(
             $taskId,
