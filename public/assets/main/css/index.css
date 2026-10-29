@@ -527,6 +527,19 @@ body:has(.home-page) .hamburger {
         rgba(var(--hnnw-surface-rgb), 0.68)
     );
     box-shadow: 0 16px 28px rgba(4, 9, 18, 0.16);
+    transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.home-page .open-project-card:hover,
+.home-page .open-project-card:focus-within {
+    transform: translateY(-3px);
+    border-color: rgba(var(--hnnw-primary-rgb), 0.35);
+    box-shadow:
+        0 22px 34px rgba(4, 9, 18, 0.24),
+        0 0 0 1px rgba(var(--hnnw-primary-light-rgb), 0.08);
 }
 
 .home-page .open-project-card h3 {
