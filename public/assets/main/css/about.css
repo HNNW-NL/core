@@ -60,12 +60,6 @@
     justify-content: space-between;
 }
 
-.about-page .logo {
-    color: var(--blue-light);
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-}
 
 .about-page .logo sup {
     font-size: 10px;
@@ -89,9 +83,6 @@
     color: white;
 }
 
-.about-page .nav-links .active {
-    color: var(--blue-light);
-}
 
 .about-page .hero {
     width: min(1180px, calc(100% - 48px));
@@ -120,9 +111,6 @@
     margin-bottom: 28px;
 }
 
-.about-page .hero h1 span {
-    color: var(--blue);
-}
 
 .about-page .hero-description {
     max-width: 650px;
@@ -133,9 +121,7 @@
 
 .about-page .visual {
     min-height: 380px;
-    border: 1px solid var(--line);
     border-radius: 30px;
-    background: radial-gradient(circle at center, rgba(75, 156, 245, .18), transparent 45%), var(--bg-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -175,21 +161,21 @@
     top: 50%;
     transform: translate(-50%, -50%);
     border-radius: 24px;
-    background: var(--blue);
+    /*background: var(--blue);*/
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 38px;
+    font-size: 50px;
     box-shadow: 0 0 45px rgba(75, 156, 245, .35);
 }
 
 .about-page .node {
     position: absolute;
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
-    background: var(--blue-light);
-    box-shadow: 0 0 15px rgba(75, 156, 245, .65);
+    background: var(--hnnw-yellow-500);
+    box-shadow: 0 0 15px var(--hnnw-yellow-400);
 }
 
 .about-page .node-1 {
@@ -205,7 +191,7 @@
 .about-page .node-3 {
     left: 20px;
     bottom: 76px;
-    background: #65c6d5;
+    background: var(--hnnw-yellow-400);
 }
 
 .about-page .section {
@@ -266,8 +252,7 @@
     justify-content: center;
     border-radius: 13px;
     background: rgba(75, 156, 245, .12);
-    border: 1px solid rgba(75, 156, 245, .2);
-    color: red;
+    border: 1px solid var(--line);
     font-size: 21px;
     margin-bottom: 24px;
 }
@@ -334,24 +319,25 @@
     justify-content: center;
     padding: 40px;
     border-radius: 25px;
-    background: linear-gradient(145deg, rgba(75, 156, 245, .18), rgba(75, 156, 245, .03));
-    border: 1px solid var(--line-blue);
+    background: var(--header-background);
+    border: 1px solid var(--line);
 }
 
 .about-page .source-number strong {
     font-size: 70px;
     line-height: 1;
     letter-spacing: -5px;
-    color: var(--blue-light);
+    color: var(--hnnw-yellow-400);
 }
 
 .about-page .source-number span {
-    color: var(--muted);
+    color: white;
     margin-top: 10px;
+    font-size: 16px;
 }
 
 .about-page .source-content p {
-    color: var(--muted);
+    color: var(--text);
     margin-bottom: 20px;
 }
 
@@ -378,8 +364,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(75, 156, 245, .15);
-    color: var(--blue-light);
+    background: color-mix(in srgb, var(--hnnw-yellow-300) 20%, transparent);
+    color: var(--hnnw-yellow-400);
     font-size: 12px;
     font-weight: bold;
 }
@@ -392,8 +378,8 @@
 .about-page .cta-inner {
     padding: 65px;
     border-radius: 28px;
-    background: linear-gradient(135deg, #102945, #0d1b2d);
-    border: 1px solid var(--line-blue);
+    background: var(--header-background);
+    border: 1px solid var(--line);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -408,22 +394,22 @@
 
 .about-page .cta p {
     max-width: 600px;
-    color: var(--muted);
+    color: var(--text);
 }
 
 .about-page .button {
     flex-shrink: 0;
     padding: 14px 23px;
     border-radius: 10px;
-    background: var(--blue);
+    background: var(--hnnw-yellow-500);
     color: white;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
     transition: background .2s ease, transform .2s ease;
 }
 
 .about-page .button:hover {
-    background: var(--blue-light);
+    background: var(--hnnw-yellow-300);
     transform: translateY(-2px);
 }
 
