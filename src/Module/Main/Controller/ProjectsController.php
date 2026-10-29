@@ -34,9 +34,9 @@ final class ProjectsController extends AbstractController
         if ($project === null) {
             throw $this->createNotFoundException('Project niet gevonden.');
         }
-
-        $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
-
+        if ($project->getVisibility() == 'private') {
+            $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
+        }
         return $this->render('pages/main/projects/detail.html.twig', [
             'slug' => $slug,
             'project' => $project,
@@ -246,7 +246,9 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
+        if ($project->getVisibility() == 'private') {
+            $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
+        }
 
         return $project;
     }
