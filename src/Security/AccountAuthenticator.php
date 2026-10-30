@@ -30,6 +30,13 @@ final class AccountAuthenticator extends AbstractAuthenticator
     ) {
     }
 
+    public function start(Request $request, AuthenticationException $authException = null): Response
+    {
+        $loginUrl = $this->urlGenerator->generate('auth.login');
+
+        return new RedirectResponse($loginUrl);
+    }
+
     public function supports(Request $request): ?bool
     {
         return 'auth.login' === $request->attributes->get('_route') && $request->isMethod('POST');
