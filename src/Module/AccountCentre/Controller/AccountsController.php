@@ -10,6 +10,7 @@ use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -52,19 +53,7 @@ final class AccountsController extends AbstractController
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
     public function applicationsCancel(ProjectApplication $application, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->getAndCheckAccount($request, $entityManager);
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile || $application->getProfile() !== $profile) {
@@ -74,11 +63,7 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
 
-            if (method_exists($application, 'softDelete')) {
-                $application->softDelete();
-            } else {
-                $application->setDeletedAt(new \DateTimeImmutable());
-            }
+            $application->softDelete();
 
             $entityManager->flush();
 
@@ -93,19 +78,7 @@ final class AccountsController extends AbstractController
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
     public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je beschikbaarheid te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->getAndCheckAccount($request, $entityManager);
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
@@ -305,19 +278,7 @@ final class AccountsController extends AbstractController
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
     public function experience(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->getAndCheckAccount($request, $entityManager);
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
@@ -435,23 +396,9 @@ final class AccountsController extends AbstractController
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->getAndCheckAccount($request, $entityManager);
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-        $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
         if ($request->isMethod('POST')) {
             $username = trim((string) $request->request->get('username'));
@@ -478,17 +425,6 @@ final class AccountsController extends AbstractController
                 }
             }
 
-            if ($settings) {
-                $settings->setLanguage(trim((string) $request->request->get('language', 'nl')));
-                $settings->setTheme(trim((string) $request->request->get('theme', 'dark')));
-                $settings->setProfileVisibility(trim((string) $request->request->get('profile_visibility', 'public')));
-                $settings->setEmailNotificationsEnabled((bool) $request->request->get('email_notifications_enabled', false));
-
-                if (method_exists($settings, 'setLastModified')) {
-                    $settings->setLastModified(new \DateTimeImmutable());
-                }
-            }
-
             $entityManager->flush();
 
             $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
@@ -498,28 +434,14 @@ final class AccountsController extends AbstractController
 
         return $this->render('pages/account-centre/modify.html.twig', [
             'account' => $account,
-            'profile' => $profile,
-            'settings' => $settings
+            'profile' => $profile
         ]);
     }
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
     public function notifications(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->getAndCheckAccount($request, $entityManager);
 
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
@@ -581,9 +503,28 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/settings', name: 'settings', methods: ['GET'])]
-    public function settings(): Response
+    public function settings(Request $request, EntityManagerInterface $entityManager): Response
     {
-        return $this->render('pages/account-centre/settings.html.twig');
+        $account = $this->getAndCheckAccount($request, $entityManager);
+        $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
+
+        if ($request->isMethod('POST')) {
+            if ($settings) {
+                $settings->setLanguage(trim((string)$request->request->get('language', 'nl')));
+                $settings->setTheme(trim((string)$request->request->get('theme', 'dark')));
+                $settings->setProfileVisibility(trim((string)$request->request->get('profile_visibility', 'public')));
+                $settings->setEmailNotificationsEnabled((bool)$request->request->get('email_notifications_enabled', false));
+
+                if (method_exists($settings, 'setLastModified')) {
+                    $settings->setLastModified(new \DateTimeImmutable());
+                }
+            }
+        }
+
+        return $this->render('pages/account-centre/settings.html.twig', [
+            'account' => $account,
+            'settings' => $settings
+        ]);
     }
 
     #[Route('/signoff', name: 'signoff', methods: ['GET'])]
@@ -596,5 +537,24 @@ final class AccountsController extends AbstractController
     public function skills(): Response
     {
         return $this->render('pages/account-centre/skills.html.twig');
+    }
+
+    private function getAndCheckAccount(Request $request, EntityManagerInterface $entityManager): RedirectResponse|Account
+    {
+        $session = $request->getSession();
+        $accountId = $session->get('account_id');
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+
+        if (!$account) {
+            $this->addFlash('error', 'Account niet gevonden.');
+            return $this->redirectToRoute('auth.login');
+        }
+        return $account;
     }
 }
