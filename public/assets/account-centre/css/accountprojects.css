@@ -129,6 +129,41 @@
 	font-size: 0.9rem;
 }
 
+#account-centre-container.projects-page .projects-loading,
+#account-centre-container.projects-page .projects-unavailable {
+	margin: 1rem 0;
+	padding: 1.25rem;
+	border: 1px solid #3b4658;
+	border-radius: 8px;
+	color: var(--hnnw-secondary-text);
+	text-align: center;
+}
+
+#account-centre-container.projects-page .projects-unavailable p {
+	margin: 0 0 0.85rem;
+}
+
+#account-centre-container.projects-page .projects-unavailable button {
+	padding: 0.55rem 0.85rem;
+	border: 1px solid #596579;
+	border-radius: 6px;
+	background: transparent;
+	color: #ffffff;
+	font: inherit;
+	cursor: pointer;
+}
+
+#account-centre-container.projects-page .projects-unavailable button:hover,
+#account-centre-container.projects-page .projects-unavailable button:focus-visible {
+	border-color: var(--hnnw-yellow-400);
+	color: var(--hnnw-yellow-400);
+}
+
+#account-centre-container.projects-page .projects-unavailable button:focus-visible {
+	outline: 2px solid var(--hnnw-yellow-400);
+	outline-offset: 2px;
+}
+
 #account-centre-container.projects-page .projects-actions {
 	display: flex;
 	align-items: stretch;

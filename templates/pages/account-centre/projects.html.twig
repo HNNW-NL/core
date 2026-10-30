@@ -15,7 +15,7 @@
 
 {# Page content #}
 {% block body %}
-    <div id="account-centre-container" class="projects-page">
+    <div id="account-centre-container" class="projects-page" data-projects-url="/account/projects/data">
         <a href="{{ path('account.home') }}" class="btn-back">
             Terug naar dashboard
         </a>
@@ -38,6 +38,7 @@
                     <option value="active" data-label="Actief">Actief</option>
                     <option value="preparation" data-label="In voorbereiding">In voorbereiding</option>
                     <option value="completed" data-label="Afgerond">Afgerond</option>
+                    <option value="other" data-label="Overig">Overig</option>
                 </select>
             </div>
             <div class="projects-sort">
@@ -67,33 +68,13 @@
         <p class="projects-filter-status" id="projects-filter-status" aria-live="polite"></p>
         <p class="projects-export-status" id="projects-export-status" aria-live="polite"></p>
 
-        <div class="account-grid projects-grid" id="projects-list">
-            <article class="account-card project-card" data-project-id="buurtmoestuin-noord" data-status="active">
-                <div class="account-card-content">
-                    <h3>Buurtmoestuin Noord</h3>
-                    <p>Werk samen met buurtbewoners aan een groene en toegankelijke ontmoetingsplek.</p>
-                </div>
-                <button type="button" class="project-status status-active" data-filter-status="active" title="Toon alle actieve projecten">Actief</button>
-                <button type="button" class="project-favorite" aria-pressed="false">Bewaar</button>
-            </article>
+        <p class="projects-loading" id="projects-loading" role="status">Je projecten worden geladen...</p>
 
-            <article class="account-card project-card" data-project-id="digitale-hulp" data-status="preparation">
-                <div class="account-card-content">
-                    <h3>Digitale hulp voor iedereen</h3>
-                    <p>Help inwoners met praktische vragen over digitale diensten en apparaten.</p>
-                </div>
-                <button type="button" class="project-status status-preparation" data-filter-status="preparation" title="Toon alle projecten in voorbereiding">In voorbereiding</button>
-                <button type="button" class="project-favorite" aria-pressed="false">Bewaar</button>
-            </article>
+        <div class="account-grid projects-grid" id="projects-list" hidden></div>
 
-            <article class="account-card project-card" data-project-id="jongeren-in-beweging" data-status="completed">
-                <div class="account-card-content">
-                    <h3>Jongeren in beweging</h3>
-                    <p>Draag bij aan activiteiten die jongeren in de wijk samenbrengen.</p>
-                </div>
-                <button type="button" class="project-status status-completed" data-filter-status="completed" title="Toon alle afgeronde projecten">Afgerond</button>
-                <button type="button" class="project-favorite" aria-pressed="false">Bewaar</button>
-            </article>
+        <div class="projects-unavailable" id="projects-unavailable" role="alert" hidden>
+            <p>Je projectlidmaatschappen konden niet worden geladen. Probeer het later opnieuw.</p>
+            <button type="button" id="projects-retry">Opnieuw proberen</button>
         </div>
 
         <div class="projects-empty" id="projects-empty" role="status" hidden>
