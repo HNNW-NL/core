@@ -1,9 +1,9 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/main.base.html.twig' %}
 
-{% block title %}Pagina niet gevonden (404){% block title %}
+{% block title %}Pagina niet gevonden (404){% endblock %}
 
 {% block body %}
     <h1>Oeps! Pagina niet gevonden</h1>
     <p>De pagina die je zoekt bestaat niet of is verplaatst.</p>
-    <a href="{{ path('home') }}">Terug naar de homepage</a>
+    <a href="{{ path('main.home') }}">Terug naar de homepage</a>
 {% endblock %}
