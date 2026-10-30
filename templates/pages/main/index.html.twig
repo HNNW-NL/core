@@ -1,33 +1,100 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Home{% endblock %}
+{% block title %}Samenwerken aan publieke opgaven{% endblock %}
 
 {# SEO #}
-
-{% block seoKeywords %}{% endblock %}
-
-{% block seoDescription %}{% endblock %}
-
+{% block seoKeywords %}overheid, samenwerken, kennis delen, expertise, publieke sector{% endblock %}
+{% block seoDescription %}HNNW brengt vraag en aanbod van werk in de overheid samen. Vind expertise, deel opdrachten en werk transparant samen aan publieke opgaven.{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
-
-
 {# CSS #}
-
-{% block stylesheets %}{% endblock %}
-
-
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/index.css') }}">
+{% endblock %}
 
 {# JavaScript #}
-
 {% block javascript %}{% endblock %}
 
-
-
 {# Page content #}
-
 {% block body %}
-    <h2>Home</h2>
-    <p>Main - home page.</p>
+{# Keep homepage content inside the scope used by the dedicated homepage stylesheet. #}
+<div class="home-page">
+{# Skip link keeps keyboard users able to jump straight to the main page content. #}
+<a class="skip-link" href="#about">Direct naar de inhoud</a>
+
+{# Hero section introduces the platform and the primary action for new visitors. #}
+<section class="hero container" id="about" aria-labelledby="hero-title">
+    <div class="hero-copy">
+        <p class="eyebrow">Open platform voor de overheid</p>
+        <h1 id="hero-title">De juiste mensen voor publieke opgaven. <span>Open en transparant.</span></h1>
+        <p class="hero-text">Vind expertise, deel hulpvragen en werk veilig samen aan maatschappelijke opgaven.</p>
+        <div class="hero-actions">
+            <a class="button button-primary" href="{{ path('auth.register') }}">Maak een account aan</a>
+            <a class="button button-secondary" href="https://hnnw.nl">Bezoek HNNW</a>
+        </div>
+        <p class="hero-reassurance">Voor ambtenaren en publieke teams — doe mee tijdens de open bèta.</p>
+        <p class="hero-note">Open source <span aria-hidden="true">•</span> Community op Slack</p>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+        <div class="visual-orbit orbit-one"></div>
+        <div class="visual-orbit orbit-two"></div>
+        <div class="visual-center">{{ ux_icon('mdi:handshake', { 'aria-hidden': 'true' }) }}</div>
+        <div class="visual-label label-top">Projecten</div>
+        <div class="visual-label label-right">Mensen</div>
+        <div class="visual-label label-bottom">Taken</div>
+        <div class="visual-caption">Verbind projecten,<br>mensen en taken</div>
+    </div>
+</section>
+
+{# Core platform benefits. #}
+<section class="features" id="projects" aria-labelledby="features-title">
+    <div class="container">
+        <div class="section-heading">
+            <p class="eyebrow">Waarom HNNW</p>
+            <h2 id="features-title">Werk slimmer samen binnen en buiten je organisatie.</h2>
+        </div>
+
+        <div class="feature-grid">
+            <article class="feature-card">
+                <span class="feature-icon feature-icon-search" aria-hidden="true"></span>
+                <h3>Vind expertise</h3>
+                <p>Zoek snel de juiste mensen, kennis en ervaring voor jouw opdracht of project.</p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon feature-icon-share" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <path d="m8.6 10.5 6.8-4"></path>
+                        <path d="m8.6 13.5 6.8 4"></path>
+                    </svg>
+                </span>
+                <h3>Deel werk</h3>
+                <p>Maak vraag en aanbod zichtbaar, zodat teams sneller kunnen aansluiten en samenwerken.</p>
+            </article>
+
+            <article class="feature-card">
+                <span class="feature-icon feature-icon-impact" aria-hidden="true"></span>
+                <h3>Meet impact</h3>
+                <p>Krijg inzicht in samenwerking, voortgang en resultaten op één plek.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+{# Final conversion point for visitors ready to participate. #}
+<section class="cta-band" id="contact">
+    <div class="container cta-content">
+        <div>
+            <p class="eyebrow">Aan de slag</p>
+            <h2>Heb je vragen? We vertellen je graag meer.</h2>
+        </div>
+        <a class="button button-primary" href="mailto:contact@hnnw.nl">Neem contact op</a>
+    </div>
+</section>
+</div>
 {% endblock %}

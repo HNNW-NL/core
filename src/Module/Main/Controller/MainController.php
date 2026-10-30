@@ -34,4 +34,18 @@ final class MainController extends AbstractController
             "slug" => $slug,
         ]);
     }
+
+    #[Route('/events', name: 'events', methods: ['GET'])]
+    public function events(): Response
+    {
+        return $this->render('pages/main/events/index.html.twig');
+    }
+
+    #[Route('/events/{slug}', name: 'event', methods: ['GET'])]
+    public function viewEvent(string $slug): Response
+    {
+        return $this->render('pages/main/events/detail.html.twig', [
+            "slug" => $slug,
+        ]);
+    }
 }
