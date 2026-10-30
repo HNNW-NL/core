@@ -398,7 +398,7 @@ final class AccountsController extends AbstractController
     {
         $account = $this->getAndCheckAccount($request, $entityManager);
 
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account, 'deletedAt' => null]);
 
         if ($request->isMethod('POST')) {
             $username = trim((string) $request->request->get('username'));
@@ -515,9 +515,8 @@ final class AccountsController extends AbstractController
                 $settings->setProfileVisibility(trim((string)$request->request->get('profile_visibility', 'public')));
                 $settings->setEmailNotificationsEnabled((bool)$request->request->get('email_notifications_enabled', false));
 
-                if (method_exists($settings, 'setLastModified')) {
-                    $settings->setLastModified(new \DateTimeImmutable());
-                }
+                $entityManager->flush();
+                $this->addFlash('success', 'Je instellingen zijn succesvol opgeslagen!');
             }
         }
 
