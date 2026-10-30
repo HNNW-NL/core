@@ -98,7 +98,6 @@ class WorkPackageVoter extends Voter
         /*
          * Gebruik dezelfde permissionsMask als de projectrol.
          */
-
         return match ($attribute) {
             self::VIEW => $role->hasPermission(ProjectRole::PERMISSION_VIEW),
             self::EDIT => $role->hasPermission(ProjectRole::PERMISSION_EDIT),

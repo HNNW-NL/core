@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
+use App\Security\Permission;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -164,6 +165,8 @@ final class PanelController extends AbstractController
         }
 
         $this->denyAccessUnlessGranted(ProjectVoter::EDIT, $project);
+
+        $this->denyAccessUnlessGranted(Permission::ORG_MANAGE_PROJECTS->name, $project->getOwnerOrganisation());
 
         return $project;
     }

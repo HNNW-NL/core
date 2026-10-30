@@ -101,7 +101,6 @@ class PackageTaskVoter extends Voter
             return false;
         }
 
-
         return match ($attribute) {
             self::VIEW => $role->hasPermission(ProjectRole::PERMISSION_VIEW),
             self::EDIT => $role->hasPermission(ProjectRole::PERMISSION_EDIT),
