@@ -1,3 +1,4 @@
+
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
@@ -70,7 +71,10 @@
 
         <div id="projects-app" data-projects="{{ data.items|json_encode|escape('html_attr') }}" data-search="{{ q|escape('html_attr') }}">
             <div class="projects-list-header" style="margin-top: 1.5rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-                <h3 style="margin: 0; font-size: 1.25rem;">Project results</h3>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.25rem;">Project results</h3>
+                    <p>Overview of projects you are authorized to manage.</p>
+                </div>
             </div>
 
             <div class="projects-container">
