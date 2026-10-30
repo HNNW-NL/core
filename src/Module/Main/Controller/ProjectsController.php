@@ -242,7 +242,7 @@ final class ProjectsController extends AbstractController
 
         if (
             !$allowPublicAccess
-            || $project->getVisibility() == 'private'
+            || $project->getVisibility() === 'private'
         ) {
             $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
         }

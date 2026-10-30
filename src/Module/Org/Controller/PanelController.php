@@ -38,7 +38,6 @@ final class PanelController extends AbstractController
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
-
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
             'project' => $project,
