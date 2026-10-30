@@ -1,5 +1,5 @@
-/* Homepage theme and shared component tokens */
-:root {
+/* Homepage theme and component tokens */
+.home-page {
     --hnnw-primary: #4b9cf5;
     --hnnw-primary-rgb: 75, 156, 245;
     --hnnw-primary-dark: #2d75d9;
@@ -9,24 +9,17 @@
     --hnnw-accent: #75dce8;
     --hnnw-accent-rgb: 117, 220, 232;
     --hnnw-background: var(--background);
-    --hnnw-background-rgb: 2, 6, 23;
-    --hnnw-background-soft: #0c1625;
-    --hnnw-footer-background: #070d18;
-    --hnnw-border-subtle: rgba(var(--hnnw-accent-rgb), 0.18);
-    --hnnw-border-primary: rgba(var(--hnnw-primary-rgb), 0.35);
     --hnnw-surface: #121d30;
     --hnnw-surface-rgb: 18, 29, 48;
-    --hnnw-surface-hover: #182b44;
     --hnnw-text: var(--paragraph);
     --hnnw-muted: #a8b4c7;
     --hnnw-line: #2a3b58;
     --hnnw-white: #f8fbff;
-    --hnnw-radius: 20px;
     --hnnw-font-heading: inter, Arial, sans-serif;
     --hnnw-font-body: lato, Arial, sans-serif;
 }
 
-.hnnw-button {
+.home-page .hnnw-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -47,7 +40,7 @@
         box-shadow 160ms ease;
 }
 
-.hnnw-button--primary {
+.home-page .hnnw-button--primary {
     background: linear-gradient(
         135deg,
         var(--hnnw-primary) 0%,
@@ -57,7 +50,7 @@
     box-shadow: 0 18px 32px rgba(var(--hnnw-primary-rgb), 0.28);
 }
 
-.hnnw-button--primary:hover {
+.home-page .hnnw-button--primary:hover {
     background: var(--hnnw-primary-dark);
     color: var(--hnnw-white);
     filter: brightness(1.06);
@@ -65,21 +58,20 @@
     box-shadow: 0 22px 36px rgba(var(--hnnw-primary-rgb), 0.32);
 }
 
-.hnnw-button--secondary {
+.home-page .hnnw-button--secondary {
     border-color: var(--hnnw-line);
     background: var(--hnnw-surface);
     color: var(--hnnw-white);
 }
 
-.hnnw-button--secondary:hover {
+.home-page .hnnw-button--secondary:hover {
     border-color: rgba(var(--hnnw-primary-rgb), 0.7);
     background: rgba(var(--hnnw-surface-rgb), 0.9);
     color: var(--hnnw-primary);
     transform: translateY(-1px);
 }
 
-.hnnw-eyebrow,
-.section-label {
+.home-page .hnnw-eyebrow {
     margin: 0 0 18px;
     color: var(--hnnw-primary);
     font-family: var(--hnnw-font-heading);
@@ -89,25 +81,7 @@
     text-transform: uppercase;
 }
 
-.hnnw-hero-visual {
-    position: relative;
-    border: 1px solid rgba(var(--hnnw-accent-rgb), 0.18);
-    background-color: var(--hnnw-surface);
-}
-
 /* Homepage theme and base layout */
-body:has(.home-page) {
-    --primary: var(--hnnw-primary);
-    --primary-hover: var(--hnnw-primary-hover);
-    --accent: var(--hnnw-accent);
-    --text: var(--hnnw-text);
-    --muted: var(--hnnw-muted);
-    --line: var(--hnnw-line);
-    --panel: var(--hnnw-surface);
-    --footer-bg: var(--hnnw-footer-background);
-    --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
-}
-
 .home-page {
     --bg: var(--hnnw-background);
     --primary: var(--hnnw-primary);
@@ -119,9 +93,6 @@ body:has(.home-page) {
     --muted: var(--hnnw-muted);
     --line: var(--hnnw-line);
     --white: var(--hnnw-white);
-    --panel: var(--hnnw-surface);
-    --footer-bg: var(--hnnw-footer-background);
-    --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
     margin: 0;
     overflow-x: hidden;
     scroll-behavior: smooth;
@@ -143,8 +114,10 @@ body:has(.home-page) {
 }
 
 .home-page .hnnw-hero-visual {
+    position: relative;
     width: min(100%, 450px);
     aspect-ratio: 1;
+    border: 1px solid rgba(var(--hnnw-accent-rgb), 0.18);
     border-radius: 50%;
     background: radial-gradient(
         circle at center,
@@ -155,6 +128,7 @@ body:has(.home-page) {
         rgba(13, 76, 146, 0.12) 45% 58%,
         rgba(13, 18, 32, 0.1) 58% 100%
     );
+    background-color: var(--hnnw-surface);
     box-shadow:
         inset 0 0 35px rgba(var(--hnnw-primary-rgb), 0.08),
         0 22px 40px rgba(5, 10, 20, 0.28);
@@ -278,124 +252,10 @@ body:has(.home-page) {
     outline-offset: 4px;
 }
 
-.home-page .skip-link {
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 10;
-    padding: 10px 14px;
-    border-radius: 8px;
-    background: var(--white);
-    color: var(--bg);
-    font-size: 0.85rem;
-    font-weight: 700;
-    transform: translateY(-160%);
-    transition: transform 160ms ease;
-}
-
-.home-page .skip-link:focus {
-    transform: translateY(0);
-}
-
 /* Layout containers */
 .home-page .container {
     width: min(1180px, calc(100% - 32px));
     margin: 0 auto;
-}
-
-/* Top navigation */
-body:has(.home-page, .about-page) .page_navbar {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    border-bottom: 1px solid rgba(var(--hnnw-accent-rgb), 0.16);
-    background: rgba(var(--hnnw-background-rgb), 0.92);
-    box-shadow: 0 10px 24px rgba(2, 6, 14, 0.12);
-    backdrop-filter: blur(12px);
-}
-
-body:has(.home-page, .about-page) .main-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 28px;
-    min-height: 76px;
-}
-
-body:has(.home-page, .about-page) .logo-name {
-    color: var(--primary);
-    font-family: var(--hnnw-font-heading);
-    font-size: 1.12rem;
-    font-weight: 700;
-    white-space: nowrap;
-    transition:
-        color 180ms ease,
-        opacity 180ms ease,
-        transform 180ms ease;
-}
-
-body:has(.home-page, .about-page) .logo-name:hover {
-    color: var(--primary-hover);
-    opacity: 1;
-    transform: translateY(-1px);
-}
-
-body:has(.home-page, .about-page) .logo-name sup {
-    color: var(--accent);
-    font-size: 0.65em;
-}
-
-body:has(.home-page, .about-page) .nav-links {
-    display: flex;
-    gap: 26px;
-    color: var(--muted);
-    font-size: 0.92rem;
-}
-
-/* Navigation links get a subtle underline indicator on hover. */
-body:has(.home-page, .about-page) .nav-links a {
-    position: relative;
-    transition:
-        color 180ms ease,
-        transform 180ms ease;
-}
-
-body:has(.home-page, .about-page) .nav-links a::after {
-    position: absolute;
-    right: 0;
-    bottom: -6px;
-    left: 0;
-    height: 2px;
-    border-radius: 999px;
-    background: var(--primary);
-    opacity: 0;
-    content: "";
-    transform: scaleX(0.4);
-    transform-origin: center;
-    transition:
-        opacity 180ms ease,
-        transform 180ms ease;
-}
-
-body:has(.home-page, .about-page) .nav-links a:hover,
-body:has(.home-page, .about-page) .nav-links a:focus-visible {
-    color: var(--primary);
-    transform: translateY(-1px);
-}
-
-body:has(.home-page, .about-page) .nav-links a:hover::after,
-body:has(.home-page, .about-page) .nav-links a:focus-visible::after {
-    opacity: 1;
-    transform: scaleX(1);
-}
-
-body:has(.home-page, .about-page) .hamburger {
-    display: none;
-}
-
-body:has(.home-page) .hamburger:focus-visible {
-    outline: 3px solid var(--accent);
-    outline-offset: 4px;
 }
 
 /* Hero section and intro content */
@@ -601,7 +461,7 @@ body:has(.home-page) .hamburger:focus-visible {
     background: linear-gradient(
         135deg,
         rgba(var(--hnnw-surface-rgb), 0.92),
-        rgba(var(--hnnw-background-rgb), 0.82)
+        color-mix(in srgb, var(--hnnw-background) 82%, transparent)
     );
     box-shadow: 0 18px 36px rgba(4, 9, 18, 0.2);
 }
@@ -772,34 +632,6 @@ body:has(.home-page) .hamburger:focus-visible {
     line-height: 1.7;
 }
 
-.home-page .stats-bar {
-    padding: 8px 0 36px;
-}
-
-.home-page .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 22px;
-}
-
-.home-page .stat-item {
-    padding: 22px 18px;
-    border: 1px solid rgba(var(--hnnw-accent-rgb), 0.12);
-    border-radius: 18px;
-    background: rgba(var(--hnnw-surface-rgb), 0.7);
-    text-align: center;
-}
-
-.home-page .stat-item strong {
-    display: block;
-    font-size: clamp(1.8rem, 3vw, 2.6rem);
-    color: var(--white);
-}
-
-.home-page .stat-item span {
-    color: var(--muted);
-}
-
 .home-page .cta-band {
     padding: 18px 0 94px;
 }
@@ -815,7 +647,7 @@ body:has(.home-page) .hamburger:focus-visible {
     background: linear-gradient(
         135deg,
         rgba(var(--hnnw-surface-rgb), 0.9),
-        rgba(var(--hnnw-background-rgb), 0.95)
+        color-mix(in srgb, var(--hnnw-background) 95%, transparent)
     );
     box-shadow: 0 24px 40px rgba(4, 9, 18, 0.2);
 }
@@ -853,18 +685,6 @@ body:has(.home-page) .hamburger:focus-visible {
     }
 }
 
-body:has(.home-page) .main-footer {
-    padding: 26px 0 34px;
-    border-top: 1px solid var(--line);
-    background: var(--footer-bg);
-    color: var(--muted);
-    font-size: 0.82rem;
-}
-
-body:has(.home-page) .main-footer p {
-    color: var(--muted);
-}
-
 @media (max-width: 900px) {
     .home-page .hero {
         grid-template-columns: 1fr;
@@ -881,7 +701,6 @@ body:has(.home-page) .main-footer p {
     }
 
     .home-page .feature-grid,
-    .home-page .stats-grid,
     .home-page .open-projects-grid,
     .home-page .workflow-steps {
         grid-template-columns: 1fr;
@@ -934,65 +753,6 @@ body:has(.home-page) .main-footer p {
         padding: 16px;
     }
 
-    body:has(.home-page, .about-page) .main-header {
-        position: relative;
-        flex-wrap: wrap;
-        gap: 15px 22px;
-        padding: 16px 0;
-    }
-
-    body:has(.home-page, .about-page) .logo-name {
-        margin-left: 0;
-    }
-
-    body:has(.home-page, .about-page) .nav-links {
-        display: none;
-    }
-
-    body:has(.home-page, .about-page) .hamburger {
-        display: block;
-        margin-left: auto;
-        padding: 6px;
-        border: 0;
-        border-radius: 6px;
-        background: transparent;
-        color: var(--text);
-        cursor: pointer;
-    }
-
-    body:has(.home-page, .about-page) .navbar {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        left: 0;
-        z-index: 1000;
-        max-height: 0;
-        overflow: hidden;
-        border-radius: 0 0 14px 14px;
-        background: var(--panel);
-        box-shadow: var(--shadow);
-        transition: max-height 400ms ease-in-out;
-    }
-
-    body:has(.home-page, .about-page) .navbar.active {
-        max-height: 500px;
-    }
-
-    body:has(.home-page, .about-page) .navbar .nav-links {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 2px;
-        margin: 0;
-        padding: 8px;
-    }
-
-    body:has(.home-page, .about-page) .navbar .nav-button {
-        width: 100%;
-        padding: 10px 12px;
-        text-align: center;
-    }
-
     .home-page .hero {
         gap: 36px;
         padding-top: 40px;
@@ -1022,11 +782,4 @@ body:has(.home-page) .main-footer p {
         padding: 24px 20px;
     }
 
-    body:has(.home-page) .main-footer {
-        display: block;
-    }
-
-    body:has(.home-page) .main-footer p {
-        display: block;
-    }
 }
