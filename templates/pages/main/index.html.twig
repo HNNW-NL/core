@@ -20,11 +20,9 @@
 {% block body %}
 {# Keep homepage content inside the dedicated homepage styling scope. #}
 <div class="home-page">
-{# Skip link keeps keyboard users able to jump straight to the main content. #}
-<a class="skip-link" href="#inhoud">Direct naar de inhoud</a>
 
 {# Hero section introduces the platform and the primary action for new visitors. #}
-<section class="hero container" id="inhoud" aria-labelledby="hero-title">
+<section class="hero container" aria-labelledby="hero-title">
     <div class="hero-copy">
         <p class="hnnw-eyebrow">Open platform voor de overheid</p>
         <h1 id="hero-title">De juiste mensen voor publieke opgaven. <span>Open, eerlijk en transparant.</span></h1>
@@ -41,7 +39,7 @@
         <p class="hero-note">Open source platform voor de overheid</p>
     </div>
 
-    <div class="hnnw-hero-visual hero-visual" aria-hidden="true">
+    <div class="hnnw-hero-visual" aria-hidden="true">
         <div class="visual-orbit orbit-one"></div>
         <div class="visual-orbit orbit-two"></div>
         <div class="visual-center">{{ ux_icon('mdi:handshake', { 'aria-hidden': 'true' }) }}</div>
@@ -62,9 +60,9 @@
         <a class="open-projects-all" href="{{ path('main.projects.home') }}">Bekijk alle projecten</a>
     </div>
 
-    {% if openProjects is defined and openProjects is not empty %}
+    {% if openProjects is not empty %}
         <div class="open-projects-grid">
-            {% for project in openProjects|slice(0, 6) %}
+            {% for project in openProjects %}
                 <article class="open-project-card">
                     <h3><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h3>
                     <p class="open-project-organisation">{{ project.ownerOrganisation.name }}</p>
@@ -73,10 +71,8 @@
                 </article>
             {% endfor %}
         </div>
-    {% elseif openProjects is defined %}
-        <p class="open-projects-empty">Er zijn op dit moment geen gepubliceerde projecten waarvoor je je kunt aanmelden.</p>
     {% else %}
-        <p class="open-projects-empty">Projectinformatie is op dit moment niet beschikbaar.</p>
+        <p class="open-projects-empty">Er zijn op dit moment geen gepubliceerde projecten waarvoor je je kunt aanmelden.</p>
     {% endif %}
 </section>
 
