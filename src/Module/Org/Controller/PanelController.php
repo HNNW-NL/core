@@ -38,11 +38,6 @@ final class PanelController extends AbstractController
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
-        // Behoud de organisatiecontrole van de teambranch.
-        $this->denyAccessUnlessGranted(
-            'ORG_MANAGE_PROJECTS',
-            $project->getOwnerOrganisation(),
-        );
 
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,

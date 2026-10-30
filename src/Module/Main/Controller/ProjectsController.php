@@ -29,13 +29,14 @@ final class ProjectsController extends AbstractController
         string $slug,
         ProjectRepository $projectRepository,
     ): Response {
-        $project = $projectRepository->findOneVisibleBySlug($slug);
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository,
+            true
+        );
 
-        if ($project === null) {
+        if ($project == null) {
             throw $this->createNotFoundException('Project niet gevonden.');
-        }
-        if ($project->getVisibility() == 'private') {
-            $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
         }
         return $this->render('pages/main/projects/detail.html.twig', [
             'slug' => $slug,
@@ -160,10 +161,6 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Taak niet gevonden.');
         }
 
-        $this->denyAccessUnlessGranted(
-            PackageTaskVoter::EDIT,
-            $packageTask
-        );
 
         $profile = $currentProfileProvider->getProfile();
 
@@ -239,6 +236,7 @@ final class ProjectsController extends AbstractController
     private function getProjectAndCheckViewAccess(
         string $slug,
         ProjectRepository $projectRepository,
+        bool $allowPublicAccess = false,
     ): object {
         $project = $projectRepository->findOneVisibleBySlug($slug);
 
@@ -246,7 +244,10 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        if ($project->getVisibility() == 'private') {
+        if (
+            !$allowPublicAccess
+            || $project->getVisibility() == 'false'
+        ) {
             $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
         }
 
