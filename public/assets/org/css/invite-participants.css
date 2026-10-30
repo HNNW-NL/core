@@ -99,6 +99,10 @@ input[type="submit"]:hover{
     border-radius: 6px;
 }
 
+#profile-list li:hover {
+    background-color: #484F67B2;
+}
+
 #selected-list{
     list-style: none;
     padding: 0;

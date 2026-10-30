@@ -7,6 +7,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ProfileRepository extends ServiceEntityRepository
 {

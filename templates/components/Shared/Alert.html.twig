@@ -1,0 +1,12 @@
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/shared/css/alert.css') }}">
+{% endblock %}
+
+<div
+    class="alert alert-{{ variant }}"
+    role="alert"
+    {{ attributes.without('class') }}
+>
+    <twig:ux:icon name="{{ this.icon }}" class="alert-icon" />
+    <span>{% block content %}{% endblock %}</span>
+</div>
