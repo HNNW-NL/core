@@ -9,12 +9,15 @@ use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use http\Exception\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Uid\Uuid;
+use function PHPUnit\Framework\throwException;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -446,21 +449,7 @@ final class AccountsController extends AbstractController
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
         if (!$settings) {
-            $settings = new AccountSetting();
-            $settings->setAccount($account);
-            $settings->setLanguage('nl');
-            $settings->setTheme('dark');
-            $settings->setProfileVisibility('public');
-            $settings->setEmailNotificationsEnabled(true);
-
-            if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Uuid::class, 'v4')) {
-                $settings->setId(\Symfony\Component\Uid\Uuid::v4());
-            }
-            if (method_exists($settings, 'setCreatedAt')) {
-                $settings->setCreatedAt(new \DateTimeImmutable());
-            }
-
-            $entityManager->persist($settings);
+            $settings = $this->createAccountSettings($entityManager, $account);
         }
 
         if ($request->isMethod('POST')) {
@@ -502,13 +491,20 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/reviews.html.twig');
     }
 
-    #[Route('/settings', name: 'settings', methods: ['GET'])]
+    #[Route('/settings', name: 'settings', methods: ['GET','POST'])]
     public function settings(Request $request, EntityManagerInterface $entityManager): Response
     {
         $account = $this->getAndCheckAccount($request, $entityManager);
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
+        if (!$settings) {
+            $settings = $this->createAccountSettings($entityManager, $account);
+        }
+
         if ($request->isMethod('POST')) {
+            if ($this->isCsrfTokenValid('settings', $request->request->get('_token'))) {
+                throw $this->createAccessDeniedException('Ongeldige CSRF token');
+            }
             if ($settings) {
                 $settings->setLanguage(trim((string)$request->request->get('language', 'nl')));
                 $settings->setTheme(trim((string)$request->request->get('theme', 'dark')));
@@ -517,6 +513,7 @@ final class AccountsController extends AbstractController
 
                 $entityManager->flush();
                 $this->addFlash('success', 'Je instellingen zijn succesvol opgeslagen!');
+                return $this->redirectToRoute('account.settings');
             }
         }
 
@@ -545,15 +542,36 @@ final class AccountsController extends AbstractController
 
         if (!$accountId) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
+            throw new AccessDeniedException();
         }
 
         $account = $entityManager->getRepository(Account::class)->find($accountId);
 
         if (!$account) {
             $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
+            throw new AccessDeniedException();
         }
         return $account;
+    }
+
+    private function createAccountSettings($entityManager, $account): AccountSetting
+    {
+        $settings = new AccountSetting();
+        $settings->setAccount($account);
+        $settings->setLanguage('nl');
+        $settings->setTheme('dark');
+        $settings->setProfileVisibility('public');
+        $settings->setEmailNotificationsEnabled(true);
+
+        if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Uuid::class, 'v4')) {
+            $settings->setId(\Symfony\Component\Uid\Uuid::v4());
+        }
+        if (method_exists($settings, 'setCreatedAt')) {
+            $settings->setCreatedAt(new \DateTimeImmutable());
+        }
+
+        $entityManager->persist($settings);
+
+        return $settings;
     }
 }
