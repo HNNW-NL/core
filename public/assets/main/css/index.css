@@ -1,25 +1,5 @@
-/* Keep homepage layout isolated; shared tokens and components live in main/style.css. */
-/* Homepage theme and base layout */
-body:has(.home-page) {
-    --hnnw-primary: #4b9cf5;
-    --hnnw-primary-rgb: 75, 156, 245;
-    --hnnw-primary-hover: #9ad0ff;
-    --hnnw-accent: #75dce8;
-    --hnnw-accent-rgb: 117, 220, 232;
-    --hnnw-background-rgb: 2, 6, 23;
-    --hnnw-font-heading: inter, Arial, sans-serif;
-    --primary: var(--hnnw-primary);
-    --primary-hover: var(--hnnw-primary-hover);
-    --accent: var(--hnnw-accent);
-    --text: #f3f7ff;
-    --muted: #a8b4c7;
-    --line: #2a3b58;
-    --panel: #121d30;
-    --footer-bg: #070d18;
-    --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
-}
-
-.home-page {
+/* Homepage theme and shared component tokens */
+:root {
     --hnnw-primary: #4b9cf5;
     --hnnw-primary-rgb: 75, 156, 245;
     --hnnw-primary-dark: #2d75d9;
@@ -28,16 +8,107 @@ body:has(.home-page) {
     --hnnw-primary-hover: #9ad0ff;
     --hnnw-accent: #75dce8;
     --hnnw-accent-rgb: 117, 220, 232;
-    --hnnw-background: #020617;
+    --hnnw-background: var(--background);
     --hnnw-background-rgb: 2, 6, 23;
+    --hnnw-background-soft: #0c1625;
+    --hnnw-footer-background: #070d18;
+    --hnnw-border-subtle: rgba(var(--hnnw-accent-rgb), 0.18);
+    --hnnw-border-primary: rgba(var(--hnnw-primary-rgb), 0.35);
     --hnnw-surface: #121d30;
     --hnnw-surface-rgb: 18, 29, 48;
-    --hnnw-text: #f3f7ff;
+    --hnnw-surface-hover: #182b44;
+    --hnnw-text: var(--paragraph);
     --hnnw-muted: #a8b4c7;
     --hnnw-line: #2a3b58;
     --hnnw-white: #f8fbff;
+    --hnnw-radius: 20px;
     --hnnw-font-heading: inter, Arial, sans-serif;
     --hnnw-font-body: lato, Arial, sans-serif;
+}
+
+.hnnw-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 20px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-family: var(--hnnw-font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-align: center;
+    text-decoration: none;
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        transform 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.hnnw-button--primary {
+    background: linear-gradient(
+        135deg,
+        var(--hnnw-primary) 0%,
+        var(--hnnw-primary-light) 100%
+    );
+    color: var(--hnnw-white);
+    box-shadow: 0 18px 32px rgba(var(--hnnw-primary-rgb), 0.28);
+}
+
+.hnnw-button--primary:hover {
+    background: var(--hnnw-primary-dark);
+    color: var(--hnnw-white);
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+    box-shadow: 0 22px 36px rgba(var(--hnnw-primary-rgb), 0.32);
+}
+
+.hnnw-button--secondary {
+    border-color: var(--hnnw-line);
+    background: var(--hnnw-surface);
+    color: var(--hnnw-white);
+}
+
+.hnnw-button--secondary:hover {
+    border-color: rgba(var(--hnnw-primary-rgb), 0.7);
+    background: rgba(var(--hnnw-surface-rgb), 0.9);
+    color: var(--hnnw-primary);
+    transform: translateY(-1px);
+}
+
+.hnnw-eyebrow,
+.section-label {
+    margin: 0 0 18px;
+    color: var(--hnnw-primary);
+    font-family: var(--hnnw-font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+}
+
+.hnnw-hero-visual {
+    position: relative;
+    border: 1px solid rgba(var(--hnnw-accent-rgb), 0.18);
+    background-color: var(--hnnw-surface);
+}
+
+/* Homepage theme and base layout */
+body:has(.home-page) {
+    --primary: var(--hnnw-primary);
+    --primary-hover: var(--hnnw-primary-hover);
+    --accent: var(--hnnw-accent);
+    --text: var(--hnnw-text);
+    --muted: var(--hnnw-muted);
+    --line: var(--hnnw-line);
+    --panel: var(--hnnw-surface);
+    --footer-bg: var(--hnnw-footer-background);
+    --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+}
+
+.home-page {
     --bg: var(--hnnw-background);
     --primary: var(--hnnw-primary);
     --primary-dark: var(--hnnw-primary-dark);
@@ -49,7 +120,7 @@ body:has(.home-page) {
     --line: var(--hnnw-line);
     --white: var(--hnnw-white);
     --panel: var(--hnnw-surface);
-    --footer-bg: #070d18;
+    --footer-bg: var(--hnnw-footer-background);
     --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
     margin: 0;
     overflow-x: hidden;
@@ -71,73 +142,9 @@ body:has(.home-page) {
     line-height: 1.6;
 }
 
-.home-page .hnnw-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 14px 20px;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    font-family: var(--hnnw-font-heading);
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    text-align: center;
-    text-decoration: none;
-    transition:
-        background-color 160ms ease,
-        border-color 160ms ease,
-        color 160ms ease,
-        transform 160ms ease,
-        box-shadow 160ms ease;
-}
-
-.home-page .hnnw-button--primary {
-    background: linear-gradient(
-        135deg,
-        var(--hnnw-primary) 0%,
-        var(--hnnw-primary-light) 100%
-    );
-    color: var(--hnnw-white);
-    box-shadow: 0 18px 32px rgba(var(--hnnw-primary-rgb), 0.28);
-}
-
-.home-page .hnnw-button--primary:hover {
-    background: var(--hnnw-primary-dark);
-    color: var(--hnnw-white);
-    filter: brightness(1.06);
-    transform: translateY(-1px);
-    box-shadow: 0 22px 36px rgba(var(--hnnw-primary-rgb), 0.32);
-}
-
-.home-page .hnnw-button--secondary {
-    border-color: var(--hnnw-line);
-    background: var(--hnnw-surface);
-    color: var(--hnnw-white);
-}
-
-.home-page .hnnw-button--secondary:hover {
-    border-color: rgba(var(--hnnw-primary-rgb), 0.7);
-    background: rgba(var(--hnnw-surface-rgb), 0.9);
-    color: var(--hnnw-primary);
-    transform: translateY(-1px);
-}
-
-.home-page .hnnw-eyebrow {
-    margin: 0 0 18px;
-    color: var(--hnnw-primary);
-    font-family: var(--hnnw-font-heading);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-}
-
 .home-page .hnnw-hero-visual {
-    position: relative;
     width: min(100%, 450px);
     aspect-ratio: 1;
-    border: 1px solid rgba(var(--hnnw-accent-rgb), 0.18);
     border-radius: 50%;
     background: radial-gradient(
         circle at center,
@@ -297,7 +304,7 @@ body:has(.home-page) {
 }
 
 /* Top navigation */
-body:has(.home-page) .page_navbar {
+body:has(.home-page, .about-page) .page_navbar {
     position: sticky;
     top: 0;
     z-index: 5;
@@ -307,7 +314,7 @@ body:has(.home-page) .page_navbar {
     backdrop-filter: blur(12px);
 }
 
-body:has(.home-page) .main-header {
+body:has(.home-page, .about-page) .main-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -315,7 +322,7 @@ body:has(.home-page) .main-header {
     min-height: 76px;
 }
 
-body:has(.home-page) .logo-name {
+body:has(.home-page, .about-page) .logo-name {
     color: var(--primary);
     font-family: var(--hnnw-font-heading);
     font-size: 1.12rem;
@@ -327,18 +334,18 @@ body:has(.home-page) .logo-name {
         transform 180ms ease;
 }
 
-body:has(.home-page) .logo-name:hover {
+body:has(.home-page, .about-page) .logo-name:hover {
     color: var(--primary-hover);
     opacity: 1;
     transform: translateY(-1px);
 }
 
-body:has(.home-page) .logo-name sup {
+body:has(.home-page, .about-page) .logo-name sup {
     color: var(--accent);
     font-size: 0.65em;
 }
 
-body:has(.home-page) .nav-links {
+body:has(.home-page, .about-page) .nav-links {
     display: flex;
     gap: 26px;
     color: var(--muted);
@@ -346,14 +353,14 @@ body:has(.home-page) .nav-links {
 }
 
 /* Navigation links get a subtle underline indicator on hover. */
-body:has(.home-page) .nav-links a {
+body:has(.home-page, .about-page) .nav-links a {
     position: relative;
     transition:
         color 180ms ease,
         transform 180ms ease;
 }
 
-body:has(.home-page) .nav-links a::after {
+body:has(.home-page, .about-page) .nav-links a::after {
     position: absolute;
     right: 0;
     bottom: -6px;
@@ -370,20 +377,25 @@ body:has(.home-page) .nav-links a::after {
         transform 180ms ease;
 }
 
-body:has(.home-page) .nav-links a:hover,
-body:has(.home-page) .nav-links a:focus-visible {
+body:has(.home-page, .about-page) .nav-links a:hover,
+body:has(.home-page, .about-page) .nav-links a:focus-visible {
     color: var(--primary);
     transform: translateY(-1px);
 }
 
-body:has(.home-page) .nav-links a:hover::after,
-body:has(.home-page) .nav-links a:focus-visible::after {
+body:has(.home-page, .about-page) .nav-links a:hover::after,
+body:has(.home-page, .about-page) .nav-links a:focus-visible::after {
     opacity: 1;
     transform: scaleX(1);
 }
 
-body:has(.home-page) .hamburger {
+body:has(.home-page, .about-page) .hamburger {
     display: none;
+}
+
+body:has(.home-page) .hamburger:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 4px;
 }
 
 /* Hero section and intro content */
@@ -922,22 +934,22 @@ body:has(.home-page) .main-footer p {
         padding: 16px;
     }
 
-    body:has(.home-page) .main-header {
+    body:has(.home-page, .about-page) .main-header {
         position: relative;
         flex-wrap: wrap;
         gap: 15px 22px;
         padding: 16px 0;
     }
 
-    body:has(.home-page) .logo-name {
+    body:has(.home-page, .about-page) .logo-name {
         margin-left: 0;
     }
 
-    body:has(.home-page) .nav-links {
+    body:has(.home-page, .about-page) .nav-links {
         display: none;
     }
 
-    body:has(.home-page) .hamburger {
+    body:has(.home-page, .about-page) .hamburger {
         display: block;
         margin-left: auto;
         padding: 6px;
@@ -948,7 +960,7 @@ body:has(.home-page) .main-footer p {
         cursor: pointer;
     }
 
-    body:has(.home-page) .navbar {
+    body:has(.home-page, .about-page) .navbar {
         position: absolute;
         top: 100%;
         right: 0;
@@ -962,11 +974,11 @@ body:has(.home-page) .main-footer p {
         transition: max-height 400ms ease-in-out;
     }
 
-    body:has(.home-page) .navbar.active {
+    body:has(.home-page, .about-page) .navbar.active {
         max-height: 500px;
     }
 
-    body:has(.home-page) .navbar .nav-links {
+    body:has(.home-page, .about-page) .navbar .nav-links {
         display: flex;
         flex-direction: column;
         align-items: stretch;
@@ -975,7 +987,7 @@ body:has(.home-page) .main-footer p {
         padding: 8px;
     }
 
-    body:has(.home-page) .navbar .nav-button {
+    body:has(.home-page, .about-page) .navbar .nav-button {
         width: 100%;
         padding: 10px 12px;
         text-align: center;
