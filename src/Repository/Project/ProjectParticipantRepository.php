@@ -21,7 +21,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     public function findActiveParticipant(
         Project $project,
         Profile $profile
-    ): ?ProjectParticipant {
+    ): ?ProjectParticipant
+    {
         return $this->createQueryBuilder('participant')
             ->andWhere('participant.project = :project')
             ->andWhere('participant.profile = :profile')
@@ -32,11 +33,37 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+    public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
+    {
+        return $this->createQueryBuilder('pp')
+            ->andWhere('pp.project = :project')
+            ->andWhere('pp.profile = :profile')
+            ->andWhere('pp.leftAt IS NULL')
+            ->andWhere('pp.joinedAt IS NOT NULL')
+            ->setParameter('project', $project)
+            ->setParameter('profile', $profile)
+            ->orderBy('pp.joinedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
-    public function isActiveParticipant(
-        Project $project,
-        Profile $profile
-    ): bool {
-        return $this->findActiveParticipant($project, $profile) !== null;
+    public function findLatestActiveParticipantByProjectAndProfile(Project $project, Profile $profile): ?ProjectParticipant
+    {
+        return $this->createQueryBuilder('pp')
+            ->andWhere('pp.project = :project')
+            ->andWhere('pp.profile = :profile')
+            ->andWhere('pp.leftAt IS NULL')
+            ->andWhere('pp.joinedAt IS NOT NULL')
+            ->setParameter('project', $project)
+            ->setParameter('profile', $profile)
+            ->orderBy('pp.joinedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function isActiveParticipant(Project $project, Profile $profile): bool
+    {
+        return $this->findActiveParticipantsByProjectAndProfile($project, $profile) !== [];
     }
 }
