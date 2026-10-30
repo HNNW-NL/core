@@ -1,9 +1,9 @@
 {% extends 'layouts/main.base.html.twig' %}
 {# Page title meta tag #}
-{% block title %}About{% endblock %}
+{% block title %}Over ons{% endblock %}
 {# SEO #}
-{% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
+{% block seoKeywords %}Het Nieuwe² Werken, overheid, samenwerken, expertise delen, open source{% endblock %}
+{% block seoDescription %}Het Nieuwe² Werken verbindt overheidsorganisaties en professionals om kennis te delen, expertise te vinden en samen aan projecten te werken.{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 {# CSS #}
 {% block stylesheets %}
@@ -14,13 +14,12 @@
 {# Page content #}
 {% block body %}
     <div class="about-page">
-<main>
     <!-- HERO -->
     <section class="hero">
         <div>
-            <div class="eyebrow">
+            <p class="hnnw-eyebrow">
                 Over Het Nieuwe² Werken
-            </div>
+            </p>
             <h1>
                 Samenwerken
                 <span>zonder grenzen.</span>
@@ -33,7 +32,7 @@
                 organisatiegrenzen heen.
             </p>
         </div>
-        <div class="visual">
+        <div class="hnnw-hero-visual">
             <div class="orbit">
                 <div class="node node-1"></div>
                 <div class="node node-2"></div>
@@ -218,12 +217,10 @@
                     het platform verder te ontwikkelen.
                 </p>
             </div>
-            <a href="index.html#aanmelden" class="button">
+            <a href="{{ path('auth.register') }}" class="hnnw-button hnnw-button--primary">
                 Naar de open bèta →
             </a>
         </div>
     </section>
-</main>
-<!-- FOOTER -->
     </div>
 {% endblock %}

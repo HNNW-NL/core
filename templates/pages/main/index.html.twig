@@ -21,23 +21,23 @@
 {# Keep homepage content inside the scope used by the dedicated homepage stylesheet. #}
 <div class="home-page">
 {# Skip link keeps keyboard users able to jump straight to the main page content. #}
-<a class="skip-link" href="#about">Direct naar de inhoud</a>
+<a class="skip-link" href="#inhoud">Direct naar de inhoud</a>
 
 {# Hero section introduces the platform and the primary action for new visitors. #}
-<section class="hero container" id="about" aria-labelledby="hero-title">
+<section class="hero container" id="inhoud" aria-labelledby="hero-title">
     <div class="hero-copy">
-        <p class="eyebrow">Open platform voor de overheid</p>
+        <p class="hnnw-eyebrow">Open platform voor de overheid</p>
         <h1 id="hero-title">De juiste mensen voor publieke opgaven. <span>Open en transparant.</span></h1>
         <p class="hero-text">Vind expertise, deel hulpvragen en werk veilig samen aan maatschappelijke opgaven.</p>
         <div class="hero-actions">
-            <a class="button button-primary" href="{{ path('auth.register') }}">Maak een account aan</a>
-            <a class="button button-secondary" href="https://hnnw.nl">Bezoek HNNW</a>
+            <a class="hnnw-button hnnw-button--primary" href="{{ path('auth.register') }}">Maak een account aan</a>
+            <a class="hnnw-button hnnw-button--secondary" href="https://hnnw.nl">Bezoek HNNW</a>
         </div>
         <p class="hero-reassurance">Voor ambtenaren en publieke teams — doe mee tijdens de open bèta.</p>
         <p class="hero-note">Open source <span aria-hidden="true">•</span> Community op Slack</p>
     </div>
 
-    <div class="hero-visual" aria-hidden="true">
+    <div class="hnnw-hero-visual hero-visual" aria-hidden="true">
         <div class="visual-orbit orbit-one"></div>
         <div class="visual-orbit orbit-two"></div>
         <div class="visual-center">{{ ux_icon('mdi:handshake', { 'aria-hidden': 'true' }) }}</div>
@@ -49,10 +49,10 @@
 </section>
 
 {# Core platform benefits. #}
-<section class="features" id="projects" aria-labelledby="features-title">
+<section class="features" id="voordelen" aria-labelledby="features-title">
     <div class="container">
         <div class="section-heading">
-            <p class="eyebrow">Waarom HNNW</p>
+            <p class="hnnw-eyebrow">Waarom HNNW</p>
             <h2 id="features-title">Werk slimmer samen binnen en buiten je organisatie.</h2>
         </div>
 
@@ -90,10 +90,10 @@
 <section class="cta-band" id="contact">
     <div class="container cta-content">
         <div>
-            <p class="eyebrow">Aan de slag</p>
+            <p class="hnnw-eyebrow">Aan de slag</p>
             <h2>Heb je vragen? We vertellen je graag meer.</h2>
         </div>
-        <a class="button button-primary" href="mailto:contact@hnnw.nl">Neem contact op</a>
+        <a class="hnnw-button hnnw-button--primary" href="mailto:contact@hnnw.nl">Neem contact op</a>
     </div>
 </section>
 </div>
