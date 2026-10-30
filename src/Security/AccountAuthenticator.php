@@ -15,6 +15,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\CsrfTokenBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
+use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 
 /**
  * Neemt de POST naar /auth/login over van de firewall, zodra dit request
@@ -22,7 +23,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
  * de oude handmatige password_verify()-check zodat inloggen daadwerkelijk
  * via Symfony Security verloopt en Security::getUser() overal werkt.
  */
-final class AccountAuthenticator extends AbstractAuthenticator
+final class AccountAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface
 {
     public function __construct(
         private readonly UrlGeneratorInterface $urlGenerator,
@@ -30,7 +31,7 @@ final class AccountAuthenticator extends AbstractAuthenticator
     ) {
     }
 
-    public function start(Request $request, AuthenticationException $authException = null): Response
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
     {
         $loginUrl = $this->urlGenerator->generate('auth.login');
 

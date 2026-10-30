@@ -4,6 +4,7 @@ namespace App\Security\Voter;
 
 use App\Entity\Account\Account;
 use App\Entity\Project\PackageTask;
+use App\Entity\Project\ProjectRole;
 use App\Repository\Project\ProjectParticipantRepository;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
@@ -103,9 +104,9 @@ class PackageTaskVoter extends Voter
         $permissionsMask = $role->getPermissionsMask() ?? 0;
 
         return match ($attribute) {
-            self::VIEW => ($permissionsMask & 1) === 1,
-            self::EDIT => ($permissionsMask & 2) === 2,
-            self::DELETE => ($permissionsMask & 4) === 4,
+            self::VIEW => $role->hasPermission(ProjectRole::PERMISSION_VIEW),
+            self::EDIT => $role->hasPermission(ProjectRole::PERMISSION_EDIT),
+            self::DELETE => $role->hasPermission(ProjectRole::PERMISSION_DELETE),
             default => false,
         };
     }

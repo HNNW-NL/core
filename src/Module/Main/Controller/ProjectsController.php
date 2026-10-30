@@ -2,12 +2,12 @@
 
 namespace App\Module\Main\Controller;
 
+use App\Entity\Project\Project;
 use App\Module\Main\Handler\GetProjectWorkPackagesHandler;
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectRepository;
-use App\Security\Voter\PackageTaskVoter;
 use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -35,9 +35,6 @@ final class ProjectsController extends AbstractController
             true
         );
 
-        if ($project == null) {
-            throw $this->createNotFoundException('Project niet gevonden.');
-        }
         return $this->render('pages/main/projects/detail.html.twig', [
             'slug' => $slug,
             'project' => $project,
@@ -161,7 +158,6 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Taak niet gevonden.');
         }
 
-
         $profile = $currentProfileProvider->getProfile();
 
         if ($profile === null) {
@@ -237,7 +233,7 @@ final class ProjectsController extends AbstractController
         string $slug,
         ProjectRepository $projectRepository,
         bool $allowPublicAccess = false,
-    ): object {
+    ): Project {
         $project = $projectRepository->findOneVisibleBySlug($slug);
 
         if ($project === null) {
@@ -246,7 +242,7 @@ final class ProjectsController extends AbstractController
 
         if (
             !$allowPublicAccess
-            || $project->getVisibility() == 'false'
+            || $project->getVisibility() == 'private'
         ) {
             $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
         }

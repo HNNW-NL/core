@@ -29,7 +29,7 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $project->setSummary("Een test project");
         $project->setStartDate(new DateTimeImmutable("now"));
         $project->setCapacity(10);
-        $project->setVisibility("true");
+        $project->setVisibility("public");
         $project->setDescription("Dit is een test project");
 
         $manager->persist($project);
@@ -37,7 +37,7 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
 
         $this->addReference(self::TEST_PROJECT_REFERENCE, $project);
-        
+
     }
 
     public function getDependencies(): array
