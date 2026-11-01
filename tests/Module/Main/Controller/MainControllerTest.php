@@ -14,7 +14,12 @@ class MainControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Home');
+        $this->assertSelectorTextContains('h2', 'Projecten met open aanmelding');
+        $this->assertSelectorExists('body > a.skip-link[href="#main-content"]');
+        $this->assertStringNotContainsString(
+            'Projectinformatie is op dit moment niet beschikbaar.',
+            $crawler->text(),
+        );
     }
 
     //About
