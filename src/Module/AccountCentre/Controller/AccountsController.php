@@ -7,6 +7,7 @@ use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
+use App\Repository\Project\ProjectRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use http\Exception\InvalidArgumentException;
@@ -31,19 +32,7 @@ final class AccountsController extends AbstractController
     #[Route('/applications', name: 'applications', methods: ['GET'])]
     public function applications(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je aanmeldingen te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->getAndCheckAccount();
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
@@ -55,7 +44,7 @@ final class AccountsController extends AbstractController
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
     public function applicationsCancel(ProjectApplication $application, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->getAndCheckAccount($request, $entityManager);
+        $account = $this->getAndCheckAccount();
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile || $application->getProfile() !== $profile) {
@@ -80,7 +69,7 @@ final class AccountsController extends AbstractController
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
     public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
     {
-        $account = $this->getAndCheckAccount($request, $entityManager);
+        $account = $this->getAndCheckAccount();
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
@@ -279,7 +268,7 @@ final class AccountsController extends AbstractController
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
     public function experience(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->getAndCheckAccount($request, $entityManager);
+        $account = $this->getAndCheckAccount();
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
@@ -354,21 +343,10 @@ final class AccountsController extends AbstractController
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->getAndCheckAccount();
 
         $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
 
-        if (!$experience) {
-            $this->addFlash('error', 'Ervaring niet gevonden.');
-            return $this->redirectToRoute('account.experience');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         if (!$profile || $experience->getProfile() !== $profile) {
@@ -396,8 +374,7 @@ final class AccountsController extends AbstractController
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->getAndCheckAccount($request, $entityManager);
-
+        $account = $this->getAndCheckAccount();
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account, 'deletedAt' => null]);
 
         if ($request->isMethod('POST')) {
@@ -441,7 +418,7 @@ final class AccountsController extends AbstractController
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
     public function notifications(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->getAndCheckAccount($request, $entityManager);
+        $account = $this->getAndCheckAccount();
 
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
@@ -471,9 +448,16 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/projects', name: 'projects', methods: ['GET'])]
-    public function projects(): Response
+    public function projects(ProjectRepository $projectRepository, EntityManagerInterface $entityManager): Response
     {
-        return $this->render('pages/account-centre/projects.html.twig');
+        $account = $this->getAndCheckAccount();
+        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        $projects = $projectRepository->findByProfile($profile);
+
+
+        return $this->render('pages/account-centre/projects.html.twig', [
+            'projects' => $projects,
+            ]);
     }
 
     #[Route('/reputation', name: 'reputation', methods: ['GET'])]
@@ -491,7 +475,7 @@ final class AccountsController extends AbstractController
     #[Route('/settings', name: 'settings', methods: ['GET','POST'])]
     public function settings(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->getAndCheckAccount($request, $entityManager);
+        $account = $this->getAndCheckAccount();
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
         if (!$settings) {
@@ -499,7 +483,7 @@ final class AccountsController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
-            if ($this->isCsrfTokenValid('settings', $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('account_settings', $request->request->get('_token'))) {
                 throw $this->createAccessDeniedException('Ongeldige CSRF token');
             }
             if ($settings) {
@@ -532,21 +516,12 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/skills.html.twig');
     }
 
-    private function getAndCheckAccount(Request $request, EntityManagerInterface $entityManager): RedirectResponse|Account
+    private function getAndCheckAccount(): Account
     {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
+        $account = $this->getUser();
 
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            throw new AccessDeniedException();
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            throw new AccessDeniedException();
+        if (!$account instanceof Account) {
+            throw $this->createAccessDeniedException();
         }
         return $account;
     }
