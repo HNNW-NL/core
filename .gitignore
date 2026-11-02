@@ -10,6 +10,7 @@ desktop.ini
 # --- Symfony / environment ---
 .env.local
 .env.local.php
+.env.test
 .env.*.local
 /config/secrets/prod/prod.decrypt.private.php
 
