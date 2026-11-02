@@ -29,7 +29,7 @@
         <p class="hero-text">Vind expertise, deel hulpvragen en werk veilig samen aan maatschappelijke opgaven.</p>
         <div class="hero-actions">
             <a class="hnnw-button hnnw-button--primary" href="{{ path('main.projects.home') }}">Bekijk projecten</a>
-            {% if app.session.get('account_id') %}
+            {% if app.user %}
                 <a class="hnnw-button hnnw-button--secondary" href="{{ path('account.home') }}">Mijn account</a>
             {% else %}
                 <a class="hnnw-button hnnw-button--secondary" href="{{ path('auth.register') }}">Maak een account</a>

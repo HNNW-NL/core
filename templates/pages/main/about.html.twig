@@ -19,24 +19,7 @@
 {# Page content #}
 {% block body %}
     <div class="about-page">
-
-    <div class="topbar">
-        <div class="nav">
-
-            <a href="{{ path('main.home') }}" class="logo">
-                Het Nieuwe<sup>2</sup> Werken
-            </a>
-
-            <nav class="nav-links" aria-label="Hoofdnavigatie">
-                <a href="{{ path('main.home') }}">Home</a>
-                <a href="{{ path('main.about') }}" class="active" aria-current="page">Over ons</a>
-            </nav>
-
-        </div>
-    </div>
-
     <!-- HERO -->
-
     <section class="hero">
 
         <div>
@@ -339,7 +322,7 @@
 
             </div>
             <div class="cta-actions">
-                <a href="{{ path('main.contact') }}" class="button">
+                <a href="{{ path('main.contact') }}" class="hnnw-button hnnw-button--secondary">
                     Neem contact op
                 </a>
                 <a href="{{ path('auth.register') }}" class="hnnw-button hnnw-button--primary">
