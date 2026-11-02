@@ -3,6 +3,7 @@ namespace App\Entity\Org;
 
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
+use App\Entity\Common\Event;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -63,6 +64,12 @@ class Organisation
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: "ownerOrganisation")]
     private Collection $ownedProjects;
 
+    /**
+     * @var Collection<int, Event>
+     */
+    #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'organisation')]
+    private Collection $events;
+
 
     // Functions
 
@@ -73,6 +80,7 @@ class Organisation
         $this->orgRoles = new ArrayCollection();
         $this->orgMembers = new ArrayCollection();
         $this->ownedProjects = new ArrayCollection();
+        $this->events = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -223,5 +231,34 @@ class Organisation
     public function getOwnedProjects(): Collection
     {
         return $this->ownedProjects;
+    }
+
+    /**
+     * @return Collection<int, Event>
+     */
+    public function getEvents(): Collection
+    {
+        return $this->events;
+    }
+
+    public function addEvent(Event $event): static
+    {
+        if (!$this->events->contains($event)) {
+            $this->events->add($event);
+            $event->setOrganisation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEvent(Event $event): static
+    {
+        if ($this->events->removeElement($event)) {
+            if ($event->getOrganisation() === $this) {
+                $event->setOrganisation(null);
+            }
+        }
+
+        return $this;
     }
 }
