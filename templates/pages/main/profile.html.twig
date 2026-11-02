@@ -110,10 +110,68 @@
         <section id="suggestions">
             <section id="more-profiles-for-you" class="section">
                 <h3>Meer profielen voor jou</h3>
+                {% set suggestedProfiles = [
+                    { name: 'Alex Morgan', initials: 'AM', headline: 'Software Engineer | Backend Development', action: 'Verbinden', mutual: '8 gezamenlijke connecties' },
+                    { name: 'Sam de Vries', initials: 'SV', headline: 'Product Owner | Open-source projecten', action: 'Volgen', mutual: '3 gezamenlijke connecties' },
+                    { name: 'Jamie Bakker', initials: 'JB', headline: 'DevOps Engineer | Linux & Cloud', action: 'Verbinden', mutual: '5 gezamenlijke connecties' }
+                ] %}
+
+                <div class="suggestion-list">
+                    {% for person in suggestedProfiles %}
+                        <article class="suggestion-person">
+                            <figure class="sp-avatar" aria-hidden="true">
+                                <span>{{ person.initials }}</span>
+                            </figure>
+                            <div class="sp-content">
+                                <p class="sp-name">{{ person.name }}</p>
+                                <p class="sp-headline">{{ person.headline }}</p>
+                                <p class="sp-mutual">{{ person.mutual }}</p>
+                                <a class="sp-action" href="#">
+                                    <p>{{ person.action }}</p>
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                <a class="suggestion-footer" href="#">
+                    <p>Alles weergeven</p>
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M5 12h14m-6-6 6 6-6 6"/>
+                    </svg>
+                </a>
             </section>
 
             <section id="people-you-may-know" class="section">
-                <p>Personen die jij wellicht kent</p>
+                <h3>Personen die jij wellicht kent</h3>
+                {% set peopleYouMayKnow = [
+                    { name: 'Robin Jansen', initials: 'RJ', headline: 'Full-stack Developer', mutual: '2 gezamenlijke connecties' },
+                    { name: 'Noa Visser', initials: 'NV', headline: 'UX/UI Designer', mutual: '4 gezamenlijke connecties' },
+                    { name: 'Daniël Smit', initials: 'DS', headline: 'Software Development Student', mutual: '1 gezamenlijke connectie' }
+                ] %}
+
+                <div class="suggestion-list">
+                    {% for person in peopleYouMayKnow %}
+                        <article class="suggestion-person">
+                            <figure class="sp-avatar" aria-hidden="true">
+                                <span>{{ person.initials }}</span>
+                            </figure>
+                            <div class="sp-content">
+                                <p class="sp-name">{{ person.name }}</p>
+                                <p class="sp-headline">{{ person.headline }}</p>
+                                <p class="sp-mutual">{{ person.mutual }}</p>
+                                <a class="sp-action" href="#">
+                                    <p>{{ person.action|default('Verbinden') }}</p>
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                <a class="suggestion-footer" href="#">
+                    <p>Alles weergeven</p>
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M5 12h14m-6-6 6 6-6 6"/>
+                    </svg>
+                </a>
             </section>
         </section>
     </div>
