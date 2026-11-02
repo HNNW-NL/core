@@ -4,13 +4,82 @@
 {% block title %}Projects{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/accountprojects.css') }}">
+{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascripts %}
+    <script src="{{ asset('assets/account-centre/js/accountprojects.js') }}" defer></script>
+{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Projects</h2>
-    <p>Account Centre - projects page.</p>
+    <div id="account-centre-container" class="projects-page" data-projects-url="/account/projects/data">
+        <a href="{{ path('account.home') }}" class="btn-back">
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Mijn projecten</h1>
+            <p>Bekijk de projecten die aan jouw account gekoppeld zijn.</p>
+        </div>
+
+        <section class="projects-tools" aria-label="Projecten zoeken en filteren">
+            <div class="projects-search">
+                <label for="project-search">Zoeken</label>
+                <input type="search" id="project-search" aria-describedby="project-search-help" placeholder="Zoek op project of omschrijving" autocomplete="off">
+                <p class="projects-search-help" id="project-search-help">Sneltoets: <kbd>/</kbd> zoeken, <kbd>Esc</kbd> zoekterm wissen.</p>
+            </div>
+            <div class="projects-status-filter">
+                <label for="project-status">Status</label>
+                <select id="project-status">
+                    <option value="all" data-label="Alle statussen">Alle statussen</option>
+                    <option value="active" data-label="Actief">Actief</option>
+                    <option value="preparation" data-label="In voorbereiding">In voorbereiding</option>
+                    <option value="completed" data-label="Afgerond">Afgerond</option>
+                    <option value="other" data-label="Overig">Overig</option>
+                </select>
+            </div>
+            <div class="projects-sort">
+                <label for="project-sort">Sorteren op</label>
+                <select id="project-sort">
+                    <option value="name-asc">Naam (A-Z)</option>
+                    <option value="name-desc">Naam (Z-A)</option>
+                    <option value="status">Status</option>
+                    <option value="favorites-first">Favorieten eerst</option>
+                </select>
+            </div>
+            <label class="projects-toggle" for="project-active-only">
+                <input type="checkbox" id="project-active-only">
+                <span>Alleen actieve projecten</span>
+            </label>
+            <label class="projects-toggle" for="project-favorites-only">
+                <input type="checkbox" id="project-favorites-only">
+                <span>Alleen favorieten (<span id="project-favorites-count">0</span>)</span>
+            </label>
+            <div class="projects-actions">
+                <button type="button" class="projects-export" id="projects-export" disabled>Download CSV</button>
+                <button type="button" class="projects-reset" id="projects-reset" disabled>Wis filters</button>
+            </div>
+        </section>
+
+        <p class="projects-result-count" id="projects-result-count" aria-live="polite"></p>
+        <p class="projects-filter-status" id="projects-filter-status" aria-live="polite"></p>
+        <p class="projects-export-status" id="projects-export-status" aria-live="polite"></p>
+
+        <p class="projects-loading" id="projects-loading" role="status">Je projecten worden geladen...</p>
+
+        <div class="account-grid projects-grid" id="projects-list" hidden></div>
+
+        <div class="projects-unavailable" id="projects-unavailable" role="alert" hidden>
+            <p>Je projectlidmaatschappen konden niet worden geladen. Probeer het later opnieuw.</p>
+            <button type="button" id="projects-retry">Opnieuw proberen</button>
+        </div>
+
+        <div class="projects-empty" id="projects-empty" role="status" hidden>
+            <p id="projects-empty-text"></p>
+            <button type="button" class="projects-empty-reset" id="projects-empty-reset">Wis filters</button>
+        </div>
+    </div>
 {% endblock %}

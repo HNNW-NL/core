@@ -13,6 +13,9 @@
 
 {# Page content #}
 {% block body %}
+    {% set profile = app.user ? app.user.profile : null %}
+    {% set settings = app.user ? app.user.setting : null %}
+
     <div id="account-centre-container" class="settings-page">
         <a href="{{ path('account.home') }}" class="btn-back">
             Terug naar dashboard
@@ -31,7 +34,8 @@
 
         <div class="account-form-container">
             <div class="form-internal-header">
-                <h2>Account settings</h2>
+                <h2>Accountgegevens</h2>
+                <p>Je huidige gegevens zijn vooraf ingevuld. Controleer ze voordat je opslaat.</p>
             </div>
 
             <form action="{{ path('account.settings') }}" method="POST" class="account-form">
@@ -43,7 +47,7 @@
                 <div class="form-group">
                     <label for="theme">Thema</label>
                     <select id="theme" name="theme" required>
-                        <option value="light" {% if settings.theme|default('dark') == 'light' %}selected{% endif %}>White</option>
+                        <option value="light" {% if settings.theme|default('dark') == 'light' %}selected{% endif %}>Light</option>
                         <option value="dark" {% if settings.theme|default('dark') == 'dark' %}selected{% endif %}>Dark</option>
                     </select>
                 </div>
