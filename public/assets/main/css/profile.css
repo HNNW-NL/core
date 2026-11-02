@@ -262,6 +262,8 @@ body {
                 }
             }
 
+            /* Suggestions */
+
             #suggestions {
                 width: 22.5%;
                 min-height: 50%;
@@ -273,8 +275,6 @@ body {
                 h3 {
                     font-size: 1.2em;
                 }
-
-                /* > AI Generated code here */
 
                 .suggestion-list {
                     margin-top: 1em;
@@ -402,8 +402,6 @@ body {
                         stroke-linejoin: round;
                     }
                 }
-
-                /* < AI Generated code here */
             }
         }
     }
