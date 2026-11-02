@@ -4,8 +4,8 @@
 {% block title %}Over ons{% endblock %}
 
 {# SEO #}
-{% block seoKeywords %}samenwerken, overheid, expertise, open platform{% endblock %}
-{% block seoDescription %}Ontdek hoe Het Nieuwe² Werken samenwerking en kennisdeling tussen overheidsorganisaties ondersteunt.{% endblock %}
+{% block seoKeywords %}Het Nieuwe² Werken, overheid, samenwerken, expertise delen, open source{% endblock %}
+{% block seoDescription %}Het Nieuwe² Werken verbindt overheidsorganisaties en professionals om kennis te delen, expertise te vinden en samen aan projecten te werken.{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
 {# CSS #}
@@ -40,11 +40,9 @@
     <section class="hero">
 
         <div>
-
-            <div class="eyebrow">
+            <p class="hnnw-eyebrow">
                 Over Het Nieuwe² Werken
-            </div>
-
+            </p>
             <h1>
                 Samenwerken
                 <span>zonder grenzen.</span>
@@ -59,10 +57,7 @@
             </p>
 
         </div>
-
-
-        <div class="visual">
-
+        <div class="hnnw-hero-visual">
             <div class="orbit">
 
                 <div class="node node-1"></div>
@@ -83,8 +78,7 @@
     <!-- MISSIE -->
 
     <section class="section">
-
-        <div class="section-label">
+        <div class="hnnw-section-label">
             Onze missie
         </div>
 
@@ -165,8 +159,7 @@
     <section class="how">
 
         <div class="section">
-
-            <div class="section-label">
+            <div class="hnnw-section-label">
                 Hoe het werkt
             </div>
 
@@ -278,8 +271,7 @@
 
 
             <div class="source-content">
-
-                <div class="section-label">
+                <div class="hnnw-section-label">
                     Open & transparant
                 </div>
 
@@ -346,12 +338,15 @@
                 </p>
 
             </div>
-
-
-            <a href="{{ path('main.contact') }}" class="button">
-                Neem contact op
-            </a>
-
+            <div class="cta-actions">
+                <a href="{{ path('main.contact') }}" class="button">
+                    Neem contact op
+                </a>
+                <a href="{{ path('auth.register') }}" class="hnnw-button hnnw-button--primary">
+                    Naar de open bèta →
+                </a>
+                <a href="{{ path('main.projects.home') }}" class="hnnw-button hnnw-button--secondary">Bekijk projecten</a>
+            </div>
         </div>
 
     </section>
