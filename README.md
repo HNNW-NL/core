@@ -237,7 +237,7 @@ http://localhost:8000
 Duplicate the example environment file:
 
 ```bash
-cp .env.test.local.example .env.test.local
+cp .env.local.example .env.test.local
 ```
 
 If `cp` is not available, manually duplicate:
