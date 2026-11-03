@@ -454,9 +454,7 @@ final class AccountsController extends AbstractController
         $projects = $projectRepository->findByProfile($profile);
 
 
-        return $this->render('pages/account-centre/projects.html.twig', [
-            'projects' => $projects,
-            ]);
+        return $this->render('pages/account-centre/projects.html.twig');
     }
 
     #[Route('/reputation', name: 'reputation', methods: ['GET'])]
