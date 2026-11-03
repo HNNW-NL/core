@@ -3,39 +3,36 @@
 namespace App\Module\Admin\Controller;
 
 use App\Entity\Account\Notification;
-use App\Entity\Log\AuditLog;
-use App\Entity\Log\SystemLog;
-use App\Form\Admin\AuditLogSearchType;
 use App\Form\Admin\CreateNotificationType;
-use App\Form\Admin\SystemLogSearchType;
-use App\Module\Admin\DTO\AuditLogSearchDisplayDTO;
-use App\Module\Admin\DTO\AuditLogSearchDTO;
 use App\Module\Admin\DTO\CreateNotificationDTO;
-use App\Module\Admin\DTO\SystemLogSearchDisplayDTO;
-use App\Module\Admin\DTO\SystemLogSearchDTO;
 use App\Repository\Account\NotificationRepository;
 use App\Repository\Org\AccountRepository;
 use App\Repository\Org\OrganisatieRepository;
 use App\Repository\Project\ProjectRepository;
-use App\Twig\Components\Shared\Search\SearchDTO;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\ObjectMapper\ObjectMapperInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+// Class-level: /admin/* vereist sowieso ROLE_ADMIN (zie ook security.yaml
+// access_control). Daarnaast checken losse routes hieronder een specifieke
+// Permission, zodat niet elke admin per se overal bij mag.
 #[Route('/admin', name: 'admin.')]
+#[IsGranted('ROLE_ADMIN')]
 final class DashboardController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
+    #[IsGranted('ADMIN_VIEW_DASHBOARD')]
     public function index(AccountRepository $accountRepository,
      OrganisatieRepository $organisatieRepository, ProjectRepository $projectRepository): Response
     {
         $activeAccounts = $accountRepository->countActive();
         $activeOrganizations = $organisatieRepository->countActive();
         $activeProjects = $projectRepository->Count();
-        
+
         return $this->render('pages/admin/index.html.twig',
         array(
             'activeAccounts' => $activeAccounts,
@@ -45,27 +42,10 @@ final class DashboardController extends AbstractController
     }
 
     #[Route('/logs', name: 'logs', methods: ['GET'])]
+    #[IsGranted('ADMIN_VIEW_LOGS')]
     public function logs(): Response
     {
-        $auditLogSearch = new SearchDTO();
-        $auditLogSearch->dto = AuditLogSearchDTO::class;
-        $auditLogSearch->displayDTO = AuditLogSearchDisplayDTO::class;
-        $auditLogSearch->entity = AuditLog::class;
-        $auditLogSearch->form = AuditLogSearchType::class;
-        $auditLogSearch->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
-
-        $systemLogSearch = new SearchDTO();
-        $systemLogSearch->dto = SystemLogSearchDTO::class;
-        $systemLogSearch->displayDTO = SystemLogSearchDisplayDTO::class;
-        $systemLogSearch->entity = SystemLog::class;
-        $systemLogSearch->form = SystemLogSearchType::class;
-        $systemLogSearch->orderBy = ['createdAt'=> 'DESC','id' => 'ASC'];
-        
-        return $this->render('pages/admin/logs.html.twig',
-        array(
-            'auditLogSearch' => $auditLogSearch,
-            'systemLogSearch' => $systemLogSearch
-        ));
+        return $this->render('pages/admin/logs.html.twig');
     }
 
     #[Route('/notifications', name: 'notifications', methods: ['GET','POST'])]
@@ -78,7 +58,7 @@ final class DashboardController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            
+
             $notifications = new Notification();
 
             $objectMapper->map($createNotificationDTO, $notifications);
@@ -87,7 +67,7 @@ final class DashboardController extends AbstractController
 
             $entityManagerInterface->flush();
             $this->addFlash('success','Notificatie toegevoegd');
-            
+
             return $this->redirectToRoute('admin.notifications');
         }
 
@@ -99,18 +79,21 @@ final class DashboardController extends AbstractController
     }
 
     #[Route('/settings', name: 'settings', methods: ['GET'])]
+    #[IsGranted('ADMIN_MANAGE_SETTINGS')]
     public function settings(): Response
     {
         return $this->render('pages/admin/settings.html.twig');
     }
 
     #[Route('/social/manage-staff', name: 'social.manageStaff', methods: ['GET'])]
+    #[IsGranted('ADMIN_MANAGE_STAFF')]
     public function socialManageStaff(): Response
     {
         return $this->render('pages/admin/social-staff.html.twig');
     }
 
     #[Route('/statuses', name: 'statuses', methods: ['GET'])]
+    #[IsGranted('ADMIN_MANAGE_SETTINGS')]
     public function statuses(): Response
     {
         return $this->render('pages/admin/statuses.html.twig');
