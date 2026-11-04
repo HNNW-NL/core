@@ -5,9 +5,10 @@
 
 {# SEO #}
 
-{% block seoKeywords %}{% endblock %}
+{% block seoKeywords %}samenwerken, overheid, open platform, impact, expertise, taken{% endblock %}
 
-{% block seoDescription %}{% endblock %}
+{% block seoDescription %}Het Nieuwe² Werken brengt overheidsorganisaties en professionals samen om kennis te delen,
+    expertise te benutten en effectief samen te werken aan projecten.{% endblock %}
 
 {% block seoAuthor %}HNNW{% endblock %}
 
@@ -94,7 +95,7 @@
             <p class="eyebrow">Aan de slag</p>
             <h2>Start vandaag nog met slimmer samenwerken.</h2>
         </div>
-        <a class="button button-primary" href="mailto:contact@hnnw.nl">Neem contact op</a>
+        <a class="button button-primary" href="{{ path('auth.register') }}">Registreer hier</a>
     </div>
 </section>
 {% endblock %}
