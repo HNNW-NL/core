@@ -4,13 +4,22 @@
 {% block title %}Projects{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/accountprojects.css') }}">
+    <link rel="stylesheet" href="{{ assets('assets/org/css/projects-view.css') }}">
+{% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascripts %}
+{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Projects</h2>
-    <p>Account Centre - projects page.</p>
+    <div id="account-centre-container" class="projects-page">
+        <a href="{{ path('account.home') }}" class="btn-back">
+            Terug naar dashboard
+        </a>
+
+        {{ component('Org:ProjectsView') }}
+    </div>
 {% endblock %}

@@ -9,13 +9,11 @@ use App\Entity\Common\Status;
 use App\Form\Org\CreateProjectType;
 use App\Form\Org\ModifyProjectType;
 use App\Form\Org\PackageTaskType;
-use App\Form\Org\ParticipantRolesType;
 use App\Form\Org\WorkPackageType;
 use App\Module\Org\DTO\CreateProjectDTO;
 use App\Module\Org\DTO\ModifyProjectFormDTO;
 use App\Module\Org\DTO\ModifyProjectDTO;
 use App\Module\Org\DTO\PackageTaskFormDTO;
-use App\Module\Org\DTO\ParticipantRolesDTO;
 use App\Module\Org\DTO\WorkPackageFormDTO;
 use App\Module\Org\Handler\GetOrgProjectWorkPackagesHandler;
 use App\Module\Org\Service\ModifyProjectService;
@@ -30,12 +28,12 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\PositiveOrZero;
 use Symfony\Component\HttpFoundation\Request;
 use App\Repository\Project\ProjectRepository;
-use App\Repository\Project\ProjectParticipantRepository;
-use App\Repository\Project\ProjectRoleRepository;
+use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
+use App\Security\Permission;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
@@ -174,89 +172,80 @@ final class PanelController extends AbstractController
     }
 
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
-    public function modifyProjectMatching(string $id): Response
-    {
+    public function modifyProjectMatching(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-matching.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
-    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET', 'POST'])]
+    #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET'])]
     public function modifyProjectParticipants(
         string $id,
-        ProjectRepository $projects,
-        ProjectParticipantRepository $participants,
-        ProjectRoleRepository $roles,
-        Request $request,
-        EntityManagerInterface $em,
-    ): Response
-    {
-        $project = $this->findProject($id, $projects);
-        $data = new ParticipantRolesDTO();
-        $rows = [];
-        $choices = [];
-        foreach ($roles->findByProjectIdRoles((string) $project->getId()) as $role) {
-            $choices[(string) $role->getName()] = (string) $role->getId();
-        }
-        $projectParticipants = $participants->findBy(['project' => $project]);
-        foreach ($projectParticipants as $participant) {
-            $participantId = (string) $participant->getId();
-            $data->role[$participantId] = $participant->getRole() ? (string) $participant->getRole()->getId() : null;
-            $rows[] = [
-                'participant_id' => $participantId,
-                'display_name' => $participant->getProfile()?->getDisplayName(),
-                'status_name' => $participant->getStatus()?->getName(),
-                'joinedAt' => $participant->getJoinedAt(),
-                'leftAt' => $participant->getLeftAt(),
-            ];
-        }
-        $form = $this->createForm(ParticipantRolesType::class, $data, ['role_choices' => $choices]);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            foreach ($projectParticipants as $participant) {
-                $roleId = $data->role[(string) $participant->getId()] ?? null;
-                $participant->setRole($roleId ? $roles->find($roleId) : null);
-            }
-            $em->flush();
-            return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
-        }
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
         return $this->render('pages/org/projects/modify-participants.html.twig', [
             'id' => $id,
-            'participants' => $rows,
-            'form' => $form->createView(),
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
-    public function InviteProjectParticipants(string $id): Response
-    {
+    public function inviteProjectParticipants(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/invite-participants.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/reviews', name: 'modifyProject.reviews', methods: ['GET'])]
-    public function modifyProjectReviews(string $id): Response
-    {
+    public function modifyProjectReviews(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-reviews.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/tasks', name: 'modifyProject.tasks', methods: ['GET'])]
-    public function modifyProjectTasks(string $id): Response
-    {
+    public function modifyProjectTasks(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-tasks.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/updates', name: 'modifyProject.updates', methods: ['GET'])]
-    public function modifyProjectUpdates(string $id): Response
-    {
+    public function modifyProjectUpdates(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-updates.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
@@ -363,5 +352,26 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/staff/view.html.twig', [
             'id' => $id,
         ]);
+    }
+
+    private function getProjectAndCheckEditAccess(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Project {
+        if (!Uuid::isValid($id)) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $project = $projectRepository->findOneActiveById(Uuid::fromString($id));
+
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $this->denyAccessUnlessGranted(ProjectVoter::EDIT, $project);
+
+        $this->denyAccessUnlessGranted(Permission::ORG_MANAGE_PROJECTS->name, $project->getOwnerOrganisation());
+
+        return $project;
     }
 }

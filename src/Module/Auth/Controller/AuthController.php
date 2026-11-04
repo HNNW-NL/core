@@ -23,6 +23,9 @@ final class AuthController extends AbstractController
     #[Route('/login', name: 'login', methods: ['GET','POST'])]
     public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
+        // De POST naar deze route wordt onderschept en afgehandeld door
+        // App\Security\AccountAuthenticator (zie config/packages/security.yaml),
+        // dus hier hoeft alleen nog het GET-formulier gerenderd te worden.
         if ($this->getUser()) {
             return $this->redirectToRoute('main.home');
         }
@@ -36,10 +39,11 @@ final class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/logout', name: 'logout', methods: ['GET', 'POST'])]
-    public function logout(): void
+    #[Route('/logout', name: 'logout', methods: ['GET'])]
+    public function logout(): never
     {
-        throw new \LogicException('Deze route wordt door Symfony Security onderschept.');
+        // Wordt afgehandeld door de firewall's logout listener; komt hier nooit aan.
+        throw new \LogicException('Deze route wordt afgehandeld door de Symfony Security logout listener.');
     }
 
     #[Route('/register', name: 'register', methods: ['GET','POST'])]
@@ -109,7 +113,7 @@ final class AuthController extends AbstractController
                 // 2. Setup Profile linked directly to Account
                 $nameParts = explode(' ', $data['full_name'], 2);
                 $firstName = $nameParts[0] !== '' ? $nameParts[0] : $data['username'];
-                $lastName = $nameParts[1] ?? ' ';
+                $lastName = $nameParts[1] ?? '';
 
                 $profile = new Profile();
                 $profile->setAccount($account);
@@ -160,8 +164,17 @@ final class AuthController extends AbstractController
                         ->subject('Bevestig je e-mailadres')
                         ->text("Klik op deze link om je e-mailadres te bevestigen:\n\n".$verifyLink."\n\nDeze link is tijdelijk geldig.")
                 );
-            } catch (\Throwable $e) {
-                $this->addFlash('warning', 'Account aangemaakt, maar de verificatie-e-mail kon niet worden verzonden. Controleer of Mailpit/MailHog draait.');
+
+                $em->getConnection()->commit();
+
+            } catch (\Exception $e) {
+                $em->getConnection()->rollBack();
+
+              return $this->render('pages/auth/register.html.twig', [
+                'errors' => [
+                    'general' => 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.'],
+                'old' => $data,
+            ]);
             }
 
             $this->addFlash('success', 'Account aangemaakt. Je kunt nu inloggen.');

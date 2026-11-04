@@ -88,29 +88,6 @@
                     {{ form_errors(form.description) }}
                 </div>
 
-                {# deze drie stonden alleen op de pagina als de instellingen bestonden, die check kijkt nu naar het formulier #}
-                {% if form.language is defined %}
-                    <div class="form-group">
-                        <label for="{{ form.language.vars.id }}">Taal</label>
-                        {{ form_widget(form.language, {'attr': {'maxlength': 5, 'placeholder': 'nl'}}) }}
-                        {{ form_errors(form.language) }}
-                    </div>
-
-                    {# select omgebouwd, keuzes moeten nu uit php komen: light (White), dark (Dark) #}
-                    <div class="form-group">
-                        <label for="{{ form.theme.vars.id }}">Thema</label>
-                        {{ form_widget(form.theme) }}
-                        {{ form_errors(form.theme) }}
-                    </div>
-
-                    {# select omgebouwd, keuzes moeten nu uit php komen: public (Public), private (Private) #}
-                    <div class="form-group">
-                        <label for="{{ form.profileVisibility.vars.id }}">Profiel Zichtbaarheid</label>
-                        {{ form_widget(form.profileVisibility) }}
-                        {{ form_errors(form.profileVisibility) }}
-                    </div>
-                {% endif %}
-
                 <button type="submit" class="btn-primary">Wijzigingen opslaan</button>
 
                 <div class="form-footer-link">
