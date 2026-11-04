@@ -12,6 +12,7 @@ class StatusFixtures extends Fixture
     public const TEST_DEFAULT_ACCOUNT_STATUS_REFERENCE = 'default-status';
     public const TEST_DEFAULT_ORGANISATION_STATUS_REFERENCE = 'default-organisation-status';
     public const TEST_DEFAULT_PROJECT_STATUS_REFERENCE = 'default-project-status';
+    public const TEST_PUBLISHED_PROJECT_STATUS_REFERENCE = 'published-project-status';
     public const TEST_DEFAULT_REVIEW_STATUS_REFERENCE = 'default-review-status';
     public const TEST_DEFAULT_ADMIN_STATUS_REFERENCE = 'default-admin-status';
     public const TEST_DEFAULT_PACKAGE_TASK_STATUS_REFERENCE = 'default-package-task-status';
@@ -38,6 +39,12 @@ class StatusFixtures extends Fixture
         $defaultProjectStatus->setScope('project');
         $defaultProjectStatus->setColourHex('#10B981');
         $manager->persist($defaultProjectStatus);
+
+        $publishedProjectStatus = new Status();
+        $publishedProjectStatus->setName('published');
+        $publishedProjectStatus->setScope('project');
+        $publishedProjectStatus->setColourHex('#10B981');
+        $manager->persist($publishedProjectStatus);
 
 
         $defaultReviewStatus = new Status();
@@ -79,6 +86,7 @@ class StatusFixtures extends Fixture
         $manager->flush();
 
         $this->addReference(self::TEST_DEFAULT_PROJECT_STATUS_REFERENCE, $defaultProjectStatus);
+        $this->addReference(self::TEST_PUBLISHED_PROJECT_STATUS_REFERENCE, $publishedProjectStatus);
         $this->addReference(self::TEST_DEFAULT_ORGANISATION_STATUS_REFERENCE, $defaultOrgStatus);
         $this->addReference(self::TEST_DEFAULT_ACCOUNT_STATUS_REFERENCE, $defaultStatus); 
         $this->addReference(self::TEST_DEFAULT_REVIEW_STATUS_REFERENCE, $defaultReviewStatus);
