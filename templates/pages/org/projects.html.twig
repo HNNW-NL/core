@@ -1,4 +1,3 @@
-
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
@@ -69,11 +68,12 @@
         {% set q = app.request.query.get('q')|default('') %}
         {% set data = org_projects(q) %}
 
-        <div id="projects-app" data-projects="{{ data.items|json_encode|escape('html_attr') }}" data-search="{{ q|escape('html_attr') }}">
+        {# Veilige semantische toevoeging: aria-live region voor dynamische filterstatus #}
+        <div id="projects-app" data-projects="{{ data.items|json_encode|escape('html_attr') }}" data-search="{{ q|escape('html_attr') }}" aria-live="polite">
             <div class="projects-list-header" style="margin-top: 1.5rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h3 style="margin: 0; font-size: 1.25rem;">Project results</h3>
-                    <p>Overview of projects you are authorized to manage.</p>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #a0aec0;">Overview of projects you are authorized to manage.</p>
                 </div>
             </div>
 
