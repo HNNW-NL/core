@@ -35,7 +35,7 @@
     min-height: 170px;
     padding: 1.5rem;
 
-    background: var(--dark-bg);
+    background: var(--background);
     border: 1px solid #2d3748;
     border-radius: 14px;
 
@@ -65,7 +65,7 @@
 /* Description */
 .account-card p {
     margin: 0;
-    color: var(--hnnw-secondary-text);
+    color: var(--text);
     font-size: 0.9rem;
     line-height: 1.6;
 }
@@ -279,7 +279,7 @@ body[data-theme="dark"] .dashboard-header h1 {
 }
 
 body[data-theme="dark"] .dashboard-header p {
-    color: var(--hnnw-secondary-text);
+    color: var(--text);
 }
 
 body[data-theme="dark"] .account-flash-success {
@@ -290,7 +290,7 @@ body[data-theme="dark"] .account-flash-success {
 }
 
 body[data-theme="dark"] .account-card {
-    background: var(--hnnw-header-background);
+    background: var(--header-background);
     border: 1px solid #2d3748;
 }
 
@@ -303,7 +303,7 @@ body[data-theme="dark"] .account-card h3 {
 }
 
 body[data-theme="dark"] .account-card p {
-    color: var(--hnnw-secondary-text);
+    color: var(--text);
 }
 
 body[data-theme="dark"] #account-centre-container .btn-card-cancel {
@@ -451,7 +451,7 @@ body[data-theme="dark"] #account-centre-container .form-actions-row {
 }
 
 body[data-theme="dark"] #account-centre-container .btn-cancel {
-    color: var(--hnnw-secondary-text) !important;
+    color: var(--text) !important;
     text-decoration: none !important;
     font-size: 0.9rem !important;
 }
@@ -502,7 +502,7 @@ body[data-theme="dark"] #account-centre-container .form-footer-link a:hover {
 }
 
 body[data-theme="dark"] #account-centre-container .btn-back {
-    color: var(--hnnw-secondary-text) !important;
+    color: var(--text) !important;
     border: 1px solid #2d3748 !important;
     background-color: rgba(255, 255, 255, 0.02);
 }
