@@ -24,6 +24,7 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('project')
             ->andWhere('project.slug = :slug')
             ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('project.visibility = "public"')
             ->setParameter('slug', $slug)
             ->getQuery()
             ->getOneOrNullResult();

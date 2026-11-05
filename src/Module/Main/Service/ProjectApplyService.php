@@ -12,16 +12,19 @@ use App\Module\Main\DTO\ProjectApplyStatus;
 use App\Repository\Common\StatusRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Throwable;
 
 final readonly class ProjectApplyService
 {
     // zo heet de status in StatusFixtures, als het goed is is dit de status van een nieuwe aanmelding
-    private const SEND_STATUS_SCOPE = 'ProjectApplication';
-    private const SEND_STATUS_NAME = 'send';
+    private const string SEND_STATUS_SCOPE = 'ProjectApplication';
+    private const string SEND_STATUS_NAME = 'send';
 
     public function __construct(
         private EntityManagerInterface $entityManager,
         private StatusRepository $statusRepository,
+        private ManagerRegistry $managerRegistry,
     ) {
     }
 
@@ -55,6 +58,10 @@ final readonly class ProjectApplyService
         return null;
     }
 
+    /**
+     * @throws UniqueConstraintViolationException
+     * @throws Throwable
+     */
     public function apply(Project $project, Profile $profile, ProjectApplyDto $dto): ProjectApplyResult
     {
         $error = $this->check($project, $profile);
@@ -93,11 +100,28 @@ final readonly class ProjectApplyService
         // bij een dubbele klik kan de tweede tegen de unique regel botsen, dat is dan gewoon al aangemeld
         try {
             $this->entityManager->flush();
-        } catch (UniqueConstraintViolationException) {
-            return new ProjectApplyResult(
-                ProjectApplyStatus::AlreadyApplied,
-                'Je hebt al een aanmelding voor dit project.',
-            );
+        } catch (Throwable $exception) {
+            if (!$exception instanceof UniqueConstraintViolationException) {
+                throw $exception;
+            }
+
+            $entityManager = $this->managerRegistry->resetManager();
+
+            $existingApplication = $entityManager
+                ->getRepository(ProjectApplication::class)
+                ->findOneBy([
+                    'project' => $project,
+                    'profile' => $profile,
+                ]);
+
+            if ($existingApplication !== null) {
+                return new ProjectApplyResult(
+                    ProjectApplyStatus::AlreadyApplied,
+                    'Je hebt al een aanmelding voor dit project.',
+                );
+            }
+
+            throw $exception;
         }
 
         return new ProjectApplyResult(
