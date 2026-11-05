@@ -346,6 +346,9 @@ final class AccountsController extends AbstractController
         $account = $this->getAndCheckAccount();
 
         $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
+        if (!$experience) {
+            $this->addFlash('error', 'Ervaring niet gevonden niet gevonden.');
+        }
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
@@ -454,7 +457,9 @@ final class AccountsController extends AbstractController
         $projects = $projectRepository->findByProfile($profile);
 
 
-        return $this->render('pages/account-centre/projects.html.twig');
+        return $this->render('pages/account-centre/projects.html.twig',[
+            'projects' => $projects,
+        ]);
     }
 
     #[Route('/reputation', name: 'reputation', methods: ['GET'])]
