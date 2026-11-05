@@ -32,70 +32,74 @@
 
 {% block body %}
 {# Skip link keeps the homepage keyboard-friendly. #}
-<a class="skip-link" href="#about">Direct naar de inhoud</a>
+    <div class="home-page">
+
+        <a class="skip-link" href="#about">Direct naar de inhoud</a>
 
 
 
-{# Hero introduces the platform and its primary call to action. #}
-<section class="hero container" id="about" aria-labelledby="hero-title">
-    <div class="hero-copy">
-        <p class="eyebrow">Open platform voor de overheid</p>
-        <h1 id="hero-title">Breng vraag &amp; aanbod van werk bij elkaar — <br><span>open, transparant en samen.</span></h1>
-        <p class="hero-text">Publiceer hulpvragen, vind expertise binnen en buiten je organisatie, werk veilig samen en bouw aan interdepartementale impact.</p>
-        <div class="hero-actions">
-            <a class="button button-primary" href="mailto:contact@hnnw.nl">Nu aan de slag</a>
-            <a class="button button-secondary" href="https://hnnw.nl">Bezoek HNNW</a>
-        </div>
-        <p class="hero-note">Open bèta <span>•</span> Transparant via Codeberg <span>•</span> Community op Slack</p>
-    </div>
-
-    <div class="visual">
-            <div class="center">
-                🤝
+        {# Hero introduces the platform and its primary call to action. #}
+        <section class="hero container" id="about" aria-labelledby="hero-title">
+            <div class="hero-copy">
+                <p class="eyebrow">Open platform voor de overheid</p>
+                <h1 id="hero-title">Breng vraag &amp; aanbod van werk bij elkaar — <br><span>open, transparant en samen.</span></h1>
+                <p class="hero-text">Publiceer hulpvragen, vind expertise binnen en buiten je organisatie, werk veilig samen en bouw aan interdepartementale impact.</p>
+                <div class="hero-actions">
+                    <a class="button button-primary" href="{{ path('auth.register') }}">Nu aan de slag</a>
+                    <a class="button button-secondary" href="https://hnnw.nl">Bezoek HNNW</a>
+                </div>
+                <p class="hero-note">Open bèta <span>•</span> Transparant via Codeberg <span>•</span> Community op Slack</p>
             </div>
-        <p class="visual-text">Verbind projecten, mensen en taken.</p>
+
+            <div class="visual">
+                <div class="center">
+                    🤝
+                </div>
+                <p class="visual-text">Verbind projecten, mensen en taken.</p>
+            </div>
+        </section>
+
+        {# Core platform benefits. #}
+        <section class="features" id="projects" aria-labelledby="features-title">
+            <div class="container">
+                <div class="section-heading">
+                    <p class="eyebrow">Waarom HNNW</p>
+                    <h2 id="features-title">Werk slimmer samen binnen en buiten je organisatie.</h2>
+                </div>
+
+                <div class="feature-grid">
+                    <article class="feature-card">
+                        <span class="feature-icon feature-icon-search" aria-hidden="true">🔎</span>
+                        <h3>Vind expertise</h3>
+                        <p>Zoek snel de juiste mensen, kennis en ervaring voor jouw opdracht of project.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <span class="feature-icon feature-icon-share" aria-hidden="true">🔗</span>
+                        <h3>Deel werk</h3>
+                        <p>Maak vraag en aanbod zichtbaar, zodat teams sneller kunnen aansluiten en samenwerken.</p>
+                    </article>
+
+                    <article class="feature-card">
+                        <span class="feature-icon feature-icon-impact" aria-hidden="true">👥</span>
+                        <h3>Meet impact</h3>
+                        <p>Blijf inzichtelijk over samenwerking, voortgang en resultaten in één overzicht.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+
+        {# Final conversion point for visitors ready to participate. #}
+        <section class="cta-band" id="contact">
+            <div class="container cta-content">
+                <div>
+                    <p class="eyebrow">Aan de slag</p>
+                    <h2>Start vandaag nog met slimmer samenwerken.</h2>
+                </div>
+                <a class="button button-primary" href="{{ path('auth.register') }}">Registreer hier</a>
+            </div>
+        </section>
     </div>
-</section>
 
-{# Core platform benefits. #}
-<section class="features" id="projects" aria-labelledby="features-title">
-    <div class="container">
-        <div class="section-heading">
-            <p class="eyebrow">Waarom HNNW</p>
-            <h2 id="features-title">Werk slimmer samen binnen en buiten je organisatie.</h2>
-        </div>
-
-        <div class="feature-grid">
-            <article class="feature-card">
-                <span class="feature-icon feature-icon-search" aria-hidden="true">🔎</span>
-                <h3>Vind expertise</h3>
-                <p>Zoek snel de juiste mensen, kennis en ervaring voor jouw opdracht of project.</p>
-            </article>
-
-            <article class="feature-card">
-                <span class="feature-icon feature-icon-share" aria-hidden="true">🔗</span>
-                <h3>Deel werk</h3>
-                <p>Maak vraag en aanbod zichtbaar, zodat teams sneller kunnen aansluiten en samenwerken.</p>
-            </article>
-
-            <article class="feature-card">
-                <span class="feature-icon feature-icon-impact" aria-hidden="true">👥</span>
-                <h3>Meet impact</h3>
-                <p>Blijf inzichtelijk over samenwerking, voortgang en resultaten in één overzicht.</p>
-            </article>
-        </div>
-    </div>
-</section>
-
-
-{# Final conversion point for visitors ready to participate. #}
-<section class="cta-band" id="contact">
-    <div class="container cta-content">
-        <div>
-            <p class="eyebrow">Aan de slag</p>
-            <h2>Start vandaag nog met slimmer samenwerken.</h2>
-        </div>
-        <a class="button button-primary" href="{{ path('auth.register') }}">Registreer hier</a>
-    </div>
-</section>
 {% endblock %}

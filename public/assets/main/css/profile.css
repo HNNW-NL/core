@@ -9,27 +9,6 @@
     transition: color .5s ease, background-color .5s ease, border .5s ease;
 }
 
-:root {
-    --background: #020617;
-    --header-background: #0f172ab3;
-
-    --paragraph: #FFFFFF;
-
-    --hnnw-yellow-300: #ffe36f;
-    --hnnw-yellow-400: #ffd736;
-    --hnnw-yellow-500: #f4c400;
-}
-[data-theme="light"] {
-    --background: #FFFFFF;
-    --header-background: #0f172ab3;
-
-    --paragraph: #020617;
-
-    --hnnw-yellow-300: #ffe36f;
-    --hnnw-yellow-400: #ffd736;
-    --hnnw-yellow-500: #f4c400;
-}
-
 body {
     background: var(--background);
     color: #ffffff;
