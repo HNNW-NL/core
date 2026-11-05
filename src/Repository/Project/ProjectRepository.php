@@ -60,7 +60,7 @@ class ProjectRepository extends ServiceEntityRepository
     public function findByProfile(Profile $profile): array
     {
         return $this->createQueryBuilder('project')
-            ->innerJoin('project.projectParticipants', 'participant')
+            ->innerJoin('project.participants', 'participant')
             ->andWhere('participant.profile = :profile')
             ->setParameter('profile', $profile)
             ->orderBy('project.title', 'ASC')
