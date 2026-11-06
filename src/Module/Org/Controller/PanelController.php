@@ -2,7 +2,10 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Entity\Account\Profile;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -98,9 +101,22 @@ final class PanelController extends AbstractController
     }
 
     #[Route('/staff/{id}', name: 'viewStaff', methods: ['GET'])]
-    public function viewStaff(string $id): Response
+    public function viewStaff(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
+        $accountId = $request->getSession()->get('account_id');
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $staffMember = $entityManager->getRepository(Profile::class)->find($id);
+
+        if (!$staffMember) {
+            throw $this->createNotFoundException('Medewerker niet gevonden.');
+        }
+
         return $this->render('pages/org/staff/view.html.twig', [
+            'staff' => $staffMember,
             'id' => $id,
         ]);
     }
