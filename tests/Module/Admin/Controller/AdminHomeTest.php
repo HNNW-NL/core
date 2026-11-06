@@ -82,12 +82,9 @@ final class AdminHomeTest extends WebTestCase
         foreach (['accounts' => $accounts, 'organisations' => $organisations, 'projects' => $projects] as $key => $count) {
             self::assertSelectorTextSame('#dashboard-total-'.$key, (string) $count);
         }
-        foreach (['organizations', 'logs', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
+        foreach (['accounts', 'organizations', 'logs', 'statuses', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
             self::assertSelectorExists(sprintf('nav a[href="/admin/%s"]', $path));
         }
-        self::assertSelectorTextContains('nav', 'Accountbeheer is nog niet beschikbaar en wordt opgeleverd in AD02.');
-        self::assertSelectorTextContains('nav', 'Statusbeheer is nog niet beschikbaar en wordt opgeleverd in AD11.');
-        self::assertSelectorNotExists('nav a[href="/admin/accounts"], nav a[href="/admin/statuses"]');
         if ($accounts === 0 && $organisations === 0 && $projects === 0) {
             self::assertSelectorTextContains('#dashboard-empty', 'Er zijn nog geen');
         }
@@ -106,9 +103,36 @@ final class AdminHomeTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('nav a[href="/admin/notifications"]');
         self::assertSelectorExists('nav a[href="/admin/events"]');
-        foreach (['organizations', 'logs', 'settings', 'social/manage-staff'] as $path) {
+        foreach (['accounts', 'organizations', 'logs', 'statuses', 'settings', 'social/manage-staff'] as $path) {
             self::assertSelectorNotExists(sprintf('nav a[href="/admin/%s"]', $path));
         }
+    }
+
+    public static function landingPages(): iterable
+    {
+        yield 'accounts' => ['/admin/accounts', 'Accountbeheer volgt in AD02.'];
+        yield 'statuses' => ['/admin/statuses', 'Statusbeheer volgt in AD11.'];
+    }
+
+    #[DataProvider('landingPages')]
+    public function testNewDashboardLinksHaveWorkingLandingPages(string $path, string $description): void
+    {
+        $client = $this->clientFor($this->platformAdministrator());
+        $client->catchExceptions(false);
+        $client->request('GET', $path);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main', $description);
+        self::assertSelectorExists('main a[href="/admin"]');
+    }
+
+    #[DataProvider('landingPages')]
+    public function testOrdinaryAccountCannotOpenNewDashboardDestinations(string $path, string $description): void
+    {
+        $client = $this->clientFor((new Account())->setUsername('ordinary'));
+        $client->request('GET', $path);
+
+        self::assertResponseStatusCodeSame(403);
     }
 
     private function platformAdministrator(): Account
