@@ -82,7 +82,7 @@ final class AdminHomeTest extends WebTestCase
         foreach (['accounts' => $accounts, 'organisations' => $organisations, 'projects' => $projects] as $key => $count) {
             self::assertSelectorTextSame('#dashboard-total-'.$key, (string) $count);
         }
-        foreach (self::availableDestinations() as [$path]) {
+        foreach (['organizations', 'logs', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
             self::assertSelectorExists(sprintf('nav a[href="/admin/%s"]', $path));
         }
         self::assertSelectorTextContains('nav', 'Accounts Momenteel niet beschikbaar');
@@ -93,20 +93,22 @@ final class AdminHomeTest extends WebTestCase
         }
     }
 
-    public static function availableDestinations(): iterable
+    public function testDashboardOnlyAdministratorSeesLinksAllowedByPlatformRole(): void
     {
-        foreach (['organizations', 'logs', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
-            yield $path => [$path];
-        }
-    }
-
-    #[DataProvider('availableDestinations')]
-    public function testAvailableDestinationOpensForPlatformAdministrator(string $path): void
-    {
-        $client = $this->clientFor($this->platformAdministrator());
-        $client->request('GET', '/admin/'.$path);
+        $account = (new Account())->setUsername('dashboard-only');
+        $role = (new AdminRole())->setPermissionsMask(Permission::ADMIN_VIEW_DASHBOARD->value);
+        $account->setAdmin((new Admin())->setAccount($account)->setAdminRole($role));
+        $client = $this->clientFor($account, [
+            Account::class => 1, Organisation::class => 1, Project::class => 1,
+        ]);
+        $client->request('GET', '/admin');
 
         self::assertResponseIsSuccessful();
+        self::assertSelectorExists('nav a[href="/admin/notifications"]');
+        self::assertSelectorExists('nav a[href="/admin/events"]');
+        foreach (['organizations', 'logs', 'settings', 'social/manage-staff'] as $path) {
+            self::assertSelectorNotExists(sprintf('nav a[href="/admin/%s"]', $path));
+        }
     }
 
     private function platformAdministrator(): Account
@@ -122,19 +124,20 @@ final class AdminHomeTest extends WebTestCase
     private function clientFor(Account $account, array $totals = []): KernelBrowser
     {
         $client = self::createClient();
+        $accountRepository = $this->createStub(EntityRepository::class);
+        $accountRepository->method('find')->willReturn($account);
+        $authenticationEm = $this->createStub(EntityManagerInterface::class);
+        $authenticationEm->method('getRepository')->willReturn($accountRepository);
+        self::getContainer()->set(AccountUserProvider::class, new AccountUserProvider($authenticationEm));
+
         $em = $this->createMock(EntityManagerInterface::class);
         $repositories = [];
-        foreach ([Account::class, Organisation::class, Project::class] as $class) {
+        foreach ($totals as $class => $total) {
             $repository = $this->createMock(EntityRepository::class);
-            $repository->expects(isset($totals[$class]) ? self::once() : self::never())
-                ->method('count')->with(['deletedAt' => null])->willReturn($totals[$class] ?? 0);
-            if ($class === Account::class) {
-                $repository->method('find')->willReturn($account);
-            }
+            $repository->expects(self::once())->method('count')->with(['deletedAt' => null])->willReturn($total);
             $repositories[] = [$class, $repository];
         }
-        $em->expects(self::atLeastOnce())->method('getRepository')->willReturnMap($repositories);
-        self::getContainer()->set(AccountUserProvider::class, new AccountUserProvider($em));
+        $em->expects(self::exactly(count($totals)))->method('getRepository')->willReturnMap($repositories);
         self::getContainer()->set(DashboardTotals::class, new DashboardTotals(
             $em,
             self::getContainer()->get(AuthorizationCheckerInterface::class),
