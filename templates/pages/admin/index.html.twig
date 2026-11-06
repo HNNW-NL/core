@@ -74,7 +74,7 @@
         <h2 id="dashboard-navigation-heading">Beheeronderdelen</h2>
         <ul class="admin-dashboard-grid admin-dashboard-links">
             {% if is_granted('ADMIN_MANAGE_ACCOUNTS') %}
-                <li class="admin-dashboard-card">Accounts <small>Accountbeheer is nog niet beschikbaar en wordt opgeleverd in AD02.</small></li>
+                <li><a class="admin-dashboard-card" href="{{ path('admin.accounts.home') }}">Accounts <small>Accountbeheer volgt in AD02</small></a></li>
             {% endif %}
             {% if is_granted('ADMIN_MANAGE_ORGANISATIONS') %}
                 <li><a class="admin-dashboard-card" href="{{ path('admin.organizations.home') }}">Organisaties <small>Beheer in ontwikkeling</small></a></li>
@@ -83,7 +83,7 @@
                 <li><a class="admin-dashboard-card" href="{{ path('admin.logs') }}">Logs</a></li>
             {% endif %}
             {% if is_granted('ADMIN_MANAGE_SETTINGS') %}
-                <li class="admin-dashboard-card">Statussen <small>Statusbeheer is nog niet beschikbaar en wordt opgeleverd in AD11.</small></li>
+                <li><a class="admin-dashboard-card" href="{{ path('admin.statuses') }}">Statussen <small>Statusbeheer volgt in AD11</small></a></li>
             {% endif %}
             <li><a class="admin-dashboard-card" href="{{ path('admin.notifications') }}">Meldingen <small>Beheer in ontwikkeling</small></a></li>
             {% if is_granted('ADMIN_MANAGE_SETTINGS') %}

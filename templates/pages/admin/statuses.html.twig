@@ -3,8 +3,12 @@
 {% block title %}Statuses{% endblock %}
 
 {% block body %}
-    <h2>Statuses</h2>
+    <h2>Statussen</h2>
 
+    {% if statuses is not defined %}
+        <p>Statusbeheer volgt in AD11.</p>
+        <p><a href="{{ path('admin.home') }}">Terug naar het admin-dashboard</a></p>
+    {% else %}
     <a href="{{ path('admin.statuses.create') }}">
         Nieuwe status
     </a>
@@ -53,4 +57,5 @@
             {% endfor %}
         </tbody>
     </table>
+    {% endif %}
 {% endblock %}

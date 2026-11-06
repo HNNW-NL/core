@@ -15,6 +15,10 @@
 {% block body %}
     <h2>Accounts</h2>
 
+    {% if accounts is not defined %}
+        <p>Accountbeheer volgt in AD02.</p>
+        <p><a href="{{ path('admin.home') }}">Terug naar het admin-dashboard</a></p>
+    {% else %}
     {% if dbConnected is defined and not dbConnected %}
         <div class="alert alert-warning" style="margin-bottom: 16px; padding: 12px; border: 1px solid #f1c40f; background: #fef9e7; color: #b9770e;">
             Database connection failed. Account data may be unavailable.
@@ -61,5 +65,6 @@
         </table>
     {% else %}
         <p style="text-align: center; padding: 2rem; font-style: italic;">No accounts found. <a href="{{ path('org_accounts_new') }}">Create one</a>?</p>
+    {% endif %}
     {% endif %}
 {% endblock %}
