@@ -73,6 +73,9 @@ final class PanelController extends AbstractController
         if (!$organisation) {
             throw $this->createAccessDeniedException('No organisation membership found.');
         }
+
+        $this->denyAccessUnlessGranted('ORG_CREATE_PROJECT', $organisation);
+
         $data = new CreateProjectDTO();
         $data->ownerAccount = $account;
         $data->ownerOrganisation = $organisation;
