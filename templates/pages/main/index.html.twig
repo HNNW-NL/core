@@ -56,14 +56,14 @@
     <div class="open-projects-heading">
         <div>
             <p class="hnnw-eyebrow">Doe mee</p>
-            <h2 id="open-projects-title">Projecten met open aanmelding</h2>
+            <h2 id="open-projects-title">Openbare projecten</h2>
         </div>
         <a class="open-projects-all" href="{{ path('main.projects.home') }}">Bekijk alle projecten</a>
     </div>
 
-    {% if openProjects is not empty %}
+    {% if publicProjects is not empty %}
         <div class="open-projects-grid">
-            {% for project in openProjects %}
+            {% for project in publicProjects %}
                 <article class="open-project-card">
                     <h3><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h3>
                     <p class="open-project-organisation">{{ project.ownerOrganisation.name }}</p>
@@ -73,7 +73,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <p class="open-projects-empty">Er zijn op dit moment geen gepubliceerde projecten waarvoor je je kunt aanmelden.</p>
+        <p class="open-projects-empty">Er zijn op dit moment geen openbare gepubliceerd.</p>
     {% endif %}
 </section>
 

@@ -14,7 +14,7 @@ final class MainController extends AbstractController
     public function index(ProjectRepository $projectRepository): Response
     {
         return $this->render('pages/main/index.html.twig', [
-            'openProjects' => $projectRepository->findOpenForHomepage(),
+            'publicProjects' => $projectRepository->findPublicForHomepage(),
         ]);
     }
 
