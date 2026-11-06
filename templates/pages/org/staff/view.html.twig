@@ -1,7 +1,7 @@
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}View staff{% endblock %}
+{% block title %}View staff - {{ staff.firstName }} {{ staff.lastName }}{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -11,6 +11,38 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Organization Staff - View</h2>
-    <p>Organization panel - organization staff view ({{ id }}) page.</p>
+    <div class="container-fluid px-4 py-4">
+        <a href="{{ path('org.staff') }}" class="btn btn-outline-secondary mb-4">&larr; Terug naar personeelsoverzicht</a>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    {% if staff.avatarUrl is defined and staff.avatarUrl %}
+                        <img src="{{ staff.avatarUrl }}" alt="{{ staff.displayName ?? 'Avatar' }}" class="rounded-circle me-3" width="80" height="80">
+                    {% else %}
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 80px; height: 80px; font-size: 24px;">
+                            {{ staff.firstName|first|upper }}{{ staff.lastName|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h2 class="mb-0">{{ staff.firstName }} {{ staff.lastName }}</h2>
+                        <p class="text-muted mb-0">{{ staff.displayName ?? 'Geen weergavenaam' }} (ID: {{ id }})</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Locatie:</strong>
+                        <p class="text-muted">{{ staff.location ?? 'Niet opgegeven' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Biografie / Beschrijving:</strong>
+                        <p class="text-muted">{{ staff.description ?? 'Geen biografie beschikbaar' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
