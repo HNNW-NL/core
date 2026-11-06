@@ -81,7 +81,7 @@ class ProjectRepository extends ServiceEntityRepository
     /**
      * @return list<Project>
      */
-    public function findOpenForHomepage(int $limit = 6): array
+    public function findPublicForHomepage(int $limit = 6): array
     {
         return $this->createQueryBuilder('project')
             ->innerJoin('project.status', 'status')
