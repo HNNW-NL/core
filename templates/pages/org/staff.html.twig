@@ -85,11 +85,20 @@
         <p role="alert">{{ message }}</p>
     {% endfor %}
 
-    {% if data.needsOrganisation|default(false) %}
-        <p>De medewerkerslijst is pas beschikbaar als er een actieve organisatie is bepaald.</p>
+    {% if data.organisations is not empty %}
+        <form class="staff-form-field" method="get" action="{{ path('org.staff') }}">
+            <label for="staff-organisation">Organisatie</label>
+            <select id="staff-organisation" name="organisation_id" required>
+                <option value=""{% if data.organisationId is null %} selected{% endif %} disabled>Kies een organisatie</option>
+                {% for id, name in data.organisations %}
+                    <option value="{{ id }}"{% if id == data.organisationId %} selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="staff-btn staff-btn-secondary">Organisatie openen</button>
+        </form>
     {% endif %}
 
-    {% if data.canManage and data.roles is not empty %}
+    {% if data.canAdd and data.assignableRoles is not empty %}
     <div class="staff-actions">
         <button
             type="button"
@@ -101,7 +110,7 @@
         </button>
     </div>
 
-    <form id="staff-add-form" class="staff-card" method="post" action="{{ path('org.staff.manage.add') }}" hidden>
+    <form id="staff-add-form" class="staff-card" method="post" action="{{ path('org.staff.manage.add', {organisation_id: data.organisationId}) }}" hidden>
         <input type="hidden" name="_token" value="{{ csrf_token('staff_add') }}">
         <h3>Medewerker toevoegen</h3>
 
@@ -120,7 +129,7 @@
         <div class="staff-form-field">
             <label for="staff-add-role">Organisatierol</label>
             <select id="staff-add-role" name="role_id" required>
-                {% for role in data.roles|default([]) %}
+                {% for role in data.assignableRoles %}
                     <option value="{{ role.id }}">{{ role.name }}</option>
                 {% endfor %}
             </select>
@@ -176,15 +185,18 @@
                         Role: {{ member.role|default('No role') }}
                     </p>
 
-                    {% if data.canManage %}
+                    {% if data.canChangeRole or data.canRemove %}
                         <div class="staff-actions">
-                            {% if data.roles is not empty %}
-                                <form method="post" action="{{ path('org.staff.manage.role', {id: member.id}) }}">
+                            {% if data.canChangeRole and data.assignableRoles is not empty %}
+                                <form method="post" action="{{ path('org.staff.manage.role', {id: member.id, organisation_id: data.organisationId}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token('staff_role_' ~ member.id) }}">
                                     <div class="staff-form-field">
                                         <label for="staff-role-{{ member.id }}">Organisatierol</label>
                                         <select id="staff-role-{{ member.id }}" name="role_id" required>
-                                            {% for role in data.roles %}
+                                            {% if member.roleId not in data.assignableRoles|column('id') %}
+                                                <option value="" selected disabled>Kies een rol</option>
+                                            {% endif %}
+                                            {% for role in data.assignableRoles %}
                                                 <option value="{{ role.id }}"{% if role.id == member.roleId %} selected{% endif %}>{{ role.name }}</option>
                                             {% endfor %}
                                         </select>
@@ -192,10 +204,12 @@
                                     <button type="submit" class="staff-btn staff-btn-secondary">Rol wijzigen</button>
                                 </form>
                             {% endif %}
-                            <form class="staff-delete-form" method="post" action="{{ path('org.staff.manage.delete', {id: member.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('staff_delete_' ~ member.id) }}">
-                                <button type="submit" class="staff-btn staff-btn-danger">Verwijderen</button>
-                            </form>
+                            {% if data.canRemove %}
+                                <form class="staff-delete-form" method="post" action="{{ path('org.staff.manage.delete', {id: member.id, organisation_id: data.organisationId}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('staff_delete_' ~ member.id) }}">
+                                    <button type="submit" class="staff-btn staff-btn-danger">Verwijderen</button>
+                                </form>
+                            {% endif %}
                         </div>
                     {% endif %}
 

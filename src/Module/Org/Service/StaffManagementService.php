@@ -6,6 +6,7 @@ use App\Entity\Account\Account;
 use App\Entity\Org\OrgMember;
 use App\Entity\Org\OrgRole;
 use App\Entity\Org\Organisation;
+use App\Security\Permission;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,10 +23,13 @@ final class StaffManagementService
 
     public function addMember(string $email, string $roleId): OrgMember
     {
-        return $this->manage(fn (Organisation $organisation): OrgMember => $this->add($organisation, $email, $roleId));
+        return $this->manage(
+            [Permission::ORG_MANAGE_MEMBERS, Permission::ORG_MANAGE_ROLES],
+            fn (Organisation $organisation, int $mask): OrgMember => $this->add($organisation, $email, $roleId, $mask),
+        );
     }
 
-    private function add(Organisation $organisation, string $email, string $roleId): OrgMember
+    private function add(Organisation $organisation, string $email, string $roleId, int $mask): OrgMember
     {
         $email = trim($email);
 
@@ -46,6 +50,7 @@ final class StaffManagementService
         }
 
         $role = $this->findRoleForOrganisation($roleId, $organisation);
+        $this->requireAssignableRole($role, $organisation, $mask);
 
         $existing = $this->entityManager
             ->getRepository(OrgMember::class)
@@ -66,17 +71,19 @@ final class StaffManagementService
         $member->setOrgRole($role);
 
         $this->entityManager->persist($member);
-        $this->entityManager->flush();
 
         return $member;
     }
 
     public function changeRole(string $memberId, string $roleId): OrgMember
     {
-        return $this->manage(fn (Organisation $organisation): OrgMember => $this->updateRole($organisation, $memberId, $roleId));
+        return $this->manage(
+            [Permission::ORG_MANAGE_ROLES],
+            fn (Organisation $organisation, int $mask): OrgMember => $this->updateRole($organisation, $memberId, $roleId, $mask),
+        );
     }
 
-    private function updateRole(Organisation $organisation, string $memberId, string $roleId): OrgMember
+    private function updateRole(Organisation $organisation, string $memberId, string $roleId, int $mask): OrgMember
     {
         $member = $this->findMemberForOrganisation(
             $memberId,
@@ -92,6 +99,8 @@ final class StaffManagementService
             return $member;
         }
 
+        $this->requireAssignableRole($role, $organisation, $mask);
+
         $existing = $this->entityManager->getRepository(OrgMember::class)->findOneBy([
             'organisation' => $organisation,
             'account' => $member->getAccount(),
@@ -104,19 +113,18 @@ final class StaffManagementService
             );
         }
 
-        if (!self::isBeheerder($role, $organisation)) {
-            $this->requireAnotherBeheerder($organisation, $member);
-        }
-
+        $this->requireManagementContinuity($organisation, $member, $role);
         $member->setOrgRole($role);
-        $this->entityManager->flush();
 
         return $member;
     }
 
     public function removeMember(string $memberId): void
     {
-        $this->manage(fn (Organisation $organisation) => $this->remove($organisation, $memberId));
+        $this->manage(
+            [Permission::ORG_MANAGE_MEMBERS],
+            fn (Organisation $organisation) => $this->remove($organisation, $memberId),
+        );
     }
 
     private function remove(Organisation $organisation, string $memberId): void
@@ -126,54 +134,83 @@ final class StaffManagementService
             $organisation
         );
 
-        $this->requireAnotherBeheerder($organisation, $member);
+        $this->requireManagementContinuity($organisation, $member, null);
         $this->entityManager->remove($member);
-        $this->entityManager->flush();
     }
 
-    private function manage(callable $operation): mixed
+    /** @param list<Permission> $requiredPermissions */
+    private function manage(array $requiredPermissions, callable $operation): mixed
     {
-        $organisation = $this->getCurrentOrganisation();
+        $account = $this->getCurrentAccount();
+        $request = $this->requestStack->getCurrentRequest();
+        $organisationId = StaffOrganisationContext::requestedId($request);
+        if ($organisationId === null) {
+            throw new \RuntimeException('Kies eerst een geldige organisatie.');
+        }
 
         try {
-            return $this->entityManager->getConnection()->transactional(function () use ($organisation, $operation): mixed {
-                $this->entityManager->lock($organisation, LockMode::PESSIMISTIC_WRITE);
-                $this->requireBeheerder($organisation);
+            return $this->entityManager->wrapInTransaction(function () use ($account, $request, $organisationId, $requiredPermissions, $operation): mixed {
+                $organisation = $this->entityManager->find(Organisation::class, Uuid::fromString($organisationId), LockMode::PESSIMISTIC_WRITE);
+                if (!$organisation instanceof Organisation) {
+                    throw new \RuntimeException('Geen toegang tot deze organisatie.');
+                }
 
-                return $operation($organisation);
+                $mask = $this->getAccountMask($account, $organisation);
+                $requiredMask = Permission::maskFor([Permission::ORG_VIEW, ...$requiredPermissions]);
+                if (($mask & $requiredMask) !== $requiredMask) {
+                    throw new \RuntimeException('Je hebt onvoldoende rechten voor deze actie.');
+                }
+
+                $request->getSession()->set(StaffOrganisationContext::SESSION_KEY, $organisationId);
+
+                return $operation($organisation, $mask);
             });
         } catch (UniqueConstraintViolationException $e) {
             throw new \InvalidArgumentException('Dit account heeft deze rol al binnen de organisatie.', 0, $e);
         }
     }
 
-    public static function isBeheerder(?OrgRole $role, Organisation $organisation): bool
+    private function requireAssignableRole(OrgRole $role, Organisation $organisation, int $actorMask): void
     {
-        return $role !== null
-            && (string) $role->getOrganisation()?->getId() === (string) $organisation->getId()
-            && mb_strtolower(trim($role->getName() ?? '')) === 'beheerder';
+        if ((StaffOrganisationContext::roleMask($role, $organisation) & ~$actorMask) !== 0) {
+            throw new \InvalidArgumentException('Je kunt geen rol toewijzen met rechten die je zelf niet hebt.');
+        }
     }
 
-    private function requireAnotherBeheerder(Organisation $organisation, OrgMember $member): void
+    private function requireManagementContinuity(Organisation $organisation, OrgMember $member, ?OrgRole $replacement): void
     {
-        if (!self::isBeheerder($member->getOrgRole(), $organisation)) {
+        $managementMask = Permission::maskFor([Permission::ORG_VIEW, Permission::ORG_MANAGE_MEMBERS, Permission::ORG_MANAGE_ROLES]);
+        $previous = StaffOrganisationContext::roleMask($member->getOrgRole(), $organisation);
+        $next = StaffOrganisationContext::roleMask($replacement, $organisation);
+        if (($previous & $managementMask & ~$next) === 0) {
             return;
         }
 
+        $before = [];
+        $after = [];
         $memberships = $this->entityManager->getRepository(OrgMember::class)->findBy(['organisation' => $organisation]);
         foreach ($memberships as $membership) {
-            if ($membership !== $member && self::isBeheerder($membership->getOrgRole(), $organisation)) {
-                return;
-            }
+            $accountId = (string) $membership->getAccount()->getId();
+            $mask = StaffOrganisationContext::roleMask($membership->getOrgRole(), $organisation);
+            $before[$accountId] = ($before[$accountId] ?? 0) | $mask;
+            $after[$accountId] = ($after[$accountId] ?? 0) | ($membership === $member ? $next : $mask);
         }
 
-        throw new \InvalidArgumentException('De organisatie moet minstens één beheerder behouden.');
+        $requiredMasks = [
+            Permission::ORG_VIEW->value | Permission::ORG_MANAGE_MEMBERS->value,
+            Permission::ORG_VIEW->value | Permission::ORG_MANAGE_ROLES->value,
+            $managementMask,
+        ];
+        foreach ($requiredMasks as $required) {
+            $hasPermission = static fn (int $mask): bool => ($mask & $required) === $required;
+            if (array_any($before, $hasPermission) && !array_any($after, $hasPermission)) {
+                throw new \InvalidArgumentException('De organisatie moet minstens één bevoegd account voor ledenbeheer en rollenbeheer behouden.');
+            }
+        }
     }
 
-    private function requireBeheerder(Organisation $organisation): void
+    private function getAccountMask(Account $account, Organisation $organisation): int
     {
-        $account = $this->getCurrentAccount();
-
         $memberships = $this->entityManager
             ->getRepository(OrgMember::class)
             ->findBy([
@@ -181,20 +218,12 @@ final class StaffManagementService
                 'account' => $account,
             ]);
 
-        $isBeheerder = false;
+        $mask = 0;
         foreach ($memberships as $membership) {
-            // The organisation lookup may have loaded this membership before the lock.
-            $this->entityManager->refresh($membership);
-            $isBeheerder = $isBeheerder || self::isBeheerder($membership->getOrgRole(), $organisation);
+            $mask |= StaffOrganisationContext::roleMask($membership->getOrgRole(), $organisation);
         }
 
-        if ($isBeheerder) {
-            return;
-        }
-
-        throw new \RuntimeException(
-            'Geen toegang: alleen een beheerder mag medewerkers beheren.'
-        );
+        return $mask;
     }
 
     private function getCurrentAccount(): Account
@@ -227,38 +256,6 @@ final class StaffManagementService
         }
 
         return $account;
-    }
-
-    private function getCurrentOrganisation(): Organisation
-    {
-        $account = $this->getCurrentAccount();
-
-        $memberships = $account->getOrgMemberships();
-
-        if ($memberships->isEmpty()) {
-            throw new \RuntimeException(
-                'Je bent geen lid van een organisatie.'
-            );
-        }
-
-        $membership = $memberships->first();
-        $organisation = $membership->getOrganisation();
-
-        if (!$organisation instanceof Organisation) {
-            throw new \RuntimeException(
-                'De organisatie kon niet worden bepaald.'
-            );
-        }
-
-        foreach ($memberships as $membership) {
-            if ((string) $membership->getOrganisation()?->getId() !== (string) $organisation->getId()) {
-                throw new \RuntimeException(
-                    'Medewerkers beheren vereist een actieve organisatie als je lid bent van meerdere organisaties.'
-                );
-            }
-        }
-
-        return $organisation;
     }
 
     private function findRoleForOrganisation(
