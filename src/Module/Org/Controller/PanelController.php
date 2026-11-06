@@ -328,20 +328,40 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    private function findProject(string $id, ProjectRepository $projects): Project
-    {
-        $project = Uuid::isValid($id) ? $projects->find($id) : $projects->findOneBy(['slug' => $id]);
-        if (!$project || $project->getDeletedAt() !== null) {
+
+    private function findProject(
+        string $id,
+        ProjectRepository $projects,
+    ): Project {
+        if (!Uuid::isValid($id)) {
             throw $this->createNotFoundException('Project not found.');
         }
-        $this->denyAccessUnlessGranted('ROLE_USER');
-        $account = $this->getUser();
-        if (!$this->isGranted('ROLE_ADMIN') && (!$account instanceof Account || $project->getOwnerAccount()?->getId()->equals($account->getId()) !== true)) {
-            throw $this->createAccessDeniedException('Only the project owner can manage this project.');
+
+        $project = $projects->findOneActiveById(
+            Uuid::fromString($id)
+        );
+
+        if ($project === null) {
+            throw $this->createNotFoundException('Project not found.');
         }
+
+        $this->denyAccessUnlessGranted(ProjectVoter::EDIT, $project);
+
+        if (!$this->isGranted('ROLE_ADMIN')) {
+            $this->denyAccessUnlessGranted(
+                Permission::ORG_MANAGE_PROJECTS->name,
+                $project->getOwnerOrganisation()
+            );
+        }
+
+        $this->denyAccessUnlessGranted(
+            Permission::ORG_MANAGE_PROJECTS->name,
+            $project->getOwnerOrganisation()
+        );
 
         return $project;
     }
+
 
     #[Route('/staff', name: 'staff', methods: ['GET'])]
     public function staff(): Response
