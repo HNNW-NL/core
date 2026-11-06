@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use App\Repository\Project\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class MainControllerTest extends WebTestCase
@@ -22,6 +23,29 @@ class MainControllerTest extends WebTestCase
             'Projectinformatie is op dit moment niet beschikbaar.',
             $crawler->text(),
         );
+    }
+
+    public function testShouldDisplayHomeWithoutProjects(): void
+    {
+        $client = static::createClient();
+
+        $crawler = $client->request('GET', '/');
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertSelectorTextContains(
+            'h2',
+            'Openbare projecten'
+        );
+
+        $this->assertSelectorExists('.open-projects-empty');
+
+        $this->assertSelectorTextContains(
+            '.open-projects-empty',
+            'Er zijn op dit moment geen openbare gepubliceerd.'
+        );
+
+        $this->assertSelectorNotExists('.open-project-card');
     }
 
     //About
