@@ -85,8 +85,8 @@ final class AdminHomeTest extends WebTestCase
         foreach (['organizations', 'logs', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
             self::assertSelectorExists(sprintf('nav a[href="/admin/%s"]', $path));
         }
-        self::assertSelectorTextContains('nav', 'Accounts Momenteel niet beschikbaar');
-        self::assertSelectorTextContains('nav', 'Statussen Momenteel niet beschikbaar');
+        self::assertSelectorTextContains('nav', 'Accountbeheer is nog niet beschikbaar en wordt opgeleverd in AD02.');
+        self::assertSelectorTextContains('nav', 'Statusbeheer is nog niet beschikbaar en wordt opgeleverd in AD11.');
         self::assertSelectorNotExists('nav a[href="/admin/accounts"], nav a[href="/admin/statuses"]');
         if ($accounts === 0 && $organisations === 0 && $projects === 0) {
             self::assertSelectorTextContains('#dashboard-empty', 'Er zijn nog geen');
