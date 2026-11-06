@@ -14,7 +14,7 @@ security:
 
         app_user_provider:
             chain:
-                providers: ['users_by_email', 'users_by_username']
+                providers: ['account_provider', 'users_by_username']
 
     firewalls:
         dev:
