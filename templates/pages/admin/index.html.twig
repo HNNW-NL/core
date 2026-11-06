@@ -1,117 +1,98 @@
 {% extends 'layouts/admin.base.html.twig' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Admin-dashboard{% endblock %}
 
 {% block stylesheets %}
 <style>
-    .dashboard {
+    .admin-dashboard-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-    }
-
-    .card {
-        background: #1e1e1e;
-        border-radius: 10px;
-        padding: 20px;
-        color: #fff;
-    }
-
-    .card h3 {
-        margin-top: 0;
-        margin-bottom: 15px;
-        font-size: 18px;
-        border-bottom: 1px solid #333;
-        padding-bottom: 10px;
-    }
-
-    .card ul {
-        list-style: none;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        gap: 1rem;
         padding: 0;
-        margin: 0;
     }
 
-    .card li {
-        padding: 10px 0;
-        border-bottom: 1px solid #2a2a2a;
-        font-size: 14px;
+    .admin-dashboard-card {
+        background: #1e1e1e;
+        border-radius: 0.625rem;
+        color: #fff;
+        padding: 1rem;
     }
 
-    .card li small {
+    .admin-dashboard-card dd {
+        margin: 0.25rem 0 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+
+    .admin-dashboard-links {
+        list-style: none;
+    }
+
+    .admin-dashboard-links a {
         display: block;
-        color: #aaa;
-        font-size: 12px;
+        color: inherit;
+        text-decoration: underline;
     }
 
-    .empty {
-        color: #888;
-        font-size: 14px;
+    .admin-dashboard-links a:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 0.25rem;
     }
 </style>
 {% endblock %}
 
 {% block body %}
+    {% set totals = admin_dashboard_totals() %}
+    <h1>Admin-dashboard</h1>
+    <p>Bekijk de platformtotalen en open de beheeronderdelen waarvoor je bevoegd bent.</p>
 
-<h2>Dashboard</h2>
-<p>Overzicht van de nieuwste data in het systeem.</p>
+    <section aria-labelledby="dashboard-totals-heading">
+        <h2 id="dashboard-totals-heading">Platformtotalen</h2>
+        <p>De totalen tellen alle accounts, organisaties en projecten die niet verwijderd zijn.</p>
 
-<div class="dashboard">
+        <dl class="admin-dashboard-grid">
+            <div class="admin-dashboard-card">
+                <dt>Accounts</dt>
+                <dd id="dashboard-total-accounts">{{ totals.accounts }}</dd>
+            </div>
+            <div class="admin-dashboard-card">
+                <dt>Organisaties</dt>
+                <dd id="dashboard-total-organisations">{{ totals.organisations }}</dd>
+            </div>
+            <div class="admin-dashboard-card">
+                <dt>Projecten</dt>
+                <dd id="dashboard-total-projects">{{ totals.projects }}</dd>
+            </div>
+        </dl>
 
-    <!-- Logs -->
-    <div class="card">
-        <h3>Nieuwste logs</h3>
-
-        {% if logs is not empty %}
-            <ul>
-                {% for log in logs %}
-                    <li>
-                        {{ log.message }}
-                        <small>{{ log.createdAt|date('d-m-Y H:i') }}</small>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="empty">Geen logs gevonden.</p>
+        {% if totals.accounts == 0 and totals.organisations == 0 and totals.projects == 0 %}
+            <p id="dashboard-empty">Er zijn nog geen accounts, organisaties of projecten om te tonen.</p>
         {% endif %}
-    </div>
+    </section>
 
-    <!-- Accounts -->
-    <div class="card">
-        <h3>Laatst bijgewerkte accounts</h3>
-
-        {% if accounts is not empty %}
-            <ul>
-                {% for account in accounts %}
-                    <li>
-                        {{ account.name }}
-                        <small>{{ account.updatedAt|date('d-m-Y H:i') }}</small>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="empty">Geen accounts gevonden.</p>
-        {% endif %}
-    </div>
-
-    <!-- Profiles -->
-    <div class="card">
-        <h3>Laatst bijgewerkte profielen</h3>
-
-        {% if profiles is not empty %}
-            <ul>
-                {% for profile in profiles %}
-                    <li>
-                        {{ profile.fullName }}
-                        <small>{{ profile.updatedAt|date('d-m-Y H:i') }}</small>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="empty">Geen profielen gevonden.</p>
-        {% endif %}
-    </div>
-
-</div>
-
+    <nav aria-labelledby="dashboard-navigation-heading">
+        <h2 id="dashboard-navigation-heading">Beheeronderdelen</h2>
+        <ul class="admin-dashboard-grid admin-dashboard-links">
+            {% if is_granted('ADMIN_MANAGE_ACCOUNTS') %}
+                <li class="admin-dashboard-card">Accounts <small>Momenteel niet beschikbaar</small></li>
+            {% endif %}
+            {% if is_granted('ADMIN_MANAGE_ORGANISATIONS') %}
+                <li><a class="admin-dashboard-card" href="{{ path('admin.organizations.home') }}">Organisaties <small>Beheer in ontwikkeling</small></a></li>
+            {% endif %}
+            {% if is_granted('ADMIN_VIEW_LOGS') %}
+                <li><a class="admin-dashboard-card" href="{{ path('admin.logs') }}">Logs</a></li>
+            {% endif %}
+            {% if is_granted('ADMIN_MANAGE_SETTINGS') %}
+                <li class="admin-dashboard-card">Statussen <small>Momenteel niet beschikbaar</small></li>
+            {% endif %}
+            <li><a class="admin-dashboard-card" href="{{ path('admin.notifications') }}">Meldingen <small>Beheer in ontwikkeling</small></a></li>
+            {% if is_granted('ADMIN_MANAGE_SETTINGS') %}
+                <li><a class="admin-dashboard-card" href="{{ path('admin.settings') }}">Instellingen <small>Beheer in ontwikkeling</small></a></li>
+            {% endif %}
+            {% if is_granted('ADMIN_MANAGE_STAFF') %}
+                <li><a class="admin-dashboard-card" href="{{ path('admin.social.manageStaff') }}">Social beheer <small>Beheer in ontwikkeling</small></a></li>
+            {% endif %}
+            <li><a class="admin-dashboard-card" href="{{ path('admin.events.home') }}">Events <small>Beheer in ontwikkeling</small></a></li>
+        </ul>
+    </nav>
 {% endblock %}
