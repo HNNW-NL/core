@@ -40,6 +40,7 @@ final class StaffManagementServiceTest extends TestCase
     private OrgMember $target;
     private OrgRole $viewer;
     private OrgRole $foreignRole;
+    private OrgRole $privilegedRole;
     private array $members;
     private RequestStack $stack;
 
@@ -48,6 +49,7 @@ final class StaffManagementServiceTest extends TestCase
         $this->org = new Organisation();
         $this->viewer = $this->role($this->org, Permission::ORG_VIEW);
         $this->foreignRole = $this->role(new Organisation(), Permission::ORG_VIEW);
+        $this->privilegedRole = $this->role($this->org, Permission::ORG_VIEW, Permission::ORG_DELETE);
         $this->actor = $this->member(new Account(), $this->role(
             $this->org, Permission::ORG_VIEW, Permission::ORG_MANAGE_MEMBERS, Permission::ORG_MANAGE_ROLES,
         ));
@@ -77,7 +79,7 @@ final class StaffManagementServiceTest extends TestCase
             if ($class === Organisation::class) {
                 self::assertSame(LockMode::PESSIMISTIC_WRITE, $lock);
             }
-            foreach ([$this->org, $this->actor->getAccount(), $this->actor, $this->target, $this->viewer, $this->foreignRole] as $entity) {
+            foreach ([$this->org, $this->actor->getAccount(), $this->actor, $this->target, $this->viewer, $this->foreignRole, $this->privilegedRole] as $entity) {
                 if ($entity instanceof $class && (string) $entity->getId() === (string) $id) {
                     return $entity;
                 }
@@ -103,6 +105,43 @@ final class StaffManagementServiceTest extends TestCase
         $this->em->expects(self::never())->method('persist');
         $this->expectExceptionMessage('De gekozen rol hoort niet bij jouw organisatie.');
         $this->service->addMember('staff-test@example.test', (string) $this->foreignRole->getId());
+    }
+
+    public function testCannotAddMemberWithPermissionTheActorDoesNotHave(): void
+    {
+        $this->em->expects(self::never())->method('persist');
+        $this->expectExceptionMessage('Je kunt geen rol toewijzen met rechten die je zelf niet hebt.');
+        $this->service->addMember('staff-test@example.test', (string) $this->privilegedRole->getId());
+    }
+
+    public function testCannotPromoteMemberWithPermissionTheActorDoesNotHave(): void
+    {
+        $this->em->expects(self::never())->method('persist');
+        try {
+            $this->service->changeRole((string) $this->target->getId(), (string) $this->privilegedRole->getId());
+            self::fail('Expected the role assignment to be rejected.');
+        } catch (\InvalidArgumentException $e) {
+            self::assertSame('Je kunt geen rol toewijzen met rechten die je zelf niet hebt.', $e->getMessage());
+            self::assertSame($this->viewer, $this->target->getOrgRole());
+        }
+    }
+
+    #[DataProvider('mutations')]
+    public function testProtectsManagementPermissionSplitAcrossMemberships(bool $changeRole): void
+    {
+        $membersRole = $this->actor->getOrgRole();
+        $membersRole->setPermissionsMask(Permission::maskFor([Permission::ORG_VIEW, Permission::ORG_MANAGE_MEMBERS]));
+        $rolesRole = $this->role($this->org, Permission::ORG_MANAGE_ROLES);
+        $this->members[] = $this->member($this->actor->getAccount(), $rolesRole);
+        $this->em->expects(self::never())->method('remove');
+
+        try {
+            $this->mutate($changeRole, (string) $this->actor->getId());
+            self::fail('Expected the last combined manager to be protected.');
+        } catch (\InvalidArgumentException $e) {
+            self::assertStringContainsString('De organisatie moet minstens één bevoegd account', $e->getMessage());
+            self::assertSame($membersRole, $this->actor->getOrgRole());
+        }
     }
 
     public function testChangesRoleWhenAnotherMembershipKeepsManagementPermissions(): void
