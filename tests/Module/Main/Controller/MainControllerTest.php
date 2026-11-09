@@ -3,19 +3,29 @@
 namespace App\Tests;
 
 use App\Repository\Project\ProjectRepository;
+use App\DataFixtures\Project\ProjectFixtures;
+use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class MainControllerTest extends WebTestCase
 {
+    use FixturesTrait;
+
     // Index
 
     public function testShouldDisplayHome(): void
     {
+        $this->loadFixtures([
+            ProjectFixtures::class,
+        ]);
+
         $client = static::createClient();
         $crawler = $client->request('GET', '/');
 
+
+
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Projecten met open aanmelding');
+        $this->assertSelectorTextContains('h2', 'Openbare projecten');
         $this->assertSelectorExists('body > a.skip-link[href="#main-content"]');
         $this->assertSelectorExists('.open-project-card');
         $this->assertSelectorTextContains('.open-project-card h3', 'Gepubliceerd testproject');
@@ -29,7 +39,7 @@ class MainControllerTest extends WebTestCase
     {
         $client = static::createClient();
 
-        $crawler = $client->request('GET', '/');
+        $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
 
