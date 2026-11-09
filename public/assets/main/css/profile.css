@@ -223,6 +223,61 @@ body {
                                 }
                             }
                         }
+
+                        #pi-btns {
+                            display: flex;
+                            align-items: center;
+                            flex-wrap: wrap;
+                            gap: .75em;
+                            margin-top: 1em;
+
+                            a {
+                                display: inline-flex;
+                                justify-content: center;
+                                align-items: center;
+                                gap: .5em;
+
+                                padding: .55em 1.15em;
+                                border: 1px solid transparent;
+                                border-radius: 25px;
+
+                                font-family: lato, sans-serif;
+                                font-size: .9em;
+                                font-weight: 600;
+                                line-height: 1.2;
+                                white-space: nowrap;
+
+                                svg {
+                                    width: 1.15em;
+                                    height: 1.15em;
+                                    flex-shrink: 0;
+                                }
+                            }
+
+                            #pib-projects {
+                                background-color: var(--hnnw-yellow-500);
+                                border-color: var(--hnnw-yellow-500);
+                                color: var(--background);
+
+                                span, svg {
+                                    color: inherit;
+                                }
+
+                                &:hover {
+                                    background-color: var(--hnnw-yellow-400);
+                                    border-color: var(--hnnw-yellow-400);
+                                }
+
+                                &:active {
+                                    background-color: var(--hnnw-yellow-300);
+                                }
+
+                                &:focus-visible {
+                                    outline: 2px solid var(--hnnw-yellow-300);
+                                    outline-offset: 3px;
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -262,7 +317,6 @@ body {
                 }
 
                 #experience {
-                    /* > CSS01 */
                     #e-title {
                         margin-bottom: 1em;
                     }
@@ -393,11 +447,9 @@ body {
                             color: inherit;
                         }
                     }
-                    /* < CSS01 */
                 }
 
                 #education {
-                    /* > CSS02 */
                     #edu-title {
                         margin-bottom: 1em;
                     }
@@ -486,11 +538,9 @@ body {
                             color: inherit;
                         }
                     }
-                    /* < CSS02 */
                 }
 
                 #licenses {
-                    /* > CSS03 */
                     #l-title {
                         margin-bottom: 1em;
                     }
@@ -592,11 +642,9 @@ body {
                             color: inherit;
                         }
                     }
-                    /* < CSS03 */
                 }
 
                 #skills {
-                    /* > CSS04 */
                     #s-title {
                         margin-bottom: 1em;
                     }
@@ -663,11 +711,9 @@ body {
                             color: inherit;
                         }
                     }
-                    /* < CSS04 */
                 }
 
                 #recommendations {
-                    /* > CSS05 */
                     #r-title {
                         margin-bottom: 1em;
                     }
@@ -777,7 +823,6 @@ body {
                             font-size: .9em;
                         }
                     }
-                    /* < CSS05 */
                 }
             }
 
