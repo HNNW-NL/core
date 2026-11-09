@@ -107,22 +107,359 @@
 
             <section id="experience" class="section">
                 <h2 id="e-title">Werkervaring</h2>
+
+                {% set experiences = [
+                    {
+                        company: 'SSC-ICT',
+                        logo: '',
+                        positions: [
+                        { title: 'Software Engineer', type: 'Internship', period: 'Sep 2026 - Present', location: 'The Hague, South Holland, Netherlands · Hybrid', description: '' }
+                    ]
+                    },
+                    {
+                        company: 'DIVD.WORKS',
+                        logo: '',
+                        positions: [
+                        { title: 'Software Engineer', type: 'Part-time', period: 'Jul 2026 - Present', location: 'Remote', description: '' }
+                    ]
+                    },
+                    {
+                        company: 'DIVD Academy',
+                        logo: '',
+                        duration: '10 mos',
+                        location: 'Hybrid',
+                        positions: [
+                        { title: 'Vocational Education Mentor (ICT)', type: 'Full-time', period: 'Apr 2026 - Present', location: 'Netherlands', description: '' },
+                        { title: 'Product Owner & Lead Developer Het Nieuwe² Werken (HNNW)', type: 'Full-time', period: 'Mar 2026 - Present', location: 'The Hague, South Holland, Netherlands', description: 'Product Owner and Lead Developer of the HNNW platform, coordinating development and technical decisions.' },
+                        { title: 'Cyber Security Trainee', type: 'Internship', period: 'Feb 2026 - Jul 2026', location: 'The Hague, South Holland, Netherlands', description: 'Cybersecurity training focused on web application security and practical security testing.' }
+                    ]
+                    },
+                    {
+                        company: 'Spellenwinkel.nl',
+                        logo: '',
+                        duration: '4 yrs 4 mos',
+                        location: 'Delft, South Holland, Netherlands · On-site',
+                        positions: [
+                        { title: 'TCG Employee', type: 'Part-time', period: 'Mar 2026 - Present', location: '', description: '' },
+                        { title: 'All-Round Logistics Employee - TCG Department', type: 'Part-time', period: 'Jul 2024 - Mar 2026', location: '', description: 'Collecting orders, replenishing inventory, packing parcels and handling trading card products.' },
+                        { title: 'All-Round Logistics Employee', type: 'Part-time', period: 'Sep 2023 - Jul 2024', location: '', description: '' },
+                        { title: 'Logistics Employee', type: 'Full-time', period: 'Jan 2023 - Aug 2023', location: '', description: '' },
+                        { title: 'Logistics Employee', type: 'Part-time', period: 'Aug 2022 - Dec 2022', location: '', description: '' }
+                    ]
+                    },
+                    {
+                        company: 'Blue-Lagoon',
+                        logo: '',
+                        positions: [
+                        { title: 'Intern Animal Care', type: 'Internship', period: 'Jan 2022 - Mar 2022', location: 'Maassluis, South Holland, Netherlands · On-site', description: 'Taking care of animals, filling shelves, assisting in the store and preparing packages for shipping.' }
+                    ]
+                    }
+                ] %}
+
+                <div id="e-list">
+                    {% for experience in experiences %}
+                        <article class="e-item">
+                            <figure class="ei-logo">
+                                {% if experience.logo %}
+                                    <img src="{{ experience.logo }}" alt="{{ experience.company }}">
+                                {% else %}
+                                    <span>{{ experience.company|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
+
+                            <div class="ei-content">
+                                {% if experience.positions|length > 1 %}
+                                    <div class="ei-company">
+                                        <h3>{{ experience.company }}</h3>
+                                        <p class="ei-muted">{{ experience.duration|default('') }}</p>
+                                        <p class="ei-muted">{{ experience.location|default('') }}</p>
+                                    </div>
+
+                                    <div class="ei-timeline">
+                                        {% for position in experience.positions %}
+                                            <div class="ei-position">
+                                                <h4>{{ position.title }}</h4>
+                                                <p>{{ position.type }}</p>
+                                                <p class="ei-muted">{{ position.period }}</p>
+                                                {% if position.location %}
+                                                    <p class="ei-muted">{{ position.location }}</p>
+                                                {% endif %}
+                                                {% if position.description %}
+                                                    <p class="ei-description">{{ position.description }}</p>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {% set position = experience.positions|first %}
+                                    <h3>{{ position.title }}</h3>
+                                    <p>{{ experience.company }} · {{ position.type }}</p>
+                                    <p class="ei-muted">{{ position.period }}</p>
+                                    <p class="ei-muted">{{ position.location }}</p>
+                                    {% if position.description %}
+                                        <p class="ei-description">{{ position.description }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <a class="e-footer" href="#">
+                    <p>Alle werkervaring weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
             </section>
 
             <section id="education" class="section">
                 <h2 id="edu-title">Onderwijs</h2>
+
+                {% set educations = [
+                    {
+                        school: 'Grafisch Lyceum Utrecht',
+                        degree: 'MBO 4, Software Developer',
+                        period: 'Sep 2023 - Jul 2027',
+                        description: 'Creative Software Development - Web Development',
+                        skills: 'Cascading Style Sheets (CSS), MySQL, PHP en meer',
+                        logo: ''
+                    },
+                    {
+                        school: 'Aeres MBO Barneveld',
+                        degree: 'MBO 4, Bedrijfsleider Dierverzorging',
+                        period: 'Sep 2021 - Dec 2022',
+                        description: '',
+                        skills: 'Microsoft Excel en Microsoft Word',
+                        logo: ''
+                    }
+                ] %}
+
+                <div id="edu-list">
+                    {% for education in educations %}
+                        <article class="edu-item">
+                            <figure class="edui-logo">
+                                {% if education.logo %}
+                                    <img src="{{ education.logo }}" alt="{{ education.school }}">
+                                {% else %}
+                                    <span>{{ education.school|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
+
+                            <div class="edui-content">
+                                <h3>{{ education.school }}</h3>
+                                <p>{{ education.degree }}</p>
+                                <p class="edui-muted">{{ education.period }}</p>
+
+                                {% if education.description %}
+                                    <p class="edui-description">{{ education.description }}</p>
+                                {% endif %}
+
+                                {% if education.skills %}
+                                    <p class="edui-skills">
+                                        <strong>Vaardigheden:</strong> {{ education.skills }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <a class="edu-footer" href="#">
+                    <p>Alle opleidingen weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
             </section>
 
             <section id="licenses" class="section">
                 <h2 id="l-title">Licenties en certificeringen (3)</h2>
+
+                {% set certificates = [
+                    {
+                        title: 'Workshop Participation Certificate - Vocational Education Mentor',
+                        issuer: 'Samenwerkingsorganisatie Beroepsonderwijs Bedrijfsleven (SBB)',
+                        issued: 'Issued Jun 2026',
+                        credential: '',
+                        url: '',
+                        logo: ''
+                    },
+                    {
+                        title: 'Example Certificate',
+                        issuer: 'Issuing Organisation',
+                        issued: 'Issued 2026',
+                        credential: 'EXAMPLE-123',
+                        url: '',
+                        logo: ''
+                    },
+                    {
+                        title: 'Example Training Certificate',
+                        issuer: 'Training Provider',
+                        issued: 'Issued 2025',
+                        credential: '',
+                        url: '',
+                        logo: ''
+                    }
+                ] %}
+
+                <div id="l-list">
+                    {% for certificate in certificates %}
+                        <article class="l-item">
+                            <figure class="li-logo">
+                                {% if certificate.logo %}
+                                    <img src="{{ certificate.logo }}" alt="{{ certificate.issuer }}">
+                                {% else %}
+                                    <span>{{ certificate.issuer|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
+
+                            <div class="li-content">
+                                <h3>{{ certificate.title }}</h3>
+                                <p>{{ certificate.issuer }}</p>
+                                <p class="li-muted">{{ certificate.issued }}</p>
+
+                                {% if certificate.credential %}
+                                    <p class="li-muted">
+                                        Credential ID: {{ certificate.credential }}
+                                    </p>
+                                {% endif %}
+
+                                {% if certificate.url %}
+                                    <a class="li-action" href="{{ certificate.url }}" target="_blank" rel="noopener noreferrer">
+                                        <p>Certificaat weergeven</p>
+                                        <span aria-hidden="true">↗</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <a class="l-footer" href="#">
+                    <p>Alle certificeringen weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
             </section>
 
             <section id="skills" class="section">
                 <h2 id="s-title">Vaardigheden (25)</h2>
+
+                {% set profileSkills = [
+                    {
+                        name: 'Product Management',
+                        context: 'Product Owner & Lead Developer · HNNW',
+                        endorsements: 0
+                    },
+                    {
+                        name: 'Software Engineering',
+                        context: 'SSC-ICT en DIVD Academy',
+                        endorsements: 0
+                    },
+                    {
+                        name: 'Software Development',
+                        context: 'Grafisch Lyceum Utrecht en werkervaring',
+                        endorsements: 0
+                    },
+                    {
+                        name: 'Cybersecurity',
+                        context: 'DIVD Academy',
+                        endorsements: 0
+                    },
+                    {
+                        name: 'Python (Programming Language)',
+                        context: 'Projecten en opleiding',
+                        endorsements: 0
+                    }
+                ] %}
+
+                <div id="s-list">
+                    {% for skill in profileSkills %}
+                        <article class="s-item">
+                            <h3>{{ skill.name }}</h3>
+
+                            {% if skill.context %}
+                                <div class="si-context">
+                                    <span aria-hidden="true">◇</span>
+                                    <p>{{ skill.context }}</p>
+                                </div>
+                            {% endif %}
+
+                            {% if skill.endorsements > 0 %}
+                                <p class="si-endorsements">
+                                    {{ skill.endorsements }} onderschrijvingen
+                                </p>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <a class="s-footer" href="#">
+                    <p>Alle 25 vaardigheden weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
             </section>
 
             <section id="recommendations" class="section">
                 <h2 id="r-title">Aanbevelingen</h2>
+
+                {% set receivedRecommendations = [
+                    {
+                        name: 'Voorbeeldpersoon',
+                        initials: 'VP',
+                        headline: 'Software Engineer',
+                        relation: 'Worked together on a software development project',
+                        date: 'November 2026',
+                        text: 'Dit is een voorbeeld van een ontvangen aanbeveling. Hier kan een collega of leidinggevende een aanbeveling schrijven over de samenwerking, technische kennis en professionele vaardigheden.'
+                    }
+                ] %}
+
+                {% set givenRecommendations = [] %}
+
+                <div id="r-tabs">
+                    <input type="radio" name="recommendation-tab" id="rt-received" checked>
+                    <input type="radio" name="recommendation-tab" id="rt-given">
+
+                    <div id="rt-navigation">
+                        <label for="rt-received">Ontvangen</label>
+                        <label for="rt-given">Gegeven</label>
+                    </div>
+
+                    <div id="rt-received-content" class="rt-content">
+                        {% for recommendation in receivedRecommendations %}
+                            <article class="r-item">
+                                <figure class="ri-avatar">
+                                    <span>{{ recommendation.initials }}</span>
+                                </figure>
+
+                                <div class="ri-content">
+                                    <h3>{{ recommendation.name }}</h3>
+                                    <p class="ri-headline">{{ recommendation.headline }}</p>
+                                    <p class="ri-muted">{{ recommendation.date }}</p>
+                                    <p class="ri-muted">{{ recommendation.relation }}</p>
+                                    <p class="ri-description">{{ recommendation.text }}</p>
+                                </div>
+                            </article>
+                        {% else %}
+                            <p class="r-empty">Er zijn nog geen ontvangen aanbevelingen.</p>
+                        {% endfor %}
+                    </div>
+
+                    <div id="rt-given-content" class="rt-content">
+                        {% for recommendation in givenRecommendations %}
+                            <article class="r-item">
+                                <figure class="ri-avatar">
+                                    <span>{{ recommendation.initials }}</span>
+                                </figure>
+
+                                <div class="ri-content">
+                                    <h3>{{ recommendation.name }}</h3>
+                                    <p class="ri-headline">{{ recommendation.headline }}</p>
+                                    <p class="ri-muted">{{ recommendation.date }}</p>
+                                    <p class="ri-description">{{ recommendation.text }}</p>
+                                </div>
+                            </article>
+                        {% else %}
+                            <p class="r-empty">Er zijn nog geen gegeven aanbevelingen.</p>
+                        {% endfor %}
+                    </div>
+                </div>
             </section>
         </article>
 

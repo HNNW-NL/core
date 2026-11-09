@@ -43,8 +43,9 @@
 body {
     background-color: var(--background);
     min-height: 100svh;
+    font-family: 'Lato', sans-serif;
 
-    h1, h2, h3 {
+    h1, h2, h3, h4, h5, h6 {
         font-family: 'Inter', sans-serif;
     }
 
@@ -64,8 +65,11 @@ body {
     }
 
     p {
-        font-family: lato;
         line-height: 1.5em;
+    }
+
+    button, input, textarea, select {
+        font: inherit;
     }
 }
 

@@ -260,6 +260,525 @@ body {
                         }
                     }
                 }
+
+                #experience {
+                    /* > CSS01 */
+                    #e-title {
+                        margin-bottom: 1em;
+                    }
+
+                    #e-list {
+                        .e-item {
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 1em;
+                            padding: 1.25em 0;
+                            border-bottom: 1px solid var(--background);
+
+                            &:first-child {
+                                padding-top: 0;
+                            }
+
+                            &:last-child {
+                                border-bottom: none;
+                            }
+
+                            .ei-logo {
+                                width: 3.5em;
+                                aspect-ratio: 1/1;
+                                flex-shrink: 0;
+                                margin: 0;
+                                border-radius: 5px;
+                                overflow: hidden;
+                                background: var(--background);
+
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+
+                                img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: contain;
+                                }
+
+                                span {
+                                    font-weight: bold;
+                                    font-size: 1.5em;
+                                }
+                            }
+
+                            .ei-content {
+                                flex: 1;
+                                min-width: 0;
+
+                                h3, h4 {
+                                    font-size: 1em;
+                                    font-weight: 600;
+                                    overflow-wrap: anywhere;
+                                }
+
+                                p {
+                                    line-height: 1.4;
+                                }
+
+                                .ei-muted {
+                                    color: var(--paragraph-grey);
+                                    font-size: .9em;
+                                }
+
+                                .ei-description {
+                                    margin-top: .85em;
+                                    line-height: 1.5;
+                                }
+
+                                .ei-company {
+                                    margin-bottom: 1.25em;
+                                }
+
+                                .ei-timeline {
+                                    .ei-position {
+                                        position: relative;
+                                        padding: 0 0 1.5em 2em;
+
+                                        &::before {
+                                            content: "";
+                                            position: absolute;
+                                            left: .35em;
+                                            top: .65em;
+                                            bottom: 0;
+                                            width: 2px;
+                                            background: var(--paragraph-grey);
+                                            opacity: .5;
+                                        }
+
+                                        &::after {
+                                            content: "";
+                                            position: absolute;
+                                            left: .1em;
+                                            top: .3em;
+                                            width: .65em;
+                                            height: .65em;
+                                            border-radius: 50%;
+                                            background: var(--paragraph-grey);
+                                        }
+
+                                        &:last-child {
+                                            padding-bottom: 0;
+
+                                            &::before {
+                                                display: none;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .e-footer {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: .5em;
+                        padding: 1em;
+                        margin: 1em -2.7% -2.7%;
+                        border-top: 1px solid var(--background);
+                        color: var(--paragraph-grey);
+                        text-decoration: none;
+                        font-weight: 600;
+
+                        &:hover {
+                            background: var(--background);
+                            color: inherit;
+                        }
+                    }
+                    /* < CSS01 */
+                }
+
+                #education {
+                    /* > CSS02 */
+                    #edu-title {
+                        margin-bottom: 1em;
+                    }
+
+                    #edu-list {
+                        .edu-item {
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 1em;
+                            padding: 1.25em 0;
+                            border-bottom: 1px solid var(--background);
+
+                            &:first-child {
+                                padding-top: 0;
+                            }
+
+                            &:last-child {
+                                border-bottom: none;
+                            }
+
+                            .edui-logo {
+                                width: 3.5em;
+                                aspect-ratio: 1/1;
+                                flex-shrink: 0;
+                                margin: 0;
+                                border-radius: 5px;
+                                background: var(--background);
+                                overflow: hidden;
+
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+
+                                img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: contain;
+                                }
+
+                                span {
+                                    font-size: 1.5em;
+                                    font-weight: bold;
+                                }
+                            }
+
+                            .edui-content {
+                                flex: 1;
+                                min-width: 0;
+
+                                h3 {
+                                    font-size: 1em;
+                                    font-weight: 600;
+                                }
+
+                                p {
+                                    line-height: 1.45;
+                                }
+
+                                .edui-muted {
+                                    color: var(--paragraph-grey);
+                                    font-size: .9em;
+                                }
+
+                                .edui-description,
+                                .edui-skills {
+                                    margin-top: .75em;
+                                }
+                            }
+                        }
+                    }
+
+                    .edu-footer {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        gap: .5em;
+                        padding: 1em;
+                        margin: 1em -2.7% -2.7%;
+                        border-top: 1px solid var(--background);
+                        color: var(--paragraph-grey);
+                        text-decoration: none;
+                        font-weight: 600;
+
+                        &:hover {
+                            background: var(--background);
+                            color: inherit;
+                        }
+                    }
+                    /* < CSS02 */
+                }
+
+                #licenses {
+                    /* > CSS03 */
+                    #l-title {
+                        margin-bottom: 1em;
+                    }
+
+                    #l-list {
+                        .l-item {
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 1em;
+                            padding: 1.25em 0;
+                            border-bottom: 1px solid var(--background);
+
+                            &:first-child {
+                                padding-top: 0;
+                            }
+
+                            &:last-child {
+                                border-bottom: none;
+                            }
+
+                            .li-logo {
+                                width: 3.5em;
+                                aspect-ratio: 1/1;
+                                flex-shrink: 0;
+                                margin: 0;
+                                border-radius: 5px;
+                                background: var(--background);
+                                overflow: hidden;
+
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+
+                                img {
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: contain;
+                                }
+
+                                span {
+                                    font-size: 1.5em;
+                                    font-weight: bold;
+                                }
+                            }
+
+                            .li-content {
+                                flex: 1;
+                                min-width: 0;
+
+                                h3 {
+                                    font-size: 1em;
+                                    font-weight: 600;
+                                }
+
+                                p {
+                                    line-height: 1.45;
+                                }
+
+                                .li-muted {
+                                    color: var(--paragraph-grey);
+                                    font-size: .9em;
+                                }
+
+                                .li-action {
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: .5em;
+                                    margin-top: .75em;
+                                    padding: .4em 1em;
+                                    border: 1px solid var(--paragraph-grey);
+                                    border-radius: 25px;
+                                    color: inherit;
+                                    text-decoration: none;
+                                    font-size: .85em;
+                                    font-weight: 600;
+
+                                    &:hover {
+                                        background: var(--background);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .l-footer {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        gap: .5em;
+                        padding: 1em;
+                        margin: 1em -2.7% -2.7%;
+                        border-top: 1px solid var(--background);
+                        color: var(--paragraph-grey);
+                        text-decoration: none;
+                        font-weight: 600;
+
+                        &:hover {
+                            background: var(--background);
+                            color: inherit;
+                        }
+                    }
+                    /* < CSS03 */
+                }
+
+                #skills {
+                    /* > CSS04 */
+                    #s-title {
+                        margin-bottom: 1em;
+                    }
+
+                    #s-list {
+                        .s-item {
+                            padding: 1em 0;
+                            border-bottom: 1px solid var(--background);
+
+                            &:first-child {
+                                padding-top: 0;
+                            }
+
+                            &:last-child {
+                                border-bottom: none;
+                            }
+
+                            h3 {
+                                font-size: 1em;
+                                font-weight: 600;
+                                margin-bottom: .5em;
+                            }
+
+                            .si-context {
+                                display: flex;
+                                align-items: center;
+                                gap: .5em;
+                                margin-top: .35em;
+
+                                span {
+                                    flex-shrink: 0;
+                                    font-size: 1.1em;
+                                }
+
+                                p {
+                                    font-size: .9em;
+                                    line-height: 1.4;
+                                    color: var(--paragraph-grey);
+                                }
+                            }
+
+                            .si-endorsements {
+                                margin-top: .5em;
+                                color: var(--paragraph-grey);
+                                font-size: .85em;
+                            }
+                        }
+                    }
+
+                    .s-footer {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: .5em;
+                        padding: 1em;
+                        margin: 1em -2.7% -2.7%;
+                        border-top: 1px solid var(--background);
+                        color: var(--paragraph-grey);
+                        text-decoration: none;
+                        font-weight: 600;
+
+                        &:hover {
+                            background: var(--background);
+                            color: inherit;
+                        }
+                    }
+                    /* < CSS04 */
+                }
+
+                #recommendations {
+                    /* > CSS05 */
+                    #r-title {
+                        margin-bottom: 1em;
+                    }
+
+                    #r-tabs {
+                        > input {
+                            position: absolute;
+                            width: 1px;
+                            height: 1px;
+                            opacity: 0;
+                        }
+
+                        #rt-navigation {
+                            display: flex;
+                            gap: 1.5em;
+                            border-bottom: 1px solid var(--background);
+                            margin-bottom: 1.25em;
+
+                            label {
+                                padding: .75em .5em;
+                                cursor: pointer;
+                                color: var(--paragraph-grey);
+                                font-weight: 600;
+                                border-bottom: 3px solid transparent;
+
+                                &:hover {
+                                    color: inherit;
+                                }
+                            }
+                        }
+
+                        #rt-received:checked ~ #rt-navigation label[for="rt-received"],
+                        #rt-given:checked ~ #rt-navigation label[for="rt-given"] {
+                            color: var(--hnnw-yellow-500);
+                            border-bottom-color: var(--hnnw-yellow-500);
+                        }
+
+                        .rt-content {
+                            display: none;
+                        }
+
+                        #rt-received:checked ~ #rt-received-content,
+                        #rt-given:checked ~ #rt-given-content {
+                            display: block;
+                        }
+
+                        .r-item {
+                            display: flex;
+                            align-items: flex-start;
+                            gap: 1em;
+                            padding: 1em 0;
+                            border-bottom: 1px solid var(--background);
+
+                            &:last-child {
+                                border-bottom: none;
+                            }
+
+                            .ri-avatar {
+                                width: 3.5em;
+                                aspect-ratio: 1/1;
+                                flex-shrink: 0;
+                                margin: 0;
+                                border-radius: 50%;
+                                background: var(--background);
+
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+
+                                span {
+                                    font-weight: 600;
+                                }
+                            }
+
+                            .ri-content {
+                                flex: 1;
+                                min-width: 0;
+
+                                h3 {
+                                    font-size: 1em;
+                                    font-weight: 600;
+                                }
+
+                                .ri-headline {
+                                    font-size: .9em;
+                                    margin-top: .2em;
+                                }
+
+                                .ri-muted {
+                                    font-size: .85em;
+                                    color: var(--paragraph-grey);
+                                    margin-top: .2em;
+                                }
+
+                                .ri-description {
+                                    margin-top: 1em;
+                                    line-height: 1.5;
+                                    overflow-wrap: anywhere;
+                                }
+                            }
+                        }
+
+                        .r-empty {
+                            padding: 2em 0;
+                            text-align: center;
+                            color: var(--paragraph-grey);
+                            font-size: .9em;
+                        }
+                    }
+                    /* < CSS05 */
+                }
             }
 
             /* Suggestions */
