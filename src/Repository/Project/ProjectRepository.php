@@ -87,6 +87,8 @@ class ProjectRepository extends ServiceEntityRepository
             ->addSelect('status')
             ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
             ->addSelect('ownerOrganisation')
+            ->andwhere('project.startDate <= :now')
+            ->andWhere('project.endDate >= :now')
             ->andWhere('project.publishedAt IS NOT NULL')
             ->andWhere('project.deletedAt IS NULL')
             ->andWhere('project.visibility = :visibility')
