@@ -53,6 +53,22 @@
                             <p>Geen beschrijving beschikbaar.</p>
                         {% endif %}
 
+                        {% if workPackage.status %}
+                            <p class="work-package-status">Status: {{ workPackage.status.name }}</p>
+                        {% endif %}
+
+                        {% set totalTasks = packageTasks|length %}
+                        {% set completedTasks = 0 %}
+                        {% for task in packageTasks %}
+                            {% if task.status and task.status.name|lower in ['completed', 'afgerond', 'done'] %}
+                                {% set completedTasks = completedTasks + 1 %}
+                            {% endif %}
+                        {% endfor %}
+
+                        <p class="work-package-progress">
+                            Voortgang taken: <strong>{{ completedTasks }} / {{ totalTasks }}</strong> afgerond
+                        </p>
+
                         {% if packageTasks is empty %}
                             <p>Er zijn nog geen taken binnen dit werkpakket.</p>
                         {% else %}
