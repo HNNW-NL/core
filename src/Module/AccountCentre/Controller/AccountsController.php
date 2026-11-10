@@ -30,6 +30,11 @@ final class AccountsController extends AbstractController
     {
         $account = $this->get_and_check_account($entityManager);
 
+        if (!$account instanceof Account) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         return $this->render('pages/account-centre/applications.html.twig', [
@@ -77,6 +82,11 @@ final class AccountsController extends AbstractController
     public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
     {
         $account = $this->get_and_check_account($entityManager);
+
+        if (!$account instanceof Account) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
@@ -277,6 +287,11 @@ final class AccountsController extends AbstractController
     {
         $account = $this->get_and_check_account($entityManager);
 
+        if (!$account instanceof Account) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
             $this->addFlash('error', 'Profiel niet gevonden.');
@@ -352,6 +367,11 @@ final class AccountsController extends AbstractController
     {
         $account = $this->get_and_check_account($entityManager);
 
+        if (!$account instanceof Account) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
         $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
 
         if (!$experience) {
@@ -382,6 +402,10 @@ final class AccountsController extends AbstractController
     public function modify(Request $request, EntityManagerInterface $entityManager): Response
     {
         $account = $this->get_and_check_account($entityManager);
+
+        if (!$account instanceof Account) {
+            return $this->redirectToRoute('auth.login');
+        }
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
@@ -441,6 +465,11 @@ final class AccountsController extends AbstractController
     {
 
         $account = $this->get_and_check_account($entityManager);
+
+        if (!$account instanceof Account) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
 
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
@@ -519,20 +548,20 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/skills.html.twig');
     }
 
-    private function get_and_check_account($entityManager): Account|RedirectResponse
+    private function get_and_check_account($entityManager): Account|null
     {
         $accountId = $this->getUser();
 
         if (!$accountId) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
+            return null;
         }
 
         $account = $entityManager->getRepository(Account::class)->find($accountId);
 
         if (!$account) {
             $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
+            return null;
         }
         return $account;
     }
