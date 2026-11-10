@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity\Common;
 
 use App\Entity\Account\Account;
