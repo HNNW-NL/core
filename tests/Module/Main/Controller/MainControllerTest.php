@@ -29,6 +29,10 @@ class MainControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h2', 'Openbare projecten');
+        $this->assertSelectorTextContains(
+            '.hero-text',
+            'HNNW is een open source samenwerkingsplatform voor ambtenaren en publieke teams.'
+        );
         $this->assertSelectorExists('body > a.skip-link[href="#main-content"]');
         $this->assertSelectorExists('.open-project-card');
         $this->assertSelectorTextContains('.open-project-card h3', 'Gepubliceerd testproject');
