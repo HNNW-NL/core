@@ -15,6 +15,9 @@ security:
         main:
             lazy: true
             provider: account_provider
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
             custom_authenticators:
                 - App\Security\AccountAuthenticator
             logout:
@@ -35,6 +38,7 @@ security:
         - { path: ^/auth/(login|register|forgot-password|reset-password|verify-email), roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/org, roles: ROLE_USER }
+        - { path: ^/account, roles: ROLE_USER }
 
 when@test:
     security:
