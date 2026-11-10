@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity\Admin;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -23,9 +24,6 @@ class AdminRole
 
     #[ORM\Column(name: 'permissions_mask', type: "bigint", nullable: true)]
     private ?int $permissionsMask = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -54,10 +52,7 @@ class AdminRole
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -95,7 +90,7 @@ class AdminRole
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
