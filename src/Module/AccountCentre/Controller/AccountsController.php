@@ -10,6 +10,7 @@ use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -27,19 +28,7 @@ final class AccountsController extends AbstractController
     #[Route('/applications', name: 'applications', methods: ['GET'])]
     public function applications(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je aanmeldingen te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->get_and_check_account($entityManager);
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
@@ -72,11 +61,7 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
 
-            if (method_exists($application, 'softDelete')) {
                 $application->softDelete();
-            } else {
-                $application->setDeletedAt(new \DateTimeImmutable());
-            }
 
             $entityManager->flush();
 
@@ -91,18 +76,7 @@ final class AccountsController extends AbstractController
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
     public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
     {
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je beschikbaarheid te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->get_and_check_account($entityManager);
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
@@ -301,18 +275,7 @@ final class AccountsController extends AbstractController
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
     public function experience(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->get_and_check_account($entityManager);
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile) {
@@ -387,12 +350,7 @@ final class AccountsController extends AbstractController
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->get_and_check_account($entityManager);
 
         $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
 
@@ -400,8 +358,6 @@ final class AccountsController extends AbstractController
             $this->addFlash('error', 'Ervaring niet gevonden.');
             return $this->redirectToRoute('account.experience');
         }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         if (!$profile || $experience->getProfile() !== $profile) {
@@ -411,11 +367,7 @@ final class AccountsController extends AbstractController
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('delete_experience' . $experience->getId(), $csrfToken)) {
 
-            if (method_exists($experience, 'softDelete')) {
-                $experience->softDelete();
-            } else {
-                $experience->setDeletedAt(new \DateTimeImmutable());
-            }
+            $experience->softDelete();
 
             $entityManager->flush();
             $this->addFlash('success', 'Werkervaring succesvol verwijderd.');
@@ -429,19 +381,7 @@ final class AccountsController extends AbstractController
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->get_and_check_account($entityManager);
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
@@ -500,19 +440,7 @@ final class AccountsController extends AbstractController
     public function notifications(Request $request, EntityManagerInterface $entityManager): Response
     {
 
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
+        $account = $this->get_and_check_account($entityManager);
 
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
@@ -589,5 +517,23 @@ final class AccountsController extends AbstractController
     public function skills(): Response
     {
         return $this->render('pages/account-centre/skills.html.twig');
+    }
+
+    private function get_and_check_account($entityManager): Account|RedirectResponse
+    {
+        $accountId = $this->getUser();
+
+        if (!$accountId) {
+            $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
+            return $this->redirectToRoute('auth.login');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+
+        if (!$account) {
+            $this->addFlash('error', 'Account niet gevonden.');
+            return $this->redirectToRoute('auth.login');
+        }
+        return $account;
     }
 }
