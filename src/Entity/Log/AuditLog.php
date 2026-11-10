@@ -9,7 +9,6 @@ use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'audit_logs')]
-#[ORM\HasLifecycleCallbacks]
 class AuditLog
 {
     // Columns
@@ -49,9 +48,6 @@ class AuditLog
     #[ORM\Column(name: 'user_agent', type: "text")]
     private ?string $userAgent = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt;
-
 
     // Functions
 
@@ -63,12 +59,6 @@ class AuditLog
     public function getId(): Ulid
     {
         return $this->id;
-    }
-
-    #[ORM\PrePersist]
-    public function onCreate(): void
-    {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
 
@@ -194,8 +184,8 @@ class AuditLog
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 }
