@@ -2,6 +2,7 @@
 
 namespace App\Module\Admin\Controller;
 
+use App\Repository\Common\StatusRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -52,29 +53,10 @@ final class DashboardController extends AbstractController
     #[IsGranted('ADMIN_MANAGE_SETTINGS')]
     public function statuses(): Response
     {
+        $statuses = $statusRepository->findAll();
+
         return $this->render('pages/admin/statuses.html.twig', [
-            'statuses' => [],
+            'statuses' => $statuses,
         ]);
     }
-<<<<<<< HEAD
-=======
-
-    #[Route('/statuses/create', name: 'statuses.create', methods: ['GET'])]
-    public function create(): Response
-    {
-        return new Response('Aanmaken');
-    }
-
-    #[Route('/statuses/{id}/edit', name: 'statuses.edit', methods: ['GET'])]
-    public function edit(int $id): Response
-    {
-        return new Response('Bewerken ' . $id);
-    }
-
-    #[Route('/statuses/{id}/delete', name: 'statuses.delete', methods: ['POST'])]
-    public function delete(int $id): Response
-    {
-        return $this->redirectToRoute('admin.statuses');
-    }
->>>>>>> 8b651a8 (statusoverzicht pagina werkend gemaakt)
 }
