@@ -4,8 +4,8 @@ namespace App\Entity\Admin;
 use App\Entity\Account\Account;
 use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'admins')]
@@ -15,8 +15,8 @@ class Admin
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\OneToOne(inversedBy: 'admin')]
     #[ORM\JoinColumn(name: 'account_id', unique: true, nullable: false)]
@@ -49,10 +49,10 @@ class Admin
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
