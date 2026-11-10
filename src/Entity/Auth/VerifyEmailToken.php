@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity\Auth;
 
 use App\Entity\Account\Account;
@@ -30,9 +31,6 @@ class VerifyEmailToken
     #[ORM\Column(name: 'is_used', type: 'boolean')]
     private bool $isUsed = false;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
-
     #[ORM\Column(name: 'expires_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $expiresAt;
 
@@ -57,10 +55,7 @@ class VerifyEmailToken
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->expiresAt = $now->modify("+24 hours +5 minutes");
+        $this->expiresAt = $this->id->getDateTime()->modify('+24 hours +5 minutes');
     }
 
     public function markAsUsed(): void
@@ -124,7 +119,7 @@ class VerifyEmailToken
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getExpiresAt(): \DateTimeImmutable
