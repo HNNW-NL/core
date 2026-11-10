@@ -79,15 +79,96 @@ class ProjectRepository extends ServiceEntityRepository
 
 
     /**
-     * @return list<Project>
+     * @return list<array{
+     *     slug: string,
+     *     title: string,
+     *     summary: string,
+     *     organisationName: string,
+     *     location: string|null,
+     *     projectStatus: string,
+     *     remotePossible: bool,
+     *     canApply: bool|int|string
+     * }>
      */
-    public function findPublicForHomepage(int $limit = 6): array
+    public function findPublicProjects(?int $limit = null): array
     {
-        return $this->createQueryBuilder('project')
+        $queryBuilder = $this->createPublicProjectsQueryBuilder();
+        $queryBuilder->orderBy('project.publishedAt', 'DESC');
+
+        if ($limit !== null) {
+            $queryBuilder->setMaxResults($limit);
+        }
+
+        return $queryBuilder->getQuery()->getScalarResult();
+    }
+
+    /**
+     * @return list<array{
+     *     slug: string,
+     *     title: string,
+     *     summary: string,
+     *     organisationName: string,
+     *     location: string|null,
+     *     projectStatus: string,
+     *     remotePossible: bool,
+     *     canApply: bool|int|string
+     * }>
+     */
+    public function findPaginatedPublicProjects(
+        string $search,
+        bool $onlyAcceptingApplications,
+        int $page,
+        int $perPage,
+    ): array {
+        return $this->createPublicProjectsQueryBuilder($search, $onlyAcceptingApplications)
+            ->orderBy('project.publishedAt', 'DESC')
+            ->addOrderBy('project.id', 'ASC')
+            ->setFirstResult((max(1, $page) - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getScalarResult();
+    }
+
+    public function countPublicProjects(
+        string $search,
+        bool $onlyAcceptingApplications,
+    ): int {
+        return (int) $this->createPublicProjectsQueryBuilder(
+            $search,
+            $onlyAcceptingApplications,
+            false,
+        )
+            ->select('COUNT(DISTINCT project.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    private function createPublicProjectsQueryBuilder(
+        string $search = '',
+        bool $onlyAcceptingApplications = false,
+        bool $includeAvailability = true,
+    ): QueryBuilder {
+        $now = new \DateTimeImmutable();
+        $activeParticipantCount = static fn (string $participantAlias): string =>
+            '(SELECT COUNT(' . $participantAlias . '.id)
+                FROM App\Entity\Project\ProjectParticipant ' . $participantAlias . '
+                WHERE ' . $participantAlias . '.project = project
+                    AND ' . $participantAlias . '.joinedAt IS NOT NULL
+                    AND ' . $participantAlias . '.leftAt IS NULL
+            )';
+
+        $queryBuilder = $this->createQueryBuilder('project')
+            ->select(
+                'project.slug AS slug',
+                'project.title AS title',
+                'project.summary AS summary',
+                'ownerOrganisation.name AS organisationName',
+                'ownerOrganisation.location AS location',
+                'status.name AS projectStatus',
+                'project.remotePossible AS remotePossible'
+            )
             ->innerJoin('project.status', 'status')
-            ->addSelect('status')
             ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
-            ->addSelect('ownerOrganisation')
             ->andWhere('project.startDate <= :now')
             ->andWhere('(project.endDate IS NULL OR project.endDate >= :now)')
             ->andWhere('project.publishedAt IS NOT NULL')
@@ -95,13 +176,36 @@ class ProjectRepository extends ServiceEntityRepository
             ->andWhere('project.visibility = :visibility')
             ->andWhere('status.scope = :statusScope')
             ->andWhere('status.name = :statusName')
-            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('now', $now)
             ->setParameter('visibility', 'public')
             ->setParameter('statusScope', 'project')
-            ->setParameter('statusName', 'published')
-            ->orderBy('project.publishedAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
+            ->setParameter('statusName', 'published');
+
+        if ($includeAvailability) {
+            $availabilityParticipantCount = $activeParticipantCount(
+                'availabilityParticipant',
+            );
+            $queryBuilder->addSelect(
+                'CASE WHEN project.capacity IS NULL OR '
+                    . $availabilityParticipantCount
+                    . ' < project.capacity THEN 1 ELSE 0 END AS canApply'
+            );
+        }
+
+        $search = trim($search);
+        if ($search !== '') {
+            $queryBuilder
+                ->andWhere('(LOWER(project.title) LIKE :search OR LOWER(project.summary) LIKE :search)')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
+        if ($onlyAcceptingApplications) {
+            $filterParticipantCount = $activeParticipantCount('filterParticipant');
+            $queryBuilder->andWhere(
+                '(project.capacity IS NULL OR ' . $filterParticipantCount . ' < project.capacity)'
+            );
+        }
+
+        return $queryBuilder;
     }
 }

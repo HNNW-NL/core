@@ -1,7 +1,7 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Projects{% endblock %}
+{% block title %}Projecten{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
@@ -9,13 +9,79 @@
 {% block seoAuthor %}HNNW{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/index.css') }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Projects</h2>
-    <p>Main - projects page.</p>
+<div class="home-page projects-page">
+    <section class="open-projects container" aria-labelledby="projects-title">
+        <div class="open-projects-heading">
+            <div>
+                <p class="hnnw-eyebrow">Doe mee</p>
+                <h1 id="projects-title">Openbare projecten</h1>
+            </div>
+        </div>
+
+        <form class="project-filters" method="get" action="{{ path('main.projects.home') }}">
+            <label for="project-search">Zoek op titel of samenvatting</label>
+            <input id="project-search" type="search" name="q" value="{{ search }}">
+            <label class="project-open-filter">
+                <input type="checkbox" name="open" value="1" {% if onlyAcceptingApplications %}checked{% endif %}>
+                Alleen projecten waarop je je kunt aanmelden
+            </label>
+            <button type="submit">Zoeken</button>
+        </form>
+
+        <p class="project-results-count">
+            {{ totalProjects }} {{ totalProjects == 1 ? 'project' : 'projecten' }} gevonden
+        </p>
+
+        {% if publicProjects is not empty %}
+            <div class="open-projects-grid">
+                {% for project in publicProjects %}
+                    <article class="open-project-card">
+                        <h2><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h2>
+                        <p class="open-project-organisation">{{ project.organisationName }}</p>
+                        <p class="open-project-summary">{{ project.summary }}</p>
+                        <p class="project-location">
+                            {% if project.location %}
+                                {{ project.location }}
+                            {% elseif project.remotePossible %}
+                                Op afstand mogelijk
+                            {% else %}
+                                Locatie niet opgegeven
+                            {% endif %}
+                        </p>
+                        <p class="project-status">Status: {{ project.projectStatus == 'published' ? 'Gepubliceerd' : project.projectStatus }}</p>
+                        {% if project.canApply %}
+                            <a class="open-project-link" href="{{ path('main.projects.apply', { slug: project.slug }) }}">Aanmelden mogelijk</a>
+                        {% else %}
+                            <p class="project-application-closed">Aanmelden niet mogelijk</p>
+                        {% endif %}
+                        <a class="open-project-link" href="{{ path('main.projects.detail', { slug: project.slug }) }}">Bekijk project</a>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="open-projects-empty">Er zijn op dit moment geen openbare projecten beschikbaar.</p>
+        {% endif %}
+
+        {% if totalPages > 1 %}
+            <nav class="project-pagination" aria-label="Paginering">
+                {% if currentPage > 1 %}
+                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, page: currentPage - 1 }) }}">Vorige</a>
+                {% endif %}
+                <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
+                {% if currentPage < totalPages %}
+                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, page: currentPage + 1 }) }}">Volgende</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    </section>
+</div>
 {% endblock %}

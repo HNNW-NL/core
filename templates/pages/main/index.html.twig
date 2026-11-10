@@ -63,7 +63,7 @@
             {% for project in publicProjects %}
                 <article class="open-project-card">
                     <h3><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h3>
-                    <p class="open-project-organisation">{{ project.ownerOrganisation.name }}</p>
+                    <p class="open-project-organisation">{{ project.organisationName }}</p>
                     <p class="open-project-summary">{{ project.summary }}</p>
                     <a class="open-project-link" href="{{ path('main.projects.detail', { slug: project.slug }) }}">Bekijk project</a>
                 </article>

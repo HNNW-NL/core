@@ -2,8 +2,8 @@
 
 namespace App\Tests;
 
-use App\Repository\Project\ProjectRepository;
 use App\DataFixtures\Account\AccountFixtures;
+use App\DataFixtures\Project\PublicProjectListingFixtures;
 use App\DataFixtures\Project\ProjectFixtures;
 use App\Entity\Account\Account;
 use Doctrine\ORM\EntityManagerInterface;
@@ -90,6 +90,64 @@ class MainControllerTest extends WebTestCase
         );
 
         $this->assertSelectorNotExists('.open-project-card');
+    }
+
+    public function testProjectsPageUsesThePublicProjectSelection(): void
+    {
+        $this->loadFixtures([
+            ProjectFixtures::class,
+        ]);
+
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/projects');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('h1', 'Openbare projecten');
+        $this->assertSelectorTextContains('.open-project-card h2', 'Gepubliceerd testproject');
+        $this->assertSelectorTextContains('.project-status', 'Gepubliceerd');
+        $this->assertSelectorTextContains('.project-location', 'Op afstand mogelijk');
+        $this->assertStringNotContainsString('Test Project', $crawler->text());
+    }
+
+    public function testProjectsPagePaginatesPublicResultsAndExcludesDrafts(): void
+    {
+        $this->loadFixtures([
+            PublicProjectListingFixtures::class,
+        ]);
+
+        $client = static::createClient();
+        $firstPage = $client->request('GET', '/projects?q=MS04');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.project-results-count', '21 projecten gevonden');
+        $this->assertCount(20, $firstPage->filter('.open-project-card'));
+        $this->assertStringNotContainsString('MS04 conceptproject', $firstPage->text());
+        $this->assertSelectorExists('a[href*="page=2"]');
+
+        $firstPageSlugs = $firstPage
+            ->filter('.open-project-card h2 a')
+            ->each(static fn ($link) => $link->attr('href'));
+
+        $secondPage = $client->request('GET', '/projects?q=MS04&page=2');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(1, $secondPage->filter('.open-project-card'));
+        $this->assertSelectorTextContains('.project-results-count', '21 projecten gevonden');
+
+        $secondPageSlugs = $secondPage
+            ->filter('.open-project-card h2 a')
+            ->each(static fn ($link) => $link->attr('href'));
+        $this->assertSame([], array_intersect($firstPageSlugs, $secondPageSlugs));
+
+        $openProjects = $client->request('GET', '/projects?q=MS04&open=1');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.project-results-count', '20 projecten gevonden');
+        $this->assertCount(20, $openProjects->filter('.open-project-card'));
+
+        $summarySearch = $client->request('GET', '/projects?q=samenvatting');
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.project-results-count', '21 projecten gevonden');
+        $this->assertStringNotContainsString('MS04 conceptproject', $summarySearch->text());
     }
 
     //About
