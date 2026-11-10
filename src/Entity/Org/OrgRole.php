@@ -4,8 +4,8 @@ namespace App\Entity\Org;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'org_roles', uniqueConstraints: [
@@ -17,8 +17,8 @@ class OrgRole
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "orgRoles")]
     #[ORM\JoinColumn(name: 'org_id', nullable: false)]
@@ -47,12 +47,12 @@ class OrgRole
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
 
         $this->orgRoleMembers = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
