@@ -28,7 +28,7 @@ final class AccountsController extends AbstractController
     #[Route('/applications', name: 'applications', methods: ['GET'])]
     public function applications(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->get_and_check_account($entityManager);
+        $account = $this->getAndCheckAccount($entityManager);
 
         if (!$account instanceof Account) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
@@ -81,7 +81,7 @@ final class AccountsController extends AbstractController
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
     public function availability(Request $request, EntityManagerInterface $entityManager, Connection $connection): Response
     {
-        $account = $this->get_and_check_account($entityManager);
+        $account = $this->getAndCheckAccount($entityManager);
 
         if (!$account instanceof Account) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
@@ -285,7 +285,7 @@ final class AccountsController extends AbstractController
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
     public function experience(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->get_and_check_account($entityManager);
+        $account = $this->getAndCheckAccount($entityManager);
 
         if (!$account instanceof Account) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
@@ -365,7 +365,7 @@ final class AccountsController extends AbstractController
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->get_and_check_account($entityManager);
+        $account = $this->getAndCheckAccount($entityManager);
 
         if (!$account instanceof Account) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
@@ -401,7 +401,7 @@ final class AccountsController extends AbstractController
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $account = $this->get_and_check_account($entityManager);
+        $account = $this->getAndCheckAccount($entityManager);
 
         if (!$account instanceof Account) {
             return $this->redirectToRoute('auth.login');
@@ -464,7 +464,7 @@ final class AccountsController extends AbstractController
     public function notifications(Request $request, EntityManagerInterface $entityManager): Response
     {
 
-        $account = $this->get_and_check_account($entityManager);
+        $account = $this->getAndCheckAccount($entityManager);
 
         if (!$account instanceof Account) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
@@ -548,7 +548,7 @@ final class AccountsController extends AbstractController
         return $this->render('pages/account-centre/skills.html.twig');
     }
 
-    private function get_and_check_account($entityManager): Account|null
+    private function getAndCheckAccount($entityManager): Account|null
     {
         $accountId = $this->getUser();
 
