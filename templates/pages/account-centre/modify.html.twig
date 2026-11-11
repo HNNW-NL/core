@@ -42,6 +42,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="text" id="email" name=email" placeholder="email" value="{{ account.email|default('') }}" disabled>
+                </div>
+
+                <div class="form-group">
                     <label for="first_name">Voornaam</label>
                     <input type="text" id="first_name" name="first_name" placeholder="Voornaam" value="{{ profile.firstName|default('') }}" required>
                 </div>
