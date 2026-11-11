@@ -312,6 +312,9 @@ php bin/phpunit
 
 ## Technical Information
 
+For password reset configuration and focused tests (AU01/AU04), see
+[Password reset](docs/password-reset.md).
+
 | Category             | Information                                                    |
 | -------------------- | -------------------------------------------------------------- |
 | Framework            | Symfony                                                        |

@@ -13,9 +13,11 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
-use App\Entity\Auth\ResetPasswordToken;
 use App\Entity\Auth\VerifyEmailToken;
 use App\Entity\Common\Status;
+use App\Module\Auth\Service\PasswordResetService;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 #[Route('/auth', name: 'auth.')]
 final class AuthController extends AbstractController
@@ -162,109 +164,84 @@ final class AuthController extends AbstractController
     }
 
     #[Route('/forgot-password', name: 'forgotPassword', methods: ['GET','POST'])]
-    public function forgotPassword(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UrlGeneratorInterface $router): Response
+    public function forgotPassword(Request $request, PasswordResetService $passwordReset, LoggerInterface $logger): Response
     {
+        $email = '';
+        $errors = [];
+
         if ($request->isMethod('POST')) {
-            $email = trim((string)$request->request->get('email', ''));
+            $email = trim($request->request->getString('email'));
 
-            $this->addFlash('success', 'Als dat e-mailadres bestaat, is er een e-mail verzonden met instructies.');
-
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $this->redirectToRoute('auth.forgotPassword');
+            if (!$this->isCsrfTokenValid('forgot_password', $request->request->getString('_csrf_token'))) {
+                $errors['general'] = 'Het formulier is verlopen. Probeer het opnieuw.';
+            }
+            if (strlen($email) > 254 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors['email'] = 'Voer een geldig e-mailadres in.';
             }
 
-            $repo = $em->getRepository(Account::class);
-            $account = $repo->findOneBy(['email' => $email]);
+            if ($errors === []) {
+                try {
+                    $passwordReset->sendResetLink($email);
+                } catch (TransportExceptionInterface) {
+                    // Keep account existence private, including when delivery fails.
+                    // Transport exceptions can contain the reset URL: never log them.
+                    $logger->error('Password reset email delivery failed.');
+                }
 
-            if (!$account) {
-                return $this->redirectToRoute('auth.forgotPassword');
+                $this->addFlash('success', 'Als er een account met dit e-mailadres bestaat, ontvang je een e-mail met een herstellink.');
+
+                return $this->redirectToRoute('auth.forgotPassword', status: Response::HTTP_SEE_OTHER);
             }
-
-            $plainToken = bin2hex(random_bytes(32));
-            $tokenHash = password_hash($plainToken, PASSWORD_DEFAULT);
-
-            $token = new ResetPasswordToken();
-            $token->setAccount($account);
-            $token->setTokenHash($tokenHash);
-            $em->persist($token);
-            $em->flush();
-
-            $resetLink = $router->generate('auth.resetPassword', ['token' => $plainToken, 'email' => $account->getEmail()], UrlGeneratorInterface::ABSOLUTE_URL);
-
-            $emailMessage = (new Email())
-                ->from('no-reply@example.com')
-                ->to($account->getEmail())
-                ->subject('Wachtwoord resetten')
-                ->text("Klik op deze link om je wachtwoord te resetten:\n\n".$resetLink."\n\nDeze link is tijdelijk geldig.");
-
-            $mailer->send($emailMessage);
-
-            return $this->redirectToRoute('auth.forgotPassword');
         }
 
-        return $this->render('pages/auth/forgot-password.html.twig');
+        return $this->render('pages/auth/forgot-password.html.twig', [
+            'email' => $email,
+            'errors' => $errors,
+        ], new Response(status: $errors === [] ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY));
     }
 
     #[Route('/reset-password/{token}/{email}', name: 'resetPassword', methods: ['GET', 'POST'])]
-    public function resetPassword(Request $request, string $token, string $email, EntityManagerInterface $em): Response
+    public function resetPassword(Request $request, string $token, string $email, PasswordResetService $passwordReset): Response
     {
-        $repo = $em->getRepository(Account::class);
-        $account = $repo->findOneBy(['email' => $email]);
-
-        if (!$account) {
-            $this->addFlash('error', 'Ongeldige of verlopen reset link.');
-            return $this->redirectToRoute('auth.forgotPassword');
-        }
-
-        $tokenRepo = $em->getRepository(ResetPasswordToken::class);
-        $tokens = $tokenRepo->findBy(['account' => $account, 'isUsed' => false]);
-
-        $matchedToken = null;
-        $now = new \DateTimeImmutable();
-        foreach ($tokens as $candidate) {
-            if ($candidate->getExpiresAt() < $now) {
-                continue;
-            }
-
-            if (password_verify($token, $candidate->getTokenHash() ?? '')) {
-                $matchedToken = $candidate;
-                break;
-            }
-        }
-
-        if (!$matchedToken) {
-            $this->addFlash('error', 'Ongeldige of verlopen reset link.');
-            return $this->redirectToRoute('auth.forgotPassword');
+        if ($passwordReset->findValidToken($token, $email) === null) {
+            return $this->renderResetPasswordPage($token, $email, validLink: false);
         }
 
         if ($request->isMethod('POST')) {
-            $password = (string)$request->request->get('password', '');
-            $confirm = (string)$request->request->get('confirm_password', '');
+            $password = $request->request->getString('password');
+            $confirm = $request->request->getString('confirm_password');
 
             $errors = [];
-            if (strlen($password) < 8) {
-                $errors[] = 'Wachtwoord moet minimaal 8 tekens bevatten.';
+            if (!$this->isCsrfTokenValid('reset_password', $request->request->getString('_csrf_token'))) {
+                $errors['general'] = 'Het formulier is verlopen. Probeer het opnieuw.';
+            }
+            if (mb_strlen($password) < 8) {
+                $errors['password'] = 'Gebruik minimaal 8 tekens voor je wachtwoord.';
+            } elseif (strlen($password) > 4096) {
+                $errors['password'] = 'Je wachtwoord is te lang. Kies een korter wachtwoord.';
             }
             if ($password !== $confirm) {
-                $errors[] = 'Wachtwoorden komen niet overeen.';
+                $errors['confirm_password'] = 'De wachtwoorden komen niet overeen.';
             }
 
-            if (!empty($errors)) {
+            if ($errors !== []) {
                 return $this->renderResetPasswordPage($token, $email, $errors);
             }
 
-            $account->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
-            $matchedToken->markAsUsed();
+            if (!$passwordReset->resetPassword($token, $email, $password)) {
+                return $this->renderResetPasswordPage($token, $email, validLink: false);
+            }
 
-            $em->persist($account);
-            $em->persist($matchedToken);
-            $em->flush();
+            $this->addFlash('success', 'Je wachtwoord is gewijzigd. Je kunt nu inloggen met je nieuwe wachtwoord.');
 
-            $this->addFlash('success', 'Wachtwoord succesvol gereset. Je kunt nu inloggen.');
-            return $this->redirectToRoute('auth.login');
+            $response = $this->redirectToRoute('auth.login', status: Response::HTTP_SEE_OTHER);
+            $response->headers->set('Referrer-Policy', 'no-referrer');
+            $response->headers->set('Cache-Control', 'no-store');
+
+            return $response;
         }
 
-        return $this->renderResetPasswordPage($token, $email, []);
+        return $this->renderResetPasswordPage($token, $email);
     }
 
     #[Route('/verify-email/{token}/{email}', name: 'verifyEmail', methods: ['GET'])]
@@ -310,29 +287,18 @@ final class AuthController extends AbstractController
         return $this->redirectToRoute('auth.login');
     }
 
-    private function renderResetPasswordPage(string $token, string $email, array $errors = []): Response
+    private function renderResetPasswordPage(string $token, string $email, array $errors = [], bool $validLink = true): Response
     {
-        $action = $this->generateUrl('auth.resetPassword', ['token' => $token, 'email' => $email]);
+        $status = !$validLink ? Response::HTTP_BAD_REQUEST : ($errors === [] ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
 
-        $html = '<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Wachtwoord resetten</title></head><body>';
-        $html .= '<h1>Wachtwoord resetten</h1>';
-
-        if (!empty($errors)) {
-            $html .= '<div class="form-errors" role="alert"><ul>';
-            foreach ($errors as $error) {
-                $html .= '<li>' . htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</li>';
-            }
-            $html .= '</ul></div>';
-        }
-
-        $html .= '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">';
-        $html .= '<label for="password">Nieuw wachtwoord</label><br>';
-        $html .= '<input id="password" name="password" type="password" minlength="8" required><br>';
-        $html .= '<label for="confirm_password">Bevestig wachtwoord</label><br>';
-        $html .= '<input id="confirm_password" name="confirm_password" type="password" minlength="8" required><br>';
-        $html .= '<button type="submit">Wachtwoord opslaan</button>';
-        $html .= '</form></body></html>';
-
-        return new Response($html);
+        return $this->render('pages/auth/reset-password.html.twig', [
+            'token' => $token,
+            'email' => $email,
+            'errors' => $errors,
+            'valid_link' => $validLink,
+        ], new Response(status: $status, headers: [
+            'Cache-Control' => 'no-store',
+            'Referrer-Policy' => 'no-referrer',
+        ]));
     }
 }
