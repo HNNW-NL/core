@@ -43,9 +43,6 @@ class Availability
     #[ORM\Column(name: 'note', type: Types::TEXT, nullable: true)]
     private ?string $note = null;
 
-    #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
-
     #[ORM\Column(name: 'last_modified', type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $lastModified;
 
@@ -73,10 +70,7 @@ class Availability
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -196,7 +190,7 @@ class Availability
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

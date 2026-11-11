@@ -8,7 +8,6 @@ use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'notifications')]
-#[ORM\HasLifecycleCallbacks]
 class Notification
 {
     // Columns
@@ -46,9 +45,6 @@ class Notification
     #[ORM\Column(name: 'read_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $readAt = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
-
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
@@ -68,13 +64,6 @@ class Notification
     public function getId(): Ulid
     {
         return $this->id;
-    }
-
-
-    #[ORM\PrePersist]
-    public function onCreate(): void
-    {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function markAsRead(): void
@@ -198,7 +187,7 @@ class Notification
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getDeletedAt(): ?\DateTimeImmutable
