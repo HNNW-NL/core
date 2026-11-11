@@ -302,8 +302,8 @@ class ModifyProjectService
 
         $projectRepository = $this->entityManager->getRepository(Project::class);
 
-        // Accept both UUIDs and slugs so the route can be called with either the canonical id or the readable alias.
-        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $identifier)) {
+        // Accept both ULIDs and slugs so the route can be called with either the canonical id or the readable alias.
+        if (\Symfony\Component\Uid\Ulid::isValid($identifier)) {
             $project = $projectRepository->find($identifier);
             if ($project instanceof Project) {
                 return $project;
@@ -329,7 +329,7 @@ class ModifyProjectService
             ->andWhere('p.deletedAt IS NULL')
             ->setParameter('organisationId', $organisationId)
             ->setParameter('excludedProjectId', $excludedProjectId)
-            ->orderBy('p.createdAt', 'DESC')
+            ->orderBy('p.id', 'DESC')
             ->setMaxResults(self::NEXT_PROJECT_LIMIT)
             ->getQuery()
             ->getOneOrNullResult();
@@ -339,7 +339,7 @@ class ModifyProjectService
 
     private function projectRef(Project $project): string
     {
-        // Keep modify URLs canonical on UUID to avoid mixed slug/id navigation.
+        // Keep modify URLs canonical on ULID to avoid mixed slug/id navigation.
         return (string) $project->getId();
     }
 

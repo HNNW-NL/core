@@ -7,7 +7,7 @@ use App\Entity\Project\PackageTask;
 use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreatePackageTaskDTO;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 class PackageTaskCrudService
 {
@@ -18,11 +18,11 @@ class PackageTaskCrudService
 
     public function create(CreatePackageTaskDTO $dto): PackageTask
     {
-        if (!Uuid::isValid($dto->workPackageId)) {
+        if (!Ulid::isValid($dto->workPackageId)) {
             throw new \InvalidArgumentException('Invalid work package id.');
         }
 
-        $workPackage = $this->entityManager->find(WorkPackage::class, Uuid::fromString($dto->workPackageId));
+        $workPackage = $this->entityManager->find(WorkPackage::class, Ulid::fromString($dto->workPackageId));
 
         if (!$workPackage) {
             throw new \InvalidArgumentException('Work package not found.');

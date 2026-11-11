@@ -7,7 +7,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreateWorkPackageDTO;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 use App\Module\Admin\DTO\UpdateWorkPackageDTO;
 
 class WorkPackageCrudService
@@ -19,11 +19,11 @@ class WorkPackageCrudService
 
     public function create(CreateWorkPackageDTO $dto): WorkPackage
     {
-        if (!Uuid::isValid($dto->projectId)) {
+        if (!Ulid::isValid($dto->projectId)) {
             throw new \InvalidArgumentException('Invalid project id.');
         }
 
-        $project = $this->entityManager->find(Project::class, Uuid::fromString($dto->projectId));
+        $project = $this->entityManager->find(Project::class, Ulid::fromString($dto->projectId));
 
         $status = $this->entityManager->getRepository(Status::class)->findOneBy([
             'name' => 'open',
@@ -75,11 +75,11 @@ public function delete(string $workPackageId): void
 
 private function findWorkPackage(string $workPackageId): WorkPackage
 {
-    if (!Uuid::isValid($workPackageId)) {
+    if (!Ulid::isValid($workPackageId)) {
         throw new \InvalidArgumentException('Invalid work package id.');
     }
 
-    $workPackage = $this->entityManager->find(WorkPackage::class, Uuid::fromString($workPackageId));
+    $workPackage = $this->entityManager->find(WorkPackage::class, Ulid::fromString($workPackageId));
 
     if (!$workPackage) {
         throw new \InvalidArgumentException('Work package not found.');

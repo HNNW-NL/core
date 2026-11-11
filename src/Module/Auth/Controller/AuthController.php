@@ -93,7 +93,7 @@ final class AuthController extends AbstractController
             // Wrap in a transaction to prevent partial database data insertions
             $em->getConnection()->beginTransaction();
             try {
-                // 1. Setup Account (Id is automatically instantiated as Uuid object in constructor)
+                // 1. Setup Account (Id is automatically instantiated as Ulid object in constructor)
                 $account = new Account();
                 $account->setUsername($data['username']);
                 $account->setEmail($data['email']);

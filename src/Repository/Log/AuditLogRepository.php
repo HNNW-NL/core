@@ -16,7 +16,7 @@ class AuditLogRepository extends ServiceEntityRepository
     public function findLatest(int $limit = 100): array
     {
         return $this->createQueryBuilder('auditLog')
-            ->orderBy('auditLog.createdAt', 'DESC')
+            ->orderBy('auditLog.id', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

@@ -13,7 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -164,7 +164,7 @@ final class AccountsController extends AbstractController
                 $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
 
                 $connection->insert('availabilities', [
-                    'id' => Uuid::v4()->toString(),
+                    'id' => Ulid::v4()->toString(),
                     'availability_type' => $compactType,
                     'hours_per_week' => $hours,
                     'start_date' => $startDate,
@@ -335,7 +335,7 @@ final class AccountsController extends AbstractController
                     $experience = new ProfileExperience();
 
                     if (method_exists($experience, 'setId')) {
-                        $experience->setId(Uuid::v4());
+                        $experience->setId(Ulid::v4());
                     }
 
                     $experience->setJobTitle($jobTitle);
@@ -355,9 +355,6 @@ final class AccountsController extends AbstractController
                     $experience->setDescription(!empty($description) ? $description : null);
                     $experience->setProfile($profile);
 
-                    if (method_exists($experience, 'setCreatedAt')) {
-                        $experience->setCreatedAt(new \DateTimeImmutable());
-                    }
                     if (method_exists($experience, 'setLastModified')) {
                         $experience->setLastModified(new \DateTimeImmutable());
                     }
@@ -524,11 +521,8 @@ final class AccountsController extends AbstractController
             $settings->setProfileVisibility('public');
             $settings->setEmailNotificationsEnabled(true);
 
-            if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Uuid::class, 'v4')) {
-                $settings->setId(\Symfony\Component\Uid\Uuid::v4());
-            }
-            if (method_exists($settings, 'setCreatedAt')) {
-                $settings->setCreatedAt(new \DateTimeImmutable());
+            if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Ulid::class, 'v4')) {
+                $settings->setId(\Symfony\Component\Uid\Ulid::v4());
             }
 
             $entityManager->persist($settings);

@@ -28,7 +28,7 @@ class ProjectWorkPackageRepository extends ServiceEntityRepository
             ->andWhere('project.deletedAt IS NULL')
             ->andWhere('workPackage.deletedAt IS NULL')
             ->setParameter('projectSlug', $projectSlug)
-            ->orderBy('workPackage.createdAt', 'ASC')
+            ->orderBy('workPackage.id', 'ASC')
             ->getQuery()
             ->getResult();
     }

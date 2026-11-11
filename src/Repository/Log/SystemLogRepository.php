@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Repository\Log;
 
@@ -17,7 +17,7 @@ class SystemLogRepository extends ServiceEntityRepository
     {
         return $this->findBy(
             [],
-            ['createdAt' => 'DESC'],
+            ['id' => 'DESC'],
             $limit
         );
     }
