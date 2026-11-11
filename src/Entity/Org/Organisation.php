@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity\Org;
 
 use App\Entity\Common\Status;
@@ -42,9 +43,6 @@ class Organisation
 
     #[ORM\Column(name: 'website_url', type: "text", nullable: true)]
     private ?string $websiteUrl = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -91,10 +89,7 @@ class Organisation
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -202,7 +197,7 @@ class Organisation
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
