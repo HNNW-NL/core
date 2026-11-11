@@ -10,7 +10,6 @@ use App\Entity\Project\ProjectApplication;
 use App\Repository\Project\ProjectRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use http\Exception\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -382,9 +381,14 @@ final class AccountsController extends AbstractController
         if ($request->isMethod('POST')) {
             $username = trim((string) $request->request->get('username'));
             $email = trim((string) $request->request->get('email'));
-            $bio = trim((string) $request->request->get('bio'));
+            $firstName = trim((string) $request->request->get('first_name'));
+            $lastName = trim((string) $request->request->get('last_name'));
+            $displayName = trim((string) $request->request->get('display_name') ?: null);
+            $avatarUrl = trim((string) $request->request->get('avatar_url'));
+            $location = trim((string) $request->request->get('location') ?: null);
+            $bio = trim((string) $request->request->get('bio')?: null);
 
-            if (!empty($username)) {
+            if (!empty($username) and $username <= 12) {
                 $account->setUsername($username);
             }
             if (!empty($email)) {
@@ -392,12 +396,13 @@ final class AccountsController extends AbstractController
             }
 
             if ($profile) {
-                $profile->setFirstName(trim((string) $request->request->get('first_name')));
-                $profile->setLastName(trim((string) $request->request->get('last_name')));
-                $profile->setDisplayName(trim((string) $request->request->get('display_name')) ?: null);
-                $profile->setAvatarUrl(trim((string) $request->request->get('avatar_url')));
-                $profile->setLocation(trim((string) $request->request->get('location')) ?: null);
-                $profile->setDescription(!empty($bio) ? $bio : null);
+                if (strlen($firstName) > 50) $profile->setFirstName($firstName);
+                if (strlen($lastName) > 50) $profile->setLastName($lastName);
+                if (strlen($displayName) > 50) $profile->setDisplayName($displayName);
+                if (strlen($bio) > 250) $profile->setBio($bio);
+                $profile->setAvatarUrl($avatarUrl);
+                $profile->setLocation($location);
+
 
                 if (method_exists($profile, 'setLastModified')) {
                     $profile->setLastModified(new \DateTimeImmutable());
