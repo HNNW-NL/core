@@ -346,7 +346,7 @@ final class AccountsController extends AbstractController
 
         $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
         if (!$experience) {
-            $this->addFlash('error', 'Ervaring niet gevonden niet gevonden.');
+            throw $this->createAccessDeniedException('Geen ervaring met id: '.$id.'.');
         }
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
@@ -399,7 +399,7 @@ final class AccountsController extends AbstractController
                 if (strlen($firstName) < 50) $profile->setFirstName($firstName);
                 if (strlen($lastName) < 50) $profile->setLastName($lastName);
                 if (strlen($displayName) < 50) $profile->setDisplayName($displayName);
-                if (strlen($bio) < 250) $profile->setBio($bio);
+                if (strlen($bio) < 250) $profile->setDescription($bio);
                 $profile->setAvatarUrl($avatarUrl);
                 $profile->setLocation($location);
 
