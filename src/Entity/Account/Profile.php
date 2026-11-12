@@ -119,9 +119,26 @@ class Profile
     private Collection $assignedWorkPackageTasks;
 
 
+    /** @var Collection<int, ProfileEducation> */
+    #[ORM\OneToMany(
+        targetEntity: ProfileEducation::class,
+        mappedBy: 'profile'
+    )]
+    private Collection $educations;
+
+    /** @var Collection<int, ProfileCertification> */
+    #[ORM\OneToMany(
+        targetEntity: ProfileCertification::class,
+        mappedBy: 'profile'
+    )]
+    private Collection $certifications;
+
+
     public function __construct()
     {
         $this->id = new Ulid();
+        $this->certifications = new ArrayCollection();
+        $this->educations = new ArrayCollection();
 
         $this->profileSocialLinks = new ArrayCollection();
         $this->profileSkills = new ArrayCollection();
@@ -360,4 +377,17 @@ class Profile
     {
         return $this->projectApplications;
     }
+
+    /** @return Collection<int, ProfileEducation> */
+    public function getEducations(): Collection
+    {
+        return $this->educations;
+    }
+
+    /** @return Collection<int, ProfileCertification> */
+    public function getCertifications(): Collection
+    {
+        return $this->certifications;
+    }
+
 }

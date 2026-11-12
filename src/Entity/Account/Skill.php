@@ -2,6 +2,8 @@
 
 namespace App\Entity\Account;
 
+use App\Entity\Job\JobSkill;
+use App\Entity\Project\ProjectSkill;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -42,9 +44,26 @@ class Skill
 
     // Functions
 
+    /** @var Collection<int, JobSkill> */
+    #[ORM\OneToMany(
+        targetEntity: JobSkill::class,
+        mappedBy: 'skill'
+    )]
+    private Collection $jobSkills;
+
+    /** @var Collection<int, ProjectSkill> */
+    #[ORM\OneToMany(
+        targetEntity: ProjectSkill::class,
+        mappedBy: 'skill'
+    )]
+    private Collection $projectSkills;
+
+
     public function __construct()
     {
         $this->id = new Ulid();
+        $this->projectSkills = new ArrayCollection();
+        $this->jobSkills = new ArrayCollection();
 
         $this->skillRecords = new ArrayCollection();
         $this->skillInterestsRecords = new ArrayCollection();
@@ -117,4 +136,17 @@ class Skill
     {
         return $this->skillInterestsRecords;
     }
+
+    /** @return Collection<int, JobSkill> */
+    public function getJobSkills(): Collection
+    {
+        return $this->jobSkills;
+    }
+
+    /** @return Collection<int, ProjectSkill> */
+    public function getProjectSkills(): Collection
+    {
+        return $this->projectSkills;
+    }
+
 }

@@ -7,6 +7,8 @@ use App\Entity\Project\Project;
 use App\Entity\Common\Event;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Account\Account;
+use App\Entity\Job\Job;
+use App\Entity\Account\ProfileEducation;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -103,9 +105,34 @@ class Organisation
 
     // Functions
 
+    /** @var Collection<int, Job> */
+    #[ORM\OneToMany(
+        targetEntity: Job::class,
+        mappedBy: 'organisation'
+    )]
+    private Collection $jobs;
+
+    /** @var Collection<int, ProfileEducation> */
+    #[ORM\OneToMany(
+        targetEntity: ProfileEducation::class,
+        mappedBy: 'organisation'
+    )]
+    private Collection $profileEducations;
+
+    /** @var Collection<int, OrganisationOwnershipTransfer> */
+    #[ORM\OneToMany(
+        targetEntity: OrganisationOwnershipTransfer::class,
+        mappedBy: 'organisation'
+    )]
+    private Collection $ownershipTransfers;
+
+
     public function __construct()
     {
         $this->id = new Ulid();
+        $this->ownershipTransfers = new ArrayCollection();
+        $this->profileEducations = new ArrayCollection();
+        $this->jobs = new ArrayCollection();
 
         $this->orgRoles = new ArrayCollection();
         $this->orgMembers = new ArrayCollection();
@@ -361,4 +388,23 @@ class Organisation
     {
         return $this->profileExperiences;
     }
+
+    /** @return Collection<int, Job> */
+    public function getJobs(): Collection
+    {
+        return $this->jobs;
+    }
+
+    /** @return Collection<int, ProfileEducation> */
+    public function getProfileEducations(): Collection
+    {
+        return $this->profileEducations;
+    }
+
+    /** @return Collection<int, OrganisationOwnershipTransfer> */
+    public function getOwnershipTransfers(): Collection
+    {
+        return $this->ownershipTransfers;
+    }
+
 }

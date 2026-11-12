@@ -6,6 +6,7 @@ use App\Entity\Account\Account;
 use App\Entity\Account\Review;
 use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
+use App\Entity\Account\SavedItem;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -102,9 +103,26 @@ class Project
 
     // Functions
 
+    /** @var Collection<int, ProjectSkill> */
+    #[ORM\OneToMany(
+        targetEntity: ProjectSkill::class,
+        mappedBy: 'project'
+    )]
+    private Collection $skills;
+
+    /** @var Collection<int, SavedItem> */
+    #[ORM\OneToMany(
+        targetEntity: SavedItem::class,
+        mappedBy: 'project'
+    )]
+    private Collection $savedByAccounts;
+
+
     public function __construct()
     {
         $this->id = new Ulid();
+        $this->savedByAccounts = new ArrayCollection();
+        $this->skills = new ArrayCollection();
 
         $this->reviews = new ArrayCollection();
         $this->roles = new ArrayCollection();
@@ -373,4 +391,17 @@ class Project
     {
         return $this->workPackages;
     }
+
+    /** @return Collection<int, ProjectSkill> */
+    public function getSkills(): Collection
+    {
+        return $this->skills;
+    }
+
+    /** @return Collection<int, SavedItem> */
+    public function getSavedByAccounts(): Collection
+    {
+        return $this->savedByAccounts;
+    }
+
 }
