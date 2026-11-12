@@ -1,9 +1,10 @@
 <?php
+
 namespace App\Entity\Account;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'profile_social_links')]
@@ -13,39 +14,37 @@ class ProfileSocialLink
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
-    #[ORM\ManyToOne(inversedBy: "profileSocialLinks")]
+    #[ORM\ManyToOne(inversedBy: 'profileSocialLinks')]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
     private ?Profile $profile = null;
 
     #[ORM\Column(name: 'label', length: 255)]
     private ?string $label = null;
 
-    #[ORM\Column(name: 'url', type: "text")]
+    #[ORM\Column(name: 'url', type: 'text')]
     private ?string $url = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(name: 'link_type', length: 40, nullable: true)]
+    private ?string $linkType = null;
+
+    #[ORM\Column(name: 'sort_order', type: 'integer', options: ['default' => 0])]
+    private int $sortOrder = 0;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
-
-
-    // Reverse FKs
-
-    /* Insert reverse FKs here */
 
 
     // Functions
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -53,10 +52,7 @@ class ProfileSocialLink
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -66,7 +62,7 @@ class ProfileSocialLink
     }
 
 
-    /// Getters & Setters Functions
+    // Getters & Setters Functions
 
     public function getProfile(): ?Profile
     {
@@ -104,9 +100,33 @@ class ProfileSocialLink
         return $this;
     }
 
+    public function getLinkType(): ?string
+    {
+        return $this->linkType;
+    }
+
+    public function setLinkType(?string $linkType): static
+    {
+        $this->linkType = $linkType;
+
+        return $this;
+    }
+
+    public function getSortOrder(): int
+    {
+        return $this->sortOrder;
+    }
+
+    public function setSortOrder(int $sortOrder): static
+    {
+        $this->sortOrder = $sortOrder;
+
+        return $this;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

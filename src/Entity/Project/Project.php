@@ -1,15 +1,17 @@
 <?php
+
 namespace App\Entity\Project;
 
 use App\Entity\Account\Account;
 use App\Entity\Account\Review;
 use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
+use App\Entity\Account\SavedItem;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'projects')]
@@ -19,8 +21,8 @@ class Project
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "ownedProjects")]
     #[ORM\JoinColumn(name: 'owner_account_id', nullable: false)]
@@ -58,14 +60,18 @@ class Project
     #[ORM\Column(name: 'capacity', type: 'integer')]
     private ?int $capacity = null;
 
-    #[ORM\Column(name: 'remote_possible', type: "boolean", nullable: false)]
+    #[ORM\Column(name: 'remote_possible', type: 'boolean', nullable: false)]
     private bool $remotePossible = true;
+
+    #[ORM\Column(
+        name: 'allow_following',
+        type: 'boolean',
+        options: ['default' => true]
+    )]
+    private bool $allowFollowing = true;
 
     #[ORM\Column(name: 'published_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $publishedAt = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -97,9 +103,26 @@ class Project
 
     // Functions
 
+    /** @var Collection<int, ProjectSkill> */
+    #[ORM\OneToMany(
+        targetEntity: ProjectSkill::class,
+        mappedBy: 'project'
+    )]
+    private Collection $skills;
+
+    /** @var Collection<int, SavedItem> */
+    #[ORM\OneToMany(
+        targetEntity: SavedItem::class,
+        mappedBy: 'project'
+    )]
+    private Collection $savedByAccounts;
+
+
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
+        $this->savedByAccounts = new ArrayCollection();
+        $this->skills = new ArrayCollection();
 
         $this->reviews = new ArrayCollection();
         $this->roles = new ArrayCollection();
@@ -109,7 +132,7 @@ class Project
         $this->workPackages = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -117,10 +140,7 @@ class Project
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -165,7 +185,7 @@ class Project
     }
 
 
-/// Getters & Setters Functions
+    // Getters & Setters Functions
 
     public function getOwnerAccount(): ?Account
     {
@@ -304,6 +324,18 @@ class Project
         return $this->remotePossible;
     }
 
+    public function isFollowingAllowed(): bool
+    {
+        return $this->allowFollowing;
+    }
+
+    public function setAllowFollowing(bool $allowFollowing): static
+    {
+        $this->allowFollowing = $allowFollowing;
+
+        return $this;
+    }
+
     public function getPublishedAt(): ?\DateTimeImmutable
     {
         return $this->publishedAt;
@@ -311,7 +343,7 @@ class Project
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
@@ -359,4 +391,17 @@ class Project
     {
         return $this->workPackages;
     }
+
+    /** @return Collection<int, ProjectSkill> */
+    public function getSkills(): Collection
+    {
+        return $this->skills;
+    }
+
+    /** @return Collection<int, SavedItem> */
+    public function getSavedByAccounts(): Collection
+    {
+        return $this->savedByAccounts;
+    }
+
 }

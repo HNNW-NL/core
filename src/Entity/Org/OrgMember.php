@@ -1,10 +1,11 @@
 <?php
+
 namespace App\Entity\Org;
 
 use App\Entity\Account\Account;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'org_members', uniqueConstraints: [
@@ -16,8 +17,8 @@ class OrgMember
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "orgMembers")]
     #[ORM\JoinColumn(name: 'org_id', nullable: false)]
@@ -30,9 +31,6 @@ class OrgMember
     #[ORM\ManyToOne(inversedBy: "orgRoleMembers")]
     #[ORM\JoinColumn(name: 'org_role_id', nullable: false)]
     private ?OrgRole $orgRole = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -47,10 +45,10 @@ class OrgMember
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -58,10 +56,7 @@ class OrgMember
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -80,6 +75,16 @@ class OrgMember
 
     public function setOrganisation(?Organisation $organisation): static
     {
+        if (
+            $organisation !== null &&
+            $this->orgRole !== null &&
+            $this->orgRole->getOrganisation() !== $organisation
+        ) {
+            throw new \InvalidArgumentException(
+                'The membership organisation must match the role organisation.'
+            );
+        }
+
         $this->organisation = $organisation;
 
         return $this;
@@ -104,6 +109,16 @@ class OrgMember
 
     public function setOrgRole(?OrgRole $orgRole): static
     {
+        if (
+            $orgRole !== null &&
+            $this->organisation !== null &&
+            $orgRole->getOrganisation() !== $this->organisation
+        ) {
+            throw new \InvalidArgumentException(
+                'The organisation role must belong to the membership organisation.'
+            );
+        }
+
         $this->orgRole = $orgRole;
 
         return $this;
@@ -111,7 +126,7 @@ class OrgMember
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

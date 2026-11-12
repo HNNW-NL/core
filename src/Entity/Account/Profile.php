@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity\Account;
 
 use App\Entity\Project\ProjectApplication;
@@ -9,8 +10,8 @@ use App\Repository\Account\ProfileRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity(repositoryClass: ProfileRepository::class)]
 #[ORM\Table(name: 'profiles')]
@@ -20,8 +21,8 @@ class Profile
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\OneToOne(inversedBy: "profile")]
     #[ORM\JoinColumn(name: 'account_id', unique: true, nullable: false)]
@@ -39,8 +40,29 @@ class Profile
     #[ORM\Column(name: 'avatar_url', type: "text")]
     private ?string $avatarUrl = null;
 
-    #[ORM\Column(name: 'description', type: "text", nullable: true)]
+    #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
+
+    #[ORM\Column(name: 'headline', length: 180, nullable: true)]
+    private ?string $headline = null;
+
+    #[ORM\ManyToOne(
+        targetEntity: ProfileExperience::class,
+        inversedBy: 'profilesUsingAsCurrentExperience'
+    )]
+    #[ORM\JoinColumn(
+        name: 'current_experience_id',
+        referencedColumnName: 'id',
+        nullable: true,
+        onDelete: 'SET NULL'
+    )]
+    private ?ProfileExperience $currentExperience = null;
+
+    #[ORM\Column(name: 'preferred_work_mode', length: 24, nullable: true)]
+    private ?string $preferredWorkMode = null;
+
+    #[ORM\Column(name: 'open_to_opportunities', type: 'boolean', options: ['default' => false])]
+    private bool $openToOpportunities = false;
 
     #[ORM\Column(name: 'location', length: 255, nullable: true)]
     private ?string $location = null;
@@ -50,9 +72,6 @@ class Profile
 
     #[ORM\Column(name: 'points', type: "integer")]
     private ?int $points = 0;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -100,9 +119,26 @@ class Profile
     private Collection $assignedWorkPackageTasks;
 
 
+    /** @var Collection<int, ProfileEducation> */
+    #[ORM\OneToMany(
+        targetEntity: ProfileEducation::class,
+        mappedBy: 'profile'
+    )]
+    private Collection $educations;
+
+    /** @var Collection<int, ProfileCertification> */
+    #[ORM\OneToMany(
+        targetEntity: ProfileCertification::class,
+        mappedBy: 'profile'
+    )]
+    private Collection $certifications;
+
+
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
+        $this->certifications = new ArrayCollection();
+        $this->educations = new ArrayCollection();
 
         $this->profileSocialLinks = new ArrayCollection();
         $this->profileSkills = new ArrayCollection();
@@ -118,7 +154,7 @@ class Profile
         $this->assignedWorkPackageTasks = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -126,9 +162,7 @@ class Profile
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -226,6 +260,74 @@ class Profile
         return $this;
     }
 
+    public function getHeadline(): ?string
+    {
+        return $this->headline;
+    }
+
+    public function setHeadline(?string $headline): static
+    {
+        $this->headline = $headline;
+        return $this;
+    }
+
+    public function getCurrentExperience(): ?ProfileExperience
+    {
+        return $this->currentExperience;
+    }
+
+    public function setCurrentExperience(?ProfileExperience $experience): static
+    {
+        if ($experience !== null && $experience->getProfile() !== $this) {
+            throw new \InvalidArgumentException(
+                'The selected experience does not belong to this profile.'
+            );
+        }
+
+        if ($this->currentExperience === $experience) {
+            return $this;
+        }
+
+        $previousExperience = $this->currentExperience;
+
+        $this->currentExperience = $experience;
+
+        if ($previousExperience !== null) {
+            $previousExperience
+                ->getProfilesUsingAsCurrentExperience()
+                ->removeElement($this);
+        }
+
+        if ($experience !== null &&
+            !$experience->getProfilesUsingAsCurrentExperience()->contains($this)) {
+            $experience->getProfilesUsingAsCurrentExperience()->add($this);
+        }
+
+        return $this;
+    }
+
+    public function getPreferredWorkMode(): ?string
+    {
+        return $this->preferredWorkMode;
+    }
+
+    public function setPreferredWorkMode(?string $preferredWorkMode): static
+    {
+        $this->preferredWorkMode = $preferredWorkMode;
+        return $this;
+    }
+
+    public function isOpenToOpportunities(): bool
+    {
+        return $this->openToOpportunities;
+    }
+
+    public function setOpenToOpportunities(bool $openToOpportunities): static
+    {
+        $this->openToOpportunities = $openToOpportunities;
+        return $this;
+    }
+
     public function getLocation(): ?string
     {
         return $this->location;
@@ -255,7 +357,7 @@ class Profile
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
@@ -275,4 +377,17 @@ class Profile
     {
         return $this->projectApplications;
     }
+
+    /** @return Collection<int, ProfileEducation> */
+    public function getEducations(): Collection
+    {
+        return $this->educations;
+    }
+
+    /** @return Collection<int, ProfileCertification> */
+    public function getCertifications(): Collection
+    {
+        return $this->certifications;
+    }
+
 }

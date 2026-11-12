@@ -1,14 +1,19 @@
 <?php
+
 namespace App\Entity\Org;
 
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Entity\Common\Event;
+use App\Entity\Account\ProfileExperience;
+use App\Entity\Account\Account;
+use App\Entity\Job\Job;
+use App\Entity\Account\ProfileEducation;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'organisations')]
@@ -18,12 +23,24 @@ class Organisation
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "organisations")]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
+
+    #[ORM\ManyToOne(
+        targetEntity: Account::class,
+        inversedBy: 'ownedOrganisations'
+    )]
+    #[ORM\JoinColumn(
+        name: 'owner_account_id',
+        referencedColumnName: 'id',
+        nullable: true,
+        onDelete: 'SET NULL'
+    )]
+    private ?Account $ownerAccount = null;
 
     #[ORM\Column(name: 'name', length: 255)]
     private ?string $name = null;
@@ -43,8 +60,14 @@ class Organisation
     #[ORM\Column(name: 'website_url', type: "text", nullable: true)]
     private ?string $websiteUrl = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(name: 'sector', length: 120, nullable: true)]
+    private ?string $sector = null;
+
+    #[ORM\Column(name: 'contact_email', length: 255, nullable: true)]
+    private ?string $contactEmail = null;
+
+    #[ORM\Column(name: 'verified', type: 'boolean', options: ['default' => false])]
+    private bool $verified = false;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -70,20 +93,55 @@ class Organisation
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'organisation')]
     private Collection $events;
 
+    /**
+     * @var Collection<int, ProfileExperience>
+     */
+    #[ORM\OneToMany(
+        targetEntity: ProfileExperience::class,
+        mappedBy: 'organisation'
+    )]
+    private Collection $profileExperiences;
+
 
     // Functions
 
+    /** @var Collection<int, Job> */
+    #[ORM\OneToMany(
+        targetEntity: Job::class,
+        mappedBy: 'organisation'
+    )]
+    private Collection $jobs;
+
+    /** @var Collection<int, ProfileEducation> */
+    #[ORM\OneToMany(
+        targetEntity: ProfileEducation::class,
+        mappedBy: 'organisation'
+    )]
+    private Collection $profileEducations;
+
+    /** @var Collection<int, OrganisationOwnershipTransfer> */
+    #[ORM\OneToMany(
+        targetEntity: OrganisationOwnershipTransfer::class,
+        mappedBy: 'organisation'
+    )]
+    private Collection $ownershipTransfers;
+
+
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
+        $this->ownershipTransfers = new ArrayCollection();
+        $this->profileEducations = new ArrayCollection();
+        $this->jobs = new ArrayCollection();
 
         $this->orgRoles = new ArrayCollection();
         $this->orgMembers = new ArrayCollection();
         $this->ownedProjects = new ArrayCollection();
         $this->events = new ArrayCollection();
+        $this->profileExperiences = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -91,10 +149,7 @@ class Organisation
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -200,9 +255,45 @@ class Organisation
         return $this;
     }
 
+    public function getSector(): ?string
+    {
+        return $this->sector;
+    }
+
+    public function setSector(?string $sector): static
+    {
+        $this->sector = $sector;
+
+        return $this;
+    }
+
+    public function getContactEmail(): ?string
+    {
+        return $this->contactEmail;
+    }
+
+    public function setContactEmail(?string $contactEmail): static
+    {
+        $this->contactEmail = $contactEmail;
+
+        return $this;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verified;
+    }
+
+    public function setVerified(bool $verified): static
+    {
+        $this->verified = $verified;
+
+        return $this;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
@@ -261,4 +352,59 @@ class Organisation
 
         return $this;
     }
+
+    public function getOwnerAccount(): ?Account
+    {
+        return $this->ownerAccount;
+    }
+
+    public function setOwnerAccount(?Account $ownerAccount): static
+    {
+        if ($this->ownerAccount === $ownerAccount) {
+            return $this;
+        }
+
+        $previousOwner = $this->ownerAccount;
+        $this->ownerAccount = $ownerAccount;
+
+        if ($previousOwner !== null) {
+            $previousOwner->getOwnedOrganisations()->removeElement($this);
+        }
+
+        if (
+            $ownerAccount !== null &&
+            !$ownerAccount->getOwnedOrganisations()->contains($this)
+        ) {
+            $ownerAccount->getOwnedOrganisations()->add($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProfileExperience>
+     */
+    public function getProfileExperiences(): Collection
+    {
+        return $this->profileExperiences;
+    }
+
+    /** @return Collection<int, Job> */
+    public function getJobs(): Collection
+    {
+        return $this->jobs;
+    }
+
+    /** @return Collection<int, ProfileEducation> */
+    public function getProfileEducations(): Collection
+    {
+        return $this->profileEducations;
+    }
+
+    /** @return Collection<int, OrganisationOwnershipTransfer> */
+    public function getOwnershipTransfers(): Collection
+    {
+        return $this->ownershipTransfers;
+    }
+
 }

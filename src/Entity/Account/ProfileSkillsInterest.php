@@ -1,9 +1,10 @@
 <?php
+
 namespace App\Entity\Account;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'profile_skills_interests', uniqueConstraints: [
@@ -15,8 +16,8 @@ class ProfileSkillsInterest
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "profileInterestSkills")]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
@@ -28,9 +29,6 @@ class ProfileSkillsInterest
 
     #[ORM\Column(name: 'is_featured', type: "boolean", nullable: false)]
     private bool $featured = false;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -45,10 +43,10 @@ class ProfileSkillsInterest
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -56,10 +54,7 @@ class ProfileSkillsInterest
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -112,7 +107,7 @@ class ProfileSkillsInterest
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

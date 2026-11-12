@@ -1,11 +1,12 @@
 <?php
+
 namespace App\Entity\Account;
 
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'reviews')]
@@ -15,33 +16,36 @@ class Review
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
-    #[ORM\ManyToOne(inversedBy: "reviews")]
+    #[ORM\ManyToOne(inversedBy: 'reviews')]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
     private ?Profile $profile = null;
 
-    #[ORM\ManyToOne(inversedBy: "sentReviews")]
+    #[ORM\ManyToOne(inversedBy: 'sentReviews')]
     #[ORM\JoinColumn(name: 'reviewer_profile_id', nullable: false)]
     private ?Profile $reviewerProfile = null;
 
-    #[ORM\ManyToOne(inversedBy: "reviews")]
+    #[ORM\ManyToOne(inversedBy: 'reviews')]
     #[ORM\JoinColumn(name: 'project_id', nullable: false)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(inversedBy: "reviews")]
+    #[ORM\ManyToOne(inversedBy: 'reviews')]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
+
+    #[ORM\Column(name: 'title', length: 150, nullable: true)]
+    private ?string $title = null;
+
+    #[ORM\Column(name: 'rating', type: 'smallint', nullable: true)]
+    private ?int $rating = null;
 
     #[ORM\Column(name: 'message', type: 'text', nullable: true)]
     private ?string $message = null;
 
-    #[ORM\Column(name: 'is_public', type: "boolean", nullable: false)]
+    #[ORM\Column(name: 'is_public', type: 'boolean', nullable: false)]
     private bool $isPublic = false;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -51,18 +55,16 @@ class Review
 
 
     // Reverse FKs
-
-    /* Insert reverse FKs here */
-
+    // The inverse associations are defined in the related entities.
 
     // Functions
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -70,10 +72,7 @@ class Review
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -103,7 +102,7 @@ class Review
     }
 
 
-    /// Getters & Setters Functions
+    // Getters & Setters Functions
 
     public function getProfile(): ?Profile
     {
@@ -153,6 +152,36 @@ class Review
         return $this;
     }
 
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getRating(): ?int
+    {
+        return $this->rating;
+    }
+
+    public function setRating(?int $rating): static
+    {
+        if ($rating !== null && ($rating < 1 || $rating > 5)) {
+            throw new \InvalidArgumentException(
+                'Review rating must be between 1 and 5.'
+            );
+        }
+
+        $this->rating = $rating;
+
+        return $this;
+    }
+
     public function getMessage(): ?string
     {
         return $this->message;
@@ -172,7 +201,7 @@ class Review
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

@@ -4,19 +4,18 @@ namespace App\Entity\Log;
 
 use App\Entity\Account\Account;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'audit_logs')]
-#[ORM\HasLifecycleCallbacks]
 class AuditLog
 {
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "auditLogs")]
     #[ORM\JoinColumn(name: 'actor_account_id', nullable: true)]
@@ -43,32 +42,26 @@ class AuditLog
     #[ORM\Column(name: 'new_values_json', type: "json")]
     private ?array $newValuesJson = null;
 
+    #[ORM\Column(name: 'context_json', type: "json", nullable: true)]
+    private ?array $contextJson = null;
+
     #[ORM\Column(name: 'request_ip', length: 50)]
     private ?string $requestIp = null;
 
     #[ORM\Column(name: 'user_agent', type: "text")]
     private ?string $userAgent = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt;
-
 
     // Functions
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
-    }
-
-    #[ORM\PrePersist]
-    public function onCreate(): void
-    {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
 
@@ -170,6 +163,18 @@ class AuditLog
         return $this;
     }
 
+    public function getContextJson(): ?array
+    {
+        return $this->contextJson;
+    }
+
+    public function setContextJson(?array $contextJson): static
+    {
+        $this->contextJson = $contextJson;
+
+        return $this;
+    }
+
     public function getRequestIp(): ?string
     {
         return $this->requestIp;
@@ -194,8 +199,8 @@ class AuditLog
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 }

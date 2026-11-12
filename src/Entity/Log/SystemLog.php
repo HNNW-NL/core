@@ -3,19 +3,18 @@
 namespace App\Entity\Log;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'system_logs')]
-#[ORM\HasLifecycleCallbacks]
 class SystemLog
 {
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\Column(name: 'code', type: "smallint")]
     private ?int $code = null;
@@ -42,26 +41,16 @@ class SystemLog
     private ?string $requestIp = null;
 
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt;
-
-
     // Functions
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
-    }
-
-    #[ORM\PrePersist]
-    public function onCreate(): void
-    {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
 
@@ -163,8 +152,8 @@ class SystemLog
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 }

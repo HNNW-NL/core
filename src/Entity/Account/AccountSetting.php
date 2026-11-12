@@ -1,9 +1,12 @@
 <?php
+
 namespace App\Entity\Account;
 
+use App\Enum\ProfileVisibilityPermission;
+use App\Enum\VisibilityLevel;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'account_settings')]
@@ -13,8 +16,8 @@ class AccountSetting
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\OneToOne(inversedBy: "setting")]
     #[ORM\JoinColumn(name: 'account_id', unique: true, nullable: false)]
@@ -29,11 +32,22 @@ class AccountSetting
     #[ORM\Column(name: 'profile_visibility', length: 10, nullable: false)]
     private ?string $profileVisibility = "private";
 
+    #[ORM\Column(
+        name: 'profile_public_mask',
+        type: 'bigint',
+        options: ['default' => '0']
+    )]
+    private string $profilePublicMask = '0';
+
+    #[ORM\Column(
+        name: 'profile_connections_mask',
+        type: 'bigint',
+        options: ['default' => '0']
+    )]
+    private string $profileConnectionsMask = '0';
+
     #[ORM\Column(name: 'theme', length: 15, nullable: false)]
     private ?string $theme = "dark";
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -48,10 +62,10 @@ class AccountSetting
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -59,10 +73,7 @@ class AccountSetting
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -122,6 +133,63 @@ class AccountSetting
         return $this;
     }
 
+    public function getSectionVisibility(
+        ProfileVisibilityPermission $section
+    ): VisibilityLevel {
+        $bit = $section->value;
+
+        $isPublic = (((int) $this->profilePublicMask & $bit) !== 0);
+        $isConnections = (((int) $this->profileConnectionsMask & $bit) !== 0);
+
+        // Conflicting visibility settings must fail closed.
+        if ($isPublic && $isConnections) {
+            return VisibilityLevel::PRIVATE;
+        }
+
+        if ($isPublic) {
+            return VisibilityLevel::PUBLIC;
+        }
+
+        if ($isConnections) {
+            return VisibilityLevel::CONNECTIONS;
+        }
+
+        return VisibilityLevel::PRIVATE;
+    }
+
+    public function setSectionVisibility(
+        ProfileVisibilityPermission $section,
+        VisibilityLevel $level
+    ): static {
+        $bit = $section->value;
+
+        $public = (int) $this->profilePublicMask;
+        $connections = (int) $this->profileConnectionsMask;
+
+        // Remove the section from both masks.
+        $public &= ~$bit;
+        $connections &= ~$bit;
+
+        // Set the requested visibility.
+        switch ($level) {
+            case VisibilityLevel::PUBLIC:
+                $public |= $bit;
+                break;
+
+            case VisibilityLevel::CONNECTIONS:
+                $connections |= $bit;
+                break;
+
+            case VisibilityLevel::PRIVATE:
+                break;
+        }
+
+        $this->profilePublicMask = (string) $public;
+        $this->profileConnectionsMask = (string) $connections;
+
+        return $this;
+    }
+
     public function getTheme(): ?string
     {
         return $this->theme;
@@ -136,7 +204,7 @@ class AccountSetting
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

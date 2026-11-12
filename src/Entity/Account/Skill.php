@@ -1,11 +1,14 @@
 <?php
+
 namespace App\Entity\Account;
 
+use App\Entity\Job\JobSkill;
+use App\Entity\Project\ProjectSkill;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'skills')]
@@ -14,8 +17,8 @@ class Skill
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\Column(name: 'name', length: 255, unique: true)]
     private ?string $name = null;
@@ -25,6 +28,9 @@ class Skill
 
     #[ORM\Column(name: 'category', length: 255)]
     private ?string $category = null;
+
+    #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
+    private bool $active = true;
 
 
     // Reverse FKs
@@ -38,15 +44,32 @@ class Skill
 
     // Functions
 
+    /** @var Collection<int, JobSkill> */
+    #[ORM\OneToMany(
+        targetEntity: JobSkill::class,
+        mappedBy: 'skill'
+    )]
+    private Collection $jobSkills;
+
+    /** @var Collection<int, ProjectSkill> */
+    #[ORM\OneToMany(
+        targetEntity: ProjectSkill::class,
+        mappedBy: 'skill'
+    )]
+    private Collection $projectSkills;
+
+
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
+        $this->projectSkills = new ArrayCollection();
+        $this->jobSkills = new ArrayCollection();
 
         $this->skillRecords = new ArrayCollection();
         $this->skillInterestsRecords = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -90,6 +113,18 @@ class Skill
         return $this;
     }
 
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): static
+    {
+        $this->active = $active;
+
+        return $this;
+    }
+
     /** @return Collection<int, ProfileSkill> */
     public function getSkillRecords(): Collection
     {
@@ -101,4 +136,17 @@ class Skill
     {
         return $this->skillInterestsRecords;
     }
+
+    /** @return Collection<int, JobSkill> */
+    public function getJobSkills(): Collection
+    {
+        return $this->jobSkills;
+    }
+
+    /** @return Collection<int, ProjectSkill> */
+    public function getProjectSkills(): Collection
+    {
+        return $this->projectSkills;
+    }
+
 }

@@ -8,7 +8,7 @@ use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 use App\Security\Permission;
 
 #[Route('/org', name: 'org.')]
@@ -154,11 +154,11 @@ final class PanelController extends AbstractController
         string $id,
         ProjectRepository $projectRepository,
     ): Project {
-        if (!Uuid::isValid($id)) {
+        if (!Ulid::isValid($id)) {
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        $project = $projectRepository->findOneActiveById(Uuid::fromString($id));
+        $project = $projectRepository->findOneActiveById(Ulid::fromString($id));
 
         if ($project === null) {
             throw $this->createNotFoundException('Project niet gevonden.');
