@@ -10,6 +10,8 @@ use App\Entity\Project\ProjectParticipant;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRoleRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ProjectParticipantUpdateRoleHandler
@@ -65,16 +67,62 @@ class ProjectParticipantUpdateRoleHandler
     }
 
     /**
-     * Accepteert een aanvraag en maakt precies één participant aan (of
-     * heractiveert een bestaande voor dezelfde profiel/project-combinatie).
+     * OR06-B: accepteert een aanvraag als één atomaire overgang.
+     *
+     * Alles gebeurt in één databasetransactie waarin de aanvraag eerst wordt
+     * vergrendeld (SELECT ... FOR UPDATE). Een tweede, gelijktijdige klik wacht
+     * dan tot de eerste klaar is, ziet de nieuwe status en maakt dus geen
+     * tweede participant. Faalt er iets, dan wordt alles teruggedraaid.
      *
      * @return array{success: bool, message: string}
      */
     public function acceptApplication(Project $project, string $applicationId, Profile $reviewer): array
     {
-        $application = $this->participantRepo->findApplicationForProject($applicationId, $project);
+        try {
+            return $this->em->wrapInTransaction(
+                fn (): array => $this->doAcceptApplication($project, $applicationId, $reviewer)
+            );
+        } catch (UniqueConstraintViolationException) {
+            // Vangnet: de database weigert een tweede participant voor dezelfde aanvraag (unieke application_id).
+            return $this->failure('Deze aanvraag is al behandeld of de deelnemer bestaat al.');
+        }
+    }
+
+    /**
+     * Wijst een aanvraag af (ook binnen een vergrendelde transactie); een korte reden is verplicht.
+     * Afwijzen maakt nooit een participant aan.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function rejectApplication(Project $project, string $applicationId, ?string $reason, Profile $reviewer): array
+    {
+        $reason = trim((string) $reason);
+
+        if ($reason === '') {
+            return $this->failure('Geef een korte reden op voor de afwijzing.');
+        }
+
+        if (mb_strlen($reason) > self::REJECT_REASON_MAX_LENGTH) {
+            return $this->failure(sprintf('De reden mag maximaal %d tekens bevatten.', self::REJECT_REASON_MAX_LENGTH));
+        }
+
+        return $this->em->wrapInTransaction(
+            fn (): array => $this->doRejectApplication($project, $applicationId, $reason, $reviewer)
+        );
+    }
+
+    /** @return array{success: bool, message: string} */
+    private function doAcceptApplication(Project $project, string $applicationId, Profile $reviewer): array
+    {
+        // Eerst het project vergrendelen: zo kunnen er per project nooit twee accepties tegelijk lopen. Dat
+        // garandeert één participant per profiel/project, ook zonder extra unieke index in de database.
+        $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
+
+        // Vergrendelen en daarna pas de status controleren: zo ziet een wachtende tweede klik de nieuwe status.
+        $application = $this->participantRepo->findApplicationForProject($applicationId, $project, true);
 
         if ($application === null) {
+            // Ook een ingetrokken (soft-deleted) aanvraag komt hier uit: intrekken maakt dus nooit een participant.
             return $this->failure('Aanvraag niet gevonden.');
         }
 
@@ -113,8 +161,7 @@ class ProjectParticipantUpdateRoleHandler
         $application->setReviewerProfile($reviewer);
         $application->markAsReviewed();
 
-        // Eén flush = één Doctrine-transactie: aanvraag en participant worden samen opgeslagen.
-        $this->em->flush();
+        // De flush gebeurt door wrapInTransaction: aanvraag en participant worden samen vastgelegd.
 
         return [
             'success' => true,
@@ -122,24 +169,10 @@ class ProjectParticipantUpdateRoleHandler
         ];
     }
 
-    /**
-     * Wijst een aanvraag af; een korte reden is verplicht.
-     *
-     * @return array{success: bool, message: string}
-     */
-    public function rejectApplication(Project $project, string $applicationId, ?string $reason, Profile $reviewer): array
+    /** @return array{success: bool, message: string} */
+    private function doRejectApplication(Project $project, string $applicationId, string $reason, Profile $reviewer): array
     {
-        $reason = trim((string) $reason);
-
-        if ($reason === '') {
-            return $this->failure('Geef een korte reden op voor de afwijzing.');
-        }
-
-        if (mb_strlen($reason) > self::REJECT_REASON_MAX_LENGTH) {
-            return $this->failure(sprintf('De reden mag maximaal %d tekens bevatten.', self::REJECT_REASON_MAX_LENGTH));
-        }
-
-        $application = $this->participantRepo->findApplicationForProject($applicationId, $project);
+        $application = $this->participantRepo->findApplicationForProject($applicationId, $project, true);
 
         if ($application === null) {
             return $this->failure('Aanvraag niet gevonden.');
@@ -159,8 +192,6 @@ class ProjectParticipantUpdateRoleHandler
         $application->setReview($reason);
         $application->setReviewerProfile($reviewer);
         $application->markAsReviewed();
-
-        $this->em->flush();
 
         return [
             'success' => true,

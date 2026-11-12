@@ -7,6 +7,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Uid\Uuid;
 
@@ -66,13 +67,13 @@ class ProjectParticipantRepository extends ServiceEntityRepository
      * OR06-A: één aanvraag binnen een specifiek project, zodat een organisatie
      * nooit een aanvraag van een ander project kan behandelen.
      */
-    public function findApplicationForProject(string $applicationId, Project $project): ?ProjectApplication
+    public function findApplicationForProject(string $applicationId, Project $project, bool $lockForUpdate = false): ?ProjectApplication
     {
         if (!Uuid::isValid($applicationId)) {
             return null;
         }
 
-        return $this->getEntityManager()->createQueryBuilder()
+        $query = $this->getEntityManager()->createQueryBuilder()
             ->select('application')
             ->from(ProjectApplication::class, 'application')
             ->andWhere('application.id = :id')
@@ -80,7 +81,13 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.deletedAt IS NULL')
             ->setParameter('id', Uuid::fromString($applicationId), 'uuid')
             ->setParameter('project', $project)
-            ->getQuery()
-            ->getOneOrNullResult();
+            ->getQuery();
+
+        // OR06-B: binnen een transactie blokkeert dit een gelijktijdige tweede behandeling van dezelfde aanvraag.
+        if ($lockForUpdate) {
+            $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
+        }
+
+        return $query->getOneOrNullResult();
     }
 }
