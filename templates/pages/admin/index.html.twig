@@ -7,6 +7,9 @@
 {% endblock %}
 
 {% block body %}
+    {% set totals = admin_dashboard_totals() %}
+    <h1>Admin-dashboard</h1>
+    <p>Bekijk de platformtotalen en open de beheeronderdelen waarvoor je bevoegd bent.</p>
 
 <header>
     <h2>Dashboard</h2>
