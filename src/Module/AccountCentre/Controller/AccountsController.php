@@ -388,7 +388,7 @@ final class AccountsController extends AbstractController
             $location = trim((string) $request->request->get('location') ?: null);
             $bio = trim((string) $request->request->get('bio')?: null);
 
-            if (!empty($username) and $username <= 12) {
+            if (!empty($username) and strlen($username) <= 12) {
                 $account->setUsername($username);
             }
             if (!empty($email)) {
@@ -396,10 +396,10 @@ final class AccountsController extends AbstractController
             }
 
             if ($profile) {
-                if (strlen($firstName) > 50) $profile->setFirstName($firstName);
-                if (strlen($lastName) > 50) $profile->setLastName($lastName);
-                if (strlen($displayName) > 50) $profile->setDisplayName($displayName);
-                if (strlen($bio) > 250) $profile->setBio($bio);
+                if (strlen($firstName) < 50) $profile->setFirstName($firstName);
+                if (strlen($lastName) < 50) $profile->setLastName($lastName);
+                if (strlen($displayName) < 50) $profile->setDisplayName($displayName);
+                if (strlen($bio) < 250) $profile->setBio($bio);
                 $profile->setAvatarUrl($avatarUrl);
                 $profile->setLocation($location);
 
