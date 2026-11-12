@@ -59,8 +59,15 @@ class Project
     #[ORM\Column(name: 'capacity', type: 'integer')]
     private ?int $capacity = null;
 
-    #[ORM\Column(name: 'remote_possible', type: "boolean", nullable: false)]
+    #[ORM\Column(name: 'remote_possible', type: 'boolean', nullable: false)]
     private bool $remotePossible = true;
+
+    #[ORM\Column(
+        name: 'allow_following',
+        type: 'boolean',
+        options: ['default' => true]
+    )]
+    private bool $allowFollowing = true;
 
     #[ORM\Column(name: 'published_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $publishedAt = null;
@@ -160,7 +167,7 @@ class Project
     }
 
 
-/// Getters & Setters Functions
+    // Getters & Setters Functions
 
     public function getOwnerAccount(): ?Account
     {
@@ -297,6 +304,18 @@ class Project
     public function isRemotePossible(): bool
     {
         return $this->remotePossible;
+    }
+
+    public function isFollowingAllowed(): bool
+    {
+        return $this->allowFollowing;
+    }
+
+    public function setAllowFollowing(bool $allowFollowing): static
+    {
+        $this->allowFollowing = $allowFollowing;
+
+        return $this;
     }
 
     public function getPublishedAt(): ?\DateTimeImmutable

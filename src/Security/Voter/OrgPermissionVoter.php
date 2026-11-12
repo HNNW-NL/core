@@ -47,20 +47,31 @@ final class OrgPermissionVoter extends Voter
             return true;
         }
 
-        $membership = $this->entityManager->getRepository(OrgMember::class)->findOneBy([
-            'organisation' => $subject,
-            'account' => $account,
-        ]);
-
-        if (!$membership instanceof OrgMember) {
-            return false;
-        }
-
         $permission = Permission::fromName($attribute);
+
         if ($permission === null) {
             return false;
         }
 
-        return $permission->in($membership->getOrgRole()->getPermissionsMask());
+        $memberships = $this->entityManager
+            ->getRepository(OrgMember::class)
+            ->findBy([
+                'organisation' => $subject,
+                'account' => $account,
+            ]);
+
+        foreach ($memberships as $membership) {
+            $role = $membership->getOrgRole();
+
+            if (
+                $role !== null &&
+                $role->getOrganisation()?->getId()?->equals($subject->getId()) &&
+                $permission->in($role->getPermissionsMask())
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

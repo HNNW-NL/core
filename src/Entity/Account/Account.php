@@ -10,6 +10,7 @@ use App\Entity\Log\AuditLog;
 use App\Entity\Org\OrgMember;
 use App\Entity\Project\Project;
 use App\Entity\Common\Event;
+use App\Entity\Org\Organisation;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -93,12 +94,22 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'authorAccount')]
     private Collection $authoredEvents;
 
+    /**
+     * @var Collection<int, Organisation>
+     */
+    #[ORM\OneToMany(
+        targetEntity: Organisation::class,
+        mappedBy: 'ownerAccount'
+    )]
+    private Collection $ownedOrganisations;
+
 
     // Functions
 
     public function __construct()
     {
         $this->id = new Ulid();
+
         $this->auditLogs = new ArrayCollection();
         $this->orgMemberships = new ArrayCollection();
         $this->notifications = new ArrayCollection();
@@ -107,6 +118,7 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
         $this->resetPasswordTokens = new ArrayCollection();
         $this->verifyEmailTokens = new ArrayCollection();
         $this->authoredEvents = new ArrayCollection();
+        $this->ownedOrganisations = new ArrayCollection();
     }
 
     public function getId(): Ulid
@@ -374,5 +386,13 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Organisation>
+     */
+    public function getOwnedOrganisations(): Collection
+    {
+        return $this->ownedOrganisations;
     }
 }

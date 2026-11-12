@@ -20,6 +20,11 @@ enum Permission: int
     case ORG_MANAGE_PROJECTS  = 1 << 14;
     case ORG_DELETE           = 1 << 15;
 
+    case ORG_VIEW_JOBS        = 1 << 16;
+    case ORG_CREATE_JOBS      = 1 << 17;
+    case ORG_EDIT_JOBS        = 1 << 18;
+    case ORG_DELETE_JOBS      = 1 << 19;
+
     /**
      * omschrijving, handig voor bijvoorbeeld een rollenbeheer-scherm*/
     public function label(): string
@@ -37,6 +42,10 @@ enum Permission: int
             self::ORG_MANAGE_ROLES => 'Rollen beheren',
             self::ORG_MANAGE_PROJECTS => 'Projecten beheren',
             self::ORG_DELETE => 'Organisatie verwijderen',
+            self::ORG_VIEW_JOBS => 'Organisatievacatures bekijken',
+            self::ORG_CREATE_JOBS => 'Vacatures aanmaken',
+            self::ORG_EDIT_JOBS => 'Vacatures aanpassen',
+            self::ORG_DELETE_JOBS => 'Vacatures verwijderen',
         };
     }
 

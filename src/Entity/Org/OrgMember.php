@@ -75,6 +75,16 @@ class OrgMember
 
     public function setOrganisation(?Organisation $organisation): static
     {
+        if (
+            $organisation !== null &&
+            $this->orgRole !== null &&
+            $this->orgRole->getOrganisation() !== $organisation
+        ) {
+            throw new \InvalidArgumentException(
+                'The membership organisation must match the role organisation.'
+            );
+        }
+
         $this->organisation = $organisation;
 
         return $this;
@@ -99,6 +109,16 @@ class OrgMember
 
     public function setOrgRole(?OrgRole $orgRole): static
     {
+        if (
+            $orgRole !== null &&
+            $this->organisation !== null &&
+            $orgRole->getOrganisation() !== $this->organisation
+        ) {
+            throw new \InvalidArgumentException(
+                'The organisation role must belong to the membership organisation.'
+            );
+        }
+
         $this->orgRole = $orgRole;
 
         return $this;

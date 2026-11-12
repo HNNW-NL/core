@@ -6,6 +6,7 @@ use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Entity\Common\Event;
 use App\Entity\Account\ProfileExperience;
+use App\Entity\Account\Account;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,6 +28,18 @@ class Organisation
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
 
+    #[ORM\ManyToOne(
+        targetEntity: Account::class,
+        inversedBy: 'ownedOrganisations'
+    )]
+    #[ORM\JoinColumn(
+        name: 'owner_account_id',
+        referencedColumnName: 'id',
+        nullable: true,
+        onDelete: 'SET NULL'
+    )]
+    private ?Account $ownerAccount = null;
+
     #[ORM\Column(name: 'name', length: 255)]
     private ?string $name = null;
 
@@ -44,6 +57,15 @@ class Organisation
 
     #[ORM\Column(name: 'website_url', type: "text", nullable: true)]
     private ?string $websiteUrl = null;
+
+    #[ORM\Column(name: 'sector', length: 120, nullable: true)]
+    private ?string $sector = null;
+
+    #[ORM\Column(name: 'contact_email', length: 255, nullable: true)]
+    private ?string $contactEmail = null;
+
+    #[ORM\Column(name: 'verified', type: 'boolean', options: ['default' => false])]
+    private bool $verified = false;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -206,6 +228,42 @@ class Organisation
         return $this;
     }
 
+    public function getSector(): ?string
+    {
+        return $this->sector;
+    }
+
+    public function setSector(?string $sector): static
+    {
+        $this->sector = $sector;
+
+        return $this;
+    }
+
+    public function getContactEmail(): ?string
+    {
+        return $this->contactEmail;
+    }
+
+    public function setContactEmail(?string $contactEmail): static
+    {
+        $this->contactEmail = $contactEmail;
+
+        return $this;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verified;
+    }
+
+    public function setVerified(bool $verified): static
+    {
+        $this->verified = $verified;
+
+        return $this;
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->id->getDateTime();
@@ -263,6 +321,34 @@ class Organisation
             if ($event->getOrganisation() === $this) {
                 $event->setOrganisation(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getOwnerAccount(): ?Account
+    {
+        return $this->ownerAccount;
+    }
+
+    public function setOwnerAccount(?Account $ownerAccount): static
+    {
+        if ($this->ownerAccount === $ownerAccount) {
+            return $this;
+        }
+
+        $previousOwner = $this->ownerAccount;
+        $this->ownerAccount = $ownerAccount;
+
+        if ($previousOwner !== null) {
+            $previousOwner->getOwnedOrganisations()->removeElement($this);
+        }
+
+        if (
+            $ownerAccount !== null &&
+            !$ownerAccount->getOwnedOrganisations()->contains($this)
+        ) {
+            $ownerAccount->getOwnedOrganisations()->add($this);
         }
 
         return $this;

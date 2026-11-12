@@ -27,6 +27,9 @@ class Skill
     #[ORM\Column(name: 'category', length: 255)]
     private ?string $category = null;
 
+    #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
+    private bool $active = true;
+
 
     // Reverse FKs
 
@@ -87,6 +90,18 @@ class Skill
     public function setCategory(?string $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): static
+    {
+        $this->active = $active;
 
         return $this;
     }

@@ -19,26 +19,32 @@ class Review
     #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
     private Ulid $id;
 
-    #[ORM\ManyToOne(inversedBy: "reviews")]
+    #[ORM\ManyToOne(inversedBy: 'reviews')]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
     private ?Profile $profile = null;
 
-    #[ORM\ManyToOne(inversedBy: "sentReviews")]
+    #[ORM\ManyToOne(inversedBy: 'sentReviews')]
     #[ORM\JoinColumn(name: 'reviewer_profile_id', nullable: false)]
     private ?Profile $reviewerProfile = null;
 
-    #[ORM\ManyToOne(inversedBy: "reviews")]
+    #[ORM\ManyToOne(inversedBy: 'reviews')]
     #[ORM\JoinColumn(name: 'project_id', nullable: false)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(inversedBy: "reviews")]
+    #[ORM\ManyToOne(inversedBy: 'reviews')]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
+
+    #[ORM\Column(name: 'title', length: 150, nullable: true)]
+    private ?string $title = null;
+
+    #[ORM\Column(name: 'rating', type: 'smallint', nullable: true)]
+    private ?int $rating = null;
 
     #[ORM\Column(name: 'message', type: 'text', nullable: true)]
     private ?string $message = null;
 
-    #[ORM\Column(name: 'is_public', type: "boolean", nullable: false)]
+    #[ORM\Column(name: 'is_public', type: 'boolean', nullable: false)]
     private bool $isPublic = false;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
@@ -49,9 +55,7 @@ class Review
 
 
     // Reverse FKs
-
-    /* Insert reverse FKs here */
-
+    // The inverse associations are defined in the related entities.
 
     // Functions
 
@@ -98,7 +102,7 @@ class Review
     }
 
 
-    /// Getters & Setters Functions
+    // Getters & Setters Functions
 
     public function getProfile(): ?Profile
     {
@@ -144,6 +148,36 @@ class Review
     public function setStatus(?Status $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getRating(): ?int
+    {
+        return $this->rating;
+    }
+
+    public function setRating(?int $rating): static
+    {
+        if ($rating !== null && ($rating < 1 || $rating > 5)) {
+            throw new \InvalidArgumentException(
+                'Review rating must be between 1 and 5.'
+            );
+        }
+
+        $this->rating = $rating;
 
         return $this;
     }

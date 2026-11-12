@@ -16,11 +16,11 @@ class Notification
     #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
     private Ulid $id;
 
-    #[ORM\ManyToOne(inversedBy: "notifications")]
+    #[ORM\ManyToOne(inversedBy: 'notifications')]
     #[ORM\JoinColumn(name: 'account_id', nullable: false)]
     private ?Account $account = null;
 
-    #[ORM\ManyToOne(inversedBy: "sentNotifications")]
+    #[ORM\ManyToOne(inversedBy: 'sentNotifications')]
     #[ORM\JoinColumn(name: 'sender_account_id', nullable: true)]
     private ?Account $senderAccount = null;
 
@@ -30,29 +30,30 @@ class Notification
     #[ORM\Column(name: 'title', length: 255)]
     private ?string $title = null;
 
-    #[ORM\Column(name: 'message', type: "text")]
+    #[ORM\Column(name: 'message', type: 'text')]
     private ?string $message = null;
 
-    #[ORM\Column(name: 'route', type: "text", nullable: true)]
+    #[ORM\Column(name: 'route', type: 'text', nullable: true)]
     private ?string $route = null;
 
-    #[ORM\Column(name: 'is_read', type: "boolean", nullable: false)]
+    #[ORM\Column(name: 'is_read', type: 'boolean', nullable: false)]
     private bool $isRead = false;
 
-    #[ORM\Column(name: 'data_json', type: "json", nullable: true)]
+    #[ORM\Column(name: 'data_json', type: 'json', nullable: true)]
     private ?array $dataJson = null;
 
     #[ORM\Column(name: 'read_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $readAt = null;
+
+    #[ORM\Column(name: 'expires_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $expiresAt = null;
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
 
     // Reverse FKs
-
-    /* Insert reverse FKs here */
-
+    // Inverse relationships are defined in Account.
 
     // Functions
 
@@ -88,8 +89,14 @@ class Notification
         $this->deletedAt = null;
     }
 
+    public function isExpired(): bool
+    {
+        return $this->expiresAt !== null
+            && $this->expiresAt <= new \DateTimeImmutable();
+    }
 
-    /// Getters & Setters Functions
+
+    // Getters & Setters Functions
 
     public function getAccount(): ?Account
     {
@@ -183,6 +190,19 @@ class Notification
     public function getReadAt(): ?\DateTimeImmutable
     {
         return $this->readAt;
+    }
+
+    public function getExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->expiresAt;
+    }
+
+    public function setExpiresAt(
+        ?\DateTimeImmutable $expiresAt
+    ): static {
+        $this->expiresAt = $expiresAt;
+
+        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

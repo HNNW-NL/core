@@ -42,6 +42,9 @@ class AuditLog
     #[ORM\Column(name: 'new_values_json', type: "json")]
     private ?array $newValuesJson = null;
 
+    #[ORM\Column(name: 'context_json', type: "json", nullable: true)]
+    private ?array $contextJson = null;
+
     #[ORM\Column(name: 'request_ip', length: 50)]
     private ?string $requestIp = null;
 
@@ -156,6 +159,18 @@ class AuditLog
     public function setNewValuesJson(?array $newValuesJson): static
     {
         $this->newValuesJson = $newValuesJson;
+
+        return $this;
+    }
+
+    public function getContextJson(): ?array
+    {
+        return $this->contextJson;
+    }
+
+    public function setContextJson(?array $contextJson): static
+    {
+        $this->contextJson = $contextJson;
 
         return $this;
     }

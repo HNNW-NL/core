@@ -28,8 +28,8 @@ class OrgRole
     #[ORM\Column(name: 'name', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(name: 'permissions_mask', type: "bigint", nullable: true)]
-    private ?int $permissionsMask = null;
+    #[ORM\Column(name: 'permissions_mask', type: 'bigint', nullable: false, options: ['default' => 0])]
+    private int $permissionsMask = 0;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -94,13 +94,19 @@ class OrgRole
         return $this;
     }
 
-    public function getPermissionsMask(): ?int
+    public function getPermissionsMask(): int
     {
         return $this->permissionsMask;
     }
 
-    public function setPermissionsMask(?int $permissionsMask): static
+    public function setPermissionsMask(int $permissionsMask): static
     {
+        if ($permissionsMask < 0) {
+            throw new \InvalidArgumentException(
+                'Permissions mask cannot be negative.'
+            );
+        }
+
         $this->permissionsMask = $permissionsMask;
 
         return $this;

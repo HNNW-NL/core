@@ -2,6 +2,7 @@
 
 namespace App\Entity\Account;
 
+use App\Enum\SkillProficiencyLevel;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Uid\Ulid;
@@ -27,11 +28,19 @@ class ProfileSkill
     #[ORM\JoinColumn(name: 'skill_id', nullable: false)]
     private ?Skill $skill = null;
 
-    #[ORM\Column(name: 'proficiency_level', length: 50)]
-    private ?string $proficiencyLevel = null;
+    #[ORM\Column(
+        name: 'proficiency_level',
+        length: 50,
+        nullable: true,
+        enumType: SkillProficiencyLevel::class
+    )]
+    private ?SkillProficiencyLevel $proficiencyLevel = null;
 
     #[ORM\Column(name: 'is_featured', type: "boolean", nullable: false)]
     private bool $featured = false;
+
+    #[ORM\Column(name: 'years_of_experience', type: 'smallint', nullable: true)]
+    private ?int $yearsOfExperience = null;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -103,12 +112,12 @@ class ProfileSkill
         return $this;
     }
 
-    public function getProficiencyLevel(): ?string
+    public function getProficiencyLevel(): ?SkillProficiencyLevel
     {
         return $this->proficiencyLevel;
     }
 
-    public function setProficiencyLevel(?string $proficiencyLevel): static
+    public function setProficiencyLevel(?SkillProficiencyLevel $proficiencyLevel): static
     {
         $this->proficiencyLevel = $proficiencyLevel;
 
@@ -123,6 +132,24 @@ class ProfileSkill
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->id->getDateTime();
+    }
+
+    public function getYearsOfExperience(): ?int
+    {
+        return $this->yearsOfExperience;
+    }
+
+    public function setYearsOfExperience(?int $years): static
+    {
+        if ($years !== null && ($years < 0 || $years > 100)) {
+            throw new \InvalidArgumentException(
+                'Years of experience must be between 0 and 100.'
+            );
+        }
+
+        $this->yearsOfExperience = $years;
+
+        return $this;
     }
 
     public function getLastModified(): \DateTimeImmutable
