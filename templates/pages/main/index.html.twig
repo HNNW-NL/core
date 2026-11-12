@@ -22,6 +22,7 @@
 <div class="home-page">
 {# Skip link keeps keyboard users able to jump straight to the main page content. #}
 <a class="skip-link" href="#about">Direct naar de inhoud</a>
+{% include 'pages/main/_breadcrumbs.html.twig' with { currentPage: 'Home', isHome: true } %}
 
 {# Hero section introduces the platform and the primary action for new visitors. #}
 <section class="hero container" id="about" aria-labelledby="hero-title">
