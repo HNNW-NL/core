@@ -127,7 +127,13 @@
     </dialog>
 
     {# ---------------- Bestaande deelnemerslijst ---------------- #}
-    <form method="POST" class="edit-participants-form">
+    {# De controller geeft nog geen 'participants' door (zie OR06-B); zonder rijen tonen we het lege formulier niet. #}
+    {% set hasParticipants = participants|default([])|length > 0 %}
+    {% if not hasParticipants %}
+        <p class="participants-empty">Er zijn nog geen deelnemers om weer te geven.</p>
+    {% endif %}
+
+    <form method="POST" class="edit-participants-form"{% if not hasParticipants %} style="display: none"{% endif %}>
         <input type="submit" class="submit" value="Submit Changes">
 
         <table class="edit-participants-table" id="edit-participants-table">
