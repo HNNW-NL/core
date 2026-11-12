@@ -78,3 +78,133 @@
 .submit:hover{
     background-color: #f4c400;
 }
+
+/* OR06-A: aanvragen beoordelen */
+
+.review-flash {
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.review-flash--success {
+    background-color: #064e3b;
+    color: #d1fae5;
+}
+
+.review-flash--error {
+    background-color: #7f1d1d;
+    color: #fee2e2;
+}
+
+.applications {
+    margin: 1.5rem 0 2.5rem;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.applications__empty {
+    opacity: 0.8;
+}
+
+.applications-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.applications-table th,
+.applications-table td {
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.applications-table tbody {
+    background-color: #0f172ab3;
+}
+
+.applications-table tbody tr:hover {
+    background-color: #020617;
+}
+
+.applications-table__motivation {
+    max-width: 28rem;
+    overflow-wrap: anywhere;
+}
+
+.applications-table__actions {
+    white-space: nowrap;
+}
+
+.applications-table__done {
+    opacity: 0.7;
+}
+
+.application-status {
+    text-transform: capitalize;
+}
+
+.application-status__reason {
+    margin-top: 0.25rem;
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.btn {
+    padding: 0.4rem 0.9rem;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.btn--accept {
+    background-color: #10b981;
+    color: #022c22;
+}
+
+.btn--reject {
+    background-color: #ef4444;
+    color: #fff;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.review-dialog {
+    max-width: 28rem;
+    width: calc(100% - 2rem);
+    padding: 1.5rem;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    background-color: #0f172a;
+    color: #e2e8f0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.review-dialog::backdrop {
+    background-color: rgba(2, 6, 23, 0.7);
+}
+
+.review-dialog__reason {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 1rem 0;
+}
+
+.review-dialog__reason textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem;
+    font: inherit;
+}
+
+.review-dialog__buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 1rem;
+}
