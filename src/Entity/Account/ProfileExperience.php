@@ -2,7 +2,10 @@
 
 namespace App\Entity\Account;
 
+use App\Entity\Org\Organisation;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Uid\Ulid;
 
@@ -21,8 +24,24 @@ class ProfileExperience
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
     private ?Profile $profile = null;
 
-    #[ORM\Column(name: 'organisation_name', length: 255)]
-    private ?string $organisationName = null;
+    #[ORM\ManyToOne(
+        targetEntity: Organisation::class,
+        inversedBy: 'profileExperiences'
+    )]
+    #[ORM\JoinColumn(
+        name: 'organisation_id',
+        referencedColumnName: 'id',
+        nullable: true,
+        onDelete: 'SET NULL'
+    )]
+    private ?Organisation $organisation = null;
+
+    #[ORM\Column(
+        name: 'external_organisation_name',
+        length: 255,
+        nullable: true
+    )]
+    private ?string $externalOrganisationName = null;
 
     #[ORM\Column(name: 'job_title', length: 255)]
     private ?string $jobTitle = null;
@@ -48,7 +67,11 @@ class ProfileExperience
 
     // Reverse FKs
 
-    /* Insert reverse FKs here */
+    #[ORM\OneToMany(
+        targetEntity: Profile::class,
+        mappedBy: 'currentExperience'
+    )]
+    private Collection $profilesUsingAsCurrentExperience;
 
 
     // Functions
@@ -56,6 +79,8 @@ class ProfileExperience
     public function __construct()
     {
         $this->id = new Ulid();
+
+        $this->profilesUsingAsCurrentExperience = new ArrayCollection();
     }
 
     public function getId(): Ulid
@@ -110,16 +135,50 @@ class ProfileExperience
         return $this;
     }
 
-    public function getOrganisationName(): ?string
+    public function getOrganisation(): ?Organisation
     {
-        return $this->organisationName;
+        return $this->organisation;
     }
 
-    public function setOrganisationName(?string $organisationName): static
+    public function setOrganisation(?Organisation $organisation): static
     {
-        $this->organisationName = $organisationName;
+        if ($this->organisation === $organisation) {
+            return $this;
+        }
+
+        $previous = $this->organisation;
+        $this->organisation = $organisation;
+
+        if ($previous !== null) {
+            $previous->getProfileExperiences()->removeElement($this);
+        }
+
+        if (
+            $organisation !== null &&
+            !$organisation->getProfileExperiences()->contains($this)
+        ) {
+            $organisation->getProfileExperiences()->add($this);
+        }
 
         return $this;
+    }
+
+    public function getExternalOrganisationName(): ?string
+    {
+        return $this->externalOrganisationName;
+    }
+
+    public function setExternalOrganisationName(?string $name): static
+    {
+        $this->externalOrganisationName = $name;
+
+        return $this;
+    }
+
+    public function getDisplayOrganisationName(): ?string
+    {
+        return $this->organisation?->getName()
+            ?? $this->externalOrganisationName;
     }
 
     public function getJobTitle(): ?string
@@ -190,13 +249,18 @@ class ProfileExperience
         return $this->deletedAt;
     }
 
-    /**
-     * Gecorrigeerde setter: accepteert een bool en werkt de property daadwerkelijk bij.
-     */
     public function setIsCurrent(bool $isCurrent): static
     {
         $this->isCurrent = $isCurrent;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Profile>
+     */
+    public function getProfilesUsingAsCurrentExperience(): Collection
+    {
+        return $this->profilesUsingAsCurrentExperience;
     }
 }

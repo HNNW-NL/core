@@ -2,6 +2,8 @@
 
 namespace App\Entity\Account;
 
+use App\Enum\ProfileVisibilityPermission;
+use App\Enum\VisibilityLevel;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Uid\Ulid;
@@ -29,6 +31,20 @@ class AccountSetting
 
     #[ORM\Column(name: 'profile_visibility', length: 10, nullable: false)]
     private ?string $profileVisibility = "private";
+
+    #[ORM\Column(
+        name: 'profile_public_mask',
+        type: 'bigint',
+        options: ['default' => '0']
+    )]
+    private string $profilePublicMask = '0';
+
+    #[ORM\Column(
+        name: 'profile_connections_mask',
+        type: 'bigint',
+        options: ['default' => '0']
+    )]
+    private string $profileConnectionsMask = '0';
 
     #[ORM\Column(name: 'theme', length: 15, nullable: false)]
     private ?string $theme = "dark";
@@ -113,6 +129,63 @@ class AccountSetting
     public function setProfileVisibility(?string $profileVisibility): static
     {
         $this->profileVisibility = $profileVisibility;
+
+        return $this;
+    }
+
+    public function getSectionVisibility(
+        ProfileVisibilityPermission $section
+    ): VisibilityLevel {
+        $bit = $section->value;
+
+        $isPublic = (((int) $this->profilePublicMask & $bit) !== 0);
+        $isConnections = (((int) $this->profileConnectionsMask & $bit) !== 0);
+
+        // Conflicting visibility settings must fail closed.
+        if ($isPublic && $isConnections) {
+            return VisibilityLevel::PRIVATE;
+        }
+
+        if ($isPublic) {
+            return VisibilityLevel::PUBLIC;
+        }
+
+        if ($isConnections) {
+            return VisibilityLevel::CONNECTIONS;
+        }
+
+        return VisibilityLevel::PRIVATE;
+    }
+
+    public function setSectionVisibility(
+        ProfileVisibilityPermission $section,
+        VisibilityLevel $level
+    ): static {
+        $bit = $section->value;
+
+        $public = (int) $this->profilePublicMask;
+        $connections = (int) $this->profileConnectionsMask;
+
+        // Remove the section from both masks.
+        $public &= ~$bit;
+        $connections &= ~$bit;
+
+        // Set the requested visibility.
+        switch ($level) {
+            case VisibilityLevel::PUBLIC:
+                $public |= $bit;
+                break;
+
+            case VisibilityLevel::CONNECTIONS:
+                $connections |= $bit;
+                break;
+
+            case VisibilityLevel::PRIVATE:
+                break;
+        }
+
+        $this->profilePublicMask = (string) $public;
+        $this->profileConnectionsMask = (string) $connections;
 
         return $this;
     }

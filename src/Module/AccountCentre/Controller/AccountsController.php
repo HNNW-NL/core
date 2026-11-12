@@ -334,14 +334,10 @@ final class AccountsController extends AbstractController
                 try {
                     $experience = new ProfileExperience();
 
-                    if (method_exists($experience, 'setId')) {
-                        $experience->setId(Ulid::v4());
-                    }
-
                     $experience->setJobTitle($jobTitle);
 
                     // Fixed spelling from setOrganizationName to setOrganisationName
-                    $experience->setOrganisationName($organisationName);
+                    $experience->setExternalOrganisationName($organisationName);
 
                     $experience->setStartDate(new \DateTimeImmutable($startDateStr));
                     $experience->setIsCurrent($isCurrent);
@@ -354,10 +350,6 @@ final class AccountsController extends AbstractController
 
                     $experience->setDescription(!empty($description) ? $description : null);
                     $experience->setProfile($profile);
-
-                    if (method_exists($experience, 'setLastModified')) {
-                        $experience->setLastModified(new \DateTimeImmutable());
-                    }
 
                     $entityManager->persist($experience);
                     $entityManager->flush();

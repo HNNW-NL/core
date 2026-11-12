@@ -5,6 +5,7 @@ namespace App\Entity\Org;
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Entity\Common\Event;
+use App\Entity\Account\ProfileExperience;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -68,6 +69,15 @@ class Organisation
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'organisation')]
     private Collection $events;
 
+    /**
+     * @var Collection<int, ProfileExperience>
+     */
+    #[ORM\OneToMany(
+        targetEntity: ProfileExperience::class,
+        mappedBy: 'organisation'
+    )]
+    private Collection $profileExperiences;
+
 
     // Functions
 
@@ -79,6 +89,7 @@ class Organisation
         $this->orgMembers = new ArrayCollection();
         $this->ownedProjects = new ArrayCollection();
         $this->events = new ArrayCollection();
+        $this->profileExperiences = new ArrayCollection();
     }
 
     public function getId(): Ulid
@@ -255,5 +266,13 @@ class Organisation
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, ProfileExperience>
+     */
+    public function getProfileExperiences(): Collection
+    {
+        return $this->profileExperiences;
     }
 }
