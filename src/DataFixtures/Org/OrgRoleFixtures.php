@@ -11,6 +11,7 @@ use Doctrine\Persistence\ObjectManager;
 class OrgRoleFixtures extends Fixture implements DependentFixtureInterface
 {
     public const TEST_OWNER_ROLE = 'owner-role';
+    public const TEST_OWNER_ROLE_2 = 'owner-role-2';
 
     public function load(ObjectManager $manager): void
     {
@@ -20,9 +21,15 @@ class OrgRoleFixtures extends Fixture implements DependentFixtureInterface
 
         $manager->persist($orgRole);
 
+        $secondOrgRole = new OrgRole();
+        $secondOrgRole->setName('Owner');
+        $secondOrgRole->setOrganisation($this->getReference(OrganisationFixtures::TEST_ORGANISATION_2, Organisation::class));
+        $manager->persist($secondOrgRole);
+
         $manager->flush();
 
         $this->addReference(self::TEST_OWNER_ROLE, $orgRole);
+        $this->addReference(self::TEST_OWNER_ROLE_2, $secondOrgRole);
     }
 
     public function getDependencies(): array

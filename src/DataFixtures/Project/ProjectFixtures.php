@@ -17,6 +17,7 @@ use Doctrine\Persistence\ObjectManager;
 class ProjectFixtures extends Fixture implements DependentFixtureInterface
 {
     public const TEST_PROJECT_REFERENCE = "test-project";
+    public const TEST_PROJECT_2_REFERENCE = "test-project-2";
 
     public function load(ObjectManager $manager): void
     {
@@ -34,9 +35,23 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
 
         $manager->persist($project);
 
+        $secondProject = new Project();
+        $secondProject->setOwnerAccount($this->getReference(AccountFixtures::TEST_ACCOUNT_REFERENCE, Account::class));
+        $secondProject->setOwnerOrganisation($this->getReference(OrganisationFixtures::TEST_ORGANISATION_2, Organisation::class));
+        $secondProject->setTitle("Second Test Project");
+        $secondProject->setSlug("second-test-project");
+        $secondProject->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_PROJECT_STATUS_REFERENCE, Status::class));
+        $secondProject->setSummary("Een tweede test project");
+        $secondProject->setStartDate(new DateTimeImmutable("now"));
+        $secondProject->setCapacity(10);
+        $secondProject->setVisibility("public");
+        $secondProject->setDescription("Dit is een tweede test project");
+        $manager->persist($secondProject);
+
         $manager->flush();
 
         $this->addReference(self::TEST_PROJECT_REFERENCE, $project);
+        $this->addReference(self::TEST_PROJECT_2_REFERENCE, $secondProject);
 
     }
 
