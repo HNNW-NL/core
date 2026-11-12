@@ -1,63 +1,124 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    // Focus automatisch op het naamveld bij het laden van de pagina
-    const nameInput = document.getElementById("name");
+    // Formulier en opslaan knop
+    const form = document.querySelector(".project-form");
+    const button = document.getElementById("submit-btn");
 
-    if (nameInput) {
-        nameInput.focus();
-    }
-
-    // Character counter voor projectnaam
+    // Projectnaam
     const title = document.getElementById("name");
     const titleCounter = document.getElementById("title-counter");
 
-    if (title && titleCounter) {
-        title.addEventListener("input", function () {
-            titleCounter.textContent = title.value.length + " characters";
-        });
-    }
-
-    // Character counter voor summary
+    // Samenvatting
     const summary = document.getElementById("summary");
     const summaryCounter = document.getElementById("summary-counter");
 
-    if (summary && summaryCounter) {
-        summary.addEventListener("input", function () {
-            summaryCounter.textContent = summary.value.length + " characters";
-        });
-    }
-
-    // Character counter voor description
+    // Beschrijving
     const description = document.getElementById("description");
     const descriptionCounter = document.getElementById("description-counter");
 
-    if (description && descriptionCounter) {
-        description.addEventListener("input", function () {
-            descriptionCounter.textContent = description.value.length + " characters";
-        });
+    // Projectleider
+    const projectLeader = document.getElementById("project_leader");
+
+    // Datums
+    const startDate = document.getElementById("start_date");
+    const endDate = document.getElementById("end_date");
+
+
+    // Focus automatisch op het naamveld
+    if (title) {
+        title.focus();
     }
 
-    const button = document.getElementById("submit-btn");
-    const form = document.querySelector("form");
 
+    // Character counter functie
+    function updateCounter(input, counter) {
+
+        if (input && counter) {
+
+            counter.textContent = input.value.length + " characters";
+
+            input.addEventListener("input", function () {
+                counter.textContent = input.value.length + " characters";
+            });
+
+        }
+
+    }
+
+
+    // Character counters instellen
+    updateCounter(title, titleCounter);
+    updateCounter(summary, summaryCounter);
+    updateCounter(description, descriptionCounter);
+
+
+    // Einddatum mag niet voor de startdatum liggen
+    function validateDates() {
+
+        if (!startDate || !endDate) {
+            return;
+        }
+
+        // Pas de minimale einddatum aan
+        endDate.min = startDate.value;
+
+        // Controleer de gekozen datums
+        if (
+            startDate.value &&
+            endDate.value &&
+            endDate.value < startDate.value
+        ) {
+
+            endDate.setCustomValidity(
+                "De einddatum mag niet voor de startdatum liggen."
+            );
+
+        } else {
+
+            endDate.setCustomValidity("");
+
+        }
+
+    }
+
+
+    // Datumcontrole uitvoeren bij wijzigingen
+    if (startDate && endDate) {
+
+        startDate.addEventListener("change", validateDates);
+
+        endDate.addEventListener("change", validateDates);
+
+        validateDates();
+
+    }
+
+
+    // Formulier versturen
     if (form && button) {
-        form.addEventListener("submit", function (e) {
 
-            e.preventDefault();
+        form.addEventListener("submit", function () {
 
-            // UI feedback tijdens het aanmaken van het project
-            button.textContent = "Creating project...";
+            // Extra controle op projectleider
+            if (projectLeader && !projectLeader.value) {
+                return;
+            }
+
+            // Controleer datums
+            validateDates();
+
+            // Loading feedback
+            button.textContent = "Project wordt opgeslagen...";
+
             button.disabled = true;
+
             button.classList.add("loading");
 
-            setTimeout(() => {
-                // Reset knop na loading delay (1.5 seconden)
-                button.textContent = "Create project";
-                button.disabled = false;
+            // Formulier wordt normaal naar de backend verstuurd.
+            // De browser voert de standaard formulierverzending uit.
 
-                form.submit();
-            }, 1500); // 1.5 seconden loading delay
         });
+
     }
 
 });

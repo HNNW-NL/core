@@ -1,10 +1,12 @@
+
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Create project{% endblock %}
+{% block title %}Nieuw project aanmaken{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}
+    {{ parent() }}
     <link rel="stylesheet" href="{{ asset('assets/org/css/create-project.css') }}">
 {% endblock %}
 
@@ -16,56 +18,148 @@
 {# Page content #}
 {% block body %}
 
-<h2>Create project</h2>
+<div class="project-create-container">
 
-<form method="post">
-    <div>
-        <label for="name">Project name</label>
-        <input type="text" id="name" name="name" required placeholder="Enter a project name">
-        <p id="title-counter">0 characters</p>
+    <div class="project-create-header">
+        <h2>Nieuw project aanmaken</h2>
+        <p>Vul de projectgegevens in om een nieuw project aan te maken.</p>
     </div>
 
-    <div>
-        <label for="summary">Summary</label>
-        <textarea id="summary" name="summary" required placeholder="Write a short summary of your project"></textarea>
-        <p id="summary-counter">0 characters</p>
-    </div>
+    <form method="post" class="project-form">
 
-    <div>
-        <label for="description">Description</label>
-        <textarea id="description" name="description" required placeholder="Describe your project in detail"></textarea>
-        <p id="description-counter">0 characters</p>
-    </div>
+        {# Projectgegevens #}
+        <section class="form-section">
 
-    <div>
-        <label for="capacity">Capacity</label>
-        <input value="0" type="number" id="capacity" name="capacity" min="0">
-    </div>
+            <h3>Projectgegevens</h3>
 
-    <div>
-        <label for="visibility">Visibility</label>
-        <select id="visibility" name="visibility" required>
-            <option value="" selected disabled>Choose visibility</option>
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-        </select>
-    </div>
+            <div class="form-group">
+                <label for="name">Titel *</label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    placeholder="Bijvoorbeeld: Website vernieuwen"
+                >
+                <p id="title-counter">0 characters</p>
+            </div>
 
-    <div>
-        <label for="status">Status</label>
+            <div class="form-group">
+                <label for="summary">Samenvatting *</label>
+                <textarea
+                    id="summary"
+                    name="summary"
+                    required
+                    placeholder="Een korte samenvatting van het project..."
+                ></textarea>
+                <p id="summary-counter">0 characters</p>
+            </div>
 
-        {% include 'components/status-autocomplete.html.twig' with {
-            statuses: statuses|default([]),
-            name: 'status',
-            id: 'status'
-        } %}
-    </div>
+            <div class="form-group">
+                <label for="description">Beschrijving *</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    required
+                    placeholder="Beschrijf het project uitgebreid..."
+                ></textarea>
+                <p id="description-counter">0 characters</p>
+            </div>
 
-    {# Project opslaan #}
-    <div>
-        <button type="submit" id="submit-btn">Create new project</button>
-    </div>
+            <div class="form-group">
+                <label for="project_leader">Projectleider *</label>
+                <select
+                    id="project_leader"
+                    name="project_leader"
+                    required
+                >
+                    <option value="" selected disabled>
+                        Selecteer een projectleider
+                    </option>
 
-</form>
+                    {% for leader in projectLeiders|default([]) %}
+                        <option value="{{ leader.id }}">
+                            {{ leader.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </section>
+
+        <hr>
+
+        {# Aanvullende informatie #}
+        <section class="form-section">
+
+            <h3>Aanvullende informatie</h3>
+
+            <div class="form-group">
+                <label for="skills">Benodigde skills</label>
+                <input
+                    type="text"
+                    id="skills"
+                    name="skills"
+                    placeholder="Bijvoorbeeld: PHP, Symfony, HTML"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="location">Locatie</label>
+                <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    placeholder="Bijvoorbeeld: Rotterdam"
+                >
+            </div>
+
+            <div class="form-checkbox">
+                <input
+                    type="checkbox"
+                    id="is_online"
+                    name="is_online"
+                    value="1"
+                >
+                <label for="is_online">
+                    Dit project kan online worden uitgevoerd
+                </label>
+            </div>
+
+            <div class="form-date-row">
+
+                <div class="form-group">
+                    <label for="start_date">Startdatum</label>
+                    <input
+                        type="date"
+                        id="start_date"
+                        name="start_date"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">Einddatum</label>
+                    <input
+                        type="date"
+                        id="end_date"
+                        name="end_date"
+                    >
+                </div>
+
+            </div>
+
+        </section>
+
+        {# Project opslaan #}
+        <div class="form-actions">
+            <button type="submit" id="submit-btn">
+                Project opslaan
+            </button>
+        </div>
+
+    </form>
+
+</div>
 
 {% endblock %}
+

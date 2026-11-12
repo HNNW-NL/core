@@ -1,69 +1,125 @@
+
 /* Algemene pagina styling */
-body {
-    margin: 0;
+
+.project-create-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
     font-family: Arial, sans-serif;
+    color: var(--paragraph);
 }
 
 /* Titel */
-h2 {
-    text-align: center;
-    margin-top: 40px;
+
+.project-create-header {
+    margin-bottom: 25px;
+}
+
+.project-create-header h2 {
+    text-align: left;
+    margin-top: 0;
+    margin-bottom: 10px;
     color: var(--paragraph);
+    font-size: 24px;
+}
+
+.project-create-header p {
+    color: var(--paragraph);
+    opacity: 0.8;
+    font-size: 14px;
 }
 
 /* Formulier container */
-form {
-    width: 500px;
-    margin: 40px auto;
-    padding: 30px;
-    background-color: var(--header-background);
-    border: 1px solid var(--hnnw-yellow-500);
-    border-radius: 12px;
+
+.project-form {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+/* Formulier secties */
+
+.form-section {
+    margin-bottom: 25px;
+}
+
+.form-section h3 {
+    color: var(--paragraph);
+    font-size: 17px;
+    margin-bottom: 20px;
+}
+
+.project-form hr {
+    border: none;
+    border-top: 1px solid var(--hnnw-yellow-400);
+    opacity: 0.3;
+    margin: 25px 0;
 }
 
 /* Formuliervelden layout */
-form div {
-    margin-bottom: 15px;
+
+.project-form .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 17px;
 }
 
 /* Labels */
-label {
+
+.project-form label {
     color: var(--paragraph);
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 7px;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 /* Input, textarea en select styling */
-input,
-textarea,
-select {
+
+.project-form .form-group input,
+.project-form .form-group textarea,
+.project-form .form-group select {
     width: 100%;
-    padding: 8px;
+    padding: 12px 14px;
     box-sizing: border-box;
     background-color: var(--background);
     border: 1px solid var(--hnnw-yellow-400);
     color: var(--paragraph);
-    border-radius: 4px;
+    border-radius: 25px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
 }
 
 /* Focus state van inputs */
-input:focus,
-textarea:focus,
-select:focus {
+
+.project-form .form-group input:focus,
+.project-form .form-group textarea:focus,
+.project-form .form-group select:focus {
     outline: none;
     border-color: var(--hnnw-yellow-500);
 }
 
 /* Tekstareas grootte */
-textarea#summary {
+
+.project-form textarea#summary {
     min-height: 80px;
+    border-radius: 8px;
+    resize: vertical;
 }
 
-textarea#description {
+.project-form textarea#description {
     min-height: 140px;
+    border-radius: 8px;
+    resize: vertical;
 }
 
 /* Character counters */
+
 #title-counter,
 #summary-counter,
 #description-counter {
@@ -72,57 +128,110 @@ textarea#description {
     margin-top: 5px;
 }
 
-/* Submit knop */
-button {
-    width: 100%;
-    padding: 10px;
+/* Select dropdown basis */
+
+.project-form .form-group select {
     cursor: pointer;
-    background-color: var(--hnnw-yellow-500);
-    color: #020617;
-    border: none;
-    border-radius: 6px;
 }
 
-/* Hover effect knop */
-button:hover {
-    background-color: var(--hnnw-yellow-400);
-}
+/* Opties in dropdown */
 
-/* Loading state knop */
-button.loading {
-    opacity: 0.7;
-    transform: scale(0.98);
-    transition: all 0.2s ease;
+.project-form .form-group select option {
+    background-color: var(--background);
+    color: var(--paragraph);
 }
 
 /* Placeholder styling */
-input::placeholder,
-textarea::placeholder {
+
+.project-form input::placeholder,
+.project-form textarea::placeholder {
     color: var(--paragraph);
     opacity: 0.6;
     font-style: italic;
     font-weight: 300;
 }
 
-/* Select dropdown basis */
-select {
-    background: var(--background);
-    color: var(--paragraph);
+/* Checkbox */
+
+.project-form .form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0;
 }
 
-/* Placeholder state van select */
-select:required:invalid {
-    color: rgba(255, 255, 255, 0.5);
+.project-form .form-checkbox input[type="checkbox"] {
+    width: 19px;
+    height: 19px;
+    margin: 0;
+    accent-color: var(--hnnw-yellow-500);
+    cursor: pointer;
 }
 
-/* Geldige selectie */
-select:valid {
-    background: var(--hnnw-yellow-500);
+.project-form .form-checkbox label {
+    margin: 0;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+/* Datumvelden */
+
+.project-form .form-date-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.project-form input[type="date"] {
+    cursor: pointer;
+}
+
+/* Submit knop */
+
+.project-form #submit-btn {
+    width: 100%;
+    padding: 14px;
+    cursor: pointer;
+    background-color: var(--hnnw-yellow-500);
     color: #020617;
+    border: none;
+    border-radius: 12px;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
 }
 
-/* Opties in dropdown */
-select option {
-    background: var(--background);
-    color: var(--paragraph);
+/* Hover effect knop */
+
+.project-form #submit-btn:hover {
+    background-color: var(--hnnw-yellow-400);
+}
+
+/* Loading state knop */
+
+.project-form #submit-btn.loading {
+    opacity: 0.7;
+    transform: scale(0.98);
+    transition: all 0.2s ease;
+    cursor: wait;
+}
+
+/* Mobiele weergave */
+
+@media (max-width: 600px) {
+
+    .project-create-container {
+        padding: 15px;
+    }
+
+    .project-create-header h2 {
+        font-size: 21px;
+    }
+
+    .project-form .form-date-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
 }
