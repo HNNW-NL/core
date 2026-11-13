@@ -2,11 +2,16 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Entity\Account\Skill;
 use App\Entity\Project\Project;
 use App\Repository\Project\ProjectRepository;
 use App\Security\Voter\ProjectVoter;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
 use App\Security\Permission;
@@ -36,13 +41,65 @@ final class PanelController extends AbstractController
     public function modifyProject(
         string $id,
         ProjectRepository $projectRepository,
+        EntityManagerInterface $entityManager,
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
             'project' => $project,
+            'availableSkills' => $entityManager->getRepository(Skill::class)->findBy([], ['name' => 'ASC']),
         ]);
+    }
+
+    #[Route('/projects/modify/{id}/skills', name: 'modifyProject.skills', methods: ['POST'])]
+    public function updateProjectSkills(
+        string $id,
+        Request $request,
+        ProjectRepository $projectRepository,
+        EntityManagerInterface $entityManager,
+    ): RedirectResponse {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid(
+            'org_modify_project_skills_' . $project->getId(),
+            (string) $request->request->get('_token', ''),
+        )) {
+            throw $this->createAccessDeniedException('Invalid form token.');
+        }
+
+        $submittedIds = $request->request->all()['skills'] ?? [];
+        if (!is_array($submittedIds)) {
+            throw new BadRequestHttpException('Invalid skills selection.');
+        }
+
+        $skillIds = [];
+        foreach ($submittedIds as $submittedId) {
+            if (!is_string($submittedId) || !Uuid::isValid($submittedId)) {
+                throw new BadRequestHttpException('Invalid skill selected.');
+            }
+
+            $skillIds[strtolower($submittedId)] = Uuid::fromString($submittedId);
+        }
+        $skillIds = array_values($skillIds);
+
+        $skills = $skillIds === []
+            ? []
+            : $entityManager->getRepository(Skill::class)->findBy(['id' => $skillIds]);
+
+        if (count($skills) !== count($skillIds)) {
+            throw new BadRequestHttpException('One or more selected skills do not exist.');
+        }
+
+        $project->getSkills()->clear();
+        foreach ($skills as $skill) {
+            $project->addSkill($skill);
+        }
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Project skills updated.');
+
+        return $this->redirectToRoute('org.modifyProject', ['id' => $id], Response::HTTP_SEE_OTHER);
     }
 
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
