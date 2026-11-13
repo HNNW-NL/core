@@ -2,13 +2,18 @@
 
 namespace App\Module\Main\Controller;
 
+use App\Entity\Account\Account;
+use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
+use App\Entity\Project\ProjectApplication;
 use App\Module\Main\Handler\GetProjectWorkPackagesHandler;
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
+use App\Repository\Common\StatusRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectRepository;
 use App\Security\Voter\ProjectVoter;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,26 +54,172 @@ final class ProjectsController extends AbstractController
     #[Route('/{slug}', name: 'detail', methods: ['GET'])]
     public function detail(
         string $slug,
+        Request $request,
         ProjectRepository $projectRepository,
+        EntityManagerInterface $entityManager,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
             $projectRepository,
-            true
+            true,
         );
+
+        $profile = $this->getSessionProfile($request, $entityManager);
+        $application = null;
+        if ($profile !== null) {
+            foreach ($project->getApplications() as $projectApplication) {
+                if ($projectApplication->getProfile()?->getId()->equals($profile->getId())
+                    && $projectApplication->getDeletedAt() === null
+                ) {
+                    $application = $projectApplication;
+                    break;
+                }
+            }
+        }
+
+        $statusName = strtolower(trim((string) $project->getStatus()?->getName()));
 
         return $this->render('pages/main/projects/detail.html.twig', [
             'slug' => $slug,
             'project' => $project,
+            'projectLeaderName' => trim((string) $project->getOwnerAccount()?->getProfile()?->getDisplayName()),
+            'isOpen' => $statusName === 'open',
+            'application' => $application,
+            'previewMode' => false,
+        ]);
+    }
+
+    #[Route('/{slug}/preview', name: 'preview', methods: ['GET'])]
+    public function preview(
+        string $slug,
+        Request $request,
+        ProjectRepository $projectRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $accountId = $request->getSession()->get('account_id');
+        if (!is_string($accountId) || $accountId === '') {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        if (!$account instanceof Account || $account->getDeletedAt() !== null || $account->getAdmin() === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $project = $projectRepository->findOneUnpublishedBySlug($slug);
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        return $this->render('pages/main/projects/detail.html.twig', [
+            'slug' => $slug,
+            'project' => $project,
+            'projectLeaderName' => trim((string) $project->getOwnerAccount()?->getProfile()?->getDisplayName()),
+            'isOpen' => false,
+            'application' => null,
+            'previewMode' => true,
         ]);
     }
 
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
-    public function apply(string $slug): Response
+    public function apply(string $slug, ProjectRepository $projectRepository): Response
     {
+        $project = $projectRepository->findOnePublicBySlug($slug);
+
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        if (strtolower(trim((string) $project->getStatus()?->getName())) !== 'open') {
+            $this->addFlash('warning', 'Dit project accepteert op dit moment geen aanmeldingen.');
+
+            return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+        }
+
         return $this->render('pages/main/projects/apply.html.twig', [
-            'slug' => $slug,
+            'project' => $project,
         ]);
+    }
+
+    #[Route('/{slug}/apply', name: 'submitApplication', methods: ['POST'])]
+    public function submitApplication(
+        string $slug,
+        Request $request,
+        ProjectRepository $projectRepository,
+        StatusRepository $statusRepository,
+        EntityManagerInterface $entityManager,
+    ): RedirectResponse {
+        $project = $projectRepository->findOnePublicBySlug($slug);
+
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $accountId = $request->getSession()->get('account_id');
+        if (!is_string($accountId) || $accountId === '') {
+            $this->addFlash('error', 'Log in met een profiel om je aan te melden.');
+
+            return $this->redirectToRoute('auth.login', [], Response::HTTP_SEE_OTHER);
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        $profile = $account instanceof Account
+            ? $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account])
+            : null;
+
+        if (!$profile instanceof Profile) {
+            $this->addFlash('error', 'Er is geen profiel gekoppeld aan je account.');
+
+            return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+        }
+
+        if (!$this->isCsrfTokenValid('project-apply-' . $project->getId()->toRfc4122(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Je aanmelding kon niet worden gecontroleerd. Probeer het opnieuw.');
+
+            return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+        }
+
+        if (strtolower(trim((string) $project->getStatus()?->getName())) !== 'open') {
+            $this->addFlash('warning', 'Dit project accepteert op dit moment geen aanmeldingen.');
+
+            return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+        }
+
+        $application = null;
+        foreach ($project->getApplications() as $existingApplication) {
+            if ($existingApplication->getProfile()?->getId()->equals($profile->getId())) {
+                if ($existingApplication->getDeletedAt() === null) {
+                    $this->addFlash('info', 'Je hebt je al aangemeld voor dit project.');
+
+                    return $this->redirectToRoute('account.applications', [], Response::HTTP_SEE_OTHER);
+                }
+
+                $application = $existingApplication;
+                break;
+            }
+        }
+
+        $pendingStatus = $statusRepository->findOneByScopeAndName('application', 'In behandeling');
+        if ($pendingStatus === null) {
+            $this->addFlash('error', 'Aanmelden is tijdelijk niet mogelijk omdat de aanvraagstatus niet is ingesteld.');
+
+            return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+        }
+
+        $application ??= new ProjectApplication();
+        $application->restore();
+        $application
+            ->setProject($project)
+            ->setProfile($profile)
+            ->setStatus($pendingStatus)
+            ->setMotivation(trim((string) $request->request->get('motivation', '')));
+
+        $entityManager->persist($application);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Je aanmelding is verstuurd. Je kunt de status bekijken bij Mijn aanmeldingen.');
+
+        return $this->redirectToRoute('account.applications', [], Response::HTTP_SEE_OTHER);
     }
 
     #[Route('/{slug}/chat', name: 'chat', methods: ['GET'])]
@@ -163,7 +314,7 @@ final class ProjectsController extends AbstractController
             );
         }
 
-        $project = $projectRepository->findOneVisibleBySlug($slug);
+        $project = $projectRepository->findOnePublicBySlug($slug);
 
         if ($project === null) {
             throw $this->createNotFoundException('Project niet gevonden.');
@@ -237,7 +388,7 @@ final class ProjectsController extends AbstractController
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
-            $projectRepository
+            $projectRepository,
         );
 
         return $this->render('pages/main/projects/work-packages.html.twig', [
@@ -245,6 +396,20 @@ final class ProjectsController extends AbstractController
             'project' => $project,
             'workPackages' => $handler->handle($slug),
         ]);
+    }
+
+    private function getSessionProfile(Request $request, EntityManagerInterface $entityManager): ?Profile
+    {
+        $accountId = $request->getSession()->get('account_id');
+        if (!is_string($accountId) || $accountId === '') {
+            return null;
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+
+        return $account instanceof Account
+            ? $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account])
+            : null;
     }
 
     /**
