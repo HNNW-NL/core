@@ -228,6 +228,22 @@ final class StaffManagementService
 
         $mask = 0;
         foreach ($memberships as $membership) {
+            $mask |= StaffOrganisationContext::roleMask($membership->getOrgRole(), $organisation);
+        }
+
+        return $mask;
+    }
+
+    private function requireBeheerder(Organisation $organisation): void
+    {
+        $memberships = $this->entityManager
+            ->getRepository(OrgMember::class)
+            ->findBy([
+                'organisation' => $organisation,
+                'account' => $this->getCurrentAccount(),
+            ]);
+
+        foreach ($memberships as $membership) {
             $roleName = $membership->getOrgRole()?->getName();
 
             if (
