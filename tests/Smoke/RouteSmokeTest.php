@@ -65,7 +65,7 @@ final class RouteSmokeTest extends WebTestCase
             ],
             'project detail' => [
                 'Project',
-                '/projects/test-project',
+                '/projects/Test-Project',
                 [200],
             ],
 
@@ -84,12 +84,12 @@ final class RouteSmokeTest extends WebTestCase
             // Work packages
             'project work packages' => [
                 'Work packages',
-                '/projects/test-project/work-packages',
+                '/projects/Test-Project/work-packages',
                 [200, 302, 303, 403],
             ],
             'project tasks' => [
                 'Work packages',
-                '/projects/test-project/tasks',
+                '/projects/Test-Project/tasks',
                 [200, 302, 303, 403],
             ],
         ];

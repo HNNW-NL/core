@@ -49,6 +49,11 @@
             </section>
 
             <section id="work-packages-admin-view" class="work-packages-view active" aria-label="Organisatiebeheer">
+                {% for label, messages in app.flashes(['success', 'error']) %}
+                    {% for message in messages %}
+                        <p role="{{ label == 'error' ? 'alert' : 'status' }}">{{ message }}</p>
+                    {% endfor %}
+                {% endfor %}
                 <div class="work-packages-management-layout">
                     <aside class="work-packages-project-sidebar" aria-label="Projecten">
                         <h3>Projecten</h3>
@@ -104,6 +109,22 @@
                                                 {{ workPackage.status }}
                                             </span>
                                         </div>
+
+                                        {% if workPackage.allowedStatuses is not empty %}
+                                            <form method="post" action="{{ path('org.modifyProject.workPackages.status', { id: id, workPackageId: workPackage.id }) }}" class="work-package-create-form">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('work_package_status_' ~ workPackage.id) }}">
+                                                <div class="work-package-form-field">
+                                                    <label for="status-{{ workPackage.id }}">Nieuwe status</label>
+                                                    <select id="status-{{ workPackage.id }}" name="status" required>
+                                                        <option value="">Kies een status</option>
+                                                        {% for status in workPackage.allowedStatuses %}
+                                                            <option value="{{ status }}">{{ status }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <button class="work-packages-primary-button" type="submit">Status opslaan</button>
+                                            </form>
+                                        {% endif %}
 
                                         <div class="work-package-progress" aria-label="{{ workPackage.progress }} procent gereed">
                                             <span style="width: {{ workPackage.progress }}%"></span>

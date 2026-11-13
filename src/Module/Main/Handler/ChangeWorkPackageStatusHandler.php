@@ -3,10 +3,12 @@
 namespace App\Module\Main\Handler;
 
 use App\Entity\Common\Status;
+use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
 use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
 use App\Module\Main\Service\WorkPackageWorkflowService;
 use App\Security\Voter\WorkPackageVoter;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -21,47 +23,61 @@ final class ChangeWorkPackageStatusHandler
     ) {
     }
 
-    public function handle(ChangeWorkPackageStatusDTO $dto): void
+    public function handle(ChangeWorkPackageStatusDTO $dto, Project $project): void
     {
         if (!Uuid::isValid($dto->workPackageId)) {
             throw new \InvalidArgumentException('Invalid work package id.');
         }
 
-        $workPackage = $this->entityManager->find(
-            WorkPackage::class,
-            Uuid::fromString($dto->workPackageId),
-        );
+        $this->entityManager->getConnection()->transactional(function () use ($dto, $project): void {
+            $workPackage = $this->entityManager->find(
+                WorkPackage::class,
+                Uuid::fromString($dto->workPackageId),
+                LockMode::PESSIMISTIC_WRITE,
+            );
 
-        if (!$workPackage instanceof WorkPackage) {
-            throw new \InvalidArgumentException('Work package not found.');
-        }
+            if (!$workPackage instanceof WorkPackage || $workPackage->getDeletedAt() !== null
+                || $workPackage->getProject() !== $project
+            ) {
+                throw new \InvalidArgumentException('Work package not found in this project.');
+            }
 
+            $this->changeStatus($workPackage, $dto->statusName);
+        });
+    }
+
+    private function changeStatus(WorkPackage $workPackage, string $statusName): void
+    {
         if (!$this->authorizationChecker->isGranted(WorkPackageVoter::EDIT, $workPackage)) {
             throw new AccessDeniedException('You do not have permission to change this work package status.');
         }
 
-        $currentStatus = $workPackage->getStatus()?->getName();
+        $currentStatus = $workPackage->getStatus();
+        $currentName = $currentStatus?->getName();
 
-        if ($currentStatus === null) {
+        if ($currentName === null) {
             throw new \InvalidArgumentException('Work package has no status.');
+        }
+        if ($currentStatus->getScope() !== WorkPackageWorkflowService::STATUS_SCOPE) {
+            throw new \InvalidArgumentException('Current status is outside the work package scope.');
         }
 
         $newStatus = $this->entityManager
             ->getRepository(Status::class)
             ->findOneBy([
-                'name' => $dto->statusName,
-                'scope' => 'work_package',
+                'name' => $statusName,
+                'scope' => WorkPackageWorkflowService::STATUS_SCOPE,
             ]);
 
         if (!$newStatus instanceof Status) {
             throw new \InvalidArgumentException('Work package status not found.');
         }
 
-        if (!$this->workflowService->canTransition($currentStatus, $newStatus->getName())) {
+        if (!$this->workflowService->canTransition($currentName, $statusName)) {
             throw new \InvalidArgumentException(sprintf(
                 'Cannot change work package status from "%s" to "%s".',
-                $currentStatus,
-                $newStatus->getName(),
+                $currentName,
+                $statusName,
             ));
         }
 
