@@ -2,6 +2,11 @@
 
 namespace App\Module\Admin\Controller;
 
+use App\Entity\Common\Status;
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Uid\Uuid;
 use App\Repository\Common\StatusRepository;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,5 +65,65 @@ final class DashboardController extends AbstractController
             'labels' => array_map($workflow->applicationStatusLabel(...), $statuses),
             'transitions' => array_map($workflow->configuredTransitions(...), $statuses),
         ]);
+    }
+
+    #[Route('/statuses/save', name: 'statuses.save', methods: ['POST'])]
+    #[IsGranted('ADMIN_MANAGE_SETTINGS')]
+    public function saveStatus(Request $request, StatusRepository $repository, EntityManagerInterface $em): Response
+    {
+        $id = $request->request->getString('id');
+        if (!$this->isCsrfTokenValid('status-save-'.$id, $request->request->getString('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+        $colour = $request->request->getString('colour');
+        if (!preg_match('/\A#[a-f0-9]{6}\z/i', $colour)) {
+            $this->addFlash('error', 'Ongeldige kleurcode.');
+            return $this->redirectToRoute('admin.statuses', status: 303);
+        }
+        if ($id === '') {
+            $name = trim($request->request->getString('name'));
+            $scope = $request->request->getString('scope');
+            if (!preg_match('/\Acustom_[a-z0-9_]{1,60}\z/', $name)
+                || $repository->findOneBy(['scope' => $scope]) === null
+                || $repository->findOneByScopeAndName($scope, $name) !== null) {
+                $this->addFlash('error', 'Gebruik een unieke statuscode die begint met custom_ en kies een bestaand object.');
+                return $this->redirectToRoute('admin.statuses', status: 303);
+            }
+            $status = (new Status())->setName($name)->setScope($scope);
+            $em->persist($status);
+        } else {
+            $status = Uuid::isValid($id) ? $repository->find(Uuid::fromString($id)) : null;
+            if (!$status instanceof Status) {
+                throw $this->createNotFoundException();
+            }
+        }
+        $status->setColourHex($colour);
+        $em->flush();
+
+        return $this->redirectToRoute('admin.statuses', status: 303);
+    }
+
+    #[Route('/statuses/{id}/delete', name: 'statuses.delete', methods: ['POST'])]
+    #[IsGranted('ADMIN_MANAGE_SETTINGS')]
+    public function deleteStatus(string $id, Request $request, StatusRepository $repository, EntityManagerInterface $em): Response
+    {
+        if (!$this->isCsrfTokenValid('status-delete-'.$id, $request->request->getString('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+        $status = Uuid::isValid($id) ? $repository->find(Uuid::fromString($id)) : null;
+        if (!$status instanceof Status) {
+            throw $this->createNotFoundException();
+        }
+        if (!str_starts_with((string) $status->getName(), 'custom_')) {
+            throw $this->createAccessDeniedException();
+        }
+        try {
+            $em->remove($status);
+            $em->flush();
+        } catch (ForeignKeyConstraintViolationException) {
+            $this->addFlash('error', 'Deze status is in gebruik en kan niet worden verwijderd.');
+        }
+
+        return $this->redirectToRoute('admin.statuses', status: 303);
     }
 }

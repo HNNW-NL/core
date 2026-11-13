@@ -120,7 +120,7 @@ final class AdminHomeTest extends WebTestCase
     {
         foreach (['', '/accounts', '/organizations', '/logs', '/statuses', '/notifications', '/settings',
             '/social/manage-staff', '/events', '/api/logs/system', '/api/logs/audit',
-            '/accounts/modify/test', '/organizations/create', '/organizations/modify/test',
+            '/accounts/create', '/accounts/modify/test', '/accounts/view/test', '/organizations/create', '/organizations/modify/test',
             '/events/create', '/events/modify/test'] as $path) {
             yield '/admin'.$path => ['/admin'.$path];
         }
@@ -138,7 +138,7 @@ final class AdminHomeTest extends WebTestCase
     public static function adminDestinations(): iterable
     {
         foreach (self::adminReadRoutes() as $name => [$path]) {
-            if (!in_array($path, ['/admin', '/admin/accounts', '/admin/statuses'], true)) {
+            if (!in_array($path, ['/admin', '/admin/accounts', '/admin/accounts/create', '/admin/accounts/modify/test', '/admin/accounts/view/test', '/admin/statuses'], true)) {
                 yield $name => [$path];
             }
         }
@@ -181,7 +181,7 @@ final class AdminHomeTest extends WebTestCase
         self::assertSelectorTextContains('main', $description);
         self::assertSelectorTextContains('main', 'PackageTask');
         self::assertSelectorTextContains('tbody tr:first-child td:nth-child(2)', 'Ingediend');
-        self::assertSelectorTextContains('tbody tr:first-child td:last-child', 'Geaccepteerd');
+        self::assertSelectorTextContains('tbody tr:first-child td:nth-child(5)', 'Geaccepteerd');
         self::assertSelectorExists('main a[href="/admin"]');
     }
 
@@ -230,6 +230,20 @@ final class AdminHomeTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(200);
         self::assertSelectorTextContains('tbody', 'account-fixture@example.test');
+    }
+
+    public function testAccountAdministratorCanOpenCreateFormAndUnknownAccountReturnsNotFound(): void
+    {
+        $client = $this->clientFor($this->platformAdministrator());
+        $client->disableReboot();
+        $repository = $this->createStub(\App\Repository\Common\StatusRepository::class);
+        $repository->method('findBy')->willReturn([]);
+        self::getContainer()->set(\App\Repository\Common\StatusRepository::class, $repository);
+        $client->request('GET', '/admin/accounts/create');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('form input[name="_token"]');
+        $client->request('GET', '/admin/accounts/view/test');
+        self::assertResponseStatusCodeSame(404);
     }
 
     public function testDashboardPermissionDoesNotGrantAccessToAccounts(): void

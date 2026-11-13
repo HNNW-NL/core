@@ -33,6 +33,7 @@ final class ApplicationReviewTest extends TestCase
             static fn (callable $operation): array => $operation(),
         );
         $em->expects(self::never())->method('persist');
+        $em->expects(self::exactly(2))->method('lock')->with($project, LockMode::PESSIMISTIC_WRITE);
         $workflow = new ProjectParticipantUpdateRoleHandler(
             $participants, $this->createStub(ProjectRoleRepository::class), $em, $statuses,
         );

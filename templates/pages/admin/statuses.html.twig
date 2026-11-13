@@ -7,6 +7,20 @@
     <p><a href="{{ path('admin.home') }}">Terug naar het admin-dashboard</a></p>
     <p>Dit overzicht toont geregistreerde statussen en geconfigureerde aanvraagovergangen.</p>
 
+    {% for error in app.flashes('error') %}<p role="alert">{{ error }}</p>{% endfor %}
+    {% if statuses is not empty %}
+        <form method="post" action="{{ path('admin.statuses.save') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('status-save-') }}">
+            <label>Statuscode <input name="name" placeholder="custom_voorbeeld" pattern="custom_[a-z0-9_]{1,60}" required></label>
+            <label>Object <select name="scope">
+                {% for scope in statuses|map(status => status.scope)|reduce((scopes, scope) => scope in scopes ? scopes : scopes|merge([scope]), []) %}
+                    <option>{{ scope }}</option>
+                {% endfor %}
+            </select></label>
+            <label>Kleur <input type="color" name="colour" value="#10b981"></label>
+            <button type="submit">Status aanmaken</button>
+        </form>
+    {% endif %}
     <table>
         <thead>
             <tr>
@@ -15,6 +29,7 @@
                 <th scope="col">Toepasselijk object</th>
                 <th scope="col">Kleurcode</th>
                 <th scope="col">Overgangen</th>
+                <th scope="col">Acties</th>
             </tr>
         </thead>
         <tbody>
@@ -25,9 +40,23 @@
                     <td>{{ status.scope }}</td>
                     <td>{{ status.colourHex }}</td>
                     <td>{{ transitions[loop.index0]|join(', ')|default('Geen overgang getoond') }}</td>
+                    <td>
+                        <form method="post" action="{{ path('admin.statuses.save') }}">
+                            <input type="hidden" name="id" value="{{ status.id }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('status-save-' ~ status.id) }}">
+                            <label>Kleur <input type="color" name="colour" value="{{ status.colourHex }}"></label>
+                            <button type="submit">Kleur opslaan</button>
+                        </form>
+                        {% if status.name starts with 'custom_' %}
+                            <form method="post" action="{{ path('admin.statuses.delete', {id: status.id ~ ''}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('status-delete-' ~ status.id) }}">
+                                <button type="submit">Status verwijderen</button>
+                            </form>
+                        {% endif %}
+                    </td>
                 </tr>
             {% else %}
-                <tr><td colspan="5">Geen statussen gevonden.</td></tr>
+                <tr><td colspan="6">Geen statussen gevonden.</td></tr>
             {% endfor %}
         </tbody>
     </table>

@@ -225,6 +225,8 @@ class ProjectParticipantUpdateRoleHandler
     /** @return array{success: bool, message: string} */
     private function doRejectApplication(Project $project, string $applicationId, string $reason, Profile $reviewer): array
     {
+        // Gebruik dezelfde lockvolgorde als bij accepteren: project, dan aanvraag.
+        $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
         $application = $this->participantRepo->findApplicationForProject($applicationId, $project, true);
 
         if ($application === null) {
