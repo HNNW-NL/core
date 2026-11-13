@@ -60,7 +60,7 @@ class ProjectApplication
     // Reverse FKs
 
     #[ORM\OneToOne(targetEntity: ProjectParticipant::class, mappedBy: 'application')]
-    private ?ProjectParticipant $participant;
+    private ?ProjectParticipant $participant = null;
 
 
     // Functions
@@ -205,8 +205,7 @@ class ProjectApplication
         return $this->deletedAt;
     }
 
-    /** @return Collection<int, ProjectParticipant> */
-    public function getParticipant(): Collection
+    public function getParticipant(): ?ProjectParticipant
     {
         return $this->participant;
     }

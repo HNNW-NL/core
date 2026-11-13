@@ -9,16 +9,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use App\Module\Main\Service\CurrentProfileProvider;
 use App\Repository\Project\ProjectParticipantRepository;
+use App\Security\ProjectPermission;
 
 final class ProjectVoter extends Voter
 {
     public const string VIEW = 'PROJECT_VIEW';
     public const string EDIT = 'PROJECT_EDIT';
     public const string INVITE = 'PROJECT_INVITE';
-
-    private const int PERMISSION_VIEW = 1 << 0;
-    private const int PERMISSION_EDIT = 1 << 1;
-    private const int PERMISSION_INVITE = 1 << 2;
 
     public function __construct(
         private readonly CurrentProfileProvider $currentProfileProvider,
@@ -44,14 +41,14 @@ final class ProjectVoter extends Voter
         $project = $subject;
         return match ($attribute)
         {
-            self::VIEW => $this->hasPermission( $profile, $project, self::PERMISSION_VIEW, ),
-            self::EDIT => $this->hasPermission( $profile, $project, self::PERMISSION_EDIT, ),
-            self::INVITE => $this->hasPermission( $profile, $project, self::PERMISSION_INVITE, ),
+            self::VIEW => $this->hasPermission($profile, $project, ProjectPermission::VIEW),
+            self::EDIT => $this->hasPermission($profile, $project, ProjectPermission::EDIT),
+            self::INVITE => $this->hasPermission($profile, $project, ProjectPermission::INVITE),
             default => false,
         };
     }
 
-    private function hasPermission( Profile $profile, Project $project, int $permission, ): bool
+    private function hasPermission(Profile $profile, Project $project, ProjectPermission $permission): bool
     {
         $participant = $this->participantRepository ->findLatestActiveParticipantByProjectAndProfile($project, $profile);
         if ($participant === null)
@@ -66,7 +63,7 @@ final class ProjectVoter extends Voter
             return false;
         }
 
-        $permissionMask = $role->getPermissionsMask();
-        return ($permissionMask & $permission) === $permission; }
+        return $permission->in($role->getPermissionsMask());
+    }
 
 }

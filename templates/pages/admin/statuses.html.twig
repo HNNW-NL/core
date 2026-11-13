@@ -1,55 +1,70 @@
 {% extends 'layouts/admin.base.html.twig' %}
 
-{% block title %}Statuses{% endblock %}
+{% block title %}Statussen{% endblock %}
 
 {% block body %}
-    <h2>Statuses</h2>
+    <h2>Statussen</h2>
+    <p><a href="{{ path('admin.home') }}">Terug naar het admin-dashboard</a></p>
+    <p>Dit overzicht toont geregistreerde statussen en geconfigureerde aanvraagovergangen.</p>
 
-    <a href="{{ path('admin.statuses.create') }}">
-        Nieuwe status
-    </a>
-
-    <p>Aantal statuses: {{ statuses|length }}</p>
-
+    {% for error in app.flashes('error') %}<p role="alert">{{ error }}</p>{% endfor %}
+    {% if statuses is not empty %}
+        <form method="post" action="{{ path('admin.statuses.save') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('status-save-') }}">
+            <label>Statuscode <input name="name" placeholder="custom_voorbeeld" pattern="custom_[a-z0-9_]{1,60}" required></label>
+            <label>Object <select name="scope">
+                {% for scope in statuses|map(status => status.scope)|reduce((scopes, scope) => scope in scopes ? scopes : scopes|merge([scope]), []) %}
+                    <option>{{ scope }}</option>
+                {% endfor %}
+            </select></label>
+            <label>Kleur <input type="color" name="colour" value="#10b981"></label>
+            <button type="submit">Status aanmaken</button>
+        </form>
+    {% endif %}
     <table>
         <thead>
             <tr>
-                <th>Naam</th>
-                <th>Scope</th>
-                <th>Kleur</th>
-                <th>Acties</th>
+                <th scope="col">Opgeslagen statuscode</th>
+                <th scope="col">Label</th>
+                <th scope="col">Toepasselijk object</th>
+                <th scope="col">Kleurcode</th>
+                <th scope="col">Overgangen</th>
+                <th scope="col">Acties</th>
             </tr>
         </thead>
         <tbody>
             {% for status in statuses %}
                 <tr>
                     <td>{{ status.name }}</td>
+                    <td>{{ labels[loop.index0] }}</td>
                     <td>{{ status.scope }}</td>
                     <td>{{ status.colourHex }}</td>
+                    <td>{{ transitions[loop.index0]|join(', ')|default('Geen overgang getoond') }}</td>
                     <td>
-                        <a href="{{ path('admin.statuses.edit', {
-                            id: status.id
-                        }) }}">
-                            Bewerken
-                        </a>
-
-                        <form method="post"
-                              action="{{ path('admin.statuses.delete', {
-                                  id: status.id
-                              }) }}"
-                              style="display:inline;">
-                            <button type="submit">
-                                Verwijderen
-                            </button>
+                        <form method="post" action="{{ path('admin.statuses.save') }}">
+                            <input type="hidden" name="id" value="{{ status.id }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('status-save-' ~ status.id) }}">
+                            <label>Kleur <input type="color" name="colour" value="{{ status.colourHex }}"></label>
+                            <button type="submit">Kleur opslaan</button>
                         </form>
+                        {% if editableTransitions[loop.index0] %}
+                            <form method="post" action="{{ path('admin.statuses.transitions', {id: status.id ~ ''}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('status-transitions-' ~ status.id) }}">
+                                <label><input type="checkbox" name="accept" value="1"{% if status.allowsApplicationAcceptance() %} checked{% endif %}> Accepteren toestaan</label>
+                                <label><input type="checkbox" name="reject" value="1"{% if status.allowsApplicationRejection() %} checked{% endif %}> Afwijzen toestaan</label>
+                                <button type="submit">Overgangen opslaan</button>
+                            </form>
+                        {% endif %}
+                        {% if status.name starts with 'custom_' %}
+                            <form method="post" action="{{ path('admin.statuses.delete', {id: status.id ~ ''}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('status-delete-' ~ status.id) }}">
+                                <button type="submit">Status verwijderen</button>
+                            </form>
+                        {% endif %}
                     </td>
                 </tr>
             {% else %}
-                <tr>
-                    <td colspan="4">
-                        Geen statussen gevonden.
-                    </td>
-                </tr>
+                <tr><td colspan="6">Geen statussen gevonden.</td></tr>
             {% endfor %}
         </tbody>
     </table>
