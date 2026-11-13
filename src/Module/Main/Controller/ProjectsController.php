@@ -60,8 +60,40 @@ final class ProjectsController extends AbstractController
             'projectLeaderName' => trim((string) $project->getOwnerAccount()?->getProfile()?->getDisplayName()),
             'isOpen' => $statusName === 'open',
             'application' => $application,
+            'previewMode' => false,
         ]);
-    } 
+    }
+
+    #[Route('/{slug}/preview', name: 'preview', methods: ['GET'])]
+    public function preview(
+        string $slug,
+        Request $request,
+        ProjectRepository $projectRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $accountId = $request->getSession()->get('account_id');
+        if (!is_string($accountId) || $accountId === '') {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $account = $entityManager->getRepository(Account::class)->find($accountId);
+        if (!$account instanceof Account || $account->getDeletedAt() !== null || $account->getAdmin() === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $project = $projectRepository->findOneUnpublishedBySlug($slug);
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        return $this->render('pages/main/projects.html.twig', [
+            'project' => $project,
+            'projectLeaderName' => trim((string) $project->getOwnerAccount()?->getProfile()?->getDisplayName()),
+            'isOpen' => false,
+            'application' => null,
+            'previewMode' => true,
+        ]);
+    }
 
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
     public function apply(string $slug, ProjectRepository $projectRepository): Response
@@ -211,7 +243,7 @@ final class ProjectsController extends AbstractController
             return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
         }
 
-        $project = $projectRepository->findOneVisibleBySlug($slug);
+        $project = $projectRepository->findOnePublicBySlug($slug);
 
         if ($project === null) {
             throw $this->createNotFoundException('Project niet gevonden.');

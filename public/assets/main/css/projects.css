@@ -31,6 +31,15 @@
     color: var(--project-text);
 }
 
+.project-detail__preview-notice {
+    margin: 0 0 24px;
+    padding: 14px 18px;
+    border: 1px solid rgba(255, 193, 7, .45);
+    border-radius: 12px;
+    background: rgba(255, 193, 7, .1);
+    color: #ffe08a;
+}
+
 .project-detail__hero {
     padding: clamp(28px, 5vw, 56px);
     border: 1px solid var(--project-border);

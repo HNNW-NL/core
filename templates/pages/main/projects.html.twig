@@ -15,6 +15,10 @@
             <div class="project-detail__container">
                 <a class="project-detail__back" href="{{ path('main.projects.home') }}">← Terug naar projecten</a>
 
+                {% if previewMode %}
+                    <p class="project-detail__preview-notice" role="status">Beheerderpreview: dit project is niet gepubliceerd en is alleen zichtbaar voor beheerders.</p>
+                {% endif %}
+
                 {% for type, messages in app.flashes %}
                     {% for message in messages %}
                         <p class="project-detail__notice project-detail__notice--{{ type }}" role="status">{{ message }}</p>
