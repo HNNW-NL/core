@@ -7,6 +7,7 @@ use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
+use App\Security\CurrentAccountProvider;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +19,10 @@ use Symfony\Component\Uid\Uuid;
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
 {
+    public function __construct(private readonly CurrentAccountProvider $currentAccountProvider)
+    {
+    }
+
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(): Response
     {
@@ -236,20 +241,30 @@ final class AccountsController extends AbstractController
     #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
     public function deleteAvailability(string $id, Request $request, Connection $connection): Response
     {
-        if (!$this->getUser()) {
+        $account = $this->currentAccountProvider->getAccount();
+        if ($account === null) {
             $this->addFlash('error', 'Je moet ingelogd zijn.');
             return $this->redirectToRoute('auth.login');
+        }
+
+        $profile = $account->getProfile();
+        if ($profile === null) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden.');
         }
 
         $csrfToken = $request->request->get('_token');
         if ($this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
             try {
-                $connection->update(
+                $updated = $connection->update(
                     'availabilities',
                     ['deleted_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')],
-                    ['id' => $id]
+                    ['id' => $id, 'profile_id' => $profile->getId()->toString()]
                 );
-                $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd (soft delete).');
+                if ($updated > 0) {
+                    $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd (soft delete).');
+                } else {
+                    $this->addFlash('error', 'Beschikbaarheid niet gevonden.');
+                }
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Fout bij verwijderen: ' . $e->getMessage());
             }
@@ -523,9 +538,9 @@ final class AccountsController extends AbstractController
 
     private function getAndCheckAccount(): Account
     {
-        $account = $this->getUser();
+        $account = $this->currentAccountProvider->getAccount();
 
-        if (!$account instanceof Account) {
+        if ($account === null) {
             throw $this->createAccessDeniedException();
         }
         return $account;
