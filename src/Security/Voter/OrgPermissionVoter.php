@@ -41,6 +41,7 @@ final class OrgPermissionVoter extends Voter
             && Permission::fromName($attribute) !== null
             && in_array($attribute, [
                 self::CREATE_PROJECT,
+                self::ORG_MANAGE_PROJECTS,
                 self::VIEW,
                 self::EDIT,
                 self::DELETE,

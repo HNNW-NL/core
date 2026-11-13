@@ -347,13 +347,6 @@ final class PanelController extends AbstractController
 
         $this->denyAccessUnlessGranted(ProjectVoter::EDIT, $project);
 
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            $this->denyAccessUnlessGranted(
-                Permission::ORG_MANAGE_PROJECTS->name,
-                $project->getOwnerOrganisation()
-            );
-        }
-
         $this->denyAccessUnlessGranted(
             Permission::ORG_MANAGE_PROJECTS->name,
             $project->getOwnerOrganisation()
