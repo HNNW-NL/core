@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Module\Main\Service;
@@ -5,16 +6,21 @@ namespace App\Module\Main\Service;
 final class WorkPackageWorkflowService
 {
     private const TRANSITIONS = [
-    'Draft' => ['Planned', 'Cancelled'],
-    'Planned' => ['Open', 'Cancelled'],
-    'Open' => ['Assigned', 'Cancelled'],
-    'Assigned' => ['Closed', 'Cancelled'],
-    'Closed' => [],
-    'Cancelled' => [],
-];
+        'Draft' => ['Planned', 'Cancelled'],
+        'Planned' => ['Open', 'Cancelled'],
+        'Open' => ['Assigned', 'Cancelled'],
+        'Assigned' => ['Closed', 'Cancelled'],
+        'Closed' => [],
+        'Cancelled' => [],
+    ];
 
-    public function canTransition(string $currentStatus, string $newStatus): bool
-    {
+    /**
+     * Check whether a status transition is allowed.
+     */
+    public function canTransition(
+        string $currentStatus,
+        string $newStatus
+    ): bool {
         return in_array(
             $newStatus,
             self::TRANSITIONS[$currentStatus] ?? [],
@@ -22,6 +28,9 @@ final class WorkPackageWorkflowService
         );
     }
 
+    /**
+     * Return all allowed next statuses.
+     */
     public function getAllowedTransitions(string $currentStatus): array
     {
         return self::TRANSITIONS[$currentStatus] ?? [];

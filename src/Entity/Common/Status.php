@@ -1,4 +1,6 @@
+
 <?php
+
 namespace App\Entity\Common;
 
 use App\Entity\Account\Account;
@@ -9,16 +11,20 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\WorkPackage;
-Use App\Entity\Project\PackageTask;
+use App\Entity\Project\PackageTask;
+use App\Repository\Common\StatusRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: StatusRepository::class)]
 #[ORM\Table(name: 'statuses', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: "uniq_status_name_scope", columns: ["name", "scope"])
+    new ORM\UniqueConstraint(
+        name: "uniq_status_name_scope",
+        columns: ["name", "scope"]
+    )
 ])]
 class Status
 {
@@ -68,7 +74,7 @@ class Status
     private Collection $admins;
 
 
-    // Functions
+    // Constructor
 
     public function __construct()
     {
@@ -85,13 +91,13 @@ class Status
         $this->admins = new ArrayCollection();
     }
 
+
+    // Getters & Setters
+
     public function getId(): Uuid
     {
         return $this->id;
     }
-
-
-    /// Getters & Setters Functions
 
     public function getName(): ?string
     {

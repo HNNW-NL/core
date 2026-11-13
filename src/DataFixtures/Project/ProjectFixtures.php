@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\DataFixtures\Project;
@@ -21,11 +22,31 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
     public function load(ObjectManager $manager): void
     {
         $project = new Project();
-        $project->setOwnerAccount($this->getReference(AccountFixtures::TEST_ACCOUNT_REFERENCE, Account::class));
-        $project->setOwnerOrganisation($this->getReference(OrganisationFixtures::TEST_ORGANISATION, Organisation::class));
+
+        $project->setOwnerAccount(
+            $this->getReference(
+                AccountFixtures::TEST_ACCOUNT_REFERENCE,
+                Account::class
+            )
+        );
+
+        $project->setOwnerOrganisation(
+            $this->getReference(
+                OrganisationFixtures::TEST_ORGANISATION,
+                Organisation::class
+            )
+        );
+
         $project->setTitle("Test Project");
         $project->setSlug("Test-Project");
-        $project->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_PROJECT_STATUS_REFERENCE, Status::class));
+
+        $project->setStatus(
+            $this->getReference(
+                StatusFixtures::TEST_DEFAULT_PROJECT_STATUS_REFERENCE,
+                Status::class
+            )
+        );
+
         $project->setSummary("Een test project");
         $project->setStartDate(new DateTimeImmutable("now"));
         $project->setCapacity(10);
@@ -33,18 +54,17 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $project->setDescription("Dit is een test project");
 
         $manager->persist($project);
-
         $manager->flush();
 
         $this->addReference(self::TEST_PROJECT_REFERENCE, $project);
-
     }
 
     public function getDependencies(): array
     {
-        return array(
-            'App\DataFixtures\Account\AccountFixtures',
-            'App\DataFixtures\Org\OrganisationFixtures'
-        );
+        return [
+            AccountFixtures::class,
+            OrganisationFixtures::class,
+            StatusFixtures::class,
+        ];
     }
 }
