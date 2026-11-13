@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Uid\Ulid;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'jobs')]
@@ -26,6 +27,9 @@ class Job
 
     #[ORM\Column(name: 'title', length: 255)]
     private ?string $title = null;
+
+    #[ORM\Column(name: 'slug', length: 255, unique: true)]
+    private ?string $slug = null;
 
     #[ORM\Column(name: 'description', type: 'text')]
     private ?string $description = null;
@@ -84,19 +88,10 @@ class Job
     #[ORM\OneToMany(targetEntity: \App\Entity\Account\SavedItem::class, mappedBy: 'job')]
     private Collection $savedByAccounts;
 
-    public function getSkills(): Collection
-    {
-        return $this->skills;
-    }
-
-    public function getSavedByAccounts(): Collection
-    {
-        return $this->savedByAccounts;
-    }
-
     public function __construct()
     {
         $this->id = new Ulid();
+
         $this->skills = new ArrayCollection();
         $this->savedByAccounts = new ArrayCollection();
     }
@@ -109,6 +104,7 @@ class Job
     #[ORM\PrePersist]
     public function onCreate(): void
     {
+        $this->ensureSlug();
         $this->lastModified = new \DateTimeImmutable();
     }
 
@@ -116,6 +112,33 @@ class Job
     public function onUpdate(): void
     {
         $this->lastModified = new \DateTimeImmutable();
+    }
+
+    private function ensureSlug(): void
+    {
+        if ($this->slug !== null && $this->slug !== '') {
+            return;
+        }
+
+        $this->generateSlug();
+    }
+
+    private function generateSlug(): void
+    {
+        $slugger = new AsciiSlugger();
+        $base = strtolower((string) $slugger->slug($this->title ?? 'vacature'));
+        $base = trim($base, '-');
+
+        if ($base === '') {
+            $base = 'vacature';
+        }
+
+        $suffix = strtolower(substr((string) $this->id, -10));
+        $maxBaseLength = 255 - strlen($suffix) - 1;
+
+        $base = rtrim(substr($base, 0, $maxBaseLength), '-');
+
+        $this->slug = $base . '-' . $suffix;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -126,6 +149,16 @@ class Job
     public function getLastModified(): \DateTimeImmutable
     {
         return $this->lastModified;
+    }
+
+    public function getSkills(): Collection
+    {
+        return $this->skills;
+    }
+
+    public function getSavedByAccounts(): Collection
+    {
+        return $this->savedByAccounts;
     }
 
     public function getOrganisation(): ?Organisation
@@ -147,6 +180,32 @@ class Job
     public function setTitle(?string $title): static
     {
         $this->title = $title;
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $slug = $slug !== null ? trim($slug) : null;
+
+        if ($slug === null || $slug === '') {
+            $this->generateSlug();
+            return $this;
+        }
+
+        if (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug)) {
+            throw new \InvalidArgumentException('De vacature-slug is ongeldig.');
+        }
+
+        if (strlen($slug) > 255) {
+            throw new \InvalidArgumentException('De vacature-slug is te lang.');
+        }
+
+        $this->slug = $slug;
         return $this;
     }
 

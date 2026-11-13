@@ -21,8 +21,9 @@ final class Version20261112144801 extends AbstractMigration
     {
         // New tables
 
-        $this->addSql('CREATE TABLE jobs (id UUID NOT NULL, title VARCHAR(255) NOT NULL, description TEXT NOT NULL, employment_type VARCHAR(40) NOT NULL, work_mode VARCHAR(30) NOT NULL, application_url TEXT NOT NULL, location VARCHAR(255) DEFAULT NULL, salary_min INT DEFAULT NULL, salary_max INT DEFAULT NULL, salary_currency VARCHAR(3) DEFAULT NULL, hours_per_week_min INT DEFAULT NULL, hours_per_week_max INT DEFAULT NULL, requirements TEXT DEFAULT NULL, benefits TEXT DEFAULT NULL, deadline DATE DEFAULT NULL, published_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, source_url TEXT DEFAULT NULL, source_name VARCHAR(120) DEFAULT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, organisation_id UUID NOT NULL, PRIMARY KEY (id))');
+        $this->addSql('CREATE TABLE jobs (id UUID NOT NULL, title VARCHAR(255) NOT NULL, slug VARCHAR(255) NOT NULL, description TEXT NOT NULL, employment_type VARCHAR(40) NOT NULL, work_mode VARCHAR(30) NOT NULL, application_url TEXT NOT NULL, location VARCHAR(255) DEFAULT NULL, salary_min INT DEFAULT NULL, salary_max INT DEFAULT NULL, salary_currency VARCHAR(3) DEFAULT NULL, hours_per_week_min INT DEFAULT NULL, hours_per_week_max INT DEFAULT NULL, requirements TEXT DEFAULT NULL, benefits TEXT DEFAULT NULL, deadline DATE DEFAULT NULL, published_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL, source_url TEXT DEFAULT NULL, source_name VARCHAR(120) DEFAULT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, organisation_id UUID NOT NULL, PRIMARY KEY (id))');
         $this->addSql('CREATE INDEX IDX_A8936DC59E6B1585 ON jobs (organisation_id)');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_JOBS_SLUG ON jobs (slug)');
 
         $this->addSql('CREATE TABLE job_skills (id UUID NOT NULL, required BOOLEAN DEFAULT false NOT NULL, last_modified TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, job_id UUID NOT NULL, skill_id UUID NOT NULL, PRIMARY KEY (id))');
         $this->addSql('CREATE INDEX IDX_85353BF1BE04EA9 ON job_skills (job_id)');

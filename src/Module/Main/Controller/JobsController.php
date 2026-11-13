@@ -23,13 +23,34 @@ final class JobsController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        return $this->render('pages/main/jobs/index.html.twig', ['jobs' => $jobs]);
+        return $this->render('pages/main/jobs/index.html.twig', [
+            'jobs' => $jobs,
+        ]);
     }
 
-    // Job.slug bestaat nog niet. Geen publieke interne ID als tijdelijke URL.
     #[Route('/{slug}', name: 'detail', methods: ['GET'])]
-    public function detail(string $slug): Response
-    {
-        throw $this->createNotFoundException('Vacaturedetail is beschikbaar na toevoeging van Job.slug.');
+    public function detail(
+        string $slug,
+        EntityManagerInterface $em
+    ): Response {
+        $job = $em->getRepository(Job::class)
+            ->createQueryBuilder('job')
+            ->andWhere('job.slug = :slug')
+            ->andWhere('job.publishedAt IS NOT NULL')
+            ->andWhere('(job.deadline IS NULL OR job.deadline >= :today)')
+            ->setParameter('slug', $slug)
+            ->setParameter('today', new \DateTimeImmutable('today'))
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($job === null) {
+            throw $this->createNotFoundException(
+                'Vacature niet gevonden of niet meer beschikbaar.'
+            );
+        }
+
+        return $this->render('pages/main/jobs/detail.html.twig', [
+            'job' => $job,
+        ]);
     }
 }

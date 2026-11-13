@@ -1,11 +1,11 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Vacature{% endblock %}
+{% block title %}{{ job.title }}{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
+{% block seoDescription %}{{ job.description|striptags|slice(0, 160) }}{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
 {# CSS #}
@@ -16,6 +16,52 @@
 
 {# Page content #}
 {% block body %}
-    <h1>Vacature</h1>
-    <p>Deze pagina wordt gekoppeld zodra de Job-entity een slug heeft.</p>
+    <section>
+        <h1>{{ job.title }}</h1>
+
+        {% if job.organisation %}
+            <p>{{ job.organisation.name }}</p>
+        {% endif %}
+
+        {% if job.location %}
+            <p>Locatie: {{ job.location }}</p>
+        {% endif %}
+
+        {% if job.employmentType %}
+            <p>Dienstverband: {{ job.employmentType.value }}</p>
+        {% endif %}
+
+        {% if job.workMode %}
+            <p>Werkwijze: {{ job.workMode.value }}</p>
+        {% endif %}
+
+        {% if job.description %}
+            <h2>Beschrijving</h2>
+            <div>{{ job.description|nl2br }}</div>
+        {% endif %}
+
+        {% if job.requirements %}
+            <h2>Vereisten</h2>
+            <div>{{ job.requirements|nl2br }}</div>
+        {% endif %}
+
+        {% if job.benefits %}
+            <h2>Arbeidsvoorwaarden</h2>
+            <div>{{ job.benefits|nl2br }}</div>
+        {% endif %}
+
+        {% if job.deadline %}
+            <p>Reageren tot: {{ job.deadline|date('d-m-Y') }}</p>
+        {% endif %}
+
+        {% if job.applicationUrl %}
+            <a
+                href="{{ job.applicationUrl }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Solliciteren via externe website
+            </a>
+        {% endif %}
+    </section>
 {% endblock %}
