@@ -46,6 +46,35 @@
             {% endif %}
 
             {% if project %}
+                <form method="post" action="{{ path('org.modifyProject.skills', { id: id }) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_skills_' ~ project.id) }}">
+                    <fieldset class="modify-fields" aria-describedby="projectSkillsHelp">
+                        <legend>Project skills</legend>
+                        <div>
+                            <label for="project-skills">Skills</label>
+                            <select id="project-skills" name="skills[]" multiple>
+                                {% for skill in availableSkills %}
+                                    {% set selected = false %}
+                                    {% for projectSkill in project.skills %}
+                                        {% if projectSkill.id.toRfc4122() == skill.id.toRfc4122() %}
+                                            {% set selected = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    <option value="{{ skill.id.toRfc4122() }}" {% if selected %}selected{% endif %}>{{ skill.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <p id="projectSkillsHelp" class="field-help">Select the skills relevant to this project. Leave all unselected to remove skills.</p>
+                        </div>
+                    </fieldset>
+                    <div class="button-row">
+                        <button type="submit">Save skills</button>
+                    </div>
+                </form>
+
+                {% for message in app.flashes('success') %}
+                    <p class="form-status form-status--success" role="status">{{ message }}</p>
+                {% endfor %}
+
                 {# This one form handles both edit and delete actions; the button value tells the backend which path to take. #}
                 <form id="modifyProjectForm" data-modify-project-form method="post" action="{{ path('org.modifyProject', { id: id }) }}">
                     <p class="form-status" role="status" aria-live="polite" hidden></p>
