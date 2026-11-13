@@ -3,6 +3,7 @@
 namespace App\Module\Main\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -13,6 +14,12 @@ final class MainController extends AbstractController
     public function index(): Response
     {
         return $this->render('pages/main/index.html.twig');
+    }
+
+    #[Route('/work', name: 'work', methods: ['GET'])]
+    public function work(): RedirectResponse
+    {
+        return $this->redirectToRoute('main.projects.home');
     }
 
     #[Route('/about', name: 'about', methods: ['GET'])]

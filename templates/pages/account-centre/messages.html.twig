@@ -1,0 +1,15 @@
+{% extends 'layouts/ac.base.html.twig' %}
+{% block title %}Ongelezen meldingen{% endblock %}
+{% block body %}
+<section id="account-centre-container" class="account-records">
+    <header class="dashboard-header"><h1>Ongelezen meldingen</h1><p>{{ records.total }} ongelezen meldingen voor jouw account.</p></header>
+    <div class="account-grid">
+    {% for notification in records.items %}
+        <article class="account-card"><div><h2>{{ notification.title }}</h2><p>{{ notification.message }}</p><p class="account-record-date">{{ notification.createdAt|date('d-m-Y H:i') }}</p></div></article>
+    {% else %}
+        <p class="account-empty-records">Je hebt geen ongelezen meldingen. Je bent helemaal bij.</p>
+    {% endfor %}
+    </div>
+    {% include 'pages/account-centre/_pagination.html.twig' %}
+</section>
+{% endblock %}

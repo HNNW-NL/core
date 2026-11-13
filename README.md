@@ -315,6 +315,9 @@ php bin/phpunit
 For password reset configuration and focused tests (AU01/AU04), see
 [Password reset](docs/password-reset.md).
 
+For the account dashboard and registration checks (AC01/AU03), see
+[Account dashboard and registration](docs/account-dashboard-registration.md).
+
 | Category             | Information                                                    |
 | -------------------- | -------------------------------------------------------------- |
 | Framework            | Symfony                                                        |

@@ -1,0 +1,7 @@
+{% if records.pages > 1 %}
+<nav class="account-pagination" aria-label="Pagina's">
+    {% if records.page > 1 %}<a rel="prev" href="{{ path(app.request.attributes.get('_route'), pagination_parameters|default({})|merge({page: records.page - 1})) }}">Vorige</a>{% endif %}
+    <span>Pagina {{ records.page }} van {{ records.pages }}</span>
+    {% if records.page < records.pages %}<a rel="next" href="{{ path(app.request.attributes.get('_route'), pagination_parameters|default({})|merge({page: records.page + 1})) }}">Volgende</a>{% endif %}
+</nav>
+{% endif %}

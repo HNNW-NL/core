@@ -3,7 +3,7 @@
 
         <header class="main-header">
             <div class="logo">
-                <a href="" class="logo-name">
+                <a href="{{ path('main.home') }}" class="logo-name">
                     <span class="logo-name-het">Het</span>
                     <span class="logo-name-nieuwe">Nieuwe</span>
                     <sup class="logo-name-two">2</sup>
@@ -11,7 +11,7 @@
                 </a>
             </div>
 
-            <button class="hamburger" id="hamburger">
+            <button class="hamburger" id="hamburger" type="button" aria-label="Menu openen of sluiten" aria-controls="navbar" aria-expanded="false">
                 {# <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"> #}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
                     <path d="M4 6h16M4 12h16M4 18h16" stroke="white" stroke-linecap="round"/>
@@ -21,7 +21,7 @@
             <nav class="navbar" id="navbar">
                 <ul class="nav-links">
                     <li><a href="/" class="nav-button">Home</a></li>
-                    <li><a href="/work" class="nav-button">Work</a></li>
+                    <li><a href="{{ path('main.projects.home') }}" class="nav-button">Work</a></li>
                     <li><a href="/about" class="nav-button">About us</a></li>
                     <li><a href="/account" class="nav-button">Account</a></li>
                     <li><a href="/projects" class="nav-button">Projecten</a></li>
@@ -47,12 +47,14 @@
 
         hamburger.addEventListener('click', () => {
             navbar.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', navbar.classList.contains('active') ? 'true' : 'false');
         });
 
         const navLinks = document.querySelectorAll('.nav-button');
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
                 navbar.classList.remove('active');
+                hamburger.setAttribute('aria-expanded', 'false');
             });
         });
     </script>
