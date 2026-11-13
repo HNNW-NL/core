@@ -31,7 +31,8 @@
     {% if actieveOrganisatie %}
             <section>
                 <h2>{{ actieveOrganisatie.naam }}</h2>
-
+            <p>Aantal projecten: {{ actieveOrganisatie.aantalProjecten }}</p>
+            <p>Niet-beoordeelde aanvragen: {{ actieveOrganisatie.aantalNietBeoordeeld }}</p>
                 <h3>Mijn rollen</h3>
                 <ul>
                     {% for rol in actieveOrganisatie.rollen %}

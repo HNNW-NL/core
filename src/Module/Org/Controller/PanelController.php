@@ -43,9 +43,27 @@ public function index(Request $request): Response
 
 
         if (!isset($organisaties[$id])) {
+       $aantalNietBeoordeeld = 0;
+
+       foreach ($organisatie->getOwnedProjects() as $project) {
+        if ($project->getDeletedAt() !== null) {
+         continue;
+       }
+
+       foreach ($project->getApplications() as $aanvraag) {
+        if ($aanvraag->getReviewedAt() === null &&
+            $aanvraag->getDeletedAt() === null) {
+            $aantalNietBeoordeeld++;
+        }
+    }
+}
             $organisaties[$id] = [
                 'id' => $id,
                 'naam' => $organisatie->getName(),
+                'aantalProjecten' => $organisatie->getOwnedProjects()
+                ->filter(fn ($project) => $project->getDeletedAt() === null)
+                ->count(),
+                'aantalNietBeoordeeld' => $aantalNietBeoordeeld,
                 'rollen' => [],
             ];
         }
