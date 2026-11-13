@@ -1,7 +1,6 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}My Skills{% endblock %}
+{% block title %}Mijn vaardigheden{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -9,8 +8,38 @@
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
-{# Page content #}
 {% block body %}
-    <h2>Skills</h2>
-    <p>Account Centre - skills page.</p>
+    <section id="account-centre-container">
+        <h1>Mijn vaardigheden</h1>
+        <p><a href="{{ path('account.home') }}">Terug naar Account Centre</a></p>
+        <form method="post" action="{{ path('account.skills_save') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('account_skills') }}">
+            <label for="skill_id">Vaardigheid</label>
+            <select name="skill_id" id="skill_id" required>
+                {% for skill in availableSkills %}
+                    <option value="{{ skill.id }}">{{ skill.name }}</option>
+                {% endfor %}
+            </select>
+            <label for="level">Niveau</label>
+            <select name="level" id="level">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Zelfstandig</option>
+                <option value="advanced">Gevorderd</option>
+                <option value="expert">Expert</option>
+            </select>
+            <button type="submit">Opslaan</button>
+        </form>
+        <h2>Gekoppelde vaardigheden</h2>
+        {% for item in skills %}
+            <article>
+                <strong>{{ item.skill.name }}</strong> — {{ item.proficiencyLevel.value|default('Onbekend') }}
+                <form method="post" action="{{ path('account.skills_delete', {id: item.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_skill' ~ item.id) }}">
+                    <button type="submit">Verwijderen</button>
+                </form>
+            </article>
+        {% else %}
+            <p>Je hebt nog geen vaardigheden toegevoegd.</p>
+        {% endfor %}
+    </section>
 {% endblock %}

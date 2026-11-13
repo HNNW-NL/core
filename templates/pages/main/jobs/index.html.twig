@@ -1,0 +1,35 @@
+{% extends 'layouts/main.base.html.twig' %}
+
+{# Page title meta tag #}
+{% block title %}Vacatures{% endblock %}
+
+{# SEO #}
+{% block seoKeywords %}{% endblock %}
+{% block seoDescription %}{% endblock %}
+{% block seoAuthor %}HNNW{% endblock %}
+
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
+{% block body %}
+    <section>
+        <h1>Vacatures</h1>
+        {% for job in jobs %}
+            <article>
+                <h2>{{ job.title }}</h2>
+                {% if job.organisation %}<p>{{ job.organisation.name }}</p>{% endif %}
+                {% if job.location %}<p>{{ job.location }}</p>{% endif %}
+                {% if job.description %}<p>{{ job.description|striptags|slice(0, 250) }}</p>{% endif %}
+                {% if job.applicationUrl %}
+                    <a href="{{ job.applicationUrl }}" target="_blank" rel="noopener noreferrer">Solliciteren via externe website</a>
+                {% endif %}
+            </article>
+        {% else %}
+            <p>Er zijn momenteel geen gepubliceerde vacatures beschikbaar.</p>
+        {% endfor %}
+    </section>
+{% endblock %}

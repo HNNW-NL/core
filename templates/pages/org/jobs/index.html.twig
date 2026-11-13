@@ -1,0 +1,29 @@
+{% extends 'layouts/org.base.html.twig' %}
+
+{# Page title meta tag #}
+{% block title %}Vacatures beheren{% endblock %}
+
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
+{% block body %}
+    <h1>Vacatures beheren</h1>
+    {% for message in app.flashes('success') %}<p role="status">{{ message }}</p>{% endfor %}
+    {% if organisations is empty %}<p>Je hebt geen toegang tot organisatievacatures.</p>{% else %}
+        <form method="get" action="{{ path('org.jobs.home') }}">
+            <label for="organisation">Organisatie</label>
+            <select name="organisation" id="organisation">
+                {% for org in organisations %}<option value="{{ org.id }}" {% if organisation and organisation.id == org.id %}selected{% endif %}>{{ org.name }}</option>{% endfor %}
+            </select><button type="submit">Selecteren</button>
+        </form>
+        {% if organisation %}
+            <a href="{{ path('org.jobs.create', {organisation: organisation.id}) }}">Vacature aanmaken</a>
+            <ul>{% for job in jobs %}
+                    <li><a href="{{ path('org.jobs.detail', {id: job.id}) }}">{{ job.title }}</a> — {{ job.publishedAt ? 'Gepubliceerd' : 'Concept / ingetrokken' }}</li>
+                {% else %}<li>Geen vacatures gevonden.</li>{% endfor %}</ul>
+        {% endif %}{% endif %}
+{% endblock %}

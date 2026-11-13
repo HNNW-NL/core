@@ -34,6 +34,7 @@
 
         <div class="account-form-container">
             <form action="{{ path('account.notifications') }}" method="POST">
+                <input type="hidden" name="_token" value="{{ csrf_token('account_notifications') }}">
 
                 <div class="form-group-checkbox">
                     <input type="checkbox" id="notify_projects" name="notify_projects" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>

@@ -1,0 +1,33 @@
+{% extends 'layouts/ac.base.html.twig' %}
+
+{% block title %}Opgeslagen items{% endblock %}
+
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{% block body %}
+    <section id="account-centre-container">
+        <h1>Opgeslagen items</h1>
+        <p><a href="{{ path('account.home') }}">Terug naar Account Centre</a></p>
+        {% for item in items %}
+            <article>
+                {% if item.project %}
+                    <h2>{{ item.project.title }}</h2>
+                    <p>Project opgeslagen</p>
+                {% elseif item.job %}
+                    <h2>{{ item.job.title }}</h2>
+                    <p>Vacature opgeslagen</p>
+                {% endif %}
+                <form method="post" action="{{ path('account.saved_items_delete', {id: item.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_saved_item' ~ item.id) }}">
+                    <button type="submit">Verwijderen</button>
+                </form>
+            </article>
+        {% else %}
+            <p>Je hebt nog geen items opgeslagen.</p>
+        {% endfor %}
+    </section>
+{% endblock %}

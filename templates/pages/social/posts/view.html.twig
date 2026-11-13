@@ -1,7 +1,7 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Post {{ id }}{% endblock %}
+{% block title %}Post {{ slug }}{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
@@ -17,5 +17,5 @@
 {# Page content #}
 {% block body %}
     <h2>Post - View</h2>
-    <p>Social - view post ({{ id }}) page.</p>
+    <p>Social - view post ({{ slug }}) page.</p>
 {% endblock %}

@@ -6,6 +6,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Social page routes.
+ *
+ * Post and category entities do not yet exist. Until they are introduced,
+ * these actions render the existing placeholder templates without pretending
+ * that a record has been loaded or persisted.
+ */
 #[Route('/social', name: 'social.')]
 final class SocialController extends AbstractController
 {
@@ -21,33 +28,42 @@ final class SocialController extends AbstractController
         return $this->render('pages/social/categories.html.twig');
     }
 
-    #[Route('/categories/{id}', name: 'viewCategory', methods: ['GET'])]
-    public function viewCategory(string $id): Response
+    #[Route('/categories/{slug}', name: 'viewCategory', requirements: ['slug' => '[a-z0-9]+(?:-[a-z0-9]+)*'], methods: ['GET'])]
+    public function viewCategory(string $slug): Response
     {
         return $this->render('pages/social/categories-view.html.twig', [
-            'id' => $id
+            'slug' => $slug,
         ]);
     }
 
     #[Route('/create-post', name: 'createPost', methods: ['GET'])]
     public function createPost(): Response
     {
+        if ($this->getUser() === null) {
+            throw $this->createAccessDeniedException('Log in om een bericht aan te maken.');
+        }
+
         return $this->render('pages/social/posts/create.html.twig');
     }
 
-    #[Route('/p/{id}', name: 'viewPost', methods: ['GET'])]
-    public function viewPost(string $id): Response
+    #[Route('/p/{slug}', name: 'viewPost', requirements: ['slug' => '[a-z0-9]+(?:-[a-z0-9]+)*'], methods: ['GET'])]
+    public function viewPost(string $slug): Response
     {
         return $this->render('pages/social/posts/view.html.twig', [
-            'id' => $id
+            'slug' => $slug,
         ]);
     }
 
-    #[Route('/p/{id}/modify', name: 'modifyPost', methods: ['GET'])]
+    #[Route('/posts/{id}/modify', name: 'modifyPost', requirements: ['id' => '[0-9A-HJKMNP-TV-Z]{26}'], methods: ['GET'])]
     public function modifyPost(string $id): Response
     {
+        if ($this->getUser() === null) {
+            throw $this->createAccessDeniedException('Log in om een bericht te wijzigen.');
+        }
+
+        // Ownership checks become mandatory once a Post entity exists.
         return $this->render('pages/social/posts/modify.html.twig', [
-            'id' => $id
+            'id' => $id,
         ]);
     }
 }
