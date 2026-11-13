@@ -37,6 +37,10 @@ class MainControllerTest extends WebTestCase
 
     public function testShouldDisplayHomeWithoutProjects(): void
     {
+        $this->loadFixtures([
+            ProjectFixtures::class,
+        ]);
+
         $client = static::createClient();
 
         $client->request('GET', '/');
