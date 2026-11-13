@@ -20,9 +20,11 @@
 {% block body %}
 {# Keep homepage content inside the dedicated homepage styling scope. #}
 <div class="home-page">
+<a class="skip-link" href="#about">Direct naar de inhoud</a>
+{% include 'pages/main/_breadcrumbs.html.twig' with { currentPage: 'Home', isHome: true } %}
 
 {# Hero section introduces the platform and the primary action for new visitors. #}
-<section class="hero container" aria-labelledby="hero-title">
+<section class="hero container" id="about" aria-labelledby="hero-title">
     <div class="hero-copy">
         <p class="hnnw-eyebrow">Open platform voor de overheid</p>
         <h1 id="hero-title">De juiste mensen voor publieke opgaven. <span>Open, eerlijk en transparant.</span></h1>

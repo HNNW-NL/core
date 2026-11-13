@@ -161,6 +161,25 @@
     text-decoration: none;
 }
 
+.home-page .skip-link {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--bg);
+    font-size: 0.85rem;
+    font-weight: 700;
+    transform: translateY(-160%);
+    transition: transform 160ms ease;
+}
+
+.home-page .skip-link:focus {
+    transform: translateY(0);
+}
+
 /* Keep keyboard focus visible against the dark theme. */
 .home-page a:focus-visible,
 .home-page button:focus-visible,

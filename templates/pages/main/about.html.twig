@@ -14,6 +14,7 @@
 {# Page content #}
 {% block body %}
     <div class="about-page">
+    {% include 'pages/main/_breadcrumbs.html.twig' with { currentPage: 'Over ons', isHome: false } %}
     <!-- HERO -->
     <section class="hero">
         <div>
