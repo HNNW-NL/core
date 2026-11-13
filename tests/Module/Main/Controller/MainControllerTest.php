@@ -2,19 +2,64 @@
 
 namespace App\Tests;
 
+use App\Repository\Project\ProjectRepository;
+use App\DataFixtures\Project\ProjectFixtures;
+use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class MainControllerTest extends WebTestCase
 {
+    use FixturesTrait;
+
     // Index
 
     public function testShouldDisplayHome(): void
     {
+        $this->loadFixtures([
+            ProjectFixtures::class,
+        ]);
+
         $client = static::createClient();
         $crawler = $client->request('GET', '/');
 
+
+
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Home');
+        $this->assertSelectorTextContains('h2', 'Openbare projecten');
+        $this->assertSelectorExists('body > a.skip-link[href="#main-content"]');
+        $this->assertSelectorExists('.open-project-card');
+        $this->assertSelectorTextContains('.open-project-card h3', 'Gepubliceerd testproject');
+        $this->assertStringNotContainsString(
+            'Projectinformatie is op dit moment niet beschikbaar.',
+            $crawler->text(),
+        );
+    }
+
+    public function testShouldDisplayHomeWithoutProjects(): void
+    {
+        $this->loadFixtures([
+            ProjectFixtures::class,
+        ]);
+
+        $client = static::createClient();
+
+        $client->request('GET', '/');
+
+        $this->assertResponseIsSuccessful();
+
+        $this->assertSelectorTextContains(
+            'h2',
+            'Openbare projecten'
+        );
+
+        $this->assertSelectorExists('.open-projects-empty');
+
+        $this->assertSelectorTextContains(
+            '.open-projects-empty',
+            'Er zijn op dit moment geen openbare projecten gepubliceerd.'
+        );
+
+        $this->assertSelectorNotExists('.open-project-card');
     }
 
     //About
