@@ -6,7 +6,10 @@ use App\Entity\Common\Status;
 use App\Entity\Project\WorkPackage;
 use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
 use App\Module\Main\Service\WorkPackageWorkflowService;
+use App\Security\Voter\WorkPackageVoter;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Uid\Uuid;
 
 final class ChangeWorkPackageStatusHandler
@@ -14,6 +17,7 @@ final class ChangeWorkPackageStatusHandler
     public function __construct(
         private readonly WorkPackageWorkflowService $workflowService,
         private readonly EntityManagerInterface $entityManager,
+        private readonly AuthorizationCheckerInterface $authorizationChecker,
     ) {
     }
 
@@ -30,6 +34,10 @@ final class ChangeWorkPackageStatusHandler
 
         if (!$workPackage instanceof WorkPackage) {
             throw new \InvalidArgumentException('Work package not found.');
+        }
+
+        if (!$this->authorizationChecker->isGranted(WorkPackageVoter::EDIT, $workPackage)) {
+            throw new AccessDeniedException('You do not have permission to change this work package status.');
         }
 
         $currentStatus = $workPackage->getStatus()?->getName();

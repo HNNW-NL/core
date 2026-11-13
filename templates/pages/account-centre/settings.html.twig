@@ -13,9 +13,6 @@
 
 {# Page content #}
 {% block body %}
-    {% set profile = app.user ? app.user.profile : null %}
-    {% set settings = app.user ? app.user.setting : null %}
-
     <div id="account-centre-container" class="settings-page">
         <a href="{{ path('account.home') }}" class="btn-back">
             Terug naar dashboard
