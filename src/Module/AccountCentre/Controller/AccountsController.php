@@ -324,10 +324,31 @@ final class AccountsController extends AbstractController
             $this->addFlash('error', 'Profiel niet gevonden.');
             return $this->redirectToRoute('account.home');
         }
+        $editId = $request->query->get('edit');
+        $editingExperience = null;
+
+        if ($editId) {
+            $editingExperience = $entityManager
+                ->getRepository(ProfileExperience::class)
+                ->find($editId);
+
+            if (
+                !$editingExperience ||
+                $editingExperience->getProfile() !== $profile ||
+                $editingExperience->getDeletedAt() !== null
+            ) {
+                throw $this->createAccessDeniedException();
+            }
+        }
 
 
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('create_experience', $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid(
+                $request->request->get('edit_id')
+                    ? 'edit_experience' . $request->request->get('edit_id')
+                    : 'create_experience',
+                $request->request->get('_token')
+            )) {
                 $this->addFlash('error', 'Ongeldig veiligheidstoken.');
                 return $this->redirectToRoute('account.experience');
             }
@@ -382,7 +403,24 @@ final class AccountsController extends AbstractController
                 }
             } else {
                 try {
-                    $experience = new ProfileExperience();
+                    $editId = $request->request->get('edit_id');
+
+                    if ($editId) {
+                        $experience = $entityManager
+                            ->getRepository(ProfileExperience::class)
+                            ->find($editId);
+
+                        if (
+                            !$experience ||
+                            $experience->getProfile() !== $profile ||
+                            $experience->getDeletedAt() !== null
+                        ) {
+                            throw $this->createAccessDeniedException();
+                        }
+                    } else {
+                        $experience = new ProfileExperience();
+                        $experience->setProfile($profile);
+                    }
 
                     $experience->setJobTitle($jobTitle);
                     $experience->setOrganisationName($organisationName);
@@ -397,7 +435,10 @@ final class AccountsController extends AbstractController
                     $entityManager->persist($experience);
                     $entityManager->flush();
 
-                    $this->addFlash('success', 'Je werkervaring is succesvol toegevoegd!');
+                    $this->addFlash(
+                        'success',
+                        $editId ? 'Je werkervaring is bijgewerkt!' : 'Je werkervaring is succesvol toegevoegd!'
+                    );
                 } catch (\Exception $e) {
                     $this->addFlash('error', 'Er is een fout opgetreden bij het opslaan van je werkervaring.');
                 }
@@ -414,6 +455,7 @@ final class AccountsController extends AbstractController
 
         return $this->render('pages/account-centre/experience.html.twig', [
             'experiences' => $experiences,
+            'editingExperience' => $editingExperience,
         ]);
     }
 

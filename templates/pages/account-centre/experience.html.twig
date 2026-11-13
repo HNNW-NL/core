@@ -59,6 +59,10 @@
                             {% endif %}
                         </div>
 
+                        <a href="{{ path('account.experience', {'edit': experience.id}) }}"
+                           class="btn-card-edit">
+                            Bewerken
+                        </a>
                         <form action="{{ path('account.experience_delete', {'id': experience.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze ervaring wilt verwijderen?');">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_experience' ~ experience.id) }}">
                             <button type="submit" class="btn-card-cancel">Verwijderen</button>
@@ -72,16 +76,31 @@
 
         <div class="account-form-container">
             <div class="form-internal-header">
-                <h2>Nieuwe Werkervaring Toevoegen</h2>
+                <h2>
+                    {{ editingExperience ? 'Werkervaring Bewerken' : 'Nieuwe Werkervaring Toevoegen' }}
+                </h2>
                 <p>Vul de onderstaande velden in om een werkgever of project toe te voegen aan je profiel.</p>
             </div>
 
             <form action="{{ path('account.experience') }}" method="POST" class="account-form">
-                <input type="hidden" name="_token" value="{{ csrf_token('create_experience') }}">
+
+                {% if editingExperience %}
+                    <input type="hidden" name="edit_id" value="{{ editingExperience.id }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('edit_experience' ~ editingExperience.id) }}">
+                {% else %}
+                    <input type="hidden" name="_token" value="{{ csrf_token('create_experience') }}">
+                {% endif %}
 
                 <div class="form-group">
                     <label for="exp-job-title">Titel / Functietitel</label>
-                    <input type="text" id="exp-job-title" name="job_title" placeholder="bijv. Full Stack Developer" required>
+                    <input
+                        type="text"
+                        id="exp-job-title"
+                        name="job_title"
+                        placeholder="bijv. Full Stack Developer"
+                        value="{{ editingExperience ? editingExperience.jobTitle : '' }}"
+                        required
+                    >
                 </div>
 
                 <div class="form-group">
@@ -100,23 +119,47 @@
 
                 <div class="form-group">
                     <label for="exp-organisation">Bedrijf of Organisatie</label>
-                    <input type="text" id="exp-organisation" name="organisation_name" placeholder="bijv. Uw Bedrijf B.V." required>
+                    <input
+                        type="text"
+                        id="exp-organisation"
+                        name="organisation_name"
+                        placeholder="bijv. Uw Bedrijf B.V."
+                        value="{{ editingExperience ? editingExperience.organisationName : '' }}"
+                        required
+                    >
                 </div>
 
                 <div class="form-group checkbox-group">
-                    <input type="checkbox" id="exp-is-current" name="is_current" value="1">
+                    <input
+                        type="checkbox"
+                        id="exp-is-current"
+                        name="is_current"
+                        value="1"
+                        {% if editingExperience and editingExperience.isCurrent %}checked{% endif %}
+                    >
                     <label for="exp-is-current">Ik ben momenteel werkzaam in deze functie</label>
                 </div>
 
                 <div class="form-group-row">
                     <div class="form-group">
                         <label for="exp-start-date">Startdatum</label>
-                        <input type="date" id="exp-start-date" name="start_date" required>
+                        <input
+                            type="date"
+                            id="exp-start-date"
+                            name="start_date"
+                            value="{{ editingExperience ? editingExperience.startDate|date('Y-m-d') : '' }}"
+                            required
+                        >
                     </div>
 
                     <div class="form-group">
                         <label for="exp-end-date">Einddatum</label>
-                        <input type="date" id="exp-end-date" name="end_date">
+                        <input
+                            type="date"
+                            id="exp-end-date"
+                            name="end_date"
+                            value="{{ editingExperience and editingExperience.endDate ? editingExperience.endDate|date('Y-m-d') : '' }}"
+                        >
                     </div>
                 </div>
 
@@ -162,13 +205,27 @@
 
                 <div class="form-group">
                     <label for="exp-description">Beschrijving</label>
-                    <textarea id="exp-description" name="description" rows="5" placeholder="Vertel kort wat je verantwoordelijkheden en prestaties waren..."></textarea>
+                    <textarea
+                        id="exp-description"
+                        name="description"
+                        rows="5"
+                        placeholder="Vertel kort wat je verantwoordelijkheden en prestaties waren..."
+                    >{{ editingExperience ? editingExperience.description : '' }}</textarea>
                 </div>
 
                 <div class="form-actions-row">
-                    <button type="submit">Ervaring Opslaan</button>
-                    <a href="{{ path('account.home') }}" class="btn-cancel">Annuleren</a>
-                </div>
+                    <button type="submit">
+                        {{ editingExperience ? 'Wijzigingen Opslaan' : 'Ervaring Opslaan' }}
+                    </button>
+                    {% if editingExperience %}
+                        <a href="{{ path('account.experience') }}" class="btn-cancel">
+                            Annuleren
+                        </a>
+                    {% else %}
+                        <a href="{{ path('account.home') }}" class="btn-cancel">
+                            Annuleren
+                        </a>
+                    {% endif %}                </div>
             </form>
         </div>
 
