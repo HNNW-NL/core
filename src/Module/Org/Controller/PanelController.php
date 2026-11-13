@@ -2,13 +2,21 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Entity\Project\Project;
+use App\Module\Main\Service\CurrentProfileProvider;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
+use App\Repository\Project\ProjectParticipantRepository;
+use App\Repository\Project\ProjectRepository;
+use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Account\Account;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-
+use Symfony\Component\Uid\Uuid;
+use App\Security\Permission;
 
 #[Route('/org', name: 'org.')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
@@ -118,66 +126,187 @@ public function index(Request $request): Response
     }
 
     #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET'])]
-    public function modifyProject(string $id): Response
-    {
+    public function modifyProject(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
-    public function modifyProjectMatching(string $id): Response
-    {
+    public function modifyProjectMatching(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-matching.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET'])]
-    public function modifyProjectParticipants(string $id): Response
-    {
+    public function modifyProjectParticipants(
+        string $id,
+        ProjectRepository $projectRepository,
+        ProjectParticipantRepository $participantRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        $applications = $participantRepository->findApplicationsForProject($project);
+
         return $this->render('pages/org/projects/modify-participants.html.twig', [
             'id' => $id,
+            'project' => $project,
+            'applications' => $applications,
+            'pending_application_ids' => array_map(
+                static fn ($application): string => $application->getId()->toRfc4122(),
+                array_filter($applications, $applicationHandler->isPending(...)),
+            ),
+            'reject_reason_max_length' => ProjectParticipantUpdateRoleHandler::REJECT_REASON_MAX_LENGTH,
         ]);
     }
 
+    #[Route(
+        '/projects/modify/{id}/participants/applications/{applicationId}/accept',
+        name: 'modifyProject.participants.acceptApplication',
+        methods: ['POST'],
+    )]
+    public function acceptApplication(
+        string $id,
+        string $applicationId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
+        CurrentProfileProvider $currentProfileProvider,
+    ): RedirectResponse {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid(self::reviewTokenId($applicationId), $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+
+            return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+        }
+
+        $reviewer = $currentProfileProvider->getProfile();
+
+        if ($reviewer === null) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden voor de ingelogde gebruiker.');
+        }
+
+        $result = $applicationHandler->acceptApplication($project, $applicationId, $reviewer);
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
+
+        return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+    }
+
+    #[Route(
+        '/projects/modify/{id}/participants/applications/{applicationId}/reject',
+        name: 'modifyProject.participants.rejectApplication',
+        methods: ['POST'],
+    )]
+    public function rejectApplication(
+        string $id,
+        string $applicationId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
+        CurrentProfileProvider $currentProfileProvider,
+    ): RedirectResponse {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid(self::reviewTokenId($applicationId), $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+
+            return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+        }
+
+        $reviewer = $currentProfileProvider->getProfile();
+
+        if ($reviewer === null) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden voor de ingelogde gebruiker.');
+        }
+
+        $result = $applicationHandler->rejectApplication(
+            $project,
+            $applicationId,
+            $request->request->getString('reason'),
+            $reviewer,
+        );
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
+
+        return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+    }
+
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
-    public function InviteProjectParticipants(string $id): Response
-    {
+    public function inviteProjectParticipants(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/invite-participants.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/reviews', name: 'modifyProject.reviews', methods: ['GET'])]
-    public function modifyProjectReviews(string $id): Response
-    {
+    public function modifyProjectReviews(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-reviews.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/tasks', name: 'modifyProject.tasks', methods: ['GET'])]
-    public function modifyProjectTasks(string $id): Response
-    {
+    public function modifyProjectTasks(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-tasks.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/updates', name: 'modifyProject.updates', methods: ['GET'])]
-    public function modifyProjectUpdates(string $id): Response
-    {
+    public function modifyProjectUpdates(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-updates.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
     #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
-    public function modifyProjectWorkPackages(string $id): Response
-    {
+    public function modifyProjectWorkPackages(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
         return $this->render('pages/org/projects/modify-work-packages.html.twig', [
             'id' => $id,
+            'project' => $project,
         ]);
     }
 
@@ -193,5 +322,32 @@ public function index(Request $request): Response
         return $this->render('pages/org/staff/view.html.twig', [
             'id' => $id,
         ]);
+    }
+
+    /** CSRF-token id per aanvraag; de template gebruikt exact dezelfde string. */
+    private static function reviewTokenId(string $applicationId): string
+    {
+        return 'org_review_application_' . $applicationId;
+    }
+
+    private function getProjectAndCheckEditAccess(
+        string $id,
+        ProjectRepository $projectRepository,
+    ): Project {
+        if (!Uuid::isValid($id)) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $project = $projectRepository->findOneActiveById(Uuid::fromString($id));
+
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $this->denyAccessUnlessGranted(ProjectVoter::EDIT, $project);
+
+        $this->denyAccessUnlessGranted(Permission::ORG_MANAGE_PROJECTS->name, $project->getOwnerOrganisation());
+
+        return $project;
     }
 }

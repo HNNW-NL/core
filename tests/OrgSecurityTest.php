@@ -23,11 +23,17 @@ final class OrgSecurityTest extends WebTestCase
     ] as $url) {
             $client->request('GET', $url);
 
-            self::assertSame(
-                401,
-                $client->getResponse()->getStatusCode(),
-                "De pagina $url moet bezoekers zonder login blokkeren."
-            );
+           self::assertSame(
+    302,
+    $client->getResponse()->getStatusCode(),
+    "De pagina $url moet bezoekers naar de login sturen."
+);
+
+self::assertSame(
+    '/auth/login',
+    $client->getResponse()->headers->get('Location'),
+    "De pagina $url moet naar de inlogpagina verwijzen."
+);
         }
     }
 }
