@@ -60,8 +60,14 @@ final readonly class AccountOverview
         $total = (int) (clone $accounts)->select('COUNT(account.id)')->getQuery()->getSingleScalarResult();
         $pages = max(1, intdiv($total, self::PAGE_SIZE) + (int) ($total % self::PAGE_SIZE !== 0));
         $page = min($pages, max(1, $requestedPage ?: 1));
-        $items = $accounts->select('account.id, account.username, account.email, profile.firstName, profile.lastName, status.name AS statusName')
+        $items = $accounts->select(
+            'account.id, account.username, account.email, account.emailVerifiedAt, account.createdAt',
+            'profile.displayName, profile.firstName, profile.lastName, status.name AS statusName',
+            'admin.id AS adminId, adminRole.name AS adminRoleName',
+        )
             ->leftJoin('account.status', 'status')
+            ->leftJoin('account.admin', 'admin')
+            ->leftJoin('admin.adminRole', 'adminRole')
             ->orderBy('account.username', 'ASC')
             ->addOrderBy('account.id', 'ASC')
             ->setFirstResult(($page - 1) * self::PAGE_SIZE)

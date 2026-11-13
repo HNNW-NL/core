@@ -213,6 +213,11 @@ final class AdminHomeTest extends WebTestCase
             'firstName' => 'Test',
             'lastName' => 'Account',
             'statusName' => 'active',
+            'displayName' => 'Testweergavenaam',
+            'emailVerifiedAt' => new \DateTimeImmutable('2026-01-03'),
+            'createdAt' => new \DateTimeImmutable('2026-01-02'),
+            'adminId' => null,
+            'adminRoleName' => null,
         ]]);
         $em = $this->createStub(EntityManagerInterface::class);
         $em->method('getRepository')->willReturn($statuses);
@@ -230,6 +235,9 @@ final class AdminHomeTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(200);
         self::assertSelectorTextContains('tbody', 'account-fixture@example.test');
+        foreach (['Testweergavenaam', 'Geverifieerd', 'Gebruiker', '02-01-2026'] as $value) {
+            self::assertSelectorTextContains('tbody', $value);
+        }
     }
 
     public function testAccountAdministratorCanOpenCreateFormAndUnknownAccountReturnsNotFound(): void

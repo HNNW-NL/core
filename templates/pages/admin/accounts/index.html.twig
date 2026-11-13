@@ -32,9 +32,12 @@
             <thead>
                 <tr>
                     <th scope="col">Gebruikersnaam</th>
-                    <th scope="col">Naam</th>
+                    <th scope="col">Weergavenaam</th>
                     <th scope="col">E-mailadres</th>
                     <th scope="col">Status</th>
+                    <th scope="col">E-mailverificatie</th>
+                    <th scope="col">Rol</th>
+                    <th scope="col">Registratiedatum</th>
                     <th scope="col">Acties</th>
                 </tr>
             </thead>
@@ -42,9 +45,12 @@
                 {% for account in overview.items %}
                     <tr>
                         <td>{{ account.username }}</td>
-                        <td>{{ account.firstName }} {{ account.lastName }}</td>
+                        <td>{{ account.displayName|default((account.firstName ~ ' ' ~ account.lastName)|trim|default(account.username)) }}</td>
                         <td>{{ account.email }}</td>
                         <td>{{ account.statusName }}</td>
+                        <td>{{ account.emailVerifiedAt is not empty ? 'Geverifieerd' : 'Niet geverifieerd' }}</td>
+                        <td>{{ account.adminRoleName|default(account.adminId is not empty ? 'Platformbeheerder' : 'Gebruiker') }}</td>
+                        <td>{{ account.createdAt is not empty ? account.createdAt|date('d-m-Y') : 'Onbekend' }}</td>
                         <td>{% if account.id is defined %}<a href="{{ path('admin.accounts.view', {id: account.id ~ ''}) }}">Bekijken</a>{% endif %}</td>
                     </tr>
                 {% endfor %}
