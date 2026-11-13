@@ -66,7 +66,7 @@ class WorkPackage
     public function __construct()
     {
         $this->id = Uuid::v7();
-        $this->workPackageTasks = new ArrayCollection();
+        $this->packageTasks = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -199,13 +199,21 @@ class WorkPackage
  */
 public function getWorkPackageTasks(): Collection
 {
-    return $this->workPackageTasks;
+    return $this->packageTasks;
+}
+
+/**
+ * @return Collection<int, PackageTask>
+ */
+public function getPackageTasks(): Collection
+{
+    return $this->packageTasks;
 }
 
 public function addWorkPackageTask(PackageTask $workPackageTask): static
 {
-    if (!$this->workPackageTasks->contains($workPackageTask)) {
-        $this->workPackageTasks->add($workPackageTask);
+    if (!$this->packageTasks->contains($workPackageTask)) {
+        $this->packageTasks->add($workPackageTask);
         $workPackageTask->setWorkPackage($this);
     }
 
@@ -214,7 +222,7 @@ public function addWorkPackageTask(PackageTask $workPackageTask): static
 
 public function removeWorkPackageTask(PackageTask $workPackageTask): static
 {
-    if ($this->workPackageTasks->removeElement($workPackageTask)) {
+    if ($this->packageTasks->removeElement($workPackageTask)) {
         if ($workPackageTask->getWorkPackage() === $this) {
             $workPackageTask->setWorkPackage(null);
         }

@@ -38,9 +38,10 @@
                     {% set workPackage = overview.workPackage %}
                     {% set packageTasks = overview.packageTasks %}
 
-                    <article class="work-package-card">
+                    <article class="work-package-card" id="work-package-{{ workPackage.id.toRfc4122() }}">
                         <header class="work-package-card__header">
                             <h3>{{ workPackage.title }}</h3>
+                            <p>{{ overview.completedTaskCount }}/{{ packageTasks|length }} taken afgerond</p>
 
                             {% if workPackage.dueDate %}
                                 <p>Deadline: {{ workPackage.dueDate|date('d-m-Y') }}</p>
@@ -85,7 +86,7 @@
                                                     <span>Deze taak is al toegewezen.</span>
                                                 {% endif %}
                                             {% elseif currentProfile %}
-                                                <form method="post" action="{{ path('main.projects.workPackages.enrollTask', { slug: slug, taskId: packageTask.id.toRfc4122() }) }}">
+                                                <form method="post" action="{{ path('main.projects.tasks.enroll', { slug: slug, workPackageId: workPackage.id.toRfc4122(), taskId: packageTask.id.toRfc4122() }) }}">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('enroll-package-task-' ~ packageTask.id.toRfc4122()) }}">
                                                     <button type="submit">Inschrijven</button>
                                                 </form>

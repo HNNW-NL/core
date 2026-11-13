@@ -31,7 +31,12 @@ final readonly class WorkPackageTaskEnrollmentService
     ) {
     }
 
-    public function enroll(Project $project, Uuid|string $taskId, Profile $profile): WorkPackageTaskEnrollmentResult
+    public function enroll(
+        Project $project,
+        Uuid|string $taskId,
+        Uuid|string $workPackageId,
+        Profile $profile,
+    ): WorkPackageTaskEnrollmentResult
     {
         if (!$this->projectParticipantRepository->isActiveParticipant($project, $profile)) {
             return new WorkPackageTaskEnrollmentResult(
@@ -40,7 +45,7 @@ final readonly class WorkPackageTaskEnrollmentService
             );
         }
 
-        $packageTask = $this->packageTaskRepository->findOneForProject($taskId, $project);
+        $packageTask = $this->packageTaskRepository->findOneForProject($taskId, $project, $workPackageId);
 
         if ($packageTask === null) {
             return new WorkPackageTaskEnrollmentResult(
