@@ -57,6 +57,7 @@ final class DashboardController extends AbstractController
         $statuses = $repository->findBy([], ['scope' => 'ASC', 'name' => 'ASC']);
         return $this->render('pages/admin/statuses.html.twig', [
             'statuses' => $statuses,
+            'labels' => array_map($workflow->applicationStatusLabel(...), $statuses),
             'transitions' => array_map($workflow->configuredTransitions(...), $statuses),
         ]);
     }

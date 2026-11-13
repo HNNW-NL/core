@@ -75,6 +75,23 @@ class ProjectParticipantUpdateRoleHandler
         return in_array($name, self::PENDING_NAMES, true);
     }
 
+    public function applicationStatusLabel(Status $status): string
+    {
+        $name = (string) $status->getName();
+        if (strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) !== 0) {
+            return $name;
+        }
+
+        $code = mb_strtolower($name);
+
+        return match (true) {
+            in_array($code, self::PENDING_NAMES, true) => 'Ingediend',
+            in_array($code, self::ACCEPTED_NAMES, true) => 'Geaccepteerd',
+            in_array($code, self::REJECTED_NAMES, true) => 'Afgewezen',
+            default => $name,
+        };
+    }
+
     public function configuredTransitions(Status $status): array
     {
         if (strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) !== 0
@@ -91,7 +108,7 @@ class ProjectParticipantUpdateRoleHandler
         foreach ($targetNames as $names) {
             $target = $this->statusRepo->findFirstByScopeAndNames(self::APPLICATION_SCOPE, $names);
             if ($target !== null) {
-                $targets[] = $target->getName();
+                $targets[] = $this->applicationStatusLabel($target);
             }
         }
 

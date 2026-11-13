@@ -10,7 +10,8 @@
     <table>
         <thead>
             <tr>
-                <th scope="col">Geregistreerde statusnaam</th>
+                <th scope="col">Opgeslagen statuscode</th>
+                <th scope="col">Label</th>
                 <th scope="col">Toepasselijk object</th>
                 <th scope="col">Kleurcode</th>
                 <th scope="col">Overgangen</th>
@@ -20,12 +21,13 @@
             {% for status in statuses %}
                 <tr>
                     <td>{{ status.name }}</td>
+                    <td>{{ labels[loop.index0] }}</td>
                     <td>{{ status.scope }}</td>
                     <td>{{ status.colourHex }}</td>
                     <td>{{ transitions[loop.index0]|join(', ')|default('Geen overgang getoond') }}</td>
                 </tr>
             {% else %}
-                <tr><td colspan="4">Geen statussen gevonden.</td></tr>
+                <tr><td colspan="5">Geen statussen gevonden.</td></tr>
             {% endfor %}
         </tbody>
     </table>

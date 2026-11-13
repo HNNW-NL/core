@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Tests\Module\Org;
+
+use App\Entity\Account\Profile;
+use App\Entity\Common\Status;
+use App\Entity\Project\Project;
+use App\Entity\Project\ProjectApplication;
+use App\Entity\Project\ProjectParticipant;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
+use App\Repository\Common\StatusRepository;
+use App\Repository\Project\ProjectParticipantRepository;
+use App\Repository\Project\ProjectRoleRepository;
+use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\TestCase;
+
+final class ApplicationReviewTest extends TestCase
+{
+    public function testDisplayedAcceptanceMatchesApplicationReview(): void
+    {
+        $project = new Project();
+        $applicant = new Profile();
+        $reviewer = new Profile();
+        $pending = (new Status())->setScope('ProjectApplication')->setName('send');
+        $accepted = (new Status())->setScope('ProjectApplication')->setName('accepted');
+        $active = (new Status())->setScope('ProjectParticipant')->setName('active');
+        $application = (new ProjectApplication())->setProject($project)->setProfile($applicant)->setStatus($pending);
+        $id = (string) $application->getId();
+
+        $statuses = $this->createStub(StatusRepository::class);
+        $statuses->method('findFirstByScopeAndNames')->willReturnCallback(
+            static fn (string $scope, array $names): ?Status => match (true) {
+                $scope === 'ProjectApplication' && in_array('accepted', $names, true) => $accepted,
+                $scope === 'ProjectParticipant' && in_array('active', $names, true) => $active,
+                default => null,
+            },
+        );
+        $participants = $this->createMock(ProjectParticipantRepository::class);
+        $participants->expects(self::exactly(2))->method('findApplicationForProject')
+            ->with($id, $project, true)->willReturn($application);
+        $participants->expects(self::once())->method('findOneBy')->with(['project' => $project, 'profile' => $applicant])
+            ->willReturn(null);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::exactly(2))->method('wrapInTransaction')->willReturnCallback(
+            static fn (callable $operation): array => $operation(),
+        );
+        $em->expects(self::exactly(2))->method('lock')->with($project, LockMode::PESSIMISTIC_WRITE);
+        $em->expects(self::once())->method('persist')->with(self::callback(
+            static fn ($participant): bool => $participant instanceof ProjectParticipant,
+        ));
+        $workflow = new ProjectParticipantUpdateRoleHandler(
+            $participants, $this->createStub(ProjectRoleRepository::class), $em, $statuses,
+        );
+
+        self::assertSame(['Geaccepteerd'], $workflow->configuredTransitions($pending));
+        self::assertTrue($workflow->acceptApplication($project, $id, $reviewer)['success']);
+        self::assertSame($accepted, $application->getStatus());
+        self::assertFalse($workflow->acceptApplication($project, $id, $reviewer)['success']);
+        self::assertSame([], $workflow->configuredTransitions($accepted));
+    }
+}

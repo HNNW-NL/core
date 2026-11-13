@@ -180,7 +180,8 @@ final class AdminHomeTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('main', $description);
         self::assertSelectorTextContains('main', 'PackageTask');
-        self::assertSelectorTextContains('tbody tr:first-child td:last-child', 'accepted');
+        self::assertSelectorTextContains('tbody tr:first-child td:nth-child(2)', 'Ingediend');
+        self::assertSelectorTextContains('tbody tr:first-child td:last-child', 'Geaccepteerd');
         self::assertSelectorExists('main a[href="/admin"]');
     }
 
