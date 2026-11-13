@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Tests\Security\Voter;
+
+use App\Entity\Account\Account;
+use App\Entity\Account\Profile;
+use App\Entity\Project\Project;
+use App\Entity\Project\ProjectParticipant;
+use App\Entity\Project\ProjectRole;
+use App\Module\Main\Service\CurrentProfileProvider;
+use App\Module\Org\Security\ProjectVoter as OrgProjectVoter;
+use App\Repository\Project\ProjectParticipantRepository;
+use App\Security\ProjectPermission;
+use App\Security\Voter\ProjectVoter;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+
+final class ProjectPermissionTest extends TestCase
+{
+    public static function masks(): iterable
+    {
+        yield 'delete only' => [ProjectRole::PERMISSION_DELETE, false, true];
+        yield 'invite only' => [ProjectPermission::INVITE->value, true, false];
+        yield 'no mask' => [null, false, false];
+    }
+
+    #[DataProvider('masks')]
+    public function testProjectPermissionsAreSeparateAndObjectScoped(?int $mask, bool $invite, bool $delete): void
+    {
+        $profile = new Profile();
+        $account = (new Account())->setProfile($profile);
+        $project = new Project();
+        $otherProject = new Project();
+        $role = (new ProjectRole())->setPermissionsMask($mask);
+        $participant = (new ProjectParticipant())->setRole($role);
+        $repository = $this->createStub(ProjectParticipantRepository::class);
+        foreach (['findActiveParticipant', 'findLatestActiveParticipantByProjectAndProfile'] as $method) {
+            $repository->method($method)->willReturnMap([
+                [$project, $profile, $participant],
+                [$otherProject, $profile, null],
+            ]);
+        }
+        $security = $this->createStub(Security::class);
+        $security->method('getUser')->willReturn($account);
+        $token = new UsernamePasswordToken($account, 'main', $account->getRoles());
+        $inviteVoter = new OrgProjectVoter(new CurrentProfileProvider($security), $repository);
+        $deleteVoter = new ProjectVoter($repository);
+
+        self::assertSame($invite ? VoterInterface::ACCESS_GRANTED : VoterInterface::ACCESS_DENIED, $inviteVoter->vote($token, $project, [OrgProjectVoter::INVITE]));
+        self::assertSame($delete ? VoterInterface::ACCESS_GRANTED : VoterInterface::ACCESS_DENIED, $deleteVoter->vote($token, $project, [ProjectVoter::DELETE]));
+        self::assertSame(VoterInterface::ACCESS_DENIED, $inviteVoter->vote($token, $otherProject, [OrgProjectVoter::INVITE]));
+        self::assertSame(VoterInterface::ACCESS_DENIED, $deleteVoter->vote($token, $otherProject, [ProjectVoter::DELETE]));
+    }
+}
