@@ -22,6 +22,28 @@ use Symfony\Component\Uid\Uuid;
 ])]
 class Status
 {
+    #[ORM\Column(name: 'application_accept_enabled', options: ['default' => true])]
+    private bool $applicationAcceptEnabled = true;
+
+    #[ORM\Column(name: 'application_reject_enabled', options: ['default' => true])]
+    private bool $applicationRejectEnabled = true;
+
+    public function allowsApplicationAcceptance(): bool
+    {
+        return $this->applicationAcceptEnabled;
+    }
+
+    public function allowsApplicationRejection(): bool
+    {
+        return $this->applicationRejectEnabled;
+    }
+
+    public function configureApplicationTransitions(bool $accept, bool $reject): void
+    {
+        $this->applicationAcceptEnabled = $accept;
+        $this->applicationRejectEnabled = $reject;
+    }
+
     // Columns
 
     #[ORM\Id]

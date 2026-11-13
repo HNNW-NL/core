@@ -71,12 +71,13 @@ class ProjectParticipantUpdateRoleHandler
     public function isPending(ProjectApplication $application): bool
     {
         $status = $application->getStatus();
-        if ($status === null || strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) !== 0) {
-            return false;
-        }
-        $name = mb_strtolower((string) $status->getName());
+        return $status !== null && $this->isPendingStatus($status);
+    }
 
-        return in_array($name, self::PENDING_NAMES, true);
+    public function isPendingStatus(Status $status): bool
+    {
+        return strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) === 0
+            && in_array(mb_strtolower((string) $status->getName()), self::PENDING_NAMES, true);
     }
 
     public function applicationStatusLabel(Status $status): string
@@ -98,15 +99,14 @@ class ProjectParticipantUpdateRoleHandler
 
     public function configuredTransitions(Status $status): array
     {
-        if (strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) !== 0
-            || !in_array(mb_strtolower((string) $status->getName()), self::PENDING_NAMES, true)
-        ) {
+        if (!$this->isPendingStatus($status)) {
             return [];
         }
 
         $targets = [];
-        $targetNames = [self::REJECTED_NAMES];
-        if ($this->statusRepo->findFirstByScopeAndNames(self::PARTICIPANT_SCOPE, self::PARTICIPANT_ACTIVE_NAMES) !== null) {
+        $targetNames = $status->allowsApplicationRejection() ? [self::REJECTED_NAMES] : [];
+        if ($status->allowsApplicationAcceptance()
+            && $this->statusRepo->findFirstByScopeAndNames(self::PARTICIPANT_SCOPE, self::PARTICIPANT_ACTIVE_NAMES) !== null) {
             array_unshift($targetNames, self::ACCEPTED_NAMES);
         }
         foreach ($targetNames as $names) {
@@ -183,6 +183,9 @@ class ProjectParticipantUpdateRoleHandler
             return $this->failure('Deze aanvraag is al behandeld.');
         }
 
+        if (!$application->getStatus()->allowsApplicationAcceptance()) {
+            return $this->failure('Accepteren is uitgeschakeld voor deze status.');
+        }
         $acceptedStatus = $this->statusRepo->findFirstByScopeAndNames(self::APPLICATION_SCOPE, self::ACCEPTED_NAMES);
         $activeStatus = $this->statusRepo->findFirstByScopeAndNames(self::PARTICIPANT_SCOPE, self::PARTICIPANT_ACTIVE_NAMES);
 
@@ -237,6 +240,9 @@ class ProjectParticipantUpdateRoleHandler
             return $this->failure('Deze aanvraag is al behandeld.');
         }
 
+        if (!$application->getStatus()->allowsApplicationRejection()) {
+            return $this->failure('Afwijzen is uitgeschakeld voor deze status.');
+        }
         $rejectedStatus = $this->statusRepo->findFirstByScopeAndNames(self::APPLICATION_SCOPE, self::REJECTED_NAMES);
 
         if ($rejectedStatus === null) {

@@ -47,6 +47,14 @@
                             <label>Kleur <input type="color" name="colour" value="{{ status.colourHex }}"></label>
                             <button type="submit">Kleur opslaan</button>
                         </form>
+                        {% if editableTransitions[loop.index0] %}
+                            <form method="post" action="{{ path('admin.statuses.transitions', {id: status.id ~ ''}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('status-transitions-' ~ status.id) }}">
+                                <label><input type="checkbox" name="accept" value="1"{% if status.allowsApplicationAcceptance() %} checked{% endif %}> Accepteren toestaan</label>
+                                <label><input type="checkbox" name="reject" value="1"{% if status.allowsApplicationRejection() %} checked{% endif %}> Afwijzen toestaan</label>
+                                <button type="submit">Overgangen opslaan</button>
+                            </form>
+                        {% endif %}
                         {% if status.name starts with 'custom_' %}
                             <form method="post" action="{{ path('admin.statuses.delete', {id: status.id ~ ''}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('status-delete-' ~ status.id) }}">

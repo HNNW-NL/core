@@ -64,7 +64,25 @@ final class DashboardController extends AbstractController
             'statuses' => $statuses,
             'labels' => array_map($workflow->applicationStatusLabel(...), $statuses),
             'transitions' => array_map($workflow->configuredTransitions(...), $statuses),
+            'editableTransitions' => array_map($workflow->isPendingStatus(...), $statuses),
         ]);
+    }
+
+    #[Route('/statuses/{id}/transitions', name: 'statuses.transitions', methods: ['POST'])]
+    #[IsGranted('ADMIN_MANAGE_SETTINGS')]
+    public function saveTransitions(string $id, Request $request, StatusRepository $repository, EntityManagerInterface $em, ProjectParticipantUpdateRoleHandler $workflow): Response
+    {
+        if (!$this->isCsrfTokenValid('status-transitions-'.$id, $request->request->getString('_token'))) {
+            throw $this->createAccessDeniedException();
+        }
+        $status = Uuid::isValid($id) ? $repository->find(Uuid::fromString($id)) : null;
+        if (!$status instanceof Status || !$workflow->isPendingStatus($status)) {
+            throw $this->createNotFoundException();
+        }
+        $status->configureApplicationTransitions($request->request->getBoolean('accept'), $request->request->getBoolean('reject'));
+        $em->flush();
+
+        return $this->redirectToRoute('admin.statuses', status: 303);
     }
 
     #[Route('/statuses/save', name: 'statuses.save', methods: ['POST'])]

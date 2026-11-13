@@ -73,6 +73,7 @@
                         <td class="applications-table__actions">
                             {% if isPending %}
                                 {% set token = csrf_token('org_review_application_' ~ applicationId) %}
+                                {% if application.status.allowsApplicationAcceptance() %}
 
                                 <button type="button"
                                         class="btn btn--accept"
@@ -82,7 +83,9 @@
                                         data-token="{{ token }}">
                                     Accepteren
                                 </button>
+                                {% endif %}
 
+                                {% if application.status.allowsApplicationRejection() %}
                                 <button type="button"
                                         class="btn btn--reject"
                                         data-review="reject"
@@ -91,6 +94,10 @@
                                         data-token="{{ token }}">
                                     Afwijzen
                                 </button>
+                                {% endif %}
+                                {% if not application.status.allowsApplicationAcceptance() and not application.status.allowsApplicationRejection() %}
+                                    <span>Beoordeling uitgeschakeld</span>
+                                {% endif %}
                             {% else %}
                                 <span class="applications-table__done">Behandeld</span>
                             {% endif %}

@@ -17,11 +17,14 @@ use PHPUnit\Framework\TestCase;
 
 final class ApplicationReviewTest extends TestCase
 {
-    public function testWrongScopeCannotBeAcceptedOrRejected(): void
+    #[\PHPUnit\Framework\Attributes\TestWith(['ProjectParticipant', true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['ProjectApplication', false])]
+    public function testInvalidOrDisabledTransitionsCannotBeExecuted(string $scope, bool $enabled): void
     {
         $project = new Project();
         $reviewer = new Profile();
-        $status = (new Status())->setScope('ProjectParticipant')->setName('send');
+        $status = (new Status())->setScope($scope)->setName('send');
+        $status->configureApplicationTransitions($enabled, $enabled);
         $application = (new ProjectApplication())->setProject($project)->setStatus($status);
         $participants = $this->createMock(ProjectParticipantRepository::class);
         $participants->expects(self::exactly(2))->method('findApplicationForProject')->willReturn($application);
@@ -38,7 +41,8 @@ final class ApplicationReviewTest extends TestCase
             $participants, $this->createStub(ProjectRoleRepository::class), $em, $statuses,
         );
 
-        self::assertFalse($workflow->isPending($application));
+        self::assertSame(!$enabled, $workflow->isPending($application));
+        self::assertSame([], $workflow->configuredTransitions($status));
         self::assertFalse($workflow->acceptApplication($project, (string) $application->getId(), $reviewer)['success']);
         self::assertFalse($workflow->rejectApplication($project, (string) $application->getId(), 'Afgewezen', $reviewer)['success']);
         self::assertSame($status, $application->getStatus());
