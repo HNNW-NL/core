@@ -85,7 +85,7 @@
                                                     <span>Deze taak is al toegewezen.</span>
                                                 {% endif %}
                                             {% elseif currentProfile %}
-                                                <form method="post" action="{{ path('main.projects.workPackages.enrollTask', { slug: slug, taskId: packageTask.id.toRfc4122() }) }}">
+                                                <form method="post" action="{{ path('main.projects.tasks.enroll', { slug: slug, taskId: packageTask.id.toRfc4122() }) }}">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('enroll-package-task-' ~ packageTask.id.toRfc4122()) }}">
                                                     <button type="submit">Inschrijven</button>
                                                 </form>

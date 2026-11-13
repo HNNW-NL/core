@@ -3,7 +3,10 @@
 namespace App\Module\Org\Controller;
 
 use App\Entity\Project\Project;
+use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
+use App\Module\Main\Handler\ChangeWorkPackageStatusHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
+use App\Module\Org\Handler\GetOrgProjectWorkPackagesHandler;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRepository;
@@ -213,13 +216,39 @@ final class PanelController extends AbstractController
     public function modifyProjectWorkPackages(
         string $id,
         ProjectRepository $projectRepository,
+        GetOrgProjectWorkPackagesHandler $workPackages,
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
-        return $this->render('pages/org/projects/modify-work-packages.html.twig', [
+        return $this->render('pages/org/projects/modify-work-packages.html.twig', $workPackages->handle($id) + [
             'id' => $id,
-            'project' => $project,
+            'projectTitle' => $project->getTitle(),
+            'projectMemberCount' => $project->getParticipants()->count(),
         ]);
+    }
+
+    #[Route('/projects/modify/{id}/work-packages/{workPackageId}/status', name: 'modifyProject.workPackages.status', methods: ['POST'])]
+    public function changeWorkPackageStatus(
+        string $id,
+        string $workPackageId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ChangeWorkPackageStatusHandler $handler,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid('work_package_status_' . $workPackageId, $request->request->getString('_token'))) {
+            throw $this->createAccessDeniedException('Ongeldig veiligheidstoken.');
+        }
+
+        try {
+            $handler->handle(new ChangeWorkPackageStatusDTO($workPackageId, $request->request->getString('status')), $project);
+            $this->addFlash('success', 'De werkpakketstatus is gewijzigd.');
+        } catch (\InvalidArgumentException) {
+            $this->addFlash('error', 'De statuswijziging is niet mogelijk. Controleer de huidige status en probeer opnieuw.');
+        }
+
+        return $this->redirectToRoute('org.modifyProject.workPackages', ['id' => $id], Response::HTTP_SEE_OTHER);
     }
 
     #[Route('/staff', name: 'staff', methods: ['GET'])]
