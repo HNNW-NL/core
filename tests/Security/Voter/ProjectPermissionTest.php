@@ -22,22 +22,29 @@ use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 final class ProjectPermissionTest extends TestCase
 {
-    public function testDeveloperFixtureDoesNotGrantInviteOrDelete(): void
+    public function testProjectRoleFixtureGrantsInviteOnlyToProjectAdministrator(): void
     {
         $fixture = new ProjectRoleFixtures();
         $references = $this->getMockBuilder(\Doctrine\Common\DataFixtures\ReferenceRepository::class)
             ->disableOriginalConstructor()->onlyMethods(['getReference', 'addReference'])->getMock();
         $references->expects(self::once())->method('getReference')
             ->with(ProjectFixtures::TEST_PROJECT_REFERENCE, Project::class)->willReturn(new Project());
-        $references->expects(self::once())->method('addReference');
+        $references->expects(self::exactly(2))->method('addReference');
         $fixture->setReferenceRepository($references);
 
         $manager = $this->createMock(\Doctrine\Persistence\ObjectManager::class);
-        $manager->expects(self::once())->method('persist')->with(self::callback(
-            static fn (ProjectRole $role): bool => !ProjectPermission::INVITE->in($role->getPermissionsMask())
-                && !ProjectPermission::DELETE->in($role->getPermissionsMask()),
-        ));
+        $roles = [];
+        $manager->expects(self::exactly(2))->method('persist')->willReturnCallback(
+            static function (ProjectRole $role) use (&$roles): void {
+                $roles[$role->getName()] = $role->getPermissionsMask();
+            },
+        );
         $fixture->load($manager);
+
+        self::assertSame([
+            'Developer' => null,
+            'Project Administrator' => ProjectPermission::VIEW->value | ProjectPermission::INVITE->value,
+        ], $roles);
     }
 
     public function testEnumPreservesExistingProjectRoleBits(): void
