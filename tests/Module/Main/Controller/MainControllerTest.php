@@ -52,7 +52,7 @@ class MainControllerTest extends WebTestCase
 
         $this->assertSelectorTextContains(
             '.open-projects-empty',
-            'Er zijn op dit moment geen openbare gepubliceerd.'
+            'Er zijn op dit moment geen openbare projecten gepubliceerd.'
         );
 
         $this->assertSelectorNotExists('.open-project-card');
