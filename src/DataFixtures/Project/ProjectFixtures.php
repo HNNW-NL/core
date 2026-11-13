@@ -29,6 +29,7 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $project->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_PROJECT_STATUS_REFERENCE, Status::class));
         $project->setSummary("Een test project");
         $project->setStartDate(new DateTimeImmutable("now"));
+        $project->setEndDate(new DateTimeImmutable('2030-01-01'));
         $project->setCapacity(10);
         $project->setVisibility("public");
         $project->setDescription("Dit is een test project");
@@ -43,6 +44,7 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $homepageProject->setStatus($this->getReference(StatusFixtures::TEST_PUBLISHED_PROJECT_STATUS_REFERENCE, Status::class));
         $homepageProject->setSummary("Een openbaar project met open aanmelding");
         $homepageProject->setStartDate(new DateTimeImmutable("now"));
+        $homepageProject->setEndDate(new DateTimeImmutable('2030-01-01'));
         $homepageProject->setCapacity(10);
         $homepageProject->setVisibility("public");
         $homepageProject->setDescription("Een gepubliceerd project voor de homepage.");
