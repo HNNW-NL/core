@@ -2,6 +2,8 @@
 
 namespace App\Tests\Security\Voter;
 
+use App\DataFixtures\Project\ProjectFixtures;
+use App\DataFixtures\Project\ProjectRoleFixtures;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
@@ -20,6 +22,24 @@ use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 final class ProjectPermissionTest extends TestCase
 {
+    public function testDeveloperFixtureDoesNotGrantInviteOrDelete(): void
+    {
+        $fixture = new ProjectRoleFixtures();
+        $references = $this->getMockBuilder(\Doctrine\Common\DataFixtures\ReferenceRepository::class)
+            ->disableOriginalConstructor()->onlyMethods(['getReference', 'addReference'])->getMock();
+        $references->expects(self::once())->method('getReference')
+            ->with(ProjectFixtures::TEST_PROJECT_REFERENCE, Project::class)->willReturn(new Project());
+        $references->expects(self::once())->method('addReference');
+        $fixture->setReferenceRepository($references);
+
+        $manager = $this->createMock(\Doctrine\Persistence\ObjectManager::class);
+        $manager->expects(self::once())->method('persist')->with(self::callback(
+            static fn (ProjectRole $role): bool => !ProjectPermission::INVITE->in($role->getPermissionsMask())
+                && !ProjectPermission::DELETE->in($role->getPermissionsMask()),
+        ));
+        $fixture->load($manager);
+    }
+
     public function testEnumPreservesExistingProjectRoleBits(): void
     {
         self::assertSame(ProjectRole::PERMISSION_VIEW, ProjectPermission::VIEW->value);
