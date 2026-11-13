@@ -70,7 +70,11 @@ class ProjectParticipantUpdateRoleHandler
 
     public function isPending(ProjectApplication $application): bool
     {
-        $name = mb_strtolower((string) $application->getStatus()?->getName());
+        $status = $application->getStatus();
+        if ($status === null || strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) !== 0) {
+            return false;
+        }
+        $name = mb_strtolower((string) $status->getName());
 
         return in_array($name, self::PENDING_NAMES, true);
     }

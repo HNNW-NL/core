@@ -17,6 +17,51 @@ use PHPUnit\Framework\TestCase;
 
 final class ApplicationReviewTest extends TestCase
 {
+    public function testWrongScopeCannotBeAcceptedOrRejected(): void
+    {
+        $project = new Project();
+        $reviewer = new Profile();
+        $status = (new Status())->setScope('ProjectParticipant')->setName('send');
+        $application = (new ProjectApplication())->setProject($project)->setStatus($status);
+        $participants = $this->createMock(ProjectParticipantRepository::class);
+        $participants->expects(self::exactly(2))->method('findApplicationForProject')->willReturn($application);
+        $participants->expects(self::never())->method('findOneBy');
+        $statuses = $this->createMock(StatusRepository::class);
+        $statuses->expects(self::never())->method('findFirstByScopeAndNames');
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::exactly(2))->method('wrapInTransaction')->willReturnCallback(
+            static fn (callable $operation): array => $operation(),
+        );
+        $em->expects(self::never())->method('persist');
+        $workflow = new ProjectParticipantUpdateRoleHandler(
+            $participants, $this->createStub(ProjectRoleRepository::class), $em, $statuses,
+        );
+
+        self::assertFalse($workflow->isPending($application));
+        self::assertFalse($workflow->acceptApplication($project, (string) $application->getId(), $reviewer)['success']);
+        self::assertFalse($workflow->rejectApplication($project, (string) $application->getId(), 'Afgewezen', $reviewer)['success']);
+        self::assertSame($status, $application->getStatus());
+        self::assertNull($application->getReviewerProfile());
+    }
+
+    public function testPendingRequiresApplicationScopeAndKnownStatus(): void
+    {
+        $workflow = new ProjectParticipantUpdateRoleHandler(
+            $this->createStub(ProjectParticipantRepository::class),
+            $this->createStub(ProjectRoleRepository::class),
+            $this->createStub(EntityManagerInterface::class),
+            $this->createStub(StatusRepository::class),
+        );
+        $application = new ProjectApplication();
+        self::assertFalse($workflow->isPending($application));
+        foreach (['send', 'sent', 'pending', 'submitted', 'ingediend'] as $name) {
+            $application->setStatus((new Status())->setScope('ProjectApplication')->setName($name));
+            self::assertTrue($workflow->isPending($application));
+        }
+        $application->setStatus((new Status())->setScope('ProjectApplication')->setName('accepted'));
+        self::assertFalse($workflow->isPending($application));
+    }
+
     public function testDisplayedAcceptanceMatchesApplicationReview(): void
     {
         $project = new Project();
