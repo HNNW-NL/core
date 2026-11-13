@@ -2,55 +2,27 @@
 
 {% block title %}Statuses{% endblock %}
 
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
 {% block body %}
-    <h2>Statuses</h2>
+    <h2>Platformstatussen</h2>
 
-    <a href="{{ path('admin.statuses.create') }}">
-        Nieuwe status
-    </a>
-
-    <p>Aantal statuses: {{ statuses|length }}</p>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Naam</th>
-                <th>Scope</th>
-                <th>Kleur</th>
-                <th>Acties</th>
-            </tr>
-        </thead>
-        <tbody>
+    <p>Overzicht van de bestaande statussen. Wijzigingen verlopen via de centrale statusconfiguratie.</p>
+    {% if statuses is empty %}
+        <p>Geen statussen gevonden.</p>
+    {% else %}
+        <table>
+            <thead><tr><th>Naam</th><th>Scope</th><th>Kleur</th></tr></thead>
+            <tbody>
             {% for status in statuses %}
-                <tr>
-                    <td>{{ status.name }}</td>
-                    <td>{{ status.scope }}</td>
-                    <td>{{ status.colourHex }}</td>
-                    <td>
-                        <a href="{{ path('admin.statuses.edit', {
-                            id: status.id
-                        }) }}">
-                            Bewerken
-                        </a>
-
-                        <form method="post"
-                              action="{{ path('admin.statuses.delete', {
-                                  id: status.id
-                              }) }}"
-                              style="display:inline;">
-                            <button type="submit">
-                                Verwijderen
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="4">
-                        Geen statussen gevonden.
-                    </td>
-                </tr>
+                <tr><td>{{ status.name }}</td><td>{{ status.scope }}</td><td>{{ status.colourHex }}</td></tr>
             {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock %}
