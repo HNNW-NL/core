@@ -36,6 +36,7 @@
             </div>
 
             <form action="{{ path('account.modify') }}" method="POST">
+                <input type="hidden" name="_token" value="{{ csrf_token('account_modify') }}">
                 <div class="form-group">
                     <label for="username">Gebruikersnaam</label>
                     <input type="text" id="username" name="username" placeholder="Kies een gebruikersnaam" value="{{ account.username|default('') }}" required>

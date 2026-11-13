@@ -42,8 +42,8 @@
                         <div class="account-card-content">
                             <h3>{{ experience.jobTitle }}</h3>
                             <p class="account-card-meta">
-                                <strong>Bedrijf:</strong> {{ experience.organisationName }} |
-                                <strong>Type:</strong> {{ experience.employmentType|default('Onbekend') }} |
+                                <strong>Bedrijf:</strong> {{ experience.displayOrganisationName }} |
+                                <strong>Type:</strong> {{ 'Werkervaring' }} |
                                 <strong>Periode:</strong>
                                 {{ experience.startDate|date('M Y') }} -
                                 {% if experience.isCurrent %}
@@ -77,6 +77,7 @@
             </div>
 
             <form action="{{ path('account.experience') }}" method="POST" class="account-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('account_experience') }}">
 
                 <div class="form-group">
                     <label for="exp-job-title">Titel / Functietitel</label>
