@@ -40,7 +40,9 @@ public function index(Request $request): Response
         }
 
         $id = $organisatie->getId()->toRfc4122();
-
+        if ($membership->getOrgRole()?->getOrganisation()?->getId()->toRfc4122() !== $id) {
+        continue;
+        }
 
         if (!isset($organisaties[$id])) {
        $aantalNietBeoordeeld = 0;
