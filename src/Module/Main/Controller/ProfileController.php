@@ -3,6 +3,7 @@
 namespace App\Module\Main\Controller;
 
 use App\Entity\Account\Account;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Module\Main\DTO\UpdateLocationDto;
 use App\Module\Main\Service\LocationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -34,13 +35,43 @@ final class ProfileController extends AbstractController
         ]);
     }
 
-    // De Profile-entity heeft nog geen slug. De route blijft bestaan,
-    // maar toont geen willekeurig profiel totdat slug-resolutie is toegevoegd.
     #[Route('/profile/{slug}', name: 'main.profile', methods: ['GET'])]
     public function viewProfile(string $slug): Response
     {
-        throw $this->createNotFoundException('Publieke profielslug is nog niet beschikbaar.');
+        /*
+         * TODO: Databasekoppeling activeren zodra er accounts bestaan.
+         *
+         * De publieke profielslug is altijd de username van het account.
+         *
+         * $account = $entityManager->getRepository(Account::class)->findOneBy([
+         *     'username' => $slug,
+         * ]);
+         *
+         * if ($account === null) {
+         *     throw $this->createNotFoundException('Gebruiker niet gevonden.');
+         * }
+         *
+         * $profile = $account->getProfile();
+         *
+         * if ($profile === null) {
+         *     throw $this->createNotFoundException('Profiel niet gevonden.');
+         * }
+         *
+         * return $this->render('pages/main/profile.html.twig', [
+         *     'slug' => $account->getUsername(),
+         *     'profile' => $profile,
+         *     'guest_location' => $profile->getLocation(),
+         * ]);
+         */
+
+        // Tijdelijke weergave zonder databasegegevens.
+        return $this->render('pages/main/profile.html.twig', [
+            'slug' => $slug,
+            'profile' => null,
+            'guest_location' => null,
+        ]);
     }
+
 
     #[Route('/profile/location', name: 'profile_update_location', methods: ['POST'])]
     public function updateLocation(
