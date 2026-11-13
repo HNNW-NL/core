@@ -14,7 +14,13 @@ final class OrgSecurityTest extends WebTestCase
     {
         $client = static::createClient();
 
-        foreach (['/org', '/org/projects', '/org/staff'] as $url) {
+       foreach ([
+    '/org',
+    '/org/projects',
+    '/org/projects/create',
+    '/org/staff',
+    '/org/staff/voorbeeld',
+    ] as $url) {
             $client->request('GET', $url);
 
             self::assertSame(
