@@ -10,15 +10,11 @@ use App\Entity\Project\ProjectApplication;
 use App\Repository\Project\ProjectRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use http\Exception\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Uid\Uuid;
-use function PHPUnit\Framework\throwException;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -347,7 +343,7 @@ final class AccountsController extends AbstractController
 
         $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
         if (!$experience) {
-            $this->addFlash('error', 'Ervaring niet gevonden niet gevonden.');
+            throw $this->createAccessDeniedException('Geen ervaringen gevonden.');
         }
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
@@ -454,6 +450,9 @@ final class AccountsController extends AbstractController
     {
         $account = $this->getAndCheckAccount();
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        if (!$profile) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden.');
+        }
         $projects = $projectRepository->findByProfile($profile);
 
 
