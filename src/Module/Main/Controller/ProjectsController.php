@@ -69,9 +69,10 @@ final class ProjectsController extends AbstractController
         ]);
     }
 
-    #[Route('/{slug}/tasks/{taskId}/enroll', name: 'tasks.enroll', methods: ['POST'])]
+    #[Route('/{slug}/work-packages/{workPackageId}/tasks/{taskId}/enroll', name: 'tasks.enroll', methods: ['POST'])]
     public function enrollTask(
         string $slug,
+        string $workPackageId,
         string $taskId,
         Request $request,
         ProjectRepository $projectRepository,
@@ -81,7 +82,14 @@ final class ProjectsController extends AbstractController
         if (!$this->isCsrfTokenValid('enroll-package-task-' . $taskId, (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Ongeldige aanvraag. Probeer het opnieuw.');
 
-            return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute(
+                'main.projects.workPackages',
+                [
+                    'slug' => $slug,
+                    '_fragment' => 'work-package-' . $workPackageId,
+                ],
+                Response::HTTP_SEE_OTHER,
+            );
         }
 
         $project = $projectRepository->findOneVisibleBySlug($slug);
@@ -94,14 +102,29 @@ final class ProjectsController extends AbstractController
 
         if ($profile === null) {
             $this->addFlash('danger', 'Je moet ingelogd zijn met een profiel om je in te schrijven.');
-            return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+
+            return $this->redirectToRoute(
+                'main.projects.workPackages',
+                [
+                    'slug' => $slug,
+                    '_fragment' => 'work-package-' . $workPackageId,
+                ],
+                Response::HTTP_SEE_OTHER,
+            );
         }
 
-        $result = $workPackageTaskEnrollmentHandler->handle($project, $taskId, $profile);
+        $result = $workPackageTaskEnrollmentHandler->handle($project, $taskId, $workPackageId, $profile);
 
         $this->addFlash($result->isSuccessful() ? 'success' : 'warning', $result->message);
 
-        return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute(
+            'main.projects.workPackages',
+            [
+                'slug' => $slug,
+                '_fragment' => 'work-package-' . $workPackageId,
+            ],
+            Response::HTTP_SEE_OTHER,
+        );
     }
 
     #[Route('/{slug}/updates', name: 'updates', methods: ['GET'])]

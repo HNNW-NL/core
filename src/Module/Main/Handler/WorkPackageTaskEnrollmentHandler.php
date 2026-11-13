@@ -15,8 +15,13 @@ final readonly class WorkPackageTaskEnrollmentHandler
     ) {
     }
 
-    public function handle(Project $project, Uuid|string $taskId, Profile $profile): WorkPackageTaskEnrollmentResult
+    public function handle(
+        Project $project,
+        Uuid|string $taskId,
+        Uuid|string $workPackageId,
+        Profile $profile,
+    ): WorkPackageTaskEnrollmentResult
     {
-        return $this->workPackageTaskEnrollmentService->enroll($project, $taskId, $profile);
+        return $this->workPackageTaskEnrollmentService->enroll($project, $taskId, $workPackageId, $profile);
     }
 }

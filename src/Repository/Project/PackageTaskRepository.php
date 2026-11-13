@@ -33,15 +33,20 @@ class PackageTaskRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findOneForProject(Uuid|string $taskId, Project $project): ?PackageTask
-    {
+    public function findOneForProject(
+        Uuid|string $taskId,
+        Project $project,
+        Uuid|string $workPackageId,
+    ): ?PackageTask {
         return $this->createQueryBuilder('packageTask')
             ->innerJoin('packageTask.workPackage', 'workPackage')
             ->andWhere('packageTask.id = :taskId')
             ->andWhere('workPackage.project = :project')
+            ->andWhere('workPackage.id = :workPackageId')
             ->andWhere('packageTask.deletedAt IS NULL')
             ->setParameter('taskId', $taskId)
             ->setParameter('project', $project)
+            ->setParameter('workPackageId', $workPackageId)
             ->getQuery()
             ->getOneOrNullResult();
     }

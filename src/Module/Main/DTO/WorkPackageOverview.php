@@ -15,4 +15,20 @@ final readonly class WorkPackageOverview
         public array $packageTasks = [],
     ) {
     }
+
+    public function getCompletedTaskCount(): int
+    {
+        $completedStatuses = ['gereed', 'done', 'completed', 'complete'];
+        $completedTaskCount = 0;
+
+        foreach ($this->packageTasks as $packageTask) {
+            $statusName = strtolower($packageTask->getStatus()?->getName() ?? '');
+
+            if (in_array($statusName, $completedStatuses, true)) {
+                $completedTaskCount++;
+            }
+        }
+
+        return $completedTaskCount;
+    }
 }

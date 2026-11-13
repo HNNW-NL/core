@@ -18,9 +18,17 @@ class ProjectParticipantRepository extends ServiceEntityRepository
         parent::__construct($registry, ProjectParticipant::class);
     }
 
-    public function findActiveParticipant(Project $project, Profile $profile): \Doctrine\ORM\QueryBuilder
+    public function findActiveParticipant(Project $project, Profile $profile): ?ProjectParticipant
     {
-
+        return $this->createQueryBuilder('participant')
+            ->andWhere('participant.project = :project')
+            ->andWhere('participant.profile = :profile')
+            ->andWhere('participant.joinedAt IS NOT NULL')
+            ->andWhere('participant.leftAt IS NULL')
+            ->setParameter('project', $project)
+            ->setParameter('profile', $profile)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function isActiveParticipant(Project $project, Profile $profile): bool
