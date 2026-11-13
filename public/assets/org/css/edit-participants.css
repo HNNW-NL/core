@@ -200,6 +200,10 @@
     margin: 1rem 0;
 }
 
+.review-dialog__reason[hidden] {
+    display: none;
+}
+
 .review-dialog__reason textarea {
     width: 100%;
     box-sizing: border-box;
