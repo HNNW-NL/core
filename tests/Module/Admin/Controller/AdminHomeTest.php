@@ -110,7 +110,6 @@ final class AdminHomeTest extends WebTestCase
 
     public static function landingPages(): iterable
     {
-        yield 'accounts' => ['/admin/accounts', 'Accountbeheer volgt in AD02.'];
         yield 'statuses' => ['/admin/statuses', 'Statusbeheer volgt in AD11.'];
     }
 
@@ -131,6 +130,17 @@ final class AdminHomeTest extends WebTestCase
     {
         $client = $this->clientFor((new Account())->setUsername('ordinary'));
         $client->request('GET', $path);
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testDashboardPermissionDoesNotGrantAccessToAccounts(): void
+    {
+        $account = (new Account())->setUsername('dashboard-only');
+        $role = (new AdminRole())->setPermissionsMask(Permission::ADMIN_VIEW_DASHBOARD->value);
+        $account->setAdmin((new Admin())->setAccount($account)->setAdminRole($role));
+        $client = $this->clientFor($account);
+        $client->request('GET', '/admin/accounts');
 
         self::assertResponseStatusCodeSame(403);
     }

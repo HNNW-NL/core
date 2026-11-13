@@ -74,7 +74,7 @@
         <h2 id="dashboard-navigation-heading">Beheeronderdelen</h2>
         <ul class="admin-dashboard-grid admin-dashboard-links">
             {% if is_granted('ADMIN_MANAGE_ACCOUNTS') %}
-                <li><a class="admin-dashboard-card" href="{{ path('admin.accounts.home') }}">Accounts <small>Accountbeheer volgt in AD02</small></a></li>
+                <li><a class="admin-dashboard-card" href="{{ path('admin.accounts.home') }}">Accounts</a></li>
             {% endif %}
             {% if is_granted('ADMIN_MANAGE_ORGANISATIONS') %}
                 <li><a class="admin-dashboard-card" href="{{ path('admin.organizations.home') }}">Organisaties <small>Beheer in ontwikkeling</small></a></li>
