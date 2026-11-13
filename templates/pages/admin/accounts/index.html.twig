@@ -34,7 +34,6 @@
                     <th scope="col">Naam</th>
                     <th scope="col">E-mailadres</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Acties</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,7 +43,6 @@
                         <td>{{ account.firstName }} {{ account.lastName }}</td>
                         <td>{{ account.email }}</td>
                         <td>{{ account.statusName }}</td>
-                        <td><a href="{{ path('admin.accounts.modify', {id: account.id}) }}">Bewerken</a></td>
                     </tr>
                 {% endfor %}
             </tbody>
