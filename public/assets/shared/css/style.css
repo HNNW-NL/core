@@ -99,13 +99,12 @@
         var(--hnnw-primary) 0%,
         var(--hnnw-primary-light) 100%
     );
-    color: var(--hnnw-white);
+    color: black;
     box-shadow: 0 18px 32px rgba(var(--hnnw-primary-rgb), 0.28);
 }
 
 .hnnw-button--primary:hover {
     background: var(--hnnw-primary-dark);
-    color: var(--hnnw-white);
     filter: brightness(1.06);
     transform: translateY(-1px);
     box-shadow: 0 22px 36px rgba(var(--hnnw-primary-rgb), 0.32);
