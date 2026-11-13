@@ -59,4 +59,41 @@ final class OrgDashboardTest extends KernelTestCase
             $html
         );
     }
+    public function testDashboardMetTweeOrganisaties(): void
+    {
+        self::bootKernel();
+
+        $organisatieEen = [
+            'id' => 'org-1',
+            'naam' => 'Organisatie Een',
+            'rollen' => ['Medewerker'],
+            'aantalProjecten' => 1,
+            'aantalNietBeoordeeld' => 0,
+        ];
+
+        $organisatieTwee = [
+            'id' => 'org-2',
+            'naam' => 'Organisatie Twee',
+            'rollen' => ['Beheerder'],
+            'aantalProjecten' => 3,
+            'aantalNietBeoordeeld' => 2,
+        ];
+
+        $html = self::getContainer()->get('twig')->render(
+            'pages/org/index.html.twig',
+            [
+                'organisaties' => [$organisatieEen, $organisatieTwee],
+                'actieveOrganisatie' => $organisatieTwee,
+            ]
+        );
+
+        self::assertStringContainsString('Kies je organisatie:', $html);
+        self::assertStringContainsString('Organisatie Een', $html);
+        self::assertStringContainsString('Organisatie Twee', $html);
+        self::assertMatchesRegularExpression(
+            '/<option value="org-2"\s+selected\s*>/',
+            $html
+        );
+        self::assertStringContainsString('Aantal projecten: 3', $html);
+    }
 }
