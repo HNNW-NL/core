@@ -2,15 +2,20 @@
 
 {% block title %}Project {{ slug }} Werkpakketten{% endblock %}
 
+{# SEO #}
 {% block seoKeywords %}{% endblock %}
 {% block seoDescription %}{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
+{# CSS #}
 {% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
 {% block javascript %}{% endblock %}
 
+{# Page content #}
 {% block body %}
-    {% set workPackageOverviews = hnnw_work_package_overviews(slug) %}
+    {% set workPackageOverviews = workPackages %}
     {% set currentProfile = hnnw_current_profile() %}
 
     <section class="project-work-packages">
@@ -34,9 +39,8 @@
             <p>Er zijn nog geen werkpakketten of taken beschikbaar voor dit project.</p>
         {% else %}
             <div class="work-package-list">
-                {% for overview in workPackageOverviews %}
-                    {% set workPackage = overview.workPackage %}
-                    {% set packageTasks = overview.packageTasks %}
+                {% for workPackage in workPackageOverviews %}
+                    {% set packageTasks = workPackage.workPackageTasks|filter(task => task.deletedAt is null) %}
 
                     <article class="work-package-card">
                         <header class="work-package-card__header">
