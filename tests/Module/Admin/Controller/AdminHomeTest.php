@@ -11,10 +11,13 @@ use App\Entity\Org\OrgRole;
 use App\Entity\Project\Project;
 use App\Kernel;
 use App\Module\Admin\Service\DashboardTotals;
+use App\Module\Admin\Service\AccountOverview;
 use App\Security\AccountUserProvider;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -160,6 +163,12 @@ final class AdminHomeTest extends WebTestCase
     {
         $client = $this->clientFor($this->platformAdministrator());
         $repository = $this->createStub(\App\Repository\Common\StatusRepository::class);
+        $accepted = (new \App\Entity\Common\Status())->setName('accepted')->setScope('ProjectApplication')->setColourHex('#123456');
+        $repository->method('findFirstByScopeAndNames')->willReturnCallback(
+            static fn (string $scope, array $names) => $scope === 'ProjectApplication' && in_array('accepted', $names, true)
+                ? $accepted
+                : ($scope === 'ProjectParticipant' ? (new \App\Entity\Common\Status())->setName('active') : null),
+        );
         $repository->method('findBy')->willReturn([
             (new \App\Entity\Common\Status())->setName('send')->setScope('ProjectApplication')->setColourHex('#123456'),
             (new \App\Entity\Common\Status())->setName('active')->setScope('PackageTask')->setColourHex('#123456'),
@@ -171,6 +180,7 @@ final class AdminHomeTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('main', $description);
         self::assertSelectorTextContains('main', 'PackageTask');
+        self::assertSelectorTextContains('tbody tr:first-child td:last-child', 'accepted');
         self::assertSelectorExists('main a[href="/admin"]');
     }
 
@@ -181,6 +191,44 @@ final class AdminHomeTest extends WebTestCase
         $client->request('GET', $path);
 
         self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testAccountAdministratorCanOpenPopulatedOverview(): void
+    {
+        $account = (new Account())->setUsername('account-admin');
+        $role = (new AdminRole())->setPermissionsMask(Permission::ADMIN_MANAGE_ACCOUNTS->value);
+        $account->setAdmin((new Admin())->setAccount($account)->setAdminRole($role));
+        $client = $this->clientFor($account);
+        $statuses = $this->createStub(EntityRepository::class);
+        $statuses->method('findBy')->willReturn([]);
+        $query = $this->createStub(Query::class);
+        $query->method('setParameters')->willReturnSelf();
+        $query->method('setFirstResult')->willReturnSelf();
+        $query->method('setMaxResults')->willReturnSelf();
+        $query->method('getSingleScalarResult')->willReturn(1);
+        $query->method('getArrayResult')->willReturn([[
+            'username' => 'account-fixture',
+            'email' => 'account-fixture@example.test',
+            'firstName' => 'Test',
+            'lastName' => 'Account',
+            'statusName' => 'active',
+        ]]);
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('getRepository')->willReturn($statuses);
+        $builder = new QueryBuilder($em);
+        $em->method('createQuery')->willReturn($query);
+        $em->method('createQueryBuilder')->willReturn($builder);
+        $container = self::getContainer();
+        $container->set(AccountOverview::class, new AccountOverview(
+            $em,
+            $container->get(AuthorizationCheckerInterface::class),
+            $container->get('request_stack'),
+        ));
+
+        $client->request('GET', '/admin/accounts');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSelectorTextContains('tbody', 'account-fixture@example.test');
     }
 
     public function testDashboardPermissionDoesNotGrantAccessToAccounts(): void

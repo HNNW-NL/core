@@ -3,9 +3,14 @@
 namespace App\Module\Org\Controller;
 
 use App\Entity\Project\Project;
+use App\Module\Main\Service\CurrentProfileProvider;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRepository;
 use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
@@ -62,13 +67,94 @@ final class PanelController extends AbstractController
     public function modifyProjectParticipants(
         string $id,
         ProjectRepository $projectRepository,
+        ProjectParticipantRepository $participantRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        $applications = $participantRepository->findApplicationsForProject($project);
 
         return $this->render('pages/org/projects/modify-participants.html.twig', [
             'id' => $id,
             'project' => $project,
+            'applications' => $applications,
+            'pending_application_ids' => array_map(
+                static fn ($application): string => $application->getId()->toRfc4122(),
+                array_filter($applications, $applicationHandler->isPending(...)),
+            ),
+            'reject_reason_max_length' => ProjectParticipantUpdateRoleHandler::REJECT_REASON_MAX_LENGTH,
         ]);
+    }
+
+    #[Route(
+        '/projects/modify/{id}/participants/applications/{applicationId}/accept',
+        name: 'modifyProject.participants.acceptApplication',
+        methods: ['POST'],
+    )]
+    public function acceptApplication(
+        string $id,
+        string $applicationId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
+        CurrentProfileProvider $currentProfileProvider,
+    ): RedirectResponse {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid(self::reviewTokenId($applicationId), $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+
+            return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+        }
+
+        $reviewer = $currentProfileProvider->getProfile();
+
+        if ($reviewer === null) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden voor de ingelogde gebruiker.');
+        }
+
+        $result = $applicationHandler->acceptApplication($project, $applicationId, $reviewer);
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
+
+        return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+    }
+
+    #[Route(
+        '/projects/modify/{id}/participants/applications/{applicationId}/reject',
+        name: 'modifyProject.participants.rejectApplication',
+        methods: ['POST'],
+    )]
+    public function rejectApplication(
+        string $id,
+        string $applicationId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
+        CurrentProfileProvider $currentProfileProvider,
+    ): RedirectResponse {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid(self::reviewTokenId($applicationId), $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+
+            return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+        }
+
+        $reviewer = $currentProfileProvider->getProfile();
+
+        if ($reviewer === null) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden voor de ingelogde gebruiker.');
+        }
+
+        $result = $applicationHandler->rejectApplication(
+            $project,
+            $applicationId,
+            $request->request->getString('reason'),
+            $reviewer,
+        );
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
+
+        return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
     }
 
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
@@ -148,6 +234,12 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/staff/view.html.twig', [
             'id' => $id,
         ]);
+    }
+
+    /** CSRF-token id per aanvraag; de template gebruikt exact dezelfde string. */
+    private static function reviewTokenId(string $applicationId): string
+    {
+        return 'org_review_application_' . $applicationId;
     }
 
     private function getProjectAndCheckEditAccess(

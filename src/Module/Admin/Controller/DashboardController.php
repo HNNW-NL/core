@@ -3,6 +3,7 @@
 namespace App\Module\Admin\Controller;
 
 use App\Repository\Common\StatusRepository;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -51,10 +52,12 @@ final class DashboardController extends AbstractController
 
     #[Route('/statuses', name: 'statuses', methods: ['GET'])]
     #[IsGranted('ADMIN_MANAGE_SETTINGS')]
-    public function statuses(StatusRepository $statuses): Response
+    public function statuses(StatusRepository $repository, ProjectParticipantUpdateRoleHandler $workflow): Response
     {
+        $statuses = $repository->findBy([], ['scope' => 'ASC', 'name' => 'ASC']);
         return $this->render('pages/admin/statuses.html.twig', [
-            'statuses' => $statuses->findBy([], ['scope' => 'ASC', 'name' => 'ASC']),
+            'statuses' => $statuses,
+            'transitions' => array_map($workflow->configuredTransitions(...), $statuses),
         ]);
     }
 }

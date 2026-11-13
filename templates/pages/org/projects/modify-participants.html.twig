@@ -11,6 +11,7 @@
 {# JavaScript #}
 {% block javascript %}
     {{ parent() }}
+    <script src="{{ asset('assets/org/js/edit-participants.js') }}"></script>
 {% endblock %}
 
 {# Page content #}
@@ -18,6 +19,112 @@
     {% include "/core/org/_modify-project-nav.html.twig" %}
     <h2>Projects - Modify Participants</h2>
     <p>Organization panel - modify project ({{ id }}) participants page.</p>
+
+    {# Flash-meldingen na accepteren / afwijzen #}
+    {% for type in ['success', 'error'] %}
+        {% for message in app.flashes(type) %}
+            <div class="review-flash review-flash--{{ type }}" role="{{ type == 'error' ? 'alert' : 'status' }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# ---------------- OR06-A: ingediende aanvragen ---------------- #}
+    <section class="applications" aria-labelledby="applications-heading">
+        <h3 id="applications-heading">Ingediende aanvragen</h3>
+
+        {% if applications|default([])|length == 0 %}
+            <p class="applications__empty">Er zijn nog geen aanvragen voor dit project.</p>
+        {% else %}
+            <table class="applications-table" id="applications-table">
+                <thead>
+                <tr>
+                    <th>Aanvrager</th>
+                    <th>Motivatie</th>
+                    <th>Datum</th>
+                    <th>Status</th>
+                    <th>Acties</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for application in applications %}
+                    {% set applicationId = application.id.toRfc4122 %}
+                    {% set profile = application.profile %}
+                    {% set applicantName = profile.displayName ?: (profile.firstName ~ ' ' ~ profile.lastName) %}
+                    {% set isPending = applicationId in pending_application_ids %}
+
+                    <tr>
+                        <td>{{ applicantName }}</td>
+
+                        <td class="applications-table__motivation">
+                            {{ application.motivation ? application.motivation|nl2br : '-' }}
+                        </td>
+
+                        <td>{{ application.createdAt|date('d/m/Y') }}</td>
+
+                        <td>
+                            <span class="application-status">{{ application.status.name }}</span>
+                            {% if application.review and not isPending %}
+                                <div class="application-status__reason">Reden: {{ application.review }}</div>
+                            {% endif %}
+                        </td>
+
+                        <td class="applications-table__actions">
+                            {% if isPending %}
+                                {% set token = csrf_token('org_review_application_' ~ applicationId) %}
+
+                                <button type="button"
+                                        class="btn btn--accept"
+                                        data-review="accept"
+                                        data-name="{{ applicantName }}"
+                                        data-action="{{ path('org.modifyProject.participants.acceptApplication', {id: id, applicationId: applicationId}) }}"
+                                        data-token="{{ token }}">
+                                    Accepteren
+                                </button>
+
+                                <button type="button"
+                                        class="btn btn--reject"
+                                        data-review="reject"
+                                        data-name="{{ applicantName }}"
+                                        data-action="{{ path('org.modifyProject.participants.rejectApplication', {id: id, applicationId: applicationId}) }}"
+                                        data-token="{{ token }}">
+                                    Afwijzen
+                                </button>
+                            {% else %}
+                                <span class="applications-table__done">Behandeld</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </section>
+
+    {# Bevestigingsdialoog, wordt door edit-participants.js gevuld #}
+    <dialog id="review-dialog" class="review-dialog" aria-labelledby="review-dialog-title">
+        <form method="POST" id="review-dialog-form">
+            <input type="hidden" name="_token" value="">
+
+            <h3 id="review-dialog-title"></h3>
+            <p id="review-dialog-text"></p>
+
+            <div id="review-dialog-reason" class="review-dialog__reason" hidden>
+                <label for="review-dialog-reason-input">Reden van afwijzing</label>
+                <textarea id="review-dialog-reason-input"
+                          name="reason"
+                          rows="3"
+                          maxlength="{{ reject_reason_max_length|default(500) }}"
+                          placeholder="Geef een korte reden"></textarea>
+            </div>
+
+            <div class="review-dialog__buttons">
+                <button type="button" class="btn" id="review-dialog-cancel">Annuleren</button>
+                <button type="submit" class="btn" id="review-dialog-confirm">Bevestigen</button>
+            </div>
+        </form>
+    </dialog>
 
     {{ component('Org:ModifyParticipantsTable',{
         projectId: id

@@ -5,7 +5,7 @@
 {% block body %}
     <h2>Statussen</h2>
     <p><a href="{{ path('admin.home') }}">Terug naar het admin-dashboard</a></p>
-    <p>Dit overzicht toont geregistreerde statussen. Workflowovergangen zijn hier nog niet beschikbaar.</p>
+    <p>Dit overzicht toont geregistreerde statussen en geconfigureerde aanvraagovergangen.</p>
 
     <table>
         <thead>
@@ -13,6 +13,7 @@
                 <th scope="col">Geregistreerde statusnaam</th>
                 <th scope="col">Toepasselijk object</th>
                 <th scope="col">Kleurcode</th>
+                <th scope="col">Overgangen</th>
             </tr>
         </thead>
         <tbody>
@@ -21,9 +22,10 @@
                     <td>{{ status.name }}</td>
                     <td>{{ status.scope }}</td>
                     <td>{{ status.colourHex }}</td>
+                    <td>{{ transitions[loop.index0]|join(', ')|default('Geen overgang getoond') }}</td>
                 </tr>
             {% else %}
-                <tr><td colspan="3">Geen statussen gevonden.</td></tr>
+                <tr><td colspan="4">Geen statussen gevonden.</td></tr>
             {% endfor %}
         </tbody>
     </table>
