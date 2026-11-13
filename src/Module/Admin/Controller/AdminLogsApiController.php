@@ -7,13 +7,17 @@ use App\Repository\Log\SystemLogRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin/api/logs', name: 'admin.api.logs.')]
+#[IsGranted('ROLE_ADMIN')]
 final class AdminLogsApiController extends AbstractController
 {
     #[Route('/system', name: 'system', methods: ['GET'])]
-    public function system(SystemLogRepository $systemLogRepository): JsonResponse
-    {
+    #[IsGranted('ADMIN_VIEW_LOGS')]
+    public function system(
+        SystemLogRepository $systemLogRepository
+    ): JsonResponse {
         $logs = $systemLogRepository->findLatest(100);
 
         $data = [];
@@ -29,7 +33,9 @@ final class AdminLogsApiController extends AbstractController
                 'userAgent' => $log->getUserAgent(),
                 'contextJson' => $log->getContextJson(),
                 'requestIp' => $log->getRequestIp(),
-                'createdAt' => $log->getCreatedAt()?->format('Y-m-d H:i:s'),
+                'createdAt' => $log->getCreatedAt()?->format(
+                    'Y-m-d H:i:s'
+                ),
             ];
         }
 
@@ -37,8 +43,10 @@ final class AdminLogsApiController extends AbstractController
     }
 
     #[Route('/audit', name: 'audit', methods: ['GET'])]
-    public function audit(AuditLogRepository $auditLogRepository): JsonResponse
-    {
+    #[IsGranted('ADMIN_VIEW_LOGS')]
+    public function audit(
+        AuditLogRepository $auditLogRepository
+    ): JsonResponse {
         $logs = $auditLogRepository->findLatest(100);
 
         $data = [];
@@ -55,7 +63,9 @@ final class AdminLogsApiController extends AbstractController
                 'newValuesJson' => $log->getNewValuesJson(),
                 'requestIp' => $log->getRequestIp(),
                 'userAgent' => $log->getUserAgent(),
-                'createdAt' => $log->getCreatedAt()?->format('Y-m-d H:i:s'),
+                'createdAt' => $log->getCreatedAt()?->format(
+                    'Y-m-d H:i:s'
+                ),
             ];
         }
 
