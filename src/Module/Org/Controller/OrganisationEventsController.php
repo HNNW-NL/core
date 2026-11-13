@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/org/events', name: 'org.events.')]
-final class PanelEventsController extends AbstractController
+final class OrganisationEventsController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(): Response

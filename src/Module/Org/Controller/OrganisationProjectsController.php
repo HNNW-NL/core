@@ -12,17 +12,14 @@ use Symfony\Component\Uid\Ulid;
 use App\Security\Permission;
 
 #[Route('/org', name: 'org.')]
-final class PanelController extends AbstractController
+final class OrganisationProjectsController extends AbstractController
 {
-    #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
-    {
-        return $this->render('pages/org/index.html.twig');
-    }
-
     #[Route('/projects', name: 'projects', methods: ['GET'])]
     public function projects(): Response
     {
+        if ($this->getUser() === null) {
+            throw $this->createAccessDeniedException('Log eerst in.');
+        }
         return $this->render('pages/org/projects.html.twig');
     }
 
@@ -133,20 +130,6 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/projects/modify-work-packages.html.twig', [
             'id' => $id,
             'project' => $project,
-        ]);
-    }
-
-    #[Route('/staff', name: 'staff', methods: ['GET'])]
-    public function staff(): Response
-    {
-        return $this->render('pages/org/staff.html.twig');
-    }
-
-    #[Route('/staff/{id}', name: 'viewStaff', methods: ['GET'])]
-    public function viewStaff(string $id): Response
-    {
-        return $this->render('pages/org/staff/view.html.twig', [
-            'id' => $id,
         ]);
     }
 
