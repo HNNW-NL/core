@@ -83,7 +83,8 @@ class ModifyProjectService
     ): array
     {
         $organisationId = $this->getOrganisationIdFromRequest($request);
-        $intent = $this->getRequestValue($request, 'intent');
+        // State-changing intents are only honoured on POST; a GET (link, prefetch, crawler) must never change data.
+        $intent = $request->isMethod('POST') ? $this->getRequestValue($request, 'intent') : '';
 
         // Some submissions (e.g. programmatic form submits) may not include submitter name/value.
         // Treat POST without explicit intent as a standard modify action.

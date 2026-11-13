@@ -2,9 +2,12 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Entity\Account\Account;
 use App\Entity\Project\Project;
 use App\Module\Main\Service\CurrentProfileProvider;
+use App\Module\Org\Handler\ModifyProjectHandler;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
+use App\Module\Org\Service\ModifyProjectService;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRepository;
 use App\Security\Voter\ProjectVoter;
@@ -37,17 +40,36 @@ final class PanelController extends AbstractController
         return $this->render('pages/org/projects/create.html.twig');
     }
 
-    #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET'])]
+    #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET', 'POST'])]
     public function modifyProject(
         string $id,
+        Request $request,
         ProjectRepository $projectRepository,
+        ModifyProjectService $modifyProjectService,
+        ModifyProjectHandler $modifyProjectHandler,
     ): Response {
+        // Eerst bestaan + project- en organisatiebevoegdheid controleren; pas daarna mag de service iets doen.
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
-        return $this->render('pages/org/projects/modify.html.twig', [
-            'id' => $id,
-            'project' => $project,
-        ]);
+        $user = $this->getUser();
+
+        $payload = $modifyProjectService->buildResponsePayload(
+            (string) $project->getId(),
+            $request,
+            $modifyProjectHandler,
+            $user instanceof Account ? $user : null,
+        );
+
+        // Na een actie (opslaan/verwijderen) terug naar de pagina met status + melding in de querystring (PRG).
+        if (isset($payload['redirect'])) {
+            return $this->redirectToRoute(
+                $payload['redirectRoute'] ?? 'org.modifyProject',
+                $payload['redirect'],
+                Response::HTTP_SEE_OTHER,
+            );
+        }
+
+        return $this->render('pages/org/projects/modify.html.twig', $payload['view']);
     }
 
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]

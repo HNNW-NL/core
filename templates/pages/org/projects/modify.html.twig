@@ -110,7 +110,19 @@
                                     { value: 'published', label: 'Published', name: 'published' },
                                     { value: 'archived', label: 'Archived', name: 'archived' }
                                 ]) %}
+                                {# Is de huidige status (bv. "active") geen keuze in de lijst, dan zou de browser stilletjes de eerste optie
+                                   selecteren en bij opslaan de status wijzigen. Een lege waarde betekent: status ongewijzigd laten. #}
+                                {% set hasCurrentOption = false %}
+                                {% for option in statusOptions %}
+                                    {% if (currentStatusId is not empty and currentStatusId == option.value)
+                                        or (currentStatusId is empty and currentStatusName == (option.name|default('')|lower)) %}
+                                        {% set hasCurrentOption = true %}
+                                    {% endif %}
+                                {% endfor %}
                                 <select id="statusId" name="status_id">
+                                    {% if not hasCurrentOption %}
+                                        <option value="" selected>{{ currentStatusName is not empty ? 'Unchanged (' ~ currentStatusName ~ ')' : 'Unchanged' }}</option>
+                                    {% endif %}
                                     {% for option in statusOptions %}
                                         {% set selected = (currentStatusId is not empty and currentStatusId == option.value)
                                             or (currentStatusId is empty and currentStatusName == (option.name|default('')|lower)) %}
