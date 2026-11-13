@@ -1,21 +1,34 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}Applying for project {{ slug }}{% endblock %}
-
-{# SEO #}
-{% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
+{% block title %}Aanmelden voor {{ project.title }}{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/projects.css') }}">
+{% endblock %}
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <h2>Projects - Apply</h2>
-    <p>Main - projects apply page. For project {{ slug }}.</p>
+    <section class="project-detail project-application">
+        <div class="project-detail__container project-application__container">
+            <a class="project-detail__back" href="{{ path('main.projects.detail', {slug: project.slug}) }}">← Terug naar project</a>
+
+            <div class="project-application__card">
+                <p class="project-detail__eyebrow">Aanmelden voor project</p>
+                <h1>{{ project.title }}</h1>
+                <p>{{ project.summary }}</p>
+
+                {% if app.session.get('account_id') %}
+                    <form method="post" action="{{ path('main.projects.submitApplication', {slug: project.slug}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('project-apply-' ~ project.id.toRfc4122()) }}">
+                        <label for="motivation">Motivatie <span>(optioneel)</span></label>
+                        <textarea id="motivation" name="motivation" rows="6" maxlength="5000" placeholder="Vertel kort waarom je wilt bijdragen."></textarea>
+                        <button class="project-detail__button" type="submit">Verstuur aanmelding</button>
+                    </form>
+                {% else %}
+                    <p>Log in met je account om je voor dit project aan te melden.</p>
+                    <a class="project-detail__button" href="{{ path('auth.login') }}">Inloggen</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
 {% endblock %}
