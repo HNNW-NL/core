@@ -87,7 +87,8 @@ class ProjectRepository extends ServiceEntityRepository
      *     location: string|null,
      *     projectStatus: string,
      *     remotePossible: bool,
-     *     canApply: bool|int|string
+     *     canApply: bool|int|string,
+     *     skills: list<string>
      * }>
      */
     public function findPublicProjects(?int $limit = null): array
@@ -101,7 +102,7 @@ class ProjectRepository extends ServiceEntityRepository
             $queryBuilder->setMaxResults($limit);
         }
 
-        return $queryBuilder->getQuery()->getScalarResult();
+        return $this->includePublicProjectSkills($queryBuilder->getQuery()->getScalarResult());
     }
 
     /**
@@ -113,7 +114,8 @@ class ProjectRepository extends ServiceEntityRepository
      *     location: string|null,
      *     projectStatus: string,
      *     remotePossible: bool,
-     *     canApply: bool|int|string
+     *     canApply: bool|int|string,
+     *     skills: list<string>
      * }>
      */
     public function findPaginatedPublicProjects(
@@ -122,13 +124,15 @@ class ProjectRepository extends ServiceEntityRepository
         int $page,
         int $perPage,
     ): array {
-        return $this->createPublicProjectsQueryBuilder($search, $onlyAcceptingApplications)
+        $projects = $this->createPublicProjectsQueryBuilder($search, $onlyAcceptingApplications)
             ->orderBy('project.publishedAt', 'DESC')
             ->addOrderBy('project.id', 'ASC')
             ->setFirstResult((max(1, $page) - 1) * $perPage)
             ->setMaxResults($perPage)
             ->getQuery()
             ->getScalarResult();
+
+        return $this->includePublicProjectSkills($projects);
     }
 
     public function countPublicProjects(
@@ -209,5 +213,50 @@ class ProjectRepository extends ServiceEntityRepository
         }
 
         return $queryBuilder;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $projects
+     * @return list<array<string, mixed>>
+     */
+    private function includePublicProjectSkills(array $projects): array
+    {
+        if ($projects === []) {
+            return [];
+        }
+
+        $slugs = array_column($projects, 'slug');
+        $skillRows = $this->createQueryBuilder('project')
+            ->select('project.slug AS slug', 'skill.name AS skillName')
+            ->innerJoin('project.skills', 'skill')
+            ->innerJoin('project.status', 'status')
+            ->andWhere('project.slug IN (:slugs)')
+            ->andWhere('project.startDate <= :now')
+            ->andWhere('(project.endDate IS NULL OR project.endDate >= :now)')
+            ->andWhere('project.publishedAt IS NOT NULL')
+            ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('project.visibility = :visibility')
+            ->andWhere('status.scope = :statusScope')
+            ->andWhere('status.name = :statusName')
+            ->setParameter('slugs', $slugs)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('visibility', 'public')
+            ->setParameter('statusScope', 'project')
+            ->setParameter('statusName', 'published')
+            ->orderBy('skill.name', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+
+        $skillsBySlug = [];
+        foreach ($skillRows as $row) {
+            $skillsBySlug[$row['slug']][] = $row['skillName'];
+        }
+
+        foreach ($projects as &$project) {
+            $project['skills'] = $skillsBySlug[$project['slug']] ?? [];
+        }
+        unset($project);
+
+        return $projects;
     }
 }

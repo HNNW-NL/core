@@ -105,6 +105,7 @@ class MainControllerTest extends WebTestCase
         $this->assertCount(6, $home->filter('.open-project-card'));
         $this->assertStringNotContainsString('MS04 conceptproject', $home->text());
         $this->assertSelectorTextContains('.project-status', 'Gepubliceerd');
+        $this->assertSelectorTextContains('.project-skills', 'PHP');
         $this->assertSelectorTextContains('.project-location', 'Op afstand mogelijk');
         $this->assertSelectorTextContains('.project-application-open', 'Aanmelden mogelijk');
     }
@@ -122,6 +123,7 @@ class MainControllerTest extends WebTestCase
         $this->assertSelectorTextContains('h1', 'Openbare projecten');
         $this->assertSelectorTextContains('.open-project-card h2', 'Gepubliceerd testproject');
         $this->assertSelectorTextContains('.project-status', 'Gepubliceerd');
+        $this->assertSelectorTextContains('.project-skills', 'PHP');
         $this->assertSelectorTextContains('.project-location', 'Op afstand mogelijk');
         $this->assertStringNotContainsString('Test Project', $crawler->text());
     }

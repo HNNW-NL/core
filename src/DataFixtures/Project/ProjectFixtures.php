@@ -3,9 +3,11 @@
 namespace App\DataFixtures\Project;
 
 use App\DataFixtures\Account\AccountFixtures;
+use App\DataFixtures\Account\SkillFixtures;
 use App\DataFixtures\Common\StatusFixtures;
 use App\DataFixtures\Org\OrganisationFixtures;
 use App\Entity\Account\Account;
+use App\Entity\Account\Skill;
 use App\Entity\Common\Status;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
@@ -21,6 +23,8 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
+        $skill = $this->getReference(SkillFixtures::TEST_SKILL_REFERENCE, Skill::class);
+
         $project = new Project();
         $project->setOwnerAccount($this->getReference(AccountFixtures::TEST_ACCOUNT_REFERENCE, Account::class));
         $project->setOwnerOrganisation($this->getReference(OrganisationFixtures::TEST_ORGANISATION, Organisation::class));
@@ -46,6 +50,7 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $homepageProject->setCapacity(10);
         $homepageProject->setVisibility("public");
         $homepageProject->setDescription("Een gepubliceerd project voor de homepage.");
+        $homepageProject->addSkill($skill);
         $homepageProject->publish();
         $manager->persist($homepageProject);
 
@@ -58,10 +63,11 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return array(
-            'App\DataFixtures\Account\AccountFixtures',
-            'App\DataFixtures\Org\OrganisationFixtures',
-            'App\DataFixtures\Common\StatusFixtures'
-        );
+        return [
+            AccountFixtures::class,
+            OrganisationFixtures::class,
+            StatusFixtures::class,
+            SkillFixtures::class,
+        ];
     }
 }

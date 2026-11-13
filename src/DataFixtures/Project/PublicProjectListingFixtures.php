@@ -4,10 +4,12 @@ namespace App\DataFixtures\Project;
 
 use App\DataFixtures\Account\AccountFixtures;
 use App\DataFixtures\Account\ProfileFixtures;
+use App\DataFixtures\Account\SkillFixtures;
 use App\DataFixtures\Common\StatusFixtures;
 use App\DataFixtures\Org\OrganisationFixtures;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
+use App\Entity\Account\Skill;
 use App\Entity\Common\Status;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
@@ -25,6 +27,7 @@ class PublicProjectListingFixtures extends Fixture implements DependentFixtureIn
         $organisation = $this->getReference(OrganisationFixtures::TEST_ORGANISATION, Organisation::class);
         $publishedStatus = $this->getReference(StatusFixtures::TEST_PUBLISHED_PROJECT_STATUS_REFERENCE, Status::class);
         $draftStatus = $this->getReference(StatusFixtures::TEST_DEFAULT_PROJECT_STATUS_REFERENCE, Status::class);
+        $skill = $this->getReference(SkillFixtures::TEST_SKILL_REFERENCE, Skill::class);
 
         for ($number = 1; $number <= 21; ++$number) {
             $project = new Project();
@@ -39,6 +42,7 @@ class PublicProjectListingFixtures extends Fixture implements DependentFixtureIn
                 ->setCapacity($number === 21 ? 1 : 10)
                 ->setVisibility('public')
                 ->setDescription('Een openbaar project voor de pagineringsacceptatietest.');
+            $project->addSkill($skill);
             $project->publish();
             $manager->persist($project);
 
@@ -68,6 +72,7 @@ class PublicProjectListingFixtures extends Fixture implements DependentFixtureIn
             ->setCapacity(10)
             ->setVisibility('public')
             ->setDescription('Dit concept mag niet in openbare resultaten verschijnen.');
+        $draft->addSkill($skill);
         $manager->persist($draft);
 
         $manager->flush();
@@ -78,6 +83,7 @@ class PublicProjectListingFixtures extends Fixture implements DependentFixtureIn
         return [
             ProjectFixtures::class,
             ProfileFixtures::class,
+            SkillFixtures::class,
         ];
     }
 }

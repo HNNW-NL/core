@@ -48,6 +48,9 @@
                         <h2><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h2>
                         <p class="open-project-organisation">{{ project.organisationName }}</p>
                         <p class="open-project-summary">{{ project.summary }}</p>
+                        {% if project.skills is not empty %}
+                            <p class="project-skills">Vaardigheden: {{ project.skills|join(', ') }}</p>
+                        {% endif %}
                         <p class="project-location">
                             {% if project.location %}
                                 {{ project.location }}
