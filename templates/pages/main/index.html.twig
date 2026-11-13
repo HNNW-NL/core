@@ -28,7 +28,7 @@
     <div class="hero-copy">
         <p class="hnnw-eyebrow">Open platform voor de overheid</p>
         <h1 id="hero-title">De juiste mensen voor publieke opgaven. <span>Open, eerlijk en transparant.</span></h1>
-        <p class="hero-text">Vind expertise, deel hulpvragen en werk veilig samen aan maatschappelijke opgaven.</p>
+        <p class="hero-text">HNNW is een open source samenwerkingsplatform voor ambtenaren en publieke teams. Vind expertise, deel hulpvragen en werk samen aan maatschappelijke opgaven.</p>
         <div class="hero-actions">
             <a class="hnnw-button hnnw-button--primary" href="{{ path('main.projects.home') }}">Bekijk projecten</a>
             {% if app.user %}
@@ -37,8 +37,6 @@
                 <a class="hnnw-button hnnw-button--secondary" href="{{ path('auth.register') }}">Maak een account</a>
             {% endif %}
         </div>
-        <p class="hero-reassurance">Voor ambtenaren en publieke teams.</p>
-        <p class="hero-note">Open source platform voor de overheid</p>
     </div>
 
     <div class="hnnw-hero-visual" aria-hidden="true">
@@ -67,14 +65,32 @@
             {% for project in publicProjects %}
                 <article class="open-project-card">
                     <h3><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h3>
-                    <p class="open-project-organisation">{{ project.ownerOrganisation.name }}</p>
+                    <p class="open-project-organisation">{{ project.organisationName }}</p>
                     <p class="open-project-summary">{{ project.summary }}</p>
+                    {% if project.skills is not empty %}
+                        <p class="project-skills">Vaardigheden: {{ project.skills|join(', ') }}</p>
+                    {% endif %}
+                    <p class="project-location">
+                        {% if project.location %}
+                            {{ project.location }}
+                        {% elseif project.remotePossible %}
+                            Op afstand mogelijk
+                        {% else %}
+                            Locatie niet opgegeven
+                        {% endif %}
+                    </p>
+                    <p class="project-status">Status: {{ project.projectStatus == 'published' ? 'Gepubliceerd' : project.projectStatus }}</p>
+                    {% if project.canApply %}
+                        <p class="project-application-open">Aanmelden mogelijk</p>
+                    {% else %}
+                        <p class="project-application-closed">Aanmelden niet mogelijk</p>
+                    {% endif %}
                     <a class="open-project-link" href="{{ path('main.projects.detail', { slug: project.slug }) }}">Bekijk project</a>
                 </article>
             {% endfor %}
         </div>
     {% else %}
-        <p class="open-projects-empty">Er zijn op dit moment geen openbare projecten gepubliceerd.</p>
+        <p class="open-projects-empty">Er zijn op dit moment geen openbare projecten beschikbaar.</p>
     {% endif %}
 </section>
 

@@ -19,9 +19,31 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ProjectsController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request, ProjectRepository $projectRepository): Response
     {
-        return $this->render('pages/main/projects.html.twig');
+        $search = trim($request->query->getString('q'));
+        $onlyAcceptingApplications = $request->query->getBoolean('open');
+        $perPage = 20;
+        $totalProjects = $projectRepository->countPublicProjects(
+            $search,
+            $onlyAcceptingApplications,
+        );
+        $totalPages = max(1, (int) ceil($totalProjects / $perPage));
+        $page = min(max(1, $request->query->getInt('page', 1)), $totalPages);
+
+        return $this->render('pages/main/projects.html.twig', [
+            'publicProjects' => $projectRepository->findPaginatedPublicProjects(
+                $search,
+                $onlyAcceptingApplications,
+                $page,
+                $perPage,
+            ),
+            'search' => $search,
+            'onlyAcceptingApplications' => $onlyAcceptingApplications,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalProjects' => $totalProjects,
+        ]);
     }
 
     #[Route('/{slug}', name: 'detail', methods: ['GET'])]
