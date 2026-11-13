@@ -7,7 +7,6 @@ use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Project\ProjectApplication;
-use App\Repository\Project\ProjectRepository;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -343,7 +342,8 @@ final class AccountsController extends AbstractController
 
         $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
         if (!$experience) {
-            throw $this->createAccessDeniedException('Geen ervaringen gevonden.');
+            $this->addFlash('error', 'Werkervaring niet gevonden.');
+            return $this->redirectToRoute('account.experience');
         }
 
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
@@ -446,19 +446,14 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/projects', name: 'projects', methods: ['GET'])]
-    public function projects(ProjectRepository $projectRepository, EntityManagerInterface $entityManager): Response
+    public function projects(): Response
     {
         $account = $this->getAndCheckAccount();
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-        if (!$profile) {
+        if ($account->getProfile() === null) {
             throw $this->createAccessDeniedException('Geen profiel gevonden.');
         }
-        $projects = $projectRepository->findByProfile($profile);
 
-
-        return $this->render('pages/account-centre/projects.html.twig',[
-            'projects' => $projects,
-        ]);
+        return $this->render('pages/account-centre/projects.html.twig');
     }
 
     #[Route('/reputation', name: 'reputation', methods: ['GET'])]
@@ -479,25 +474,34 @@ final class AccountsController extends AbstractController
         $account = $this->getAndCheckAccount();
         $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
-        if (!$settings) {
-            $settings = $this->createAccountSettings($entityManager, $account);
-        }
-
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('account_settings', $request->request->get('_token'))) {
                 throw $this->createAccessDeniedException('Ongeldige CSRF token');
             }
-            if ($settings) {
-                $settings->setLanguage(trim((string)$request->request->get('language', 'nl')));
-                $settings->setTheme(trim((string)$request->request->get('theme', 'dark')));
-                $settings->setProfileVisibility(trim((string)$request->request->get('profile_visibility', 'public')));
-                $settings->setEmailNotificationsEnabled((bool)$request->request->get('email_notifications_enabled', false));
-
-                $entityManager->flush();
-                $this->addFlash('success', 'Je instellingen zijn succesvol opgeslagen!');
+            $language = trim($request->request->getString('language', 'nl'));
+            $theme = trim($request->request->getString('theme', 'dark'));
+            $visibility = trim($request->request->getString('profile_visibility', 'public'));
+            if (!in_array($language, ['nl', 'en'], true)
+                || !in_array($theme, ['light', 'dark'], true)
+                || !in_array($visibility, ['public', 'private'], true)
+            ) {
+                $this->addFlash('error', 'Kies een geldige taal (nl of en), thema en profielzichtbaarheid.');
                 return $this->redirectToRoute('account.settings');
             }
+
+            $emailNotificationsEnabled = $request->request->getBoolean('email_notifications_enabled');
+            $settings ??= $this->createAccountSettings($entityManager, $account);
+            $settings->setLanguage($language);
+            $settings->setTheme($theme);
+            $settings->setProfileVisibility($visibility);
+            $settings->setEmailNotificationsEnabled($emailNotificationsEnabled);
+
+            $entityManager->flush();
+            $this->addFlash('success', 'Je instellingen zijn succesvol opgeslagen!');
+            return $this->redirectToRoute('account.settings');
         }
+
+        $settings ??= $this->createAccountSettings($entityManager, $account);
 
         return $this->render('pages/account-centre/settings.html.twig', [
             'account' => $account,

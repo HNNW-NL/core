@@ -31,6 +31,9 @@
                 {{ message }}
             </div>
         {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="account-flash" role="alert">{{ message }}</div>
+        {% endfor %}
 
         <div class="account-form-container">
             <div class="form-internal-header">
