@@ -178,6 +178,13 @@ body[data-theme="dark"] > main > .register-page{margin:auto auto .35rem}
 .auth-form input::placeholder{color:var(--input-placeholder)}
 
 .form-errors{display:none}
+.form-success{
+    margin-bottom:1rem;
+    padding:.75rem .9rem;
+    border-radius:10px;
+    background:rgba(43,122,11,0.12);
+    border:1px solid rgba(89,184,53,0.5);
+}
 .form-errors.visible{
     display:block;
     padding:.75rem .9rem;

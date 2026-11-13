@@ -27,6 +27,7 @@ final class AccountUserProvider implements UserProviderInterface, PasswordUpgrad
         $repository = $this->entityManager->getRepository(Account::class);
 
         $account = $repository->findOneBy(['username' => $identifier])
+            ?? $repository->findOneBy(['email' => strtolower(trim($identifier))])
             ?? $repository->findOneBy(['email' => $identifier]);
 
         if (!$account instanceof Account) {

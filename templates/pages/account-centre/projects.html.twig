@@ -1,16 +1,15 @@
 {% extends 'layouts/ac.base.html.twig' %}
-
-{# Page title meta tag #}
-{% block title %}Projects{% endblock %}
-
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
+{% block title %}Mijn actieve projecten{% endblock %}
 {% block body %}
-    <h2>Projects</h2>
-    <p>Account Centre - projects page.</p>
+<section id="account-centre-container" class="account-records">
+    <header class="dashboard-header"><h1>Mijn actieve projecten</h1><p>{{ records.total }} actieve projecten waaraan je deelneemt.</p></header>
+    <div class="account-grid">
+    {% for project in records.items %}
+        <article class="account-card"><div><h2>{% if is_granted('PROJECT_VIEW', project) %}<a href="{{ path('main.projects.detail', {slug: project.slug}) }}">{{ project.title }}</a>{% else %}{{ project.title }}{% endif %}</h2><p>{{ project.summary }}</p>{% if not is_granted('PROJECT_VIEW', project) %}<p>Je projectrol geeft momenteel geen toegang tot de projectpagina.</p>{% endif %}</div></article>
+    {% else %}
+        <p class="account-empty-records">Je neemt nog niet deel aan een actief project. <a href="{{ path('main.projects.home') }}">Ontdek projecten</a>.</p>
+    {% endfor %}
+    </div>
+    {% include 'pages/account-centre/_pagination.html.twig' %}
+</section>
 {% endblock %}
