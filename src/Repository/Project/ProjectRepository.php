@@ -93,7 +93,9 @@ class ProjectRepository extends ServiceEntityRepository
     public function findPublicProjects(?int $limit = null): array
     {
         $queryBuilder = $this->createPublicProjectsQueryBuilder();
-        $queryBuilder->orderBy('project.publishedAt', 'DESC');
+        $queryBuilder
+            ->orderBy('project.publishedAt', 'DESC')
+            ->addOrderBy('project.id', 'ASC');
 
         if ($limit !== null) {
             $queryBuilder->setMaxResults($limit);

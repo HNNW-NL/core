@@ -65,6 +65,21 @@
                     <h3><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h3>
                     <p class="open-project-organisation">{{ project.organisationName }}</p>
                     <p class="open-project-summary">{{ project.summary }}</p>
+                    <p class="project-location">
+                        {% if project.location %}
+                            {{ project.location }}
+                        {% elseif project.remotePossible %}
+                            Op afstand mogelijk
+                        {% else %}
+                            Locatie niet opgegeven
+                        {% endif %}
+                    </p>
+                    <p class="project-status">Status: {{ project.projectStatus == 'published' ? 'Gepubliceerd' : project.projectStatus }}</p>
+                    {% if project.canApply %}
+                        <p class="project-application-open">Aanmelden mogelijk</p>
+                    {% else %}
+                        <p class="project-application-closed">Aanmelden niet mogelijk</p>
+                    {% endif %}
                     <a class="open-project-link" href="{{ path('main.projects.detail', { slug: project.slug }) }}">Bekijk project</a>
                 </article>
             {% endfor %}

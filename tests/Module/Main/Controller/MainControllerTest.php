@@ -92,6 +92,23 @@ class MainControllerTest extends WebTestCase
         $this->assertSelectorNotExists('.open-project-card');
     }
 
+    public function testHomeUsesTheSamePublicProjectSelectionAsTheProjectsPage(): void
+    {
+        $this->loadFixtures([
+            PublicProjectListingFixtures::class,
+        ]);
+
+        $client = static::createClient();
+        $home = $client->request('GET', '/');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertCount(6, $home->filter('.open-project-card'));
+        $this->assertStringNotContainsString('MS04 conceptproject', $home->text());
+        $this->assertSelectorTextContains('.project-status', 'Gepubliceerd');
+        $this->assertSelectorTextContains('.project-location', 'Op afstand mogelijk');
+        $this->assertSelectorTextContains('.project-application-open', 'Aanmelden mogelijk');
+    }
+
     public function testProjectsPageUsesThePublicProjectSelection(): void
     {
         $this->loadFixtures([
