@@ -36,4 +36,27 @@ final class OrgDashboardTest extends KernelTestCase
         self::assertStringContainsString('Aantal projecten: 2', $html);
         self::assertStringContainsString('Niet-beoordeelde aanvragen: 1', $html);
     }
+
+    public function testDashboardZonderOrganisatie(): void
+    {
+        self::bootKernel();
+
+        $html = self::getContainer()->get('twig')->render(
+            'pages/org/index.html.twig',
+            [
+                'organisaties' => [],
+                'actieveOrganisatie' => null,
+            ]
+        );
+
+        self::assertStringContainsString(
+            'Je bent nog niet gekoppeld',
+            $html
+        );
+
+        self::assertStringNotContainsString(
+            'Organisatienavigatie',
+            $html
+        );
+    }
 }
