@@ -52,6 +52,29 @@ final class DashboardController extends AbstractController
     #[IsGranted('ADMIN_MANAGE_SETTINGS')]
     public function statuses(): Response
     {
-        return $this->render('pages/admin/statuses.html.twig');
+        return $this->render('pages/admin/statuses.html.twig', [
+            'statuses' => [],
+        ]);
     }
+<<<<<<< HEAD
+=======
+
+    #[Route('/statuses/create', name: 'statuses.create', methods: ['GET'])]
+    public function create(): Response
+    {
+        return new Response('Aanmaken');
+    }
+
+    #[Route('/statuses/{id}/edit', name: 'statuses.edit', methods: ['GET'])]
+    public function edit(int $id): Response
+    {
+        return new Response('Bewerken ' . $id);
+    }
+
+    #[Route('/statuses/{id}/delete', name: 'statuses.delete', methods: ['POST'])]
+    public function delete(int $id): Response
+    {
+        return $this->redirectToRoute('admin.statuses');
+    }
+>>>>>>> 8b651a8 (statusoverzicht pagina werkend gemaakt)
 }
