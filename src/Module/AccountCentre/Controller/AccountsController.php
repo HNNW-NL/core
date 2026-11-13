@@ -221,8 +221,22 @@ final class AccountsController extends AbstractController
             $organisation = trim((string) $request->request->get('organisation_name', ''));
             $from = $this->date((string) $request->request->get('start_date', ''));
             $current = $request->request->has('is_current');
-            $until = $current ? null : $this->date((string) $request->request->get('end_date', ''));
-            if ($title === '' || $organisation === '' || !$from || ($until && $until < $from)) {
+
+            $endDateInput = trim(
+                $request->request->getString('end_date')
+            );
+
+            $until = $current || $endDateInput === ''
+                ? null
+                : $this->date($endDateInput);
+
+            if (
+                $title === ''
+                || $organisation === ''
+                || !$from
+                || (!$current && $endDateInput !== '' && !$until)
+                || ($until && $until < $from)
+            ) {
                 $this->addFlash('error', 'Controleer de verplichte velden en datums.');
             } else {
                 $experience = (new ProfileExperience())
@@ -273,21 +287,33 @@ final class AccountsController extends AbstractController
             $username = trim((string) $request->request->get('username', ''));
             $first = trim((string) $request->request->get('first_name', ''));
             $last = trim((string) $request->request->get('last_name', ''));
-            $visibility = (string) $request->request->get('profile_visibility', 'private');
-            $theme = (string) $request->request->get('theme', 'dark');
-            if ($username === '' || $first === '' || $last === ''
-                || !in_array($visibility, ['public', 'private'], true)
-                || !in_array($theme, ['dark', 'light'], true)) {
+            if ($username === '' || $first === '' || $last === '') {
                 $this->addFlash('error', 'Controleer de verplichte velden.');
             } else {
+                $existingAccount = $em->getRepository(Account::class)
+                    ->findOneBy(['username' => $username]);
+
+                if (
+                    $existingAccount !== null
+                    && $existingAccount->getId() !== $account->getId()
+                ) {
+                    $this->addFlash(
+                        'error',
+                        'Deze gebruikersnaam is al in gebruik.'
+                    );
+
+                    return $this->redirectToRoute('account.modify');
+                }
+
                 $account->setUsername($username);
                 $profile->setFirstName($first)
                     ->setLastName($last)
+                    ->setDisplayName(
+                        trim($request->request->getString('display_name')) ?: null
+                    )
                     ->setAvatarUrl(trim((string) $request->request->get('avatar_url', '')) ?: null)
                     ->setLocation(trim((string) $request->request->get('location', '')) ?: null)
                     ->setDescription(trim((string) $request->request->get('bio', '')) ?: null);
-                $settings->setLanguage(trim((string) $request->request->get('language', 'nl-NL')))
-                    ->setTheme($theme)->setProfileVisibility($visibility);
                 $em->flush();
                 $this->addFlash('success', 'Wijzigingen opgeslagen.');
             }
@@ -302,7 +328,9 @@ final class AccountsController extends AbstractController
         $settings = $this->settings($em);
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_notifications');
-            $settings->setEmailNotificationsEnabled($request->request->has('notify_projects') || $request->request->has('notify_newsletter'));
+            $settings->setEmailNotificationsEnabled(
+                $request->request->has('notify_projects')
+            );
             $em->flush();
             $this->addFlash('success', 'Notificatievoorkeuren opgeslagen.');
             return $this->redirectToRoute('account.notifications');
@@ -361,11 +389,51 @@ final class AccountsController extends AbstractController
         ]);
     }
 
-    #[Route('/settings', name: 'settings', methods: ['GET'])]
-    public function settingsPage(EntityManagerInterface $em): Response
-    {
+    #[Route('/settings', name: 'settings', methods: ['GET', 'POST'])]
+    public function settingsPage(
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $settings = $this->settings($em);
+
+        if ($request->isMethod('POST')) {
+            $this->csrf($request, 'account_settings');
+
+            $language = trim($request->request->getString('language', 'nl-NL'));
+            $theme = trim($request->request->getString('theme', 'dark'));
+            $visibility = trim($request->request->getString('profile_visibility', 'private'));
+
+            if ($language === 'nl') {
+                $language = 'nl-NL';
+            }
+
+            if (
+                !in_array($language, ['nl-NL', 'en'], true)
+                || !in_array($theme, ['light', 'dark'], true)
+                || !in_array($visibility, ['public', 'private'], true)
+            ) {
+                $this->addFlash('error', 'Ongeldige accountinstellingen.');
+
+                return $this->redirectToRoute('account.settings');
+            }
+
+            $settings
+                ->setLanguage($language)
+                ->setTheme($theme)
+                ->setProfileVisibility($visibility)
+                ->setEmailNotificationsEnabled(
+                    $request->request->getBoolean('email_notifications_enabled')
+                );
+
+            $em->flush();
+
+            $this->addFlash('success', 'Accountinstellingen opgeslagen.');
+
+            return $this->redirectToRoute('account.settings');
+        }
+
         return $this->render('pages/account-centre/settings.html.twig', [
-            'settings' => $this->settings($em),
+            'settings' => $settings,
         ]);
     }
 

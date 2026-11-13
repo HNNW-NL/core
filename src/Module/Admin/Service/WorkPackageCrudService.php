@@ -6,6 +6,7 @@ use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreateWorkPackageDTO;
+use App\Module\Main\Service\WorkPackageWorkflowService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Ulid;
 use App\Module\Admin\DTO\UpdateWorkPackageDTO;
@@ -26,8 +27,8 @@ class WorkPackageCrudService
         $project = $this->entityManager->find(Project::class, Ulid::fromString($dto->projectId));
 
         $status = $this->entityManager->getRepository(Status::class)->findOneBy([
-            'name' => 'open',
-            'scope' => 'work_package',
+            'name' => 'Open',
+            'scope' => WorkPackageWorkflowService::STATUS_SCOPE,
         ]);
 
         if (!$project) {

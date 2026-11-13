@@ -37,18 +37,21 @@
                 <input type="hidden" name="_token" value="{{ csrf_token('account_notifications') }}">
 
                 <div class="form-group-checkbox">
-                    <input type="checkbox" id="notify_projects" name="notify_projects" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
-                    <label for="notify_projects">
-                        <strong>Nieuwe Projecten</strong>
-                        <span>Ontvang direct een melding zodra er een nieuw project start dat matcht met jouw skills.</span>
-                    </label>
-                </div>
+                    <input
+                        type="checkbox"
+                        id="notify_projects"
+                        name="notify_projects"
+                        {% if settings.emailNotificationsEnabled ?? true %}
+                            checked
+                        {% endif %}
+                    >
 
-                <div class="form-group-checkbox">
-                    <input type="checkbox" id="notify_newsletter" name="notify_newsletter" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
-                    <label for="notify_newsletter">
-                        <strong>Maandelijkse Nieuwsbrief</strong>
-                        <span>Blijf op de hoogte van algemeen nieuws, updates en verhalen binnen de community.</span>
+                    <label for="notify_projects">
+                        <strong>E-mailnotificaties</strong>
+                        <span>
+                            Ontvang e-mailupdates over projecten,
+                            nieuws en andere relevante activiteiten.
+                        </span>
                     </label>
                 </div>
 

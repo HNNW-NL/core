@@ -1,16 +1,25 @@
 {% extends 'layouts/admin.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}Modify account {{ id }}{% endblock %}
+{% block title %}{{ id is null ? 'Account aanmaken' : 'Account bewerken' }}{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <h2>Accounts Modify</h2>
-    <p>Admin dashboard - accounts modify ({{ id }}) page.</p>
+    <h2>{{ block('title') }}</h2>
+    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+    <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token('account-save-' ~ id) }}">
+        <label>Gebruikersnaam <input name="username" value="{{ input.username }}" required maxlength="255"></label>
+        <label>E-mailadres <input type="email" name="email" value="{{ input.email }}" required maxlength="255"></label>
+        {% if id is null %}
+            <label>Wachtwoord <input type="password" name="password" required minlength="12" maxlength="72" autocomplete="new-password"></label>
+        {% endif %}
+        <label>Status
+            <select name="status" required>
+                {% for status in statuses %}
+                    <option value="{{ status.id }}"{% if status.id ~ '' == input.status %} selected{% endif %}>{{ status.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Opslaan</button>
+    </form>
+    <p><a href="{{ path('admin.accounts.home') }}">Terug naar accounts</a></p>
 {% endblock %}

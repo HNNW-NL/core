@@ -13,28 +13,170 @@
 
 {# Page content #}
 {% block body %}
+    {% set hasOverview = overview is defined %}
+    {% set items = hasOverview ? overview.items : (accounts|default([])) %}
+    {% set currentSearch = hasOverview ? overview.search : (search|default('')) %}
+
     <h2>Accounts</h2>
-    <form method="get" action="{{ path('admin.accounts.home') }}">
-        <label for="account-search">Zoeken op gebruikersnaam of e-mail</label>
-        <input id="account-search" type="search" name="search" value="{{ search }}">
+
+    <p>
+        <a href="{{ path('admin.home') }}">
+            Terug naar het admin-dashboard
+        </a>
+    </p>
+
+    <form method="get"
+          action="{{ path('admin.accounts.home') }}"
+          class="search-form">
+
+        <label for="account-search">
+            Naam, gebruikersnaam of e-mailadres
+        </label>
+
+        <input
+            id="account-search"
+            type="search"
+            name="q"
+            value="{{ currentSearch }}"
+            maxlength="200"
+        >
+
+        {% if hasOverview %}
+            <label for="account-status">Status</label>
+            <select id="account-status" name="status">
+                <option value="">Alle statussen</option>
+                {% for status in overview.statuses %}
+                    <option value="{{ status.id }}"
+                        {% if status.id ~ '' == overview.status %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ status.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        {% endif %}
+
         <button type="submit">Zoeken</button>
     </form>
-    {% if accounts is empty %}
+
+    {% if hasOverview %}
+        <p>{{ overview.total }} accounts gevonden.</p>
+    {% endif %}
+
+    {% if items is empty %}
         <p>Geen accounts gevonden.</p>
     {% else %}
-        <table>
-            <thead><tr><th>Gebruikersnaam</th><th>E-mail</th><th>Status</th><th>Geregistreerd</th><th>Actie</th></tr></thead>
+        <table class="accounts">
+            <thead>
+            <tr>
+                <th scope="col">Gebruikersnaam</th>
+                <th scope="col">Weergavenaam</th>
+                <th scope="col">E-mailadres</th>
+                <th scope="col">Status</th>
+                <th scope="col">E-mailverificatie</th>
+                <th scope="col">Rol</th>
+                <th scope="col">Registratiedatum</th>
+                <th scope="col">Acties</th>
+            </tr>
+            </thead>
+
             <tbody>
-            {% for account in accounts %}
+            {% for account in items %}
+                {% set profile = account.profile|default(null) %}
+
                 <tr>
                     <td>{{ account.username }}</td>
+
+                    <td>
+                        {% if hasOverview %}
+                            {{ account.displayName|default(
+                                (account.firstName ~ ' ' ~ account.lastName)|trim
+                            )|default(account.username, true) }}
+                        {% else %}
+                            {{ profile ? (
+                            profile.displayName|default(
+                                (profile.firstName|default('') ~ ' ' ~ profile.lastName|default(''))|trim
+                            )|default(account.username, true)
+                            ) : account.username }}
+                        {% endif %}
+                    </td>
+
                     <td>{{ account.email }}</td>
-                    <td>{{ account.status ? account.status.name : 'Onbekend' }}</td>
-                    <td>{{ account.createdAt|date('d-m-Y') }}</td>
-                    <td><a href="{{ path('admin.accounts.modify', {id: account.id}) }}">Bekijken</a></td>
+
+                    <td>
+                        {% if hasOverview %}
+                            {{ account.statusName|default('Onbekend') }}
+                        {% else %}
+                            {{ account.status ? account.status.name : 'Onbekend' }}
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ account.emailVerifiedAt is not empty
+                        ? 'Geverifieerd'
+                        : 'Niet geverifieerd' }}
+                    </td>
+
+                    <td>
+                        {% if hasOverview %}
+                            {{ account.adminRoleName|default(
+                                account.adminId is not empty
+                                ? 'Platformbeheerder'
+                                : 'Gebruiker'
+                            ) }}
+                        {% else %}
+                            {{ account.admin is not empty
+                            ? 'Platformbeheerder'
+                            : 'Gebruiker' }}
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ account.createdAt is not empty
+                        ? account.createdAt|date('d-m-Y')
+                        : 'Onbekend' }}
+                    </td>
+
+                    <td>
+                        <a href="{{ path('admin.accounts.modify', {
+                            id: account.id ~ ''
+                        }) }}">
+                            Bekijken
+                        </a>
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
+    {% endif %}
+
+    {% if hasOverview and overview.pages > 1 %}
+        {% set filters = {
+            q: overview.search,
+            status: overview.status
+        } %}
+
+        <nav aria-label="Accountpagina's">
+            {% if overview.page > 1 %}
+                <a href="{{ path('admin.accounts.home',
+                    filters|merge({page: overview.page - 1})
+                ) }}">
+                    Vorige
+                </a>
+            {% endif %}
+
+            <span>
+                Pagina {{ overview.page }} van {{ overview.pages }}
+            </span>
+
+            {% if overview.page < overview.pages %}
+                <a href="{{ path('admin.accounts.home',
+                    filters|merge({page: overview.page + 1})
+                ) }}">
+                    Volgende
+                </a>
+            {% endif %}
+        </nav>
     {% endif %}
 {% endblock %}

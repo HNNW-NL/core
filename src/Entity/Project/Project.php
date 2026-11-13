@@ -18,7 +18,7 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\HasLifecycleCallbacks]
 class Project
 {
-    // Columns
+    // Columns.
 
     #[ORM\Id]
     #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]

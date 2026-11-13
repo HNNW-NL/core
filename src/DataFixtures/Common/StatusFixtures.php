@@ -5,6 +5,7 @@ namespace App\DataFixtures\Common;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Common\Status;
+use App\Module\Main\Service\WorkPackageWorkflowService;
 
 class StatusFixtures extends Fixture
 {
@@ -18,6 +19,10 @@ class StatusFixtures extends Fixture
     public const TEST_DEFAULT_WORK_PACKAGE_STATUS_REFERENCE = 'default-work-package-status';
     public const TEST_DEFAULT_PROJECT_APPLICATIONS_STATUS_REFERENCE = 'default-project-applications-status';
     public const TEST_DEFAULT_PROJECT_PARTICIPANTS_STATUS_REFERENCE = 'default-project-participants-status';
+
+    public function __construct(private readonly WorkPackageWorkflowService $workPackageWorkflow)
+    {
+    }
 
     public function load(ObjectManager $manager): void
     {
@@ -58,17 +63,40 @@ class StatusFixtures extends Fixture
         $defaultPackageTaskStatus->setColourHex('#10B981');
         $manager->persist($defaultPackageTaskStatus);
 
-        $defaultWorkPackageStatus = new Status();
-        $defaultWorkPackageStatus->setName('active');
-        $defaultWorkPackageStatus->setScope('WorkPackage');
-        $defaultWorkPackageStatus->setColourHex('#10B981');
-        $manager->persist($defaultWorkPackageStatus);
+        foreach ($this->workPackageWorkflow->getStatusNames() as $name) {
+            $status = $manager->getRepository(Status::class)->findOneBy([
+                'name' => $name,
+                'scope' => WorkPackageWorkflowService::STATUS_SCOPE,
+            ]);
+            if ($status === null) {
+                $status = (new Status())
+                    ->setName($name)
+                    ->setScope(WorkPackageWorkflowService::STATUS_SCOPE)
+                    ->setColourHex('#10B981');
+                $manager->persist($status);
+            }
+            if ($name === 'Open') {
+                $defaultWorkPackageStatus = $status;
+            }
+        }
 
         $defaultProjectApplicationStatus = new Status();
         $defaultProjectApplicationStatus->setName('send');
         $defaultProjectApplicationStatus->setScope('ProjectApplication');
         $defaultProjectApplicationStatus->setColourHex('#10B981');
         $manager->persist($defaultProjectApplicationStatus);
+
+        $acceptedProjectApplicationStatus = new Status();
+        $acceptedProjectApplicationStatus->setName('accepted');
+        $acceptedProjectApplicationStatus->setScope('ProjectApplication');
+        $acceptedProjectApplicationStatus->setColourHex('#10B981');
+        $manager->persist($acceptedProjectApplicationStatus);
+
+        $rejectedProjectApplicationStatus = new Status();
+        $rejectedProjectApplicationStatus->setName('rejected');
+        $rejectedProjectApplicationStatus->setScope('ProjectApplication');
+        $rejectedProjectApplicationStatus->setColourHex('#EF4444');
+        $manager->persist($rejectedProjectApplicationStatus);
 
         $defaultProjectParticipantStatus = new Status();
         $defaultProjectParticipantStatus->setName('active');

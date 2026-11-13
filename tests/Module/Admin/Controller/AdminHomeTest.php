@@ -11,10 +11,13 @@ use App\Entity\Org\OrgRole;
 use App\Entity\Project\Project;
 use App\Kernel;
 use App\Module\Admin\Service\DashboardTotals;
+use App\Module\Admin\Service\AccountOverview;
 use App\Security\AccountUserProvider;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -82,12 +85,9 @@ final class AdminHomeTest extends WebTestCase
         foreach (['accounts' => $accounts, 'organisations' => $organisations, 'projects' => $projects] as $key => $count) {
             self::assertSelectorTextSame('#dashboard-total-'.$key, (string) $count);
         }
-        foreach (['organizations', 'logs', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
+        foreach (['accounts', 'organizations', 'logs', 'statuses', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
             self::assertSelectorExists(sprintf('nav a[href="/admin/%s"]', $path));
         }
-        self::assertSelectorTextContains('nav', 'Accountbeheer is nog niet beschikbaar en wordt opgeleverd in AD02.');
-        self::assertSelectorTextContains('nav', 'Statusbeheer is nog niet beschikbaar en wordt opgeleverd in AD11.');
-        self::assertSelectorNotExists('nav a[href="/admin/accounts"], nav a[href="/admin/statuses"]');
         if ($accounts === 0 && $organisations === 0 && $projects === 0) {
             self::assertSelectorTextContains('#dashboard-empty', 'Er zijn nog geen');
         }
@@ -106,9 +106,163 @@ final class AdminHomeTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('nav a[href="/admin/notifications"]');
         self::assertSelectorExists('nav a[href="/admin/events"]');
-        foreach (['organizations', 'logs', 'settings', 'social/manage-staff'] as $path) {
+        foreach (['accounts', 'organizations', 'logs', 'statuses', 'settings', 'social/manage-staff'] as $path) {
             self::assertSelectorNotExists(sprintf('nav a[href="/admin/%s"]', $path));
         }
+    }
+
+    public static function landingPages(): iterable
+    {
+        yield 'statuses' => ['/admin/statuses', 'ProjectApplication'];
+    }
+
+    public static function adminReadRoutes(): iterable
+    {
+        foreach (['', '/accounts', '/organizations', '/logs', '/statuses', '/notifications', '/settings',
+            '/social/manage-staff', '/events', '/api/logs/system', '/api/logs/audit',
+            '/accounts/create', '/accounts/modify/test', '/accounts/view/test', '/organizations/create', '/organizations/modify/test',
+            '/events/create', '/events/modify/test'] as $path) {
+            yield '/admin'.$path => ['/admin'.$path];
+        }
+    }
+
+    #[DataProvider('adminReadRoutes')]
+    public function testAdminReadRoutesRejectOrdinaryAccounts(string $path): void
+    {
+        $client = $this->clientFor((new Account())->setUsername('ordinary'));
+        $client->request('GET', $path);
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public static function adminDestinations(): iterable
+    {
+        foreach (self::adminReadRoutes() as $name => [$path]) {
+            if (!in_array($path, ['/admin', '/admin/accounts', '/admin/accounts/create', '/admin/accounts/modify/test', '/admin/accounts/view/test', '/admin/statuses'], true)) {
+                yield $name => [$path];
+            }
+        }
+    }
+
+    #[DataProvider('adminDestinations')]
+    public function testAdminDestinationsOpenForPlatformAdministrator(string $path): void
+    {
+        $client = $this->clientFor($this->platformAdministrator());
+        foreach ([\App\Repository\Log\SystemLogRepository::class, \App\Repository\Log\AuditLogRepository::class] as $class) {
+            $repository = $this->createStub($class);
+            $repository->method('findLatest')->willReturn([]);
+            self::getContainer()->set($class, $repository);
+        }
+        $client->request('GET', $path);
+
+        self::assertResponseIsSuccessful();
+    }
+
+    #[DataProvider('landingPages')]
+    public function testNewDashboardLinksHaveWorkingLandingPages(string $path, string $description): void
+    {
+        $client = $this->clientFor($this->platformAdministrator());
+        $repository = $this->createStub(\App\Repository\Common\StatusRepository::class);
+        $accepted = (new \App\Entity\Common\Status())->setName('accepted')->setScope('ProjectApplication')->setColourHex('#123456');
+        $repository->method('findFirstByScopeAndNames')->willReturnCallback(
+            static fn (string $scope, array $names) => $scope === 'ProjectApplication' && in_array('accepted', $names, true)
+                ? $accepted
+                : ($scope === 'ProjectParticipant' ? (new \App\Entity\Common\Status())->setName('active') : null),
+        );
+        $repository->method('findBy')->willReturn([
+            (new \App\Entity\Common\Status())->setName('send')->setScope('ProjectApplication')->setColourHex('#123456'),
+            (new \App\Entity\Common\Status())->setName('active')->setScope('PackageTask')->setColourHex('#123456'),
+        ]);
+        self::getContainer()->set(\App\Repository\Common\StatusRepository::class, $repository);
+        $client->catchExceptions(false);
+        $client->request('GET', $path);
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main', $description);
+        self::assertSelectorTextContains('main', 'PackageTask');
+        self::assertSelectorTextContains('tbody tr:first-child td:nth-child(2)', 'Ingediend');
+        self::assertSelectorTextContains('tbody tr:first-child td:nth-child(5)', 'Geaccepteerd');
+        self::assertSelectorExists('main a[href="/admin"]');
+    }
+
+    #[DataProvider('landingPages')]
+    public function testOrdinaryAccountCannotOpenNewDashboardDestinations(string $path, string $description): void
+    {
+        $client = $this->clientFor((new Account())->setUsername('ordinary'));
+        $client->request('GET', $path);
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public function testAccountAdministratorCanOpenPopulatedOverview(): void
+    {
+        $account = (new Account())->setUsername('account-admin');
+        $role = (new AdminRole())->setPermissionsMask(Permission::ADMIN_MANAGE_ACCOUNTS->value);
+        $account->setAdmin((new Admin())->setAccount($account)->setAdminRole($role));
+        $client = $this->clientFor($account);
+        $statuses = $this->createStub(EntityRepository::class);
+        $statuses->method('findBy')->willReturn([]);
+        $query = $this->createStub(Query::class);
+        $query->method('setParameters')->willReturnSelf();
+        $query->method('setFirstResult')->willReturnSelf();
+        $query->method('setMaxResults')->willReturnSelf();
+        $query->method('getSingleScalarResult')->willReturn(1);
+        $query->method('getArrayResult')->willReturn([[
+            'username' => 'account-fixture',
+            'email' => 'account-fixture@example.test',
+            'firstName' => 'Test',
+            'lastName' => 'Account',
+            'statusName' => 'active',
+            'displayName' => 'Testweergavenaam',
+            'emailVerifiedAt' => new \DateTimeImmutable('2026-01-03'),
+            'createdAt' => new \DateTimeImmutable('2026-01-02'),
+            'adminId' => null,
+            'adminRoleName' => null,
+        ]]);
+        $em = $this->createStub(EntityManagerInterface::class);
+        $em->method('getRepository')->willReturn($statuses);
+        $builder = new QueryBuilder($em);
+        $em->method('createQuery')->willReturn($query);
+        $em->method('createQueryBuilder')->willReturn($builder);
+        $container = self::getContainer();
+        $container->set(AccountOverview::class, new AccountOverview(
+            $em,
+            $container->get(AuthorizationCheckerInterface::class),
+            $container->get('request_stack'),
+        ));
+
+        $client->request('GET', '/admin/accounts');
+
+        self::assertResponseStatusCodeSame(200);
+        self::assertSelectorTextContains('tbody', 'account-fixture@example.test');
+        foreach (['Testweergavenaam', 'Geverifieerd', 'Gebruiker', '02-01-2026'] as $value) {
+            self::assertSelectorTextContains('tbody', $value);
+        }
+    }
+
+    public function testAccountAdministratorCanOpenCreateFormAndUnknownAccountReturnsNotFound(): void
+    {
+        $client = $this->clientFor($this->platformAdministrator());
+        $client->disableReboot();
+        $repository = $this->createStub(\App\Repository\Common\StatusRepository::class);
+        $repository->method('findBy')->willReturn([]);
+        self::getContainer()->set(\App\Repository\Common\StatusRepository::class, $repository);
+        $client->request('GET', '/admin/accounts/create');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('form input[name="_token"]');
+        $client->request('GET', '/admin/accounts/view/test');
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    public function testDashboardPermissionDoesNotGrantAccessToAccounts(): void
+    {
+        $account = (new Account())->setUsername('dashboard-only');
+        $role = (new AdminRole())->setPermissionsMask(Permission::ADMIN_VIEW_DASHBOARD->value);
+        $account->setAdmin((new Admin())->setAccount($account)->setAdminRole($role));
+        $client = $this->clientFor($account);
+        $client->request('GET', '/admin/accounts');
+
+        self::assertResponseStatusCodeSame(403);
     }
 
     private function platformAdministrator(): Account

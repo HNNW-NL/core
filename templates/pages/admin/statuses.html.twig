@@ -1,28 +1,79 @@
 {% extends 'layouts/admin.base.html.twig' %}
-
-{% block title %}Statuses{% endblock %}
-
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
+{% block title %}Platformstatussen{% endblock %}
 {% block body %}
-    <h2>Platformstatussen</h2>
-
-    <p>Overzicht van de bestaande statussen. Wijzigingen verlopen via de centrale statusconfiguratie.</p>
-    {% if statuses is empty %}
-        <p>Geen statussen gevonden.</p>
-    {% else %}
-        <table>
-            <thead><tr><th>Naam</th><th>Scope</th><th>Kleur</th></tr></thead>
-            <tbody>
-            {% for status in statuses %}
-                <tr><td>{{ status.name }}</td><td>{{ status.scope }}</td><td>{{ status.colourHex }}</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
+<section class="admin-statuses-container" aria-labelledby="statuses-heading">
+    <header class="dashboard-header">
+        <h1 id="statuses-heading">Platformstatussen</h1>
+        <p>Beheer statuscodes, kleuren en toegestane overgangen.</p>
+        <a href="{{ path('admin.home') }}">Terug naar het dashboard</a>
+    </header>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}<p role="{{ label == 'error' ? 'alert' : 'status' }}">{{ message }}</p>{% endfor %}
+    {% endfor %}
+    <section aria-labelledby="new-status-heading">
+        <h2 id="new-status-heading">Nieuwe status</h2>
+        <form method="post" action="{{ path('admin.statuses.save') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('status-save-') }}">
+            <label for="status-name">Code (begint met custom_)</label>
+            <input id="status-name" name="name" required pattern="custom_[a-z0-9_]{1,60}" maxlength="67">
+            <label for="status-scope">Object</label>
+            <select id="status-scope" name="scope" required>
+                {% set scopes = [] %}
+                {% for item in statuses %}
+                    {% if item.scope not in scopes %}
+                        {% set scopes = scopes|merge([item.scope]) %}
+                    {% endif %}
+                {% endfor %}
+                {% for scope in scopes %}<option value="{{ scope }}">{{ scope }}</option>{% endfor %}
+            </select>
+            <label for="new-status-colour">Kleur</label>
+            <input id="new-status-colour" type="color" name="colour" value="#1098ad" required>
+            <button type="submit">Status aanmaken</button>
+        </form>
+    </section>
+    <section aria-labelledby="status-list-heading">
+        <h2 id="status-list-heading">Geregistreerde statussen ({{ statuses|length }})</h2>
+        {% if statuses is empty %}
+            <p>Geen statussen gevonden.</p>
+        {% else %}
+            <div class="table-responsive"><table>
+                <thead><tr><th scope="col">Code</th><th scope="col">Object</th><th scope="col">Kleur</th><th scope="col">Overgangen</th><th scope="col">Acties</th></tr></thead>
+                <tbody>
+                {% for status in statuses %}
+                    <tr>
+                        <td>{{ labels[loop.index0] }}</td>
+                        <td>{{ status.scope }}</td>
+                        <td>{{ status.colourHex }}</td>
+                        <td>
+                            {% if editableTransitions[loop.index0] %}
+                                <form method="post" action="{{ path('admin.statuses.transitions', {id: status.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('status-transitions-' ~ status.id) }}">
+                                    <label><input type="checkbox" name="accept" value="1" {% if status.allowsApplicationAcceptance %}checked{% endif %}> Accepteren</label>
+                                    <label><input type="checkbox" name="reject" value="1" {% if status.allowsApplicationRejection %}checked{% endif %}> Afwijzen</label>
+                                    <button type="submit">Overgangen opslaan</button>
+                                </form>
+                                <small>Beschikbaar: {{ transitions[loop.index0]|join(', ')|default('geen') }}</small>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            <form method="post" action="{{ path('admin.statuses.save') }}">
+                                <input type="hidden" name="id" value="{{ status.id }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('status-save-' ~ status.id) }}">
+                                <label>Kleur <input type="color" name="colour" value="{{ status.colourHex|default('#1098ad') }}" required></label>
+                                <button type="submit">Kleur opslaan</button>
+                            </form>
+                            {% if status.name starts with 'custom_' %}
+                                <form method="post" action="{{ path('admin.statuses.delete', {id: status.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('status-delete-' ~ status.id) }}">
+                                    <button type="submit">Verwijderen</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table></div>
+        {% endif %}
+    </section>
+</section>
 {% endblock %}
