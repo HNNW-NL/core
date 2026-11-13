@@ -5,14 +5,81 @@ namespace App\Module\Org\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\Account\Account;
+use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/org', name: 'org.')]
 final class PanelController extends AbstractController
 {
-    #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
-    {
-        return $this->render('pages/org/index.html.twig');
+
+#[Route('', name: 'home', methods: ['GET'])]
+public function index(Request $request): Response
+{
+
+    $account = $this->getUser();
+
+
+    if (!$account instanceof Account) {
+        throw $this->createAccessDeniedException(
+            'Je moet ingelogd zijn.'
+        );
+    }
+
+
+
+
+    $organisaties = [];
+
+    foreach ($account->getOrgMemberships() as $membership) {
+        $organisatie = $membership->getOrganisation();
+
+
+        if ($organisatie === null ||
+            $organisatie->getDeletedAt() !== null) {
+            continue;
+        }
+
+        $id = $organisatie->getId()->toRfc4122();
+
+
+        if (!isset($organisaties[$id])) {
+            $organisaties[$id] = [
+                'id' => $id,
+                'naam' => $organisatie->getName(),
+                'rollen' => [],
+            ];
+        }
+
+
+        $rol = $membership->getOrgRole();
+
+        if ($rol !== null &&
+            $rol->getOrganisation()?->getId()->toRfc4122() === $id &&
+            $rol->getName() !== null) {
+            $organisaties[$id]['rollen'][$rol->getName()] =
+                $rol->getName();
+        }
+    }
+
+    // Lees de gekozen organisatie uit de URL
+    $gekozenId = $request->query->get('organisation');
+
+    // Alleen een organisatie kiezen waarvan je lid bent
+    if ($gekozenId !== null && !isset($organisaties[$gekozenId])) {
+        throw $this->createNotFoundException(
+            'Organisatie niet gevonden.'
+        );
+    }
+
+    // Kies de geselecteerde of eerste organisatie
+    $actieveOrganisatie = $gekozenId !== null
+        ? $organisaties[$gekozenId]
+        : (reset($organisaties) ?: null);
+
+    return $this->render('pages/org/index.html.twig', [
+        'organisaties' => array_values($organisaties),
+        'actieveOrganisatie' => $actieveOrganisatie,
+    ]);
     }
 
     #[Route('/projects', name: 'projects', methods: ['GET'])]

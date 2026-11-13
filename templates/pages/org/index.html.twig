@@ -2,55 +2,73 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organisaties beheren</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>Organisatiedashboard</title>
 </head>
 <body>
+    <main>
+    <h1>Mijn organisaties</h1>
+        {% if organisaties|length > 1 %}
+    <form method="get" action="{{ path('org.home') }}">
+        <label for="organisation">Kies je organisatie:</label>
 
-<h1>Organisaties beheren</h1>
+        <select name="organisation" id="organisation">
+            {% for organisatie in organisaties %}
+                <option value="{{ organisatie.id }}"
+                    {% if actieveOrganisatie.id == organisatie.id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ organisatie.naam }}
+                </option>
+            {% endfor %}
+        </select>
 
-<nav>
-    <a href="{{ path('organisatie_nieuw') }}">Nieuwe organisatie toevoegen</a>
-</nav><br>
+        <button type="submit">Wisselen</button>
+    </form>
+{% endif %}
+    {% if actieveOrganisatie %}
+            <section>
+                <h2>{{ actieveOrganisatie.naam }}</h2>
 
-{# Flash berichten #}
-{% for bericht in app.flashes('success') %}
-    <p style="color: green;">{{ bericht }}</p>
-{% endfor %}
-{% for bericht in app.flashes('error') %}
-    <p style="color: red;">{{ bericht }}</p>
-{% endfor %}
+                <h3>Mijn rollen</h3>
+                <ul>
+                    {% for rol in actieveOrganisatie.rollen %}
+                        <li>{{ rol }}</li>
+                    {% else %}
+                        <li>Geen rol gevonden</li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% else %}
+            <p>Je bent nog niet gekoppeld
+               aan een organisatie.</p>
+        {% endif %}
 
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Naam</th>
-        <th>Adres</th>
-        <th>Stad</th>
-        <th colspan="2">Actie</th>
-    </tr>
-    {% for organisatie in organisaties %}
-    <tr>
-        <td>{{ organisatie.id }}</td>
-        <td>{{ organisatie.naam }}</td>
-        <td>{{ organisatie.adres }}</td>
-        <td>{{ organisatie.stad }}</td>
-        <td>
-            <a href="{{ path('organisatie_wijzig', { id: organisatie.id }) }}">Wijzig</a>
-        </td>
-        <td>
-            <form method="post" action="{{ path('organisatie_verwijder', { id: organisatie.id }) }}"
-                  onsubmit="return confirm('Weet je zeker dat je deze organisatie wilt verwijderen?')">
-                <button type="submit">Verwijder</button>
-            </form>
-        </td>
-    </tr>
-    {% else %}
-    <tr>
-        <td colspan="6">Geen organisaties gevonden</td>
-    </tr>
-    {% endfor %}
-</table>
+{% if organisaties is not empty %}
+    <nav aria-label="Organisatienavigatie">
+        <h2>Beheer</h2>
 
+        <ul>
+            <li>
+                <a href="{{ path('org.projects') }}">
+                    Projecten
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ path('org.staff') }}">
+                    Medewerkers
+                </a>
+            </li>
+
+            <li>
+                Events (nog niet beschikbaar)
+            </li>
+        </ul>
+    </nav>
+{% endif %}
+    </main>
 </body>
 </html>
