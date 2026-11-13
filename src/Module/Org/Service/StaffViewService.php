@@ -13,32 +13,49 @@ use Symfony\Component\Uid\Uuid;
 final class StaffViewService
 {
     public function __construct(
-        private ManagerRegistry $doctrine,
-        private RequestStack $requestStack,
+        private readonly ManagerRegistry $managerRegistry,
+        private readonly RequestStack $requestStack,
     ) {
     }
 
     public function getStaff(): array
     {
+        $session = $this->requestStack->getCurrentRequest()?->getSession();
+        $accountId = $session?->get('account_id');
         $empty = [
             'items' => [], 'roles' => [], 'assignableRoles' => [], 'organisations' => [],
             'organisationId' => null, 'canAdd' => false, 'canChangeRole' => false, 'canRemove' => false,
         ];
         $request = $this->requestStack->getCurrentRequest();
-        $accountId = $request?->hasPreviousSession() ? $request->getSession()->get('account_id') : null;
 
+        if (!$accountId) {
+            return ['items' => [], 'roles' => []];
+        }
         if (!is_string($accountId) || !Uuid::isValid($accountId)) {
             return $empty;
         }
 
-        $user = $this->doctrine
+        $user = $this->managerRegistry
             ->getRepository(Account::class)
             ->find(Uuid::fromString($accountId));
 
         if (!$user instanceof Account) {
-            return $empty;
+            return ['items' => [], 'roles' => []];
         }
 
+        $memberships = $user->getOrgMemberships();
+
+        if ($memberships->isEmpty()) {
+            return ['items' => [], 'roles' => []];
+        }
+
+        /** @var OrgMember $membership */
+        $membership = $memberships->first();
+        $organisation = $membership->getOrganisation();
+
+        if ($organisation === null) {
+            return ['items' => [], 'roles' => []];
+        }
         $organisations = [];
         $masks = [];
         foreach ($user->getOrgMemberships() as $membership) {
@@ -73,7 +90,7 @@ final class StaffViewService
         $canManageMembers = Permission::ORG_MANAGE_MEMBERS->in($masks[$id]);
         $canManageRoles = Permission::ORG_MANAGE_ROLES->in($masks[$id]);
 
-        $members = $this->doctrine
+        $members = $this->managerRegistry
             ->getRepository(OrgMember::class)
             ->findBy(['organisation' => $organisation]);
 
@@ -99,7 +116,7 @@ final class StaffViewService
             ];
         }
 
-        $orgRoles = $this->doctrine
+        $orgRoles = $this->managerRegistry
             ->getRepository(OrgRole::class)
             ->findBy(['organisation' => $organisation]);
 

@@ -4,13 +4,68 @@
 {% block title %}Settings{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/settings.css') }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Settings</h2>
-    <p>Account Centre - settings page.</p>
+    {% set profile = app.user ? app.user.profile : null %}
+    {% set settings = app.user ? app.user.setting : null %}
+
+    <div id="account-centre-container" class="settings-page">
+        <a href="{{ path('account.home') }}" class="btn-back">
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Accountinstellingen</h1>
+            <p>Wijzig de gegevens die je voor je account wilt aanpassen.</p>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="account-flash-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="account-form-container">
+            <div class="form-internal-header">
+                <h2>Accountgegevens</h2>
+                <p>Je huidige gegevens zijn vooraf ingevuld. Controleer ze voordat je opslaat.</p>
+            </div>
+
+            <form action="{{ path('account.settings') }}" method="POST" class="account-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('account_settings') }}">
+                <div class="form-group">
+                    <label for="language">Taal</label>
+                    <input type="text" id="language" name="language" maxlength="5" placeholder="nl" value="{{ settings.language|default('nl') }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="theme">Thema</label>
+                    <select id="theme" name="theme" required>
+                        <option value="light" {% if settings.theme|default('dark') == 'light' %}selected{% endif %}>Light</option>
+                        <option value="dark" {% if settings.theme|default('dark') == 'dark' %}selected{% endif %}>Dark</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="profile_visibility">Profiel Zichtbaarheid</label>
+                    <select id="profile_visibility" name="profile_visibility" required>
+                        <option value="public" {% if settings.profileVisibility|default('public') == 'public' %}selected{% endif %}>Public</option>
+                        <option value="private" {% if settings.profileVisibility|default('public') == 'private' %}selected{% endif %}>Private</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="email_notifications_enabled">Email notifications enabled</label>
+                    <input type="checkbox" id="profile_visibility" name="email_notifications_enabled" {% if settings.emailNotificationsEnabled|default(false) %}checked{% endif %}>
+                </div>
+
+                <button type="submit" class="btn-primary">Wijzigingen opslaan</button>
+            </form>
+        </div>
+    </div>
 {% endblock %}

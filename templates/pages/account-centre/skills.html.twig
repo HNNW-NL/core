@@ -1,7 +1,7 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}My Skills{% endblock %}
+{% block title %}Mijn Skills{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -11,6 +11,37 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Skills</h2>
-    <p>Account Centre - skills page.</p>
+    <div id="account-centre-container">
+
+        <a href="{{ path('account.home') }}" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Terug naar dashboard
+        </a>
+
+        <div class="dashboard-header">
+            <h1>Mijn Skills</h1>
+            <p>Beheer hier de vaardigheden die je op je profiel wilt tonen.</p>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash-alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="account-form-container">
+            <div class="form-internal-header">
+                <h2>Jouw vaardigheden</h2>
+                <p>Voeg je belangrijkste vaardigheden toe om beter gevonden te worden voor passende projecten.</p>
+            </div>
+
+            <div class="account-card account-card-empty">
+                <div class="account-card-content">
+                    <p>Je hebt nog geen vaardigheden toegevoegd.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -24,6 +24,7 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('project')
             ->andWhere('project.slug = :slug')
             ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('project.visibility = "public"')
             ->setParameter('slug', $slug)
             ->getQuery()
             ->getOneOrNullResult();
@@ -53,6 +54,17 @@ class ProjectRepository extends ServiceEntityRepository
             ->orderBy('project.title', 'ASC')
             ->setMaxResults($maxResultsPerPage)
             ->setFirstResult(($page - 1) * $maxResultsPerPage)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findByProfile(Profile $profile): array
+    {
+        return $this->createQueryBuilder('project')
+            ->innerJoin('project.projectParticipants', 'participant')
+            ->andWhere('participant.profile = :profile')
+            ->setParameter('profile', $profile)
+            ->orderBy('project.title', 'ASC')
             ->getQuery()
             ->getResult();
     }

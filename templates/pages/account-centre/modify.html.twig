@@ -66,29 +66,6 @@
                     <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf...">{{ profile.description|default('') }}</textarea>
                 </div>
 
-                {% if settings is defined and settings is not null %}
-                    <div class="form-group">
-                        <label for="language">Taal</label>
-                        <input type="text" id="language" name="language" maxlength="5" placeholder="nl" value="{{ settings.language|default('nl') }}" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="theme">Thema</label>
-                        <select id="theme" name="theme" required>
-                            <option value="light" {% if settings.theme|default('dark') == 'light' %}selected{% endif %}>White</option>
-                            <option value="dark" {% if settings.theme|default('dark') == 'dark' %}selected{% endif %}>Dark</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="profile_visibility">Profiel Zichtbaarheid</label>
-                        <select id="profile_visibility" name="profile_visibility" required>
-                            <option value="public" {% if settings.profileVisibility|default('public') == 'public' %}selected{% endif %}>Public</option>
-                            <option value="private" {% if settings.profileVisibility|default('public') == 'private' %}selected{% endif %}>Private</option>
-                        </select>
-                    </div>
-                {% endif %}
-
                 <button type="submit" class="btn-primary">Wijzigingen opslaan</button>
 
                 <div class="form-footer-link">

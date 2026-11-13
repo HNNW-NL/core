@@ -1,7 +1,7 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Applying for project {{ slug }}{% endblock %}
+{% block title %}Aanmelden voor {{ project.title }}{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
@@ -16,6 +16,34 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Apply</h2>
-    <p>Main - projects apply page. For project {{ slug }}.</p>
+    <section class="project-apply">
+        <h2>Aanmelden voor {{ project.title }}</h2>
+
+        {% if project.summary %}
+            <p>{{ project.summary }}</p>
+        {% endif %}
+
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ type }}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        {# blocked komt uit de controller, als het goed is staat daar waarom je je niet meer kan aanmelden #}
+        {% if blocked %}
+            <p>{{ blocked.message }}</p>
+        {% else %}
+            {{ form_start(form) }}
+                <div class="form-group">
+                    {{ form_label(form.motivation) }}
+                    {{ form_widget(form.motivation) }}
+                    <div class="form-errors">{{ form_errors(form.motivation) }}</div>
+                </div>
+
+                <button type="submit" class="btn-primary">Aanmelding versturen</button>
+            {{ form_end(form) }}
+        {% endif %}
+
+        <p><a href="{{ path('main.projects.detail', {slug: slug}) }}">Terug naar het project</a></p>
+    </section>
 {% endblock %}
