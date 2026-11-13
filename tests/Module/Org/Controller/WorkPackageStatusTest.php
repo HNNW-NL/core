@@ -48,7 +48,7 @@ final class WorkPackageStatusTest extends WebTestCase
         self::assertSame($statusPath, $client->getRequest()->getPathInfo());
         $client->followRedirect();
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.work-packages-stat-cardus', 'Assigned');
+        self::assertSelectorTextSame('#work-package-status-' . $package->getId(), 'Assigned');
 
         $token = $client->getCrawler()->filter('form[action="' . $statusPath . '"] input[name="_token"]')->attr('value');
         $client->request('POST', $statusPath, ['status' => 'Draft', '_token' => $token]);

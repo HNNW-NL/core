@@ -434,30 +434,22 @@ final class AccountsController extends AbstractController
     {
         $account = $this->getAndCheckAccount();
 
-        $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
-
-        if (!$settings) {
-            $settings = $this->createAccountSettings($entityManager, $account);
-        }
-
         if ($request->isMethod('POST')) {
-            $notifyProjects = $request->request->has('notify_projects');
-            $notifyNewsletter = $request->request->has('notify_newsletter');
-
-            $settings->setEmailNotificationsEnabled($notifyProjects || $notifyNewsletter);
-
-            if (method_exists($settings, 'setLastModified')) {
-                $settings->setLastModified(new \DateTimeImmutable());
+            if (!$this->isCsrfTokenValid('account_notifications', $request->request->getString('_token'))) {
+                throw $this->createAccessDeniedException('Ongeldig veiligheidstoken.');
             }
 
-            $entityManager->flush();
+            $enabled = $request->request->has('notify_projects') || $request->request->has('notify_newsletter');
+            $this->saveAccountSettings($entityManager, $account, static function (AccountSetting $settings) use ($enabled): void {
+                $settings->setEmailNotificationsEnabled($enabled);
+            });
 
             $this->addFlash('success', 'Je notificatievoorkeuren zijn succesvol bijgewerkt!');
             return $this->redirectToRoute('account.notifications');
         }
 
         return $this->render('pages/account-centre/notifications.html.twig', [
-            'settings' => $settings
+            'settings' => $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]),
         ]);
     }
 
@@ -508,22 +500,13 @@ final class AccountsController extends AbstractController
             }
 
             $emailNotificationsEnabled = $request->request->getBoolean('email_notifications_enabled');
-            $entityManager->getConnection()->transactional(function () use (
-                $entityManager, $account, $language, $theme, $visibility, $emailNotificationsEnabled,
+            $this->saveAccountSettings($entityManager, $account, static function (AccountSetting $settings) use (
+                $language, $theme, $visibility, $emailNotificationsEnabled,
             ): void {
-                // Serialize first saves for the same account.
-                $entityManager->lock($account, LockMode::PESSIMISTIC_WRITE);
-                $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
-                if ($settings === null) {
-                    $settings = (new AccountSetting())->setAccount($account);
-                    $entityManager->persist($settings);
-                }
-
                 $settings->setLanguage($language);
                 $settings->setTheme($theme);
                 $settings->setProfileVisibility($visibility);
                 $settings->setEmailNotificationsEnabled($emailNotificationsEnabled);
-                $entityManager->flush();
             });
             $this->addFlash('success', 'Je instellingen zijn succesvol opgeslagen!');
             return $this->redirectToRoute('account.settings');
@@ -555,5 +538,25 @@ final class AccountsController extends AbstractController
             throw $this->createAccessDeniedException();
         }
         return $account;
+    }
+
+    /** @param \Closure(AccountSetting): void $update */
+    private function saveAccountSettings(EntityManagerInterface $entityManager, Account $account, \Closure $update): void
+    {
+        $entityManager->getConnection()->transactional(function () use ($entityManager, $account, $update): void {
+            // Both forms can be the first to create the account's settings.
+            $entityManager->lock($account, LockMode::PESSIMISTIC_WRITE);
+            $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
+            if ($settings === null) {
+                $settings = (new AccountSetting())
+                    ->setAccount($account)
+                    ->setLanguage('nl')
+                    ->setProfileVisibility('public');
+                $entityManager->persist($settings);
+            }
+
+            $update($settings);
+            $entityManager->flush();
+        });
     }
 }
