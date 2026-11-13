@@ -8,7 +8,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Twig\Attribute\AsTwigFunction;
 
 final readonly class AccountOverview
 {
@@ -21,7 +20,6 @@ final readonly class AccountOverview
     ) {
     }
 
-    #[AsTwigFunction('admin_account_overview')]
     public function load(): array
     {
         if (!$this->authorization->isGranted('ROLE_ADMIN') || !$this->authorization->isGranted('ADMIN_MANAGE_ACCOUNTS')) {

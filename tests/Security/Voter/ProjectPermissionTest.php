@@ -20,6 +20,16 @@ use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 final class ProjectPermissionTest extends TestCase
 {
+    public function testEnumPreservesExistingProjectRoleBits(): void
+    {
+        self::assertSame(ProjectRole::PERMISSION_VIEW, ProjectPermission::VIEW->value);
+        self::assertSame(ProjectRole::PERMISSION_EDIT, ProjectPermission::EDIT->value);
+        self::assertSame(ProjectRole::PERMISSION_DELETE, ProjectPermission::DELETE->value);
+        self::assertFalse(ProjectPermission::INVITE->in(
+            ProjectRole::PERMISSION_VIEW | ProjectRole::PERMISSION_EDIT | ProjectRole::PERMISSION_DELETE,
+        ));
+    }
+
     public static function masks(): iterable
     {
         yield 'delete only' => [ProjectRole::PERMISSION_DELETE, false, true];
