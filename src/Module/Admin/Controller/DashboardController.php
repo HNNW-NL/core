@@ -2,6 +2,7 @@
 
 namespace App\Module\Admin\Controller;
 
+use App\Repository\Common\StatusRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -50,8 +51,10 @@ final class DashboardController extends AbstractController
 
     #[Route('/statuses', name: 'statuses', methods: ['GET'])]
     #[IsGranted('ADMIN_MANAGE_SETTINGS')]
-    public function statuses(): Response
+    public function statuses(StatusRepository $statuses): Response
     {
-        return $this->render('pages/admin/statuses.html.twig');
+        return $this->render('pages/admin/statuses.html.twig', [
+            'statuses' => $statuses->findBy([], ['scope' => 'ASC', 'name' => 'ASC']),
+        ]);
     }
 }

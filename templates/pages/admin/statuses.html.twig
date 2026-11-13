@@ -1,27 +1,18 @@
 {% extends 'layouts/admin.base.html.twig' %}
 
-{% block title %}Statuses{% endblock %}
+{% block title %}Statussen{% endblock %}
 
 {% block body %}
     <h2>Statussen</h2>
-
-    {% if statuses is not defined %}
-        <p>Statusbeheer volgt in AD11.</p>
-        <p><a href="{{ path('admin.home') }}">Terug naar het admin-dashboard</a></p>
-    {% else %}
-    <a href="{{ path('admin.statuses.create') }}">
-        Nieuwe status
-    </a>
-
-    <p>Aantal statuses: {{ statuses|length }}</p>
+    <p><a href="{{ path('admin.home') }}">Terug naar het admin-dashboard</a></p>
+    <p>Dit overzicht toont geregistreerde statussen. Workflowovergangen zijn hier nog niet beschikbaar.</p>
 
     <table>
         <thead>
             <tr>
-                <th>Naam</th>
-                <th>Scope</th>
-                <th>Kleur</th>
-                <th>Acties</th>
+                <th scope="col">Geregistreerde statusnaam</th>
+                <th scope="col">Toepasselijk object</th>
+                <th scope="col">Kleurcode</th>
             </tr>
         </thead>
         <tbody>
@@ -30,32 +21,10 @@
                     <td>{{ status.name }}</td>
                     <td>{{ status.scope }}</td>
                     <td>{{ status.colourHex }}</td>
-                    <td>
-                        <a href="{{ path('admin.statuses.edit', {
-                            id: status.id
-                        }) }}">
-                            Bewerken
-                        </a>
-
-                        <form method="post"
-                              action="{{ path('admin.statuses.delete', {
-                                  id: status.id
-                              }) }}"
-                              style="display:inline;">
-                            <button type="submit">
-                                Verwijderen
-                            </button>
-                        </form>
-                    </td>
                 </tr>
             {% else %}
-                <tr>
-                    <td colspan="4">
-                        Geen statussen gevonden.
-                    </td>
-                </tr>
+                <tr><td colspan="3">Geen statussen gevonden.</td></tr>
             {% endfor %}
         </tbody>
     </table>
-    {% endif %}
 {% endblock %}

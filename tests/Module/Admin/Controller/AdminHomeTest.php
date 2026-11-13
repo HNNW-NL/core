@@ -110,18 +110,67 @@ final class AdminHomeTest extends WebTestCase
 
     public static function landingPages(): iterable
     {
-        yield 'statuses' => ['/admin/statuses', 'Statusbeheer volgt in AD11.'];
+        yield 'statuses' => ['/admin/statuses', 'ProjectApplication'];
+    }
+
+    public static function adminReadRoutes(): iterable
+    {
+        foreach (['', '/accounts', '/organizations', '/logs', '/statuses', '/notifications', '/settings',
+            '/social/manage-staff', '/events', '/api/logs/system', '/api/logs/audit',
+            '/accounts/modify/test', '/organizations/create', '/organizations/modify/test',
+            '/events/create', '/events/modify/test'] as $path) {
+            yield '/admin'.$path => ['/admin'.$path];
+        }
+    }
+
+    #[DataProvider('adminReadRoutes')]
+    public function testAdminReadRoutesRejectOrdinaryAccounts(string $path): void
+    {
+        $client = $this->clientFor((new Account())->setUsername('ordinary'));
+        $client->request('GET', $path);
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    public static function adminDestinations(): iterable
+    {
+        foreach (self::adminReadRoutes() as $name => [$path]) {
+            if (!in_array($path, ['/admin', '/admin/accounts', '/admin/statuses'], true)) {
+                yield $name => [$path];
+            }
+        }
+    }
+
+    #[DataProvider('adminDestinations')]
+    public function testAdminDestinationsOpenForPlatformAdministrator(string $path): void
+    {
+        $client = $this->clientFor($this->platformAdministrator());
+        foreach ([\App\Repository\Log\SystemLogRepository::class, \App\Repository\Log\AuditLogRepository::class] as $class) {
+            $repository = $this->createStub($class);
+            $repository->method('findLatest')->willReturn([]);
+            self::getContainer()->set($class, $repository);
+        }
+        $client->request('GET', $path);
+
+        self::assertResponseIsSuccessful();
     }
 
     #[DataProvider('landingPages')]
     public function testNewDashboardLinksHaveWorkingLandingPages(string $path, string $description): void
     {
         $client = $this->clientFor($this->platformAdministrator());
+        $repository = $this->createStub(\App\Repository\Common\StatusRepository::class);
+        $repository->method('findBy')->willReturn([
+            (new \App\Entity\Common\Status())->setName('send')->setScope('ProjectApplication')->setColourHex('#123456'),
+            (new \App\Entity\Common\Status())->setName('active')->setScope('PackageTask')->setColourHex('#123456'),
+        ]);
+        self::getContainer()->set(\App\Repository\Common\StatusRepository::class, $repository);
         $client->catchExceptions(false);
         $client->request('GET', $path);
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('main', $description);
+        self::assertSelectorTextContains('main', 'PackageTask');
         self::assertSelectorExists('main a[href="/admin"]');
     }
 

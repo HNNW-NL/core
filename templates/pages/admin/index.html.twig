@@ -83,7 +83,7 @@
                 <li><a class="admin-dashboard-card" href="{{ path('admin.logs') }}">Logs</a></li>
             {% endif %}
             {% if is_granted('ADMIN_MANAGE_SETTINGS') %}
-                <li><a class="admin-dashboard-card" href="{{ path('admin.statuses') }}">Statussen <small>Statusbeheer volgt in AD11</small></a></li>
+                <li><a class="admin-dashboard-card" href="{{ path('admin.statuses') }}">Statussen</a></li>
             {% endif %}
             <li><a class="admin-dashboard-card" href="{{ path('admin.notifications') }}">Meldingen <small>Beheer in ontwikkeling</small></a></li>
             {% if is_granted('ADMIN_MANAGE_SETTINGS') %}
