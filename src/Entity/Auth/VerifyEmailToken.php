@@ -1,10 +1,11 @@
 <?php
+
 namespace App\Entity\Auth;
 
 use App\Entity\Account\Account;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'verify_email_tokens')]
@@ -14,8 +15,8 @@ class VerifyEmailToken
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "verifyEmailTokens")]
     #[ORM\JoinColumn(name: 'account_id', nullable: false, unique: true)]
@@ -30,9 +31,6 @@ class VerifyEmailToken
     #[ORM\Column(name: 'is_used', type: 'boolean')]
     private bool $isUsed = false;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
-
     #[ORM\Column(name: 'expires_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $expiresAt;
 
@@ -46,10 +44,10 @@ class VerifyEmailToken
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -57,10 +55,7 @@ class VerifyEmailToken
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->expiresAt = $now->modify("+24 hours +5 minutes");
+        $this->expiresAt = $this->id->getDateTime()->modify('+24 hours +5 minutes');
     }
 
     public function markAsUsed(): void
@@ -124,7 +119,7 @@ class VerifyEmailToken
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getExpiresAt(): \DateTimeImmutable

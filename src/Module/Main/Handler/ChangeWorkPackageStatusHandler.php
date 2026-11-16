@@ -12,7 +12,7 @@ use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 final class ChangeWorkPackageStatusHandler
 {
@@ -25,14 +25,14 @@ final class ChangeWorkPackageStatusHandler
 
     public function handle(ChangeWorkPackageStatusDTO $dto, Project $project): void
     {
-        if (!Uuid::isValid($dto->workPackageId)) {
+        if (!Ulid::isValid($dto->workPackageId)) {
             throw new \InvalidArgumentException('Invalid work package id.');
         }
 
         $this->entityManager->getConnection()->transactional(function () use ($dto, $project): void {
             $workPackage = $this->entityManager->find(
                 WorkPackage::class,
-                Uuid::fromString($dto->workPackageId),
+                Ulid::fromString($dto->workPackageId),
                 LockMode::PESSIMISTIC_WRITE,
             );
 

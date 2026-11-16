@@ -5,7 +5,7 @@ namespace App\Module\Org\Service;
 use App\Entity\Project\Project;
 use App\Repository\Project\WorkPackageRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 class WorkPackageOverviewService
 {
@@ -17,11 +17,11 @@ class WorkPackageOverviewService
 
     public function getWorkPackagesForProjectId(string $projectId): array
     {
-        if (!Uuid::isValid($projectId)) {
+        if (!Ulid::isValid($projectId)) {
             return [];
         }
 
-        $project = $this->entityManager->find(Project::class, Uuid::fromString($projectId));
+        $project = $this->entityManager->find(Project::class, Ulid::fromString($projectId));
 
         if (!$project) {
             return [];

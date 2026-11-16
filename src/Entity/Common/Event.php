@@ -5,8 +5,8 @@ namespace App\Entity\Common;
 use App\Entity\Account\Account;
 use App\Entity\Org\Organisation;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'events')]
@@ -16,8 +16,8 @@ class Event
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
     #[ORM\JoinColumn(name: 'org_id', nullable: false)]
@@ -54,9 +54,6 @@ class Event
     #[ORM\Column(name: 'contact_email', length: 254, nullable: true)]
     private ?string $contactEmail = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
-
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
 
@@ -68,12 +65,9 @@ class Event
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
 
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
 
@@ -88,7 +82,7 @@ class Event
 
     // Getters & setters
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -227,7 +221,7 @@ class Event
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
