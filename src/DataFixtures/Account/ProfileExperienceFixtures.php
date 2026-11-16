@@ -17,7 +17,7 @@ class ProfileExperienceFixtures extends Fixture implements DependentFixtureInter
         $profileExperience = new ProfileExperience();
         $profileExperience->setJobTitle("A Job Title");
         $profileExperience->setDescription("A description");
-        $profileExperience->setOrganisationName("A Organisation");
+        $profileExperience->setExternalOrganisationName("A Organisation");
         $profileExperience->setProfile($this->getReference(ProfileFixtures::TEST_PROFILE_REFERENCE, Profile::class));
         $profileExperience->setStartDate(new DateTimeImmutable("2020-01-01"));
         $manager->persist($profileExperience);

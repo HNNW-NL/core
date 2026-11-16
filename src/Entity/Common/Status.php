@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity\Common;
 
 use App\Entity\Account\Account;
@@ -13,8 +14,8 @@ Use App\Entity\Project\PackageTask;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'statuses', uniqueConstraints: [
@@ -22,11 +23,33 @@ use Symfony\Component\Uid\Uuid;
 ])]
 class Status
 {
+    #[ORM\Column(name: 'application_accept_enabled', options: ['default' => true])]
+    private bool $applicationAcceptEnabled = true;
+
+    #[ORM\Column(name: 'application_reject_enabled', options: ['default' => true])]
+    private bool $applicationRejectEnabled = true;
+
+    public function allowsApplicationAcceptance(): bool
+    {
+        return $this->applicationAcceptEnabled;
+    }
+
+    public function allowsApplicationRejection(): bool
+    {
+        return $this->applicationRejectEnabled;
+    }
+
+    public function configureApplicationTransitions(bool $accept, bool $reject): void
+    {
+        $this->applicationAcceptEnabled = $accept;
+        $this->applicationRejectEnabled = $reject;
+    }
+
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\Column(name: 'name', length: 255)]
     private ?string $name = null;
@@ -72,7 +95,7 @@ class Status
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
 
         $this->accounts = new ArrayCollection();
         $this->organisations = new ArrayCollection();
@@ -85,7 +108,7 @@ class Status
         $this->admins = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
