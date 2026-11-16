@@ -1,11 +1,12 @@
 <?php
+
 namespace App\Entity\Org;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'org_roles', uniqueConstraints: [
@@ -17,8 +18,8 @@ class OrgRole
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "orgRoles")]
     #[ORM\JoinColumn(name: 'org_id', nullable: false)]
@@ -27,11 +28,8 @@ class OrgRole
     #[ORM\Column(name: 'name', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(name: 'permissions_mask', type: "bigint", nullable: true)]
-    private ?int $permissionsMask = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(name: 'permissions_mask', type: 'bigint', nullable: false, options: ['default' => 0])]
+    private int $permissionsMask = 0;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -47,12 +45,12 @@ class OrgRole
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
 
         $this->orgRoleMembers = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -60,10 +58,7 @@ class OrgRole
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -99,13 +94,19 @@ class OrgRole
         return $this;
     }
 
-    public function getPermissionsMask(): ?int
+    public function getPermissionsMask(): int
     {
         return $this->permissionsMask;
     }
 
-    public function setPermissionsMask(?int $permissionsMask): static
+    public function setPermissionsMask(int $permissionsMask): static
     {
+        if ($permissionsMask < 0) {
+            throw new \InvalidArgumentException(
+                'Permissions mask cannot be negative.'
+            );
+        }
+
         $this->permissionsMask = $permissionsMask;
 
         return $this;
@@ -113,7 +114,7 @@ class OrgRole
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

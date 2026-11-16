@@ -2,47 +2,18 @@
 
 {% block title %}Admin-dashboard{% endblock %}
 
+{# CSS #}
 {% block stylesheets %}
-<style>
-    .admin-dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-        gap: 1rem;
-        padding: 0;
-    }
-
-    .admin-dashboard-card {
-        background: #1e1e1e;
-        border-radius: 0.625rem;
-        color: #fff;
-        padding: 1rem;
-    }
-
-    .admin-dashboard-card dd {
-        margin: 0.25rem 0 0;
-        font-size: 1.75rem;
-        font-weight: 700;
-    }
-
-    .admin-dashboard-links {
-        list-style: none;
-    }
-
-    .admin-dashboard-links a {
-        display: block;
-        color: inherit;
-        text-decoration: underline;
-    }
-
-    .admin-dashboard-links a:focus-visible {
-        outline: 2px solid currentColor;
-        outline-offset: 0.25rem;
-    }
-</style>
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/dashboard.css') }}">
 {% endblock %}
 
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
 {% block body %}
     {% set totals = admin_dashboard_totals() %}
+
     <h1>Admin-dashboard</h1>
     <p>Bekijk de platformtotalen en open de beheeronderdelen waarvoor je bevoegd bent.</p>
 
@@ -66,33 +37,112 @@
         </dl>
 
         {% if totals.accounts == 0 and totals.organisations == 0 and totals.projects == 0 %}
-            <p id="dashboard-empty">Er zijn nog geen accounts, organisaties of projecten om te tonen.</p>
+            <p id="dashboard-empty">
+                Er zijn nog geen accounts, organisaties of projecten om te tonen.
+            </p>
         {% endif %}
     </section>
 
     <nav aria-labelledby="dashboard-navigation-heading">
         <h2 id="dashboard-navigation-heading">Beheeronderdelen</h2>
+
         <ul class="admin-dashboard-grid admin-dashboard-links">
             {% if is_granted('ADMIN_MANAGE_ACCOUNTS') %}
-                <li class="admin-dashboard-card">Accounts <small>Accountbeheer is nog niet beschikbaar en wordt opgeleverd in AD02.</small></li>
+                <li>
+                    <a class="admin-dashboard-card" href="{{ path('admin.accounts.home') }}">
+                        Accounts
+                    </a>
+                </li>
             {% endif %}
+
             {% if is_granted('ADMIN_MANAGE_ORGANISATIONS') %}
-                <li><a class="admin-dashboard-card" href="{{ path('admin.organizations.home') }}">Organisaties <small>Beheer in ontwikkeling</small></a></li>
+                <li>
+                    <a class="admin-dashboard-card" href="{{ path('admin.organizations.home') }}">
+                        Organisaties <small>Beheer in ontwikkeling</small>
+                    </a>
+                </li>
             {% endif %}
+
             {% if is_granted('ADMIN_VIEW_LOGS') %}
-                <li><a class="admin-dashboard-card" href="{{ path('admin.logs') }}">Logs</a></li>
+                <li>
+                    <a class="admin-dashboard-card" href="{{ path('admin.logs') }}">
+                        Logs
+                    </a>
+                </li>
             {% endif %}
+
             {% if is_granted('ADMIN_MANAGE_SETTINGS') %}
-                <li class="admin-dashboard-card">Statussen <small>Statusbeheer is nog niet beschikbaar en wordt opgeleverd in AD11.</small></li>
+                <li>
+                    <a class="admin-dashboard-card" href="{{ path('admin.statuses') }}">
+                        Statussen
+                    </a>
+                </li>
             {% endif %}
-            <li><a class="admin-dashboard-card" href="{{ path('admin.notifications') }}">Meldingen <small>Beheer in ontwikkeling</small></a></li>
+
+            <li>
+                <a class="admin-dashboard-card" href="{{ path('admin.notifications') }}">
+                    Meldingen <small>Beheer in ontwikkeling</small>
+                </a>
+            </li>
+
             {% if is_granted('ADMIN_MANAGE_SETTINGS') %}
-                <li><a class="admin-dashboard-card" href="{{ path('admin.settings') }}">Instellingen <small>Beheer in ontwikkeling</small></a></li>
+                <li>
+                    <a class="admin-dashboard-card" href="{{ path('admin.settings') }}">
+                        Instellingen <small>Beheer in ontwikkeling</small>
+                    </a>
+                </li>
             {% endif %}
+
             {% if is_granted('ADMIN_MANAGE_STAFF') %}
-                <li><a class="admin-dashboard-card" href="{{ path('admin.social.manageStaff') }}">Social beheer <small>Beheer in ontwikkeling</small></a></li>
+                <li>
+                    <a class="admin-dashboard-card" href="{{ path('admin.social.manageStaff') }}">
+                        Social beheer <small>Beheer in ontwikkeling</small>
+                    </a>
+                </li>
             {% endif %}
-            <li><a class="admin-dashboard-card" href="{{ path('admin.events.home') }}">Events <small>Beheer in ontwikkeling</small></a></li>
+
+            <li>
+                <a class="admin-dashboard-card" href="{{ path('admin.events.home') }}">
+                    Events <small>Beheer in ontwikkeling</small>
+                </a>
+            </li>
         </ul>
     </nav>
+
+    {% if is_granted('ADMIN_VIEW_LOGS') %}
+        <section aria-labelledby="dashboard-recent-logs">
+            <h2 id="dashboard-recent-logs">Nieuwste systeemlogs</h2>
+            <ul>
+                {% for log in logs|default([]) %}
+                    <li>{{ log.message }} — {{ log.createdAt|date('d-m-Y H:i') }}</li>
+                {% else %}
+                    <li>Geen logs gevonden.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    {% if is_granted('ADMIN_MANAGE_ACCOUNTS') %}
+        <section aria-labelledby="dashboard-recent-accounts">
+            <h2 id="dashboard-recent-accounts">Nieuwste accounts</h2>
+            <ul>
+                {% for account in accounts|default([]) %}
+                    <li>{{ account.username }} — {{ account.createdAt|date('d-m-Y H:i') }}</li>
+                {% else %}
+                    <li>Geen accounts gevonden.</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section aria-labelledby="dashboard-recent-profiles">
+            <h2 id="dashboard-recent-profiles">Nieuwste profielen</h2>
+            <ul>
+                {% for profile in profiles|default([]) %}
+                    <li>{{ profile.displayName ?: 'Naamloos profiel' }} — {{ profile.createdAt|date('d-m-Y H:i') }}</li>
+                {% else %}
+                    <li>Geen profielen gevonden.</li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
 {% endblock %}

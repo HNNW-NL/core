@@ -1,210 +1,539 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{% block title %}
-	Profiel
-{% endblock %}
+{# Page title meta tag #}
+{% block title %}{{ slug }}{% endblock %}
 
+{# SEO #}
+{% block seoKeywords %}{% endblock %}
+{% block seoDescription %}{% endblock %}
+{% block seoAuthor %}HNNW{% endblock %}
+
+{# CSS #}
 {% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('assets/main/css/home.css') }}">
+    <link rel="stylesheet" href="{{ asset("assets/main/css/home.css") }}">
+    <link rel="stylesheet" href="{{ asset("assets/main/css/profile.css") }}">
 {% endblock %}
 
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
 {% block body %}
-<div class="page">
+    <div id="inner-main">
+        <article id="profile">
+            <section id="basic-info">
+                <figure id="p-cover">
+                    <img id="pc-img" src="https://media.licdn.com/dms/image/v2/D5616AQHtxtU_sS1o7w/profile-displaybackgroundimage-shrink_200_800/B56Zl2YtDMHUAU-/0/1758627819695?e=1794441600&v=beta&t=ZiD7Z1BJWgWRmtmRrDPZjT7PravrhrK5zkbA81-h-ws" alt="">
+                </figure>
 
-        <div class="header">
-
-                  <!-- Profile Picture -->
-                 <div class="profile-avatar">
-                 <img id="preview" src="default-profile.png" alt="Profile Picture">
-                 </div>
-
-                 <input type="file" id="upload" style="display: none;">
-
-                 <!-- eigen knop -->
-                 <label for="upload" class="upload-btn">
-                   Kies profielfoto
-                 </label>
-
-
-                 <script>
-                const upload = document.getElementById("upload");
-                const preview = document.getElementById("preview");
-
-                upload.addEventListener("change", function () {
-                const file = this.files[0];
-
-                if (file) {
-                const reader = new FileReader();
-
-                reader.onload = function () {
-                preview.src = reader.result;
-                };
-
-                 reader.readAsDataURL(file);
-                }
-                });
-                </script>
-                 </div>
-
-
-
-
-
-
-
-                <div class="profile-text">
-                    <h1>Naam</h1>
-                    <p>@username</p>
-                    {# <p>Locatie</p> #}
-                     <p onclick="openLocationPopup()" style="cursor: pointer;">
-                   Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
-                    <span style="font-size: 12px;">✏️</span>
-                      </p>
-
-                    {% if app and app.user %}
-
-                        <p>Status:
-                            {% if app.user.status and app.user.status.id == 1 %}
-                                Online
-                            {% elseif app.user.status and app.user.status.id == 2 %}
-                                Afwezig
-                            {% else %}
-                                Offline
-                            {% endif %}
-                        </p>
-
-
-                        <p>
-                            {% if app.user.lastLoginAt %}
-
-                                Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
-                            {% else %}
-                                Laatst actief: Onbekend
-                            {% endif %}
-                        </p>
-                    {% else %}
-
-                        <p>Occupation / Status</p>
-                        <p>Laatst actief: Onbekend</p>
-                    {% endif %}
-                </div>
-                <div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
-    <h3>Locatie aanpassen</h3>
-    <select id="new-location">
-        <option value="">-- Kies een stad --</option>
-        <option value="Den Haag">Den Haag</option>
-        <option value="Amsterdam">Amsterdam</option>
-        <option value="Rotterdam">Rotterdam</option>
-        <option value="Utrecht">Utrecht</option>
-        <option value="Eindhoven">Eindhoven</option>
-        <option value="Groningen">Groningen</option>
-        <option value="Maastricht">Maastricht</option>
-    </select>
-    <button onclick="saveLocation()">Opslaan</button>
-    <button onclick="closePopup()">Annuleren</button>
-</div>
-
-			<div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
-		</div>
-	</div>
-
-	<div class="main-grid">
-
-		<div class="card-about-me">
-			<h2 class="about-me">Over mij</h2>
-			<p class="text-muted">This is an example text.</p>
-
-			<h2 class="expertise" style="margin-top: 40px;">Expertise</h2>
-			<div class="expertise-container">
-				<div class="bubble">Expertise 1</div>
-				<div class="bubble">Expertise 2</div>
-				<div class="bubble">Expertise 3</div>
-			</div>
-		</div>
-
-		<div class="card">
-			<div class="action-buttons">
-				<a href="#" class="btn-outline">Edit Profile</a>
-				<a href="#" class="btn-outline">Projects</a>
-                    <a href="#" class="socials">Socials
-                    <div class="socials-icons">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/instagram.svg" alt="Instagram Icon" width="50" height="50">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/youtube.svg" alt="YouTube Icon" width="50" height="50">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/tiktok.svg" alt="TikTok Icon" width="50" height="50">
-            </div>
-</a>
+                <div id="p-image">
+                    <figure id="p-avatar">
+                        <img src="https://media.licdn.com/dms/image/v2/D4E03AQGx8fit2XBp2A/profile-displayphoto-scale_400_400/B4EaD3zpHZK8Ag-/0/1790863906206?e=1794441600&v=beta&t=W3uTqqtcOYTucKEcldnKQ4OYZemJ-0MxI8Xnx2LVAcg" alt="">
+                    </figure>
+                    <a id="pi-icon" href="">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M14.826 19A3 3 0 0 1 12 21a3 3 0 0 1-2.825-2zM12 2a7 7 0 0 1 7 7v3.528a1 1 0 0 0 .106.447l1.717 3.433A1.1 1.1 0 0 1 19.838 18H4.162a1.1 1.1 0 0 1-.984-1.592l1.717-3.433A1 1 0 0 0 5 12.528V9a7 7 0 0 1 7-7"/></svg>
                     </a>
-			</div>
-		</div>
+                </div>
 
-		<div class="tech-stack">
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JS">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP">
-			</div>
-		</div>
+                <div id="p-info">
+                    <div id="pi-core">
+                        <div id="pc-info">
+                            <div id="pci-title">
+                                <div id="pci-name">
+                                    <div id="pcin-name">
+                                        <h1>Riley de Man</h1>
+                                    </div>
+                                    <figure id="pcin-verification">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="m8.38 12l2.41 2.42l4.83-4.84"/><path d="M10.75 2.45c.69-.59 1.82-.59 2.52 0l1.58 1.36c.3.26.86.47 1.26.47h1.7c1.06 0 1.93.87 1.93 1.93v1.7c0 .39.21.96.47 1.26l1.36 1.58c.59.69.59 1.82 0 2.52l-1.36 1.58c-.26.3-.47.86-.47 1.26v1.7c0 1.06-.87 1.93-1.93 1.93h-1.7c-.39 0-.96.21-1.26.47l-1.58 1.36c-.69.59-1.82.59-2.52 0l-1.58-1.36c-.3-.26-.86-.47-1.26-.47H6.18c-1.06 0-1.93-.87-1.93-1.93V16.1c0-.39-.21-.95-.46-1.25l-1.35-1.59c-.58-.69-.58-1.81 0-2.5l1.35-1.59c.25-.3.46-.86.46-1.25V6.2c0-1.06.87-1.93 1.93-1.93h1.73c.39 0 .96-.21 1.26-.47z"/></g></svg>
+                                    </figure>
+                                </div>
+                                <div id="pci-pronouns">
+                                    <p>He/Him</p>
+                                </div>
+                            </div>
 
-		<div class="achievements-bar">
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-		</div>
+                            <p id="pci-headline">Software Engineer & Software  Developer | Software Engineer intern @ SCC-ICT | Product Owner & Lead Developer Het Nieuwe² Werken (HNNW) @ DIVD Academy</p>
+                            <p id="pci-location">Wassenaar, South Holland, Netherlands</p>
+                        </div>
+                        <div id="pc-companies">
+                            <div class="company">
+                                <figure class="comp-icon">
+                                    <img src="https://media.licdn.com/dms/image/v2/C560BAQEadhS0j25Ccg/company-logo_200_200/company-logo_200_200/0/1631331751905?e=1794441600&v=beta&t=PYnsyFlK7nVghz7WaC91zJxjinlfbiLVpl9J-BUifis" alt="">
+                                </figure>
+                                <p>SCC-ICT</p>
+                            </div>
+                            <div class="company">
+                                <figure class="comp-icon">
+                                    <img src="https://media.licdn.com/dms/image/v2/C4D0BAQGDfLSA_HVarg/company-logo_200_200/company-logo_200_200/0/1632990971742/grafisch_lyceum_utrecht_logo?e=1794441600&v=beta&t=2BRma_RNCxOJ12An9BdeAT7Az2WWG8WTcUHzsUzb3jw" alt="">
+                                </figure>
+                                <p>Grafisch Lyceum Utrecht</p>
+                            </div>
+                        </div>
+                    </div>
 
-	</div>
+                    <div id="pi-website">
+                        <a id="piw-link" href="https://rileydeman.com" target="_blank">
+                            <p>rileydeman.com</p>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6v2H5v12h12v-6zM13 3v2h4.586l-7.793 7.793l1.414 1.414L19 6.414V11h2V3z"/></svg>
+                        </a>
+                    </div>
 
-</div>
+                    <div id="pi-stats">
+                        <p>Stats (e.g. <span>133</span> connections, <span>12</span> projects)</p>
+                    </div>
 
- <script>
-        function openLocationPopup() {
-            document.getElementById('location-popup').style.display = 'block';
-            document.getElementById('popup-overlay').style.display = 'block';
-        }
+                    <div id="pi-btns">
+                        <a href="#" id="pib-projects">
+                            <span>Bekijk projecten</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
 
-		function closePopup() {
-			document.getElementById('location-popup').style.display = 'none';
-			document.getElementById('popup-overlay').style.display = 'none';
-		}
+            <section id="about" class="section">
+                <h2 id="a-title">Over</h2>
+                <p id="a-descr">
+                    I’m a software developer from the Netherlands with a strong interest in scalable web applications, backend systems, open-source software, and technical product development. Over the years, I’ve worked on personal, school, and collaborative projects that helped me grow from building simple websites into developing modern applications and contributing to larger real-world platforms.
+                    <br><br>
+                    In 2023, I started the Creative Software Development course at Grafisch Lyceum Utrecht, where I focus on web development, software engineering, and technical collaboration. Since then, I’ve continued improving my skills through practical projects involving architecture, backend development, product thinking, and technical decision-making within both independent and team-based environments.
+                    <br><br>
+                    Alongside development, I’ve become increasingly interested in software engineering concepts such as maintainability, scalability, system architecture, cybersecurity, and long-term product design. My current work includes collaborative public-sector and open-source projects where I contribute not only as a developer, but also in technical leadership and product-oriented roles.
+                </p>
+                <div id="top-skills">
+                    <figure id="ts-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.467 8.694l.246-.566a4.36 4.36 0 0 1 2.22-2.25l.759-.339a.53.53 0 0 0 0-.963l-.717-.319a4.37 4.37 0 0 1-2.251-2.326l-.253-.611a.506.506 0 0 0-.942 0l-.253.61a4.37 4.37 0 0 1-2.25 2.327l-.718.32a.53.53 0 0 0 0 .962l.76.338a4.36 4.36 0 0 1 2.219 2.251l.246.566c.18.414.753.414.934 0M5 6a1 1 0 0 0-.8.4l-3 4a1 1 0 0 0 .057 1.269l9 10a1 1 0 0 0 1.486 0l9-10l-1.486-1.338L11 19.505l-7.707-8.563L5.5 8H14V6z"/></svg>
+                    </figure>
+                    <div id="ts-content">
+                        <p id="ts-title">Top skills</p>
+                        <p>Product Management • Software Engineering • Software Development • Cybersecurity • Python (Programming Language)</p>
+                    </div>
+                </div>
+            </section>
 
-		function saveLocation() {
-			const newLocation = document.getElementById('new-location').value;
+            <section id="experience" class="section">
+                <h2 id="e-title">Werkervaring</h2>
 
-			if (!newLocation) {
-				alert('Kies eerst een stad alstublieft.');
-				return;
-			}
+                {% set experiences = [
+                    {
+                        company: 'SSC-ICT',
+                        logo: '',
+                        positions: [
+                        { title: 'Software Engineer', type: 'Internship', period: 'Sep 2026 - Present', location: 'The Hague, South Holland, Netherlands · Hybrid', description: '' }
+                    ]
+                    },
+                    {
+                        company: 'DIVD.WORKS',
+                        logo: '',
+                        positions: [
+                        { title: 'Software Engineer', type: 'Part-time', period: 'Jul 2026 - Present', location: 'Remote', description: '' }
+                    ]
+                    },
+                    {
+                        company: 'DIVD Academy',
+                        logo: '',
+                        duration: '10 mos',
+                        location: 'Hybrid',
+                        positions: [
+                        { title: 'Vocational Education Mentor (ICT)', type: 'Full-time', period: 'Apr 2026 - Present', location: 'Netherlands', description: '' },
+                        { title: 'Product Owner & Lead Developer Het Nieuwe² Werken (HNNW)', type: 'Full-time', period: 'Mar 2026 - Present', location: 'The Hague, South Holland, Netherlands', description: 'Product Owner and Lead Developer of the HNNW platform, coordinating development and technical decisions.' },
+                        { title: 'Cyber Security Trainee', type: 'Internship', period: 'Feb 2026 - Jul 2026', location: 'The Hague, South Holland, Netherlands', description: 'Cybersecurity training focused on web application security and practical security testing.' }
+                    ]
+                    },
+                    {
+                        company: 'Spellenwinkel.nl',
+                        logo: '',
+                        duration: '4 yrs 4 mos',
+                        location: 'Delft, South Holland, Netherlands · On-site',
+                        positions: [
+                        { title: 'TCG Employee', type: 'Part-time', period: 'Mar 2026 - Present', location: '', description: '' },
+                        { title: 'All-Round Logistics Employee - TCG Department', type: 'Part-time', period: 'Jul 2024 - Mar 2026', location: '', description: 'Collecting orders, replenishing inventory, packing parcels and handling trading card products.' },
+                        { title: 'All-Round Logistics Employee', type: 'Part-time', period: 'Sep 2023 - Jul 2024', location: '', description: '' },
+                        { title: 'Logistics Employee', type: 'Full-time', period: 'Jan 2023 - Aug 2023', location: '', description: '' },
+                        { title: 'Logistics Employee', type: 'Part-time', period: 'Aug 2022 - Dec 2022', location: '', description: '' }
+                    ]
+                    },
+                    {
+                        company: 'Blue-Lagoon',
+                        logo: '',
+                        positions: [
+                        { title: 'Intern Animal Care', type: 'Internship', period: 'Jan 2022 - Mar 2022', location: 'Maassluis, South Holland, Netherlands · On-site', description: 'Taking care of animals, filling shelves, assisting in the store and preparing packages for shipping.' }
+                    ]
+                    }
+                ] %}
 
-			fetch('/profile/location', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ location: newLocation })
-			})
-			.then(response => response.json())
-			.then(data => {
-				if (data.success) {
-					document.getElementById('current-location').textContent = data.location;
-					closePopup();
-				} else {
-					alert('Error: ' + data.message);
-				}
-			})
-			.catch(error => {
-				console.error('Fetch error:', error);
-			});
-		}
-	   </script>
+                <div id="e-list">
+                    {% for experience in experiences %}
+                        <article class="e-item">
+                            <figure class="ei-logo">
+                                {% if experience.logo %}
+                                    <img src="{{ experience.logo }}" alt="{{ experience.company }}">
+                                {% else %}
+                                    <span>{{ experience.company|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
 
-    {% endblock %}
+                            <div class="ei-content">
+                                {% if experience.positions|length > 1 %}
+                                    <div class="ei-company">
+                                        <h3>{{ experience.company }}</h3>
+                                        <p class="ei-muted">{{ experience.duration|default('') }}</p>
+                                        <p class="ei-muted">{{ experience.location|default('') }}</p>
+                                    </div>
 
+                                    <div class="ei-timeline">
+                                        {% for position in experience.positions %}
+                                            <div class="ei-position">
+                                                <h4>{{ position.title }}</h4>
+                                                <p>{{ position.type }}</p>
+                                                <p class="ei-muted">{{ position.period }}</p>
+                                                {% if position.location %}
+                                                    <p class="ei-muted">{{ position.location }}</p>
+                                                {% endif %}
+                                                {% if position.description %}
+                                                    <p class="ei-description">{{ position.description }}</p>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {% set position = experience.positions|first %}
+                                    <h3>{{ position.title }}</h3>
+                                    <p>{{ experience.company }} · {{ position.type }}</p>
+                                    <p class="ei-muted">{{ position.period }}</p>
+                                    <p class="ei-muted">{{ position.location }}</p>
+                                    {% if position.description %}
+                                        <p class="ei-description">{{ position.description }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <a class="e-footer" href="#">
+                    <p>Alle werkervaring weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
+            </section>
+
+            <section id="education" class="section">
+                <h2 id="edu-title">Onderwijs</h2>
+
+                {% set educations = [
+                    {
+                        school: 'Grafisch Lyceum Utrecht',
+                        degree: 'MBO 4, Software Developer',
+                        period: 'Sep 2023 - Jul 2027',
+                        description: 'Creative Software Development - Web Development',
+                        skills: 'Cascading Style Sheets (CSS), MySQL, PHP en meer',
+                        logo: ''
+                    },
+                    {
+                        school: 'Aeres MBO Barneveld',
+                        degree: 'MBO 4, Bedrijfsleider Dierverzorging',
+                        period: 'Sep 2021 - Dec 2022',
+                        description: '',
+                        skills: 'Microsoft Excel en Microsoft Word',
+                        logo: ''
+                    }
+                ] %}
+
+                <div id="edu-list">
+                    {% for education in educations %}
+                        <article class="edu-item">
+                            <figure class="edui-logo">
+                                {% if education.logo %}
+                                    <img src="{{ education.logo }}" alt="{{ education.school }}">
+                                {% else %}
+                                    <span>{{ education.school|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
+
+                            <div class="edui-content">
+                                <h3>{{ education.school }}</h3>
+                                <p>{{ education.degree }}</p>
+                                <p class="edui-muted">{{ education.period }}</p>
+
+                                {% if education.description %}
+                                    <p class="edui-description">{{ education.description }}</p>
+                                {% endif %}
+
+                                {% if education.skills %}
+                                    <p class="edui-skills">
+                                        <strong>Vaardigheden:</strong> {{ education.skills }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <a class="edu-footer" href="#">
+                    <p>Alle opleidingen weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
+            </section>
+
+            <section id="licenses" class="section">
+                <h2 id="l-title">Licenties en certificeringen (3)</h2>
+
+                {% set certificates = [
+                    {
+                        title: 'Workshop Participation Certificate - Vocational Education Mentor',
+                        issuer: 'Samenwerkingsorganisatie Beroepsonderwijs Bedrijfsleven (SBB)',
+                        issued: 'Issued Jun 2026',
+                        credential: '',
+                        url: '',
+                        logo: ''
+                    },
+                    {
+                        title: 'Example Certificate',
+                        issuer: 'Issuing Organisation',
+                        issued: 'Issued 2026',
+                        credential: 'EXAMPLE-123',
+                        url: '',
+                        logo: ''
+                    },
+                    {
+                        title: 'Example Training Certificate',
+                        issuer: 'Training Provider',
+                        issued: 'Issued 2025',
+                        credential: '',
+                        url: '',
+                        logo: ''
+                    }
+                ] %}
+
+                <div id="l-list">
+                    {% for certificate in certificates %}
+                        <article class="l-item">
+                            <figure class="li-logo">
+                                {% if certificate.logo %}
+                                    <img src="{{ certificate.logo }}" alt="{{ certificate.issuer }}">
+                                {% else %}
+                                    <span>{{ certificate.issuer|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
+
+                            <div class="li-content">
+                                <h3>{{ certificate.title }}</h3>
+                                <p>{{ certificate.issuer }}</p>
+                                <p class="li-muted">{{ certificate.issued }}</p>
+
+                                {% if certificate.credential %}
+                                    <p class="li-muted">
+                                        Credential ID: {{ certificate.credential }}
+                                    </p>
+                                {% endif %}
+
+                                {% if certificate.url %}
+                                    <a class="li-action" href="{{ certificate.url }}" target="_blank" rel="noopener noreferrer">
+                                        <p>Certificaat weergeven</p>
+                                        <span aria-hidden="true">↗</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <a class="l-footer" href="#">
+                    <p>Alle certificeringen weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
+            </section>
+
+            <section id="skills" class="section">
+                <h2 id="s-title">Vaardigheden (25)</h2>
+
+                {% set profileSkills = [
+                    {
+                        name: 'Product Management',
+                        context: 'Product Owner & Lead Developer · HNNW',
+                        endorsements: 0
+                    },
+                    {
+                        name: 'Software Engineering',
+                        context: 'SSC-ICT en DIVD Academy',
+                        endorsements: 0
+                    },
+                    {
+                        name: 'Software Development',
+                        context: 'Grafisch Lyceum Utrecht en werkervaring',
+                        endorsements: 0
+                    },
+                    {
+                        name: 'Cybersecurity',
+                        context: 'DIVD Academy',
+                        endorsements: 0
+                    },
+                    {
+                        name: 'Python (Programming Language)',
+                        context: 'Projecten en opleiding',
+                        endorsements: 0
+                    }
+                ] %}
+
+                <div id="s-list">
+                    {% for skill in profileSkills %}
+                        <article class="s-item">
+                            <h3>{{ skill.name }}</h3>
+
+                            {% if skill.context %}
+                                <div class="si-context">
+                                    <span aria-hidden="true">◇</span>
+                                    <p>{{ skill.context }}</p>
+                                </div>
+                            {% endif %}
+
+                            {% if skill.endorsements > 0 %}
+                                <p class="si-endorsements">
+                                    {{ skill.endorsements }} onderschrijvingen
+                                </p>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+
+                <a class="s-footer" href="#">
+                    <p>Alle 25 vaardigheden weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
+            </section>
+
+            <section id="recommendations" class="section">
+                <h2 id="r-title">Aanbevelingen</h2>
+
+                {% set receivedRecommendations = [
+                    {
+                        name: 'Voorbeeldpersoon',
+                        initials: 'VP',
+                        headline: 'Software Engineer',
+                        relation: 'Worked together on a software development project',
+                        date: 'November 2026',
+                        text: 'Dit is een voorbeeld van een ontvangen aanbeveling. Hier kan een collega of leidinggevende een aanbeveling schrijven over de samenwerking, technische kennis en professionele vaardigheden.'
+                    }
+                ] %}
+
+                {% set givenRecommendations = [] %}
+
+                <div id="r-tabs">
+                    <input type="radio" name="recommendation-tab" id="rt-received" checked>
+                    <input type="radio" name="recommendation-tab" id="rt-given">
+
+                    <div id="rt-navigation">
+                        <label for="rt-received">Ontvangen</label>
+                        <label for="rt-given">Gegeven</label>
+                    </div>
+
+                    <div id="rt-received-content" class="rt-content">
+                        {% for recommendation in receivedRecommendations %}
+                            <article class="r-item">
+                                <figure class="ri-avatar">
+                                    <span>{{ recommendation.initials }}</span>
+                                </figure>
+
+                                <div class="ri-content">
+                                    <h3>{{ recommendation.name }}</h3>
+                                    <p class="ri-headline">{{ recommendation.headline }}</p>
+                                    <p class="ri-muted">{{ recommendation.date }}</p>
+                                    <p class="ri-muted">{{ recommendation.relation }}</p>
+                                    <p class="ri-description">{{ recommendation.text }}</p>
+                                </div>
+                            </article>
+                        {% else %}
+                            <p class="r-empty">Er zijn nog geen ontvangen aanbevelingen.</p>
+                        {% endfor %}
+                    </div>
+
+                    <div id="rt-given-content" class="rt-content">
+                        {% for recommendation in givenRecommendations %}
+                            <article class="r-item">
+                                <figure class="ri-avatar">
+                                    <span>{{ recommendation.initials }}</span>
+                                </figure>
+
+                                <div class="ri-content">
+                                    <h3>{{ recommendation.name }}</h3>
+                                    <p class="ri-headline">{{ recommendation.headline }}</p>
+                                    <p class="ri-muted">{{ recommendation.date }}</p>
+                                    <p class="ri-description">{{ recommendation.text }}</p>
+                                </div>
+                            </article>
+                        {% else %}
+                            <p class="r-empty">Er zijn nog geen gegeven aanbevelingen.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+        </article>
+
+        <section id="suggestions">
+            <section id="more-profiles-for-you" class="section">
+                <h3>Meer profielen voor jou</h3>
+                {% set suggestedProfiles = [
+                    { name: 'Alex Morgan', initials: 'AM', headline: 'Software Engineer | Backend Development', action: 'Verbinden', mutual: '8 gezamenlijke connecties' },
+                    { name: 'Sam de Vries', initials: 'SV', headline: 'Product Owner | Open-source projecten', action: 'Volgen', mutual: '3 gezamenlijke connecties' },
+                    { name: 'Jamie Bakker', initials: 'JB', headline: 'DevOps Engineer | Linux & Cloud', action: 'Verbinden', mutual: '5 gezamenlijke connecties' }
+                ] %}
+
+                <div class="suggestion-list">
+                    {% for person in suggestedProfiles %}
+                        <article class="suggestion-person">
+                            <figure class="sp-avatar" aria-hidden="true">
+                                <span>{{ person.initials }}</span>
+                            </figure>
+                            <div class="sp-content">
+                                <p class="sp-name">{{ person.name }}</p>
+                                <p class="sp-headline">{{ person.headline }}</p>
+                                <p class="sp-mutual">{{ person.mutual }}</p>
+                                <a class="sp-action" href="#">
+                                    <p>{{ person.action }}</p>
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                <a class="suggestion-footer" href="#">
+                    <p>Alles weergeven</p>
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M5 12h14m-6-6 6 6-6 6"/>
+                    </svg>
+                </a>
+            </section>
+
+            <section id="people-you-may-know" class="section">
+                <h3>Personen die jij wellicht kent</h3>
+                {% set peopleYouMayKnow = [
+                    { name: 'Robin Jansen', initials: 'RJ', headline: 'Full-stack Developer', mutual: '2 gezamenlijke connecties' },
+                    { name: 'Noa Visser', initials: 'NV', headline: 'UX/UI Designer', mutual: '4 gezamenlijke connecties' },
+                    { name: 'Daniël Smit', initials: 'DS', headline: 'Software Development Student', mutual: '1 gezamenlijke connectie' }
+                ] %}
+
+                <div class="suggestion-list">
+                    {% for person in peopleYouMayKnow %}
+                        <article class="suggestion-person">
+                            <figure class="sp-avatar" aria-hidden="true">
+                                <span>{{ person.initials }}</span>
+                            </figure>
+                            <div class="sp-content">
+                                <p class="sp-name">{{ person.name }}</p>
+                                <p class="sp-headline">{{ person.headline }}</p>
+                                <p class="sp-mutual">{{ person.mutual }}</p>
+                                <a class="sp-action" href="#">
+                                    <p>{{ person.action|default('Verbinden') }}</p>
+                                </a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                <a class="suggestion-footer" href="#">
+                    <p>Alles weergeven</p>
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M5 12h14m-6-6 6 6-6 6"/>
+                    </svg>
+                </a>
+            </section>
+        </section>
+    </div>
+{% endblock %}

@@ -12,6 +12,7 @@ use App\Module\Main\Service\CurrentProfileProvider;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectRepository;
+use App\Repository\Project\WorkPackageRepository;
 use App\Security\Voter\ProjectVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -61,7 +62,7 @@ final class ProjectsController extends AbstractController
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
             $projectRepository,
-            true,
+            true
         );
 
         $profile = $this->getSessionProfile($request, $entityManager);
@@ -124,19 +125,9 @@ final class ProjectsController extends AbstractController
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
     public function apply(string $slug, ProjectRepository $projectRepository): Response
     {
-        $project = $projectRepository->findOnePublicBySlug($slug);
-
-        if ($project === null) {
-            throw $this->createNotFoundException('Project niet gevonden.');
-        }
-
-        if (strtolower(trim((string) $project->getStatus()?->getName())) !== 'open') {
-            $this->addFlash('warning', 'Dit project accepteert op dit moment geen aanmeldingen.');
-
-            return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);
-        }
-
+        $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository, true);
         return $this->render('pages/main/projects/apply.html.twig', [
+            'slug' => $slug,
             'project' => $project,
         ]);
     }
@@ -274,6 +265,7 @@ final class ProjectsController extends AbstractController
     public function tasks(
         string $slug,
         ProjectRepository $projectRepository,
+        WorkPackageRepository $workPackageRepository,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
@@ -283,10 +275,14 @@ final class ProjectsController extends AbstractController
         return $this->render('pages/main/projects/tasks.html.twig', [
             'slug' => $slug,
             'project' => $project,
+            'packageTasks' => array_merge([], ...array_map(
+                static fn ($workPackage): array => $workPackage->getWorkPackageTasks()->toArray(),
+                $workPackageRepository->findActiveByProject($project)
+            )),
         ]);
     }
 
-    #[Route('/{slug}/tasks/{taskId}/enroll', name: 'tasks.enroll', methods: ['POST'])]
+    #[Route('/{slug}/tasks/{taskId}/enroll', name: 'workPackages.enrollTask', methods: ['POST'])]
     public function enrollTask(
         string $slug,
         string $taskId,
@@ -314,7 +310,7 @@ final class ProjectsController extends AbstractController
             );
         }
 
-        $project = $projectRepository->findOnePublicBySlug($slug);
+        $project = $projectRepository->findOneVisibleBySlug($slug);
 
         if ($project === null) {
             throw $this->createNotFoundException('Project niet gevonden.');
@@ -383,18 +379,18 @@ final class ProjectsController extends AbstractController
     #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
     public function workPackages(
         string $slug,
-        GetProjectWorkPackagesHandler $handler,
+        WorkPackageRepository $workPackageRepository,
         ProjectRepository $projectRepository,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
-            $projectRepository,
+            $projectRepository
         );
 
         return $this->render('pages/main/projects/work-packages.html.twig', [
             'slug' => $slug,
             'project' => $project,
-            'workPackages' => $handler->handle($slug),
+            'workPackages' => $workPackageRepository->findActiveByProject($project),
         ]);
     }
 
@@ -427,10 +423,11 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        if (
-            !$allowPublicAccess
-            || $project->getVisibility() === 'private'
-        ) {
+        if ($allowPublicAccess && $project->getVisibility() === 'public' && $project->getPublishedAt() !== null) {
+            return $project;
+        }
+
+        if (!$allowPublicAccess || $project->getVisibility() !== 'public' || $project->getPublishedAt() === null) {
             $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
         }
 
