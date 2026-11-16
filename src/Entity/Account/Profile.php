@@ -5,13 +5,14 @@ use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\ProjectUpdate;
 use App\Entity\Project\PackageTask;
+use App\Repository\Account\ProfileRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: ProfileRepository::class)]
 #[ORM\Table(name: 'profiles')]
 #[ORM\HasLifecycleCallbacks]
 class Profile

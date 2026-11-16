@@ -81,4 +81,14 @@ class PackageTaskRepository extends ServiceEntityRepository
     {
         return $packageTask->getAssignedProfile()?->getId()->equals($profile->getId()) ?? false;
     }
+
+    public function findByProject(Project $project): array
+    {
+        return $this->createQueryBuilder('pt')
+            ->join('pt.workPackage', 'wp')
+            ->andWhere('wp.project = :project')
+            ->setParameter('project', $project)
+            ->getQuery()
+            ->getResult();
+    }
 }

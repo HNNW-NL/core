@@ -162,3 +162,231 @@ header nav ul svg:hover path {
     font-size: 18px;
     line-height: 28px;
 }
+
+.page_navbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    background: rgba(11, 18, 32, 0.94);
+    box-shadow: 0 8px 24px rgba(2, 6, 14, 0.16);
+    backdrop-filter: blur(12px);
+}
+
+.page_navbar .main-header {
+    position: relative;
+    width: min(1180px, calc(100% - 48px));
+    min-height: 76px;
+    margin: 0 auto;
+    padding: 12px 0;
+    gap: 24px;
+}
+
+.page_navbar .logo-name {
+    display: inline-flex;
+    align-items: baseline;
+    margin-left: 0;
+    white-space: nowrap;
+}
+
+.page_navbar .navbar {
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.page_navbar .nav-links {
+    gap: clamp(4px, 1vw, 16px);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.page_navbar .nav-button {
+    padding: 9px 10px;
+    border-radius: 7px;
+    font-weight: 600;
+    transition: color 160ms ease, background-color 160ms ease;
+}
+
+.page_navbar .nav-button:hover,
+.page_navbar .nav-button:focus-visible {
+    color: #ffe36f;
+    background: rgba(255, 227, 111, 0.08);
+}
+
+.page_navbar .nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0;
+    padding-left: 10px;
+}
+
+.page_navbar .nav-icons svg,
+.page_navbar .nav-icons svg:first-of-type {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+}
+
+.page_navbar .hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+}
+
+.page_navbar .hamburger:focus-visible {
+    outline: 3px solid #6ec6d4;
+    outline-offset: 3px;
+}
+
+.main-breadcrumbs {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 18px 0 0;
+    color: #a8b4c7;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+main .main-breadcrumbs {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.main-breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.main-breadcrumbs li + li::before {
+    margin-right: 8px;
+    color: #64748b;
+    content: "/";
+}
+
+.main-breadcrumbs a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.main-breadcrumbs a:hover,
+.main-breadcrumbs a:focus-visible {
+    color: #74b9ff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.main-breadcrumbs [aria-current="page"] {
+    color: #f3f7ff;
+    font-weight: 600;
+}
+
+@media (max-width: 760px) {
+    .page_navbar .main-header {
+        width: calc(100% - 32px);
+        min-height: 68px;
+        gap: 12px;
+    }
+
+    .page_navbar .hamburger {
+        display: inline-flex;
+        flex: 0 0 auto;
+    }
+
+    .page_navbar .navbar {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        display: block;
+        max-height: 0;
+        overflow: hidden;
+        border: 1px solid transparent;
+        border-top: 0;
+        border-radius: 0 0 12px 12px;
+        background: #141b2e;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+        visibility: hidden;
+        transition: max-height 180ms ease, visibility 180ms ease;
+    }
+
+    .page_navbar .navbar.active {
+        max-height: 600px;
+        border-color: rgba(148, 163, 184, 0.2);
+        visibility: visible;
+    }
+
+    .page_navbar .nav-links {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        padding: 10px;
+        white-space: normal;
+    }
+
+    .page_navbar .nav-links li {
+        min-width: 0;
+    }
+
+    .page_navbar .nav-button {
+        display: block;
+        width: 100%;
+        padding: 11px 12px;
+        text-align: left;
+    }
+
+    .page_navbar .nav-icons {
+        justify-content: flex-start;
+        margin: 4px 10px 0;
+        padding: 12px 2px 4px;
+        border-top: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .main-breadcrumbs {
+        padding-top: 14px;
+    }
+}
+
+@media (max-width: 380px) {
+    .page_navbar .main-header {
+        width: calc(100% - 24px);
+    }
+
+    .page_navbar .logo-name-het,
+    .page_navbar .logo-name-nieuwe,
+    .page_navbar .logo-name-werken {
+        font-size: 16px;
+    }
+
+    .page_navbar .logo-name-two {
+        font-size: 11px;
+    }
+
+    .main-breadcrumbs {
+        width: calc(100% - 24px);
+        font-size: 0.8125rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page_navbar *,
+    .main-breadcrumbs * {
+        scroll-behavior: auto;
+        transition-duration: 0.01ms;
+    }
+}
