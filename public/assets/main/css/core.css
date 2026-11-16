@@ -403,50 +403,37 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-
     width: 100%;
-
     margin-top: auto;
     padding: 24px 20px;
-
     text-align: center;
-
     box-sizing: border-box;
+    flex-wrap: wrap;
 }
 
 .main-footer p {
     margin: 0;
-
     max-width: 100%;
-
     color: #64748b;
-
     font-size: 0.85rem;
     line-height: 1.5;
-
     overflow-wrap: anywhere;
 }
 
-
 @media (max-width: 900px) {
-
     .main-footer {
         padding: 22px 18px;
+        margin-top: auto;
     }
-
     .main-footer p {
         font-size: 0.8rem;
     }
 }
 
-
 @media (max-width: 768px) {
-
     .main-footer {
         padding: 20px 16px;
-
         flex-direction: column;
-
         gap: 8px;
 
         text-align: center;
@@ -457,9 +444,6 @@ body {
         line-height: 1.5;
     }
 }
-
-
-
 
 @media (max-width: 480px) {
 
@@ -483,6 +467,10 @@ body {
     .main-footer p {
         font-size: 0.65rem;
     }
+}
+
+.logo-name {
+    margin-left: 10px;
 }
 
 /* WEBKIT SCROLLBAR */

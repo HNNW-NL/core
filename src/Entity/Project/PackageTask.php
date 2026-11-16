@@ -1,30 +1,32 @@
 <?php
+
 namespace App\Entity\Project;
 
-use App\Entity\Common\Status;
 use App\Entity\Account\Profile;
+use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'package_tasks', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: "uniq_work_package_task_scope", columns: ["work_package_id", "slug"])
+    new ORM\UniqueConstraint(
+        name: 'uniq_work_package_task_scope',
+        columns: ['work_package_id', 'slug']
+    )
 ])]
 #[ORM\HasLifecycleCallbacks]
 class PackageTask
 {
-    // Columns
-
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
-    #[ORM\ManyToOne(inversedBy: "packageTasks")]
+    #[ORM\ManyToOne(inversedBy: 'workPackageTasks')]
     #[ORM\JoinColumn(name: 'work_package_id', nullable: false)]
     private ?WorkPackage $workPackage = null;
 
-    #[ORM\ManyToOne(inversedBy: "workPackageTasks")]
+    #[ORM\ManyToOne(inversedBy: 'workPackageTasks')]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
 
@@ -35,7 +37,7 @@ class PackageTask
     private ?\DateTimeImmutable $dueDate = null;
 
     #[ORM\Column(name: 'priority', length: 25)]
-    private string $priority = "low";
+    private string $priority = 'low';
 
     #[ORM\Column(name: 'title', length: 255)]
     private ?string $title = null;
@@ -43,12 +45,9 @@ class PackageTask
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\ManyToOne(inversedBy: "assignedWorkPackageTasks")]
+    #[ORM\ManyToOne(inversedBy: 'assignedWorkPackageTasks')]
     #[ORM\JoinColumn(name: 'assigned_profile_id', nullable: true)]
     private ?Profile $assignedProfile = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -56,20 +55,12 @@ class PackageTask
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
 
-
-    // Reverse FKs
-
-    /* Insert reverse FKs here */
-
-
-    // Functions
-
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -77,10 +68,7 @@ class PackageTask
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -103,9 +91,6 @@ class PackageTask
     {
         $this->deletedAt = null;
     }
-
-
-    /// Getters & Setters Functions
 
     public function getWorkPackage(): ?WorkPackage
     {
@@ -205,7 +190,7 @@ class PackageTask
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

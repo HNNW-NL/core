@@ -1,16 +1,241 @@
+
 {% extends 'layouts/org.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}Staff{% endblock %}
+{% block title %}Staff Management{% endblock %}
 
-{# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/org/css/staff-view.css') }}">
+{% endblock %}
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('staff-search');
+            const staffCards = document.querySelectorAll('.staff-card');
+            const noResults = document.getElementById('staff-no-results');
 
-{# Page content #}
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    const searchTerm = searchInput.value.toLowerCase().trim();
+                    let visibleCount = 0;
+
+                    staffCards.forEach(function (card) {
+                        const staffText = [
+                            card.querySelector('.staff-name')?.textContent || '',
+                            card.querySelector('.staff-email')?.textContent || '',
+                            card.querySelector('.staff-role')?.textContent || ''
+                        ].join(' ').toLowerCase();
+
+                        const matches = staffText.includes(searchTerm);
+                        card.style.display = matches ? '' : 'none';
+
+                        if (matches) {
+                            visibleCount++;
+                        }
+                    });
+
+                    if (noResults) {
+                        noResults.hidden = visibleCount > 0;
+                    }
+                });
+            }
+
+            const addButton = document.getElementById('staff-add-button');
+            const addForm = document.getElementById('staff-add-form');
+            const cancelButton = document.getElementById('staff-add-cancel');
+
+            document.querySelectorAll('.staff-delete-form').forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!window.confirm('Wil je deze medewerker verwijderen?')) {
+                        event.preventDefault();
+                    }
+                });
+            });
+
+            if (addButton && addForm) {
+                addButton.addEventListener('click', function () {
+                    addForm.hidden = false;
+                    addButton.hidden = true;
+                    document.getElementById('staff-add-email')?.focus();
+                });
+            }
+
+            if (cancelButton && addForm && addButton) {
+                cancelButton.addEventListener('click', function () {
+                    addForm.hidden = true;
+                    addButton.hidden = false;
+                });
+            }
+        });
+    </script>
+{% endblock %}
+
 {% block body %}
-    <h2>Organization Staff</h2>
-    <p>Organization panel - organization staff page.</p>
+    {% set data = org_staff() %}
+
+    <div class="staff-header">
+        <h2>Staff Management</h2>
+        <p>View and manage the staff members of your organization.</p>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <p role="status">{{ message }}</p>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <p role="alert">{{ message }}</p>
+    {% endfor %}
+
+    {% if data.organisations is not empty %}
+        <form class="staff-form-field" method="get" action="{{ path('org.staff') }}">
+            <label for="staff-organisation">Organisatie</label>
+            <select id="staff-organisation" name="organisation_id" required>
+                <option value=""{% if data.organisationId is null %} selected{% endif %} disabled>Kies een organisatie</option>
+                {% for id, name in data.organisations %}
+                    <option value="{{ id }}"{% if id == data.organisationId %} selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="staff-btn staff-btn-secondary">Organisatie openen</button>
+        </form>
+    {% endif %}
+
+    {% if data.canAdd and data.assignableRoles is not empty %}
+    <div class="staff-actions">
+        <button
+            type="button"
+            id="staff-add-button"
+            class="staff-btn staff-btn-primary"
+            aria-controls="staff-add-form"
+        >
+            + Medewerker toevoegen
+        </button>
+    </div>
+
+    <form id="staff-add-form" class="staff-card" method="post" action="{{ path('org.staff.manage.add', {organisation_id: data.organisationId}) }}" hidden>
+        <input type="hidden" name="_token" value="{{ csrf_token('staff_add') }}">
+        <h3>Medewerker toevoegen</h3>
+
+        <div class="staff-form-field">
+            <label for="staff-add-email">E-mailadres</label>
+            <input
+                type="email"
+                id="staff-add-email"
+                name="email"
+                placeholder="naam@voorbeeld.nl"
+                autocomplete="off"
+                required
+            >
+        </div>
+
+        <div class="staff-form-field">
+            <label for="staff-add-role">Organisatierol</label>
+            <select id="staff-add-role" name="role_id" required>
+                {% for role in data.assignableRoles %}
+                    <option value="{{ role.id }}">{{ role.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="staff-actions">
+            <button
+                type="submit"
+                class="staff-btn staff-btn-primary"
+            >
+                Opslaan
+            </button>
+
+            <button
+                type="button"
+                id="staff-add-cancel"
+                class="staff-btn staff-btn-secondary"
+            >
+                Annuleren
+            </button>
+        </div>
+    </form>
+    {% endif %}
+
+    <div class="staff-search">
+        <input
+            type="search"
+            id="staff-search"
+            placeholder="Zoek op naam, e-mail of rol..."
+            aria-label="Zoek medewerkers"
+        >
+    </div>
+
+    {% if data.items is empty %}
+        <div class="staff-empty">
+            <p>No staff members found.</p>
+        </div>
+    {% else %}
+        <div class="staff-container">
+            {% for member in data.items %}
+                <div class="staff-card">
+                    <h3 class="staff-name">
+                        {% if member.displayName %}
+                            {{ member.displayName }}
+                        {% else %}
+                            {{ member.firstName }} {{ member.lastName }}
+                        {% endif %}
+                    </h3>
+
+                    <p class="staff-email">{{ member.email }}</p>
+
+                    <p class="staff-role">
+                        Role: {{ member.role|default('No role') }}
+                    </p>
+
+                    {% if data.canChangeRole or data.canRemove %}
+                        <div class="staff-actions">
+                            {% if data.canChangeRole and data.assignableRoles is not empty %}
+                                <form method="post" action="{{ path('org.staff.manage.role', {id: member.id, organisation_id: data.organisationId}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('staff_role_' ~ member.id) }}">
+                                    <div class="staff-form-field">
+                                        <label for="staff-role-{{ member.id }}">Organisatierol</label>
+                                        <select id="staff-role-{{ member.id }}" name="role_id" required>
+                                            {% if member.roleId not in data.assignableRoles|column('id') %}
+                                                <option value="" selected disabled>Kies een rol</option>
+                                            {% endif %}
+                                            {% for role in data.assignableRoles %}
+                                                <option value="{{ role.id }}"{% if role.id == member.roleId %} selected{% endif %}>{{ role.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="staff-btn staff-btn-secondary">Rol wijzigen</button>
+                                </form>
+                            {% endif %}
+                            {% if data.canRemove %}
+                                <form class="staff-delete-form" method="post" action="{{ path('org.staff.manage.delete', {id: member.id, organisation_id: data.organisationId}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('staff_delete_' ~ member.id) }}">
+                                    <button type="submit" class="staff-btn staff-btn-danger">Verwijderen</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <a class="staff-view-link" href="{{ path('org.viewStaff', {id: member.id}) }}">
+                        View staff member
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div id="staff-no-results" class="staff-empty" hidden>
+            <p>Geen medewerkers gevonden voor deze zoekopdracht.</p>
+        </div>
+    {% endif %}
+
+    <section class="staff-roles">
+        <h3>Beschikbare organisatierollen</h3>
+
+        {% if data.roles is defined and data.roles is not empty %}
+            <ul>
+                {% for role in data.roles %}
+                    <li>{{ role.name }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Er zijn nog geen organisatierollen beschikbaar.</p>
+        {% endif %}
+    </section>
 {% endblock %}

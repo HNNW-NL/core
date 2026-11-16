@@ -1,0 +1,20 @@
+{% extends 'layouts/admin.base.html.twig' %}
+
+{% block title %}Account bekijken{% endblock %}
+
+{% block body %}
+    <h2>{{ account.username }}</h2>
+    <dl>
+        <dt>E-mailadres</dt><dd>{{ account.email }}</dd>
+        <dt>Status</dt><dd>{{ account.status.name ?? 'Onbekend' }}</dd>
+        <dt>Registratiedatum</dt><dd>{{ account.createdAt|date('d-m-Y') }}</dd>
+    </dl>
+    {% if account.admin is null %}
+        <p><a href="{{ path('admin.accounts.modify', {id: account.id ~ ''}) }}">Bewerken</a></p>
+        <form method="post" action="{{ path('admin.accounts.delete', {id: account.id ~ ''}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('account-delete-' ~ account.id) }}">
+            <button type="submit">Account verwijderen</button>
+        </form>
+    {% endif %}
+    <p><a href="{{ path('admin.accounts.home') }}">Terug naar accounts</a></p>
+{% endblock %}

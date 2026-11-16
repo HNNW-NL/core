@@ -49,6 +49,7 @@ body {
         font-family: inter, sans-serif;
     }
 }
+/* PAGE */
 
 .page {
     width: 90%;
@@ -310,7 +311,7 @@ body {
 }
 
 .profile-text p {
-    color: var(--text);
+    color: var(--paragraph-grey);
 
     font-size: 14px;
 
@@ -324,6 +325,47 @@ body {
 
     margin-left: auto;
 }
+
+/* TECH STACK (FIXED ICON ISSUE) */
+
+.tech-stack {
+    display: flex;
+
+    gap: 12px;
+
+    background: var(--card-background);
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    border: 1px solid #242c3b;
+
+    align-items: center;
+}
+
+.tech-icon {
+    width: 57px;
+    height: 55px;
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 8px;
+
+    flex-shrink: 0;
+}
+
+.tech-icon img {
+    width: 32px;
+
+    height: 32px;
+
+    object-fit: contain;
+}
+
 
 .achievement-circle {
     width: 32px;
@@ -351,7 +393,9 @@ body {
 
 /* CARD */
 
-
+.card {
+    background: var(--card-background);
+}
 
 .card-about-me {
     background: var(--header-background);
@@ -375,7 +419,7 @@ body {
 /* MUTED TEXT */
 
 .text-muted {
-    color: var(--text);
+    color: var(--paragraph-grey);
 
     font-size: 14px;
 }

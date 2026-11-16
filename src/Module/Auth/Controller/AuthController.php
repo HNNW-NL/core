@@ -5,10 +5,11 @@ namespace App\Module\Auth\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use App\Entity\Account\Account;
@@ -20,42 +21,32 @@ use App\Entity\Common\Status;
 #[Route('/auth', name: 'auth.')]
 final class AuthController extends AbstractController
 {
-    #[Route('/login', name: 'login', methods: ['GET','POST'])]
-    public function login(Request $request, EntityManagerInterface $em): Response
+    #[Route('/login', name: 'login', methods: ['GET', 'POST'])]
+    public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
-        if ($request->isMethod('POST')) {
-            $usernameOrEmail = (string)$request->request->get('username', '');
-            $password = (string)$request->request->get('password', '');
-
-            $repo = $em->getRepository(Account::class);
-            $account = $repo->findOneBy(['username' => $usernameOrEmail]);
-            if (!$account) {
-                $account = $repo->findOneBy(['email' => $usernameOrEmail]);
-            }
-
-            if (!$account || !password_verify($password, $account->getPasswordHash() ?? '')) {
-                $this->addFlash('error', 'Ongeldige gebruikersnaam/e-mail of wachtwoord.');
-                return $this->redirectToRoute('auth.login', ['last' => $usernameOrEmail]);
-            }
-
-            $account->login();
-            $em->persist($account);
-            $em->flush();
-
-            $request->getSession()->set('account_id', (string)$account->getId());
-
-            return new RedirectResponse('/');
-        }
-
+        // De POST naar deze route wordt onderschept en afgehandeld door
+        // App\Security\AccountAuthenticator (zie config/packages/security.yaml),
+        // dus hier hoeft alleen nog het GET-formulier gerenderd te worden.
         return $this->render('pages/auth/login.html.twig', [
-            'last_username' => (string)$request->query->get('last', ''),
+            'last_username' => $authenticationUtils->getLastUsername() ?: $request->query->get('last', ''),
         ]);
     }
 
+    #[Route('/logout', name: 'logout', methods: ['GET', 'POST'])]
+    public function logout(): never
+    {
+        // Wordt afgehandeld door de firewall's logout listener; komt hier nooit aan.
+        throw new \LogicException('Deze route wordt afgehandeld door de Symfony Security logout listener.');
+    }
+
     #[Route('/register', name: 'register', methods: ['GET','POST'])]
-    public function register(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UrlGeneratorInterface $router): Response
+    public function register(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UrlGeneratorInterface $router, UserPasswordHasherInterface $passwordHasher): Response
     {
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('auth_register', (string) $request->request->get('_token', ''))) {
+                throw $this->createAccessDeniedException('Ongeldig formulier-token.');
+            }
+
             $data = [
                 'full_name' => trim((string)$request->request->get('full_name', '')),
                 'username' => trim((string)$request->request->get('username', '')),
@@ -66,8 +57,11 @@ final class AuthController extends AbstractController
             $confirm = (string)$request->request->get('confirm_password', '');
 
             $errors = [];
-            if ($data['username'] === '') {
-                $errors['username'] = 'Kies een gebruikersnaam.';
+            if (mb_strlen($data['full_name']) > 100) {
+                $errors['full_name'] = 'De naam is te lang.';
+            }
+            if (mb_strlen($data['username']) < 3 || mb_strlen($data['username']) > 30) {
+                $errors['username'] = 'Gebruik een gebruikersnaam van 3 tot 30 tekens.';
             }
             if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 $errors['email'] = 'Voer een geldig e-mailadres in.';
@@ -95,7 +89,7 @@ final class AuthController extends AbstractController
             }
 
             $statusRepo = $em->getRepository(Status::class);
-            $defaultStatus = $statusRepo->findOneBy(['scope' => 'account']);
+            $defaultStatus = $statusRepo->findOneBy(['scope' => 'account', 'name' => 'active']);
             if (!$defaultStatus) {
                 $defaultStatus = new Status();
                 $defaultStatus->setName('active');
@@ -107,18 +101,18 @@ final class AuthController extends AbstractController
             // Wrap in a transaction to prevent partial database data insertions
             $em->getConnection()->beginTransaction();
             try {
-                // 1. Setup Account (Id is automatically instantiated as Uuid object in constructor)
+                // 1. Setup Account (Id is automatically instantiated as Ulid object in constructor)
                 $account = new Account();
                 $account->setUsername($data['username']);
                 $account->setEmail($data['email']);
-                $account->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
+                $account->setPasswordHash($passwordHasher->hashPassword($account, $password));
                 $account->setStatus($defaultStatus);
                 $em->persist($account);
 
                 // 2. Setup Profile linked directly to Account
                 $nameParts = explode(' ', $data['full_name'], 2);
                 $firstName = $nameParts[0] !== '' ? $nameParts[0] : $data['username'];
-                $lastName = $nameParts[1] ?? ' ';
+                $lastName = $nameParts[1] ?? '';
 
                 $profile = new Profile();
                 $profile->setAccount($account);
@@ -161,16 +155,14 @@ final class AuthController extends AbstractController
             } catch (\Exception $e) {
                 $em->getConnection()->rollBack();
 
-                // Diagnostic dump to identify missing entity parameters easily
-                dd($e->getMessage(), $e->getTraceAsString());
-
-                $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
                 return $this->render('pages/auth/register.html.twig', [
+                    'errors' => [
+                        'general' => 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.'],
                     'old' => $data,
                 ]);
             }
 
-            $this->addFlash('success', 'Account aangemaakt. Je kunt nu inloggen.');
+            $this->addFlash('success', 'Account aangemaakt. Controleer je e-mail voor de verificatielink.');
             return $this->redirectToRoute('auth.login', ['last' => $data['username']]);
         }
 
@@ -181,6 +173,9 @@ final class AuthController extends AbstractController
     public function forgotPassword(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UrlGeneratorInterface $router): Response
     {
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('auth_forgot_password', (string) $request->request->get('_token', ''))) {
+                throw $this->createAccessDeniedException('Ongeldig formulier-token.');
+            }
             $email = trim((string)$request->request->get('email', ''));
 
             $this->addFlash('success', 'Als dat e-mailadres bestaat, is er een e-mail verzonden met instructies.');
@@ -222,7 +217,7 @@ final class AuthController extends AbstractController
     }
 
     #[Route('/reset-password/{token}/{email}', name: 'resetPassword', methods: ['GET', 'POST'])]
-    public function resetPassword(Request $request, string $token, string $email, EntityManagerInterface $em): Response
+    public function resetPassword(Request $request, string $token, string $email, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $repo = $em->getRepository(Account::class);
         $account = $repo->findOneBy(['email' => $email]);
@@ -254,6 +249,9 @@ final class AuthController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('auth_reset_password', (string) $request->request->get('_token', ''))) {
+                throw $this->createAccessDeniedException('Ongeldig formulier-token.');
+            }
             $password = (string)$request->request->get('password', '');
             $confirm = (string)$request->request->get('confirm_password', '');
 
@@ -269,7 +267,7 @@ final class AuthController extends AbstractController
                 return $this->renderResetPasswordPage($token, $email, $errors);
             }
 
-            $account->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
+            $account->setPasswordHash($passwordHasher->hashPassword($account, $password));
             $matchedToken->markAsUsed();
 
             $em->persist($account);
@@ -328,27 +326,10 @@ final class AuthController extends AbstractController
 
     private function renderResetPasswordPage(string $token, string $email, array $errors = []): Response
     {
-        $action = $this->generateUrl('auth.resetPassword', ['token' => $token, 'email' => $email]);
-
-        $html = '<!doctype html><html lang="nl"><head><meta charset="utf-8"><title>Wachtwoord resetten</title></head><body>';
-        $html .= '<h1>Wachtwoord resetten</h1>';
-
-        if (!empty($errors)) {
-            $html .= '<div class="form-errors" role="alert"><ul>';
-            foreach ($errors as $error) {
-                $html .= '<li>' . htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</li>';
-            }
-            $html .= '</ul></div>';
-        }
-
-        $html .= '<form method="post" action="' . htmlspecialchars($action, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">';
-        $html .= '<label for="password">Nieuw wachtwoord</label><br>';
-        $html .= '<input id="password" name="password" type="password" minlength="8" required><br>';
-        $html .= '<label for="confirm_password">Bevestig wachtwoord</label><br>';
-        $html .= '<input id="confirm_password" name="confirm_password" type="password" minlength="8" required><br>';
-        $html .= '<button type="submit">Wachtwoord opslaan</button>';
-        $html .= '</form></body></html>';
-
-        return new Response($html);
+        return $this->render('pages/auth/reset-password.html.twig', [
+            'token' => $token,
+            'email' => $email,
+            'errors' => $errors,
+        ]);
     }
 }
