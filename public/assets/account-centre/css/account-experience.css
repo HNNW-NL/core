@@ -1,0 +1,402 @@
+.account-centre-container {
+    color: var(--text, #20283a);
+}
+
+/* Back button */
+.btn-back {
+    display: inline-flex;
+    align-items: start;
+    gap: 9px;
+    margin-bottom: 30px;
+    color: #647084;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.btn-back:hover {
+    color: #d5a900;
+}
+
+/* Page header */
+.dashboard-header {
+    margin-bottom: 35px;
+}
+
+.dashboard-header h1 {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: var(--text, #20283a);
+    letter-spacing: -0.7px;
+}
+
+.dashboard-header p {
+    color: #7b8494;
+    font-size: 15px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Flash messages */
+.flash-alert {
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.alert-success {
+    background: #eaf8ef;
+    color: #237442;
+    border: 1px solid #c8ead2;
+}
+
+.alert-error,
+.alert-danger {
+    background: #fff0f0;
+    color: #b83232;
+    border: 1px solid #f3cccc;
+}
+
+/* ========================================
+   EXPERIENCE CARDS
+======================================== */
+
+.account-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.account-grid-title {
+    font-size: 19px;
+    font-weight: 650;
+    margin: 0 0 5px;
+    color: var(--text, #20283a);
+}
+
+.account-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e8eaf0);
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.035);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.account-card:hover {
+    border-color: #f0d66b;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.055);
+}
+
+.account-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.account-card-content h3 {
+    font-size: 18px;
+    font-weight: 650;
+    margin: 0 0 12px;
+    color: var(--text, #20283a);
+}
+
+.account-card-meta {
+    font-size: 13px;
+    line-height: 1.9;
+    color: #7b8494;
+    margin: 0 0 12px;
+}
+
+.account-card-meta strong {
+    color: #465064;
+    font-weight: 600;
+}
+
+.account-card-meta em {
+    color: #26945b;
+    font-style: normal;
+    font-weight: 600;
+}
+
+.account-card-description {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #737d8e;
+    margin: 10px 0 0;
+    white-space: pre-line;
+}
+
+/* Empty state */
+.account-card-empty {
+    justify-content: center;
+    text-align: center;
+    padding: 35px 20px;
+    background: var(--card-bg, #ffffff);
+    border-style: dashed;
+    box-shadow: none;
+}
+
+.account-card-empty p {
+    color: #8992a1;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Delete button */
+.btn-card-cancel {
+    padding: 9px 15px;
+    border: 1px solid #f0d5d5;
+    border-radius: 8px;
+    background: transparent;
+    color: #cf5555;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-card-cancel:hover {
+    background: #fff0f0;
+    border-color: #e9b4b4;
+}
+
+/* ========================================
+   FORM CONTAINER
+======================================== */
+
+.form-divider-row {
+    height: 1px;
+    background: var(--border-color, #e8eaf0);
+    margin: 40px 0;
+}
+
+.account-form-container {
+    padding: 30px;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e8eaf0);
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
+}
+
+.form-internal-header {
+    margin-bottom: 30px;
+}
+
+.form-internal-header h2 {
+    font-size: 21px;
+    font-weight: 700;
+    margin: 0 0 9px;
+    color: var(--text, #20283a);
+}
+
+.form-internal-header p {
+    color: #8992a1;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ========================================
+   FORM FIELDS
+======================================== */
+
+.account-form {
+    display: flex;
+    flex-direction: column;
+    gap: 21px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    flex: 1;
+    min-width: 0;
+}
+
+.form-group label {
+    color: var(--text, #384255);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color, #dfe3ea);
+    border-radius: 9px;
+    background: var(--input-bg, #ffffff);
+    color: var(--text, #20283a);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input,
+.form-group select {
+    min-height: 45px;
+}
+
+.form-group textarea {
+    min-height: 125px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: #aab1bd;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #e5c32d;
+    box-shadow: 0 0 0 3px rgba(255, 215, 54, 0.16);
+}
+
+/* Two-column rows */
+.form-group-row {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Checkbox */
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 11px;
+    padding: 14px 16px;
+    background: rgba(255, 215, 54, 0.09);
+    border: 1px solid rgba(244, 196, 0, 0.25);
+    border-radius: 9px;
+}
+
+.checkbox-group input {
+    width: 17px;
+    height: 17px;
+    min-height: auto;
+    accent-color: #e4bd17;
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.form-note {
+    color: #9aa2af;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+/* ========================================
+   FORM ACTIONS
+======================================== */
+
+.form-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.form-actions-row button {
+    padding: 13px 24px;
+    border: none;
+    border-radius: 9px;
+    background: #ffd736;
+    color: #292929;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.form-actions-row button:hover {
+    background: #f4c400;
+    transform: translateY(-1px);
+}
+
+.btn-cancel {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 22px;
+    border: 1px solid var(--border-color, #dfe3ea);
+    border-radius: 9px;
+    color: #737d8e;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: #f5f6f8;
+    color: #384255;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+======================================== */
+
+@media (max-width: 768px) {
+    #account-centre-container {
+        padding: 25px 18px 50px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 25px;
+    }
+
+    .account-form-container {
+        padding: 22px 18px;
+    }
+
+    .account-card {
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .account-card form {
+        width: 100%;
+    }
+
+    .btn-card-cancel {
+        width: 100%;
+    }
+
+    .form-group-row {
+        flex-direction: column;
+        gap: 21px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-actions-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-actions-row button,
+    .btn-cancel {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
