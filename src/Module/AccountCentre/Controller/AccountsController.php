@@ -322,13 +322,12 @@ final class AccountsController extends AbstractController
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_modify');
             $username = trim((string) $request->request->get('username'));
-            $email = trim((string) $request->request->get('email'));
             $firstName = trim((string) $request->request->get('first_name'));
             $lastName = trim((string) $request->request->get('last_name'));
-            $displayName = trim((string) $request->request->get('display_name') ?: null);
+            $displayName = $this->nullableTrim($request->request->get('display_name'));
             $avatarUrl = trim((string) $request->request->get('avatar_url'));
-            $location = trim((string) $request->request->get('location') ?: null);
-            $bio = trim((string) $request->request->get('bio')?: null);
+            $location = $this->nullableTrim($request->request->get('location'));
+            $bio = $this->nullableTrim($request->request->get('bio'));
 
             if ($username !== $account->getUsername()) {
                 if (!empty($username) && strlen($username) <= 12) {
@@ -350,8 +349,13 @@ final class AccountsController extends AbstractController
             if ($profile) {
                 if (strlen($firstName) < 50) $profile->setFirstName($firstName);
                 if (strlen($lastName) < 50) $profile->setLastName($lastName);
-                if (strlen($displayName) < 50) $profile->setDisplayName($displayName);
-                if (strlen($bio) < 250) $profile->setDescription($bio);
+                if ($displayName !== null && mb_strlen($displayName) < 50) {
+                    $profile->setDisplayName($displayName);
+                }
+
+                if ($bio !== null && mb_strlen($bio) < 250) {
+                    $profile->setDescription($bio);
+                }
                 $profile->setAvatarUrl($avatarUrl);
                 $profile->setLocation($location);
 
@@ -602,5 +606,12 @@ final class AccountsController extends AbstractController
         $entityManager->persist($settings);
 
         return $settings;
+    }
+
+    private function nullableTrim(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value !== '' ? $value : null;
     }
 }
