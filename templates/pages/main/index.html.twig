@@ -5,10 +5,8 @@
 
 {# SEO #}
 
-{% block seoKeywords %}{% endblock %}
-
-{% block seoDescription %}{% endblock %}
-
+{% block seoKeywords %}samenwerken, overheid, expertise, open platform{% endblock %}
+{% block seoDescription %}Ontdek hoe Het Nieuwe² Werken samenwerking en kennisdeling tussen overheidsorganisaties ondersteunt.{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
 
@@ -42,7 +40,7 @@
         <h1 id="hero-title">Breng vraag &amp; aanbod van werk bij elkaar — <br><span>open, transparant en samen.</span></h1>
         <p class="hero-text">Publiceer hulpvragen, vind expertise binnen en buiten je organisatie, werk veilig samen en bouw aan interdepartementale impact.</p>
         <div class="hero-actions">
-            <a class="button button-primary" href="mailto:contact@hnnw.nl">Nu aan de slag</a>
+            <a class="button button-primary" href="{{ path('auth.register') }}">Nu aan de slag</a>
             <a class="button button-secondary" href="https://hnnw.nl">Bezoek HNNW</a>
         </div>
         <p class="hero-note">Open bèta <span>•</span> Transparant via Codeberg <span>•</span> Community op Slack</p>
