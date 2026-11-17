@@ -9,7 +9,7 @@
     transition: color .5s ease, background-color .5s ease, border .5s ease;
 }
 
-:root {
+.home_page {
     --muted: #9eafc7;
     --text: #c1ccdc;
     --background: #020617;
