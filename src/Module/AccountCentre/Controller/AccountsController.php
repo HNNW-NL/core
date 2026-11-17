@@ -109,7 +109,7 @@ final class AccountsController extends AbstractController
     {
         $application = $em->getRepository(ProjectApplication::class)->find($id);
         $account = $this->getAndCheckAccount();
-        $profile = $em>getRepository(Profile::class)->findOneBy(['account' => $account]);
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         if (!$application || $application->getDeletedAt() !== null) {
             throw $this->createNotFoundException('Aanmelding niet gevonden.');
@@ -346,16 +346,34 @@ final class AccountsController extends AbstractController
                 }
             }
 
-            if ($profile) {
-                if (strlen($firstName) < 50) $profile->setFirstName($firstName);
-                if (strlen($lastName) < 50) $profile->setLastName($lastName);
-                if ($displayName !== null && mb_strlen($displayName) < 50) {
-                    $profile->setDisplayName($displayName);
+            if ($profile instanceof Profile) {
+                if (strlen($firstName) <= 50 or !empty($firstName)) {
+                    $profile->setFirstName($firstName);
+                } else {
+                    $this->addFlash('error', 'Voornaam invoer ongeldig.');
+                    return $this->redirectToRoute('account.modify');
+                }
+                if (strlen($lastName) <= 50 or !empty($lastName)) {
+                    $profile->setLastName($lastName);
+                } else {
+                    $this->addFlash('error', 'Achternaam invoer ongeldig.');
+                    return $this->redirectToRoute('account.modify');
                 }
 
-                if ($bio !== null && mb_strlen($bio) < 250) {
-                    $profile->setDescription($bio);
+                if (mb_strlen($displayName) <= 50) {
+                    $profile->setDisplayName($displayName);
+                } else {
+                    $this->addFlash('error', 'Display name invoer ongeldig.');
+                    return $this->redirectToRoute('account.modify');
                 }
+
+                if (mb_strlen($bio) <= 250) {
+                    $profile->setDescription($bio);
+                } else {
+                    $this->addFlash('error', 'Bio invoer ongeldig.');
+                    return $this->redirectToRoute('account.modify');
+                }
+
                 $profile->setAvatarUrl($avatarUrl);
                 $profile->setLocation($location);
 
