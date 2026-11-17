@@ -1,21 +1,20 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{% block title %}Mijn Werkervaring{% endblock %}
+{% block title %}Jouw Werkervaring{% endblock %}
 
 {% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/account-centre/css/account-experience.css') }}">{% endblock %}
 
 {% block javascript %}{% endblock %}
 
 {% block body %}
-    <div id="account-centre-container">
+    <div class="account-centre-container">
 
         <a href="{{ path('account.home') }}" class="btn-back">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Terug naar dashboard
         </a>
 
         <div class="dashboard-header">
-            <h1>Mijn Ervaring</h1>
+            <h1>Jouw Ervaring</h1>
             <p>Beheer hier jouw professionele loopbaan, rollen en werkgeschiedenis.</p>
         </div>
 

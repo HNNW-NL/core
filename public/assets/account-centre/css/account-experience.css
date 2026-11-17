@@ -1,5 +1,6 @@
-.account-centre-container {
-    color: var(--text, #20283a);
+.account-centre-container * {
+    font-family: 'Inter', sans-serif , 'Lato', 'sans-serif';
+
 }
 
 /* Back button */
@@ -7,16 +8,19 @@
     display: inline-flex;
     align-items: start;
     gap: 9px;
-    margin-bottom: 30px;
-    color: #647084;
+    margin-top: 30px;
+    transform: translateX(10%);
+
+    color: var(--text);
+    background: var(--hnnw-yellow-400);
+    border: var(--hnnw-yellow-400) 1px solid;
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
-    transition: color 0.2s ease;
 }
 
 .btn-back:hover {
-    color: #d5a900;
+
 }
 
 /* Page header */
@@ -48,13 +52,25 @@
 }
 
 .alert-success {
-    background: #eaf8ef;
+    width: 600px;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto 5px;
+
+
+    background: var(--header-background);
     color: #237442;
-    border: 1px solid #c8ead2;
+    border: 1px solid #237442;
 }
 
 .alert-error,
 .alert-danger {
+    width: 600px;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto 5px;
+
+
     background: #fff0f0;
     color: #b83232;
     border: 1px solid #f3cccc;
@@ -68,19 +84,26 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    margin-top: 60px;
 }
 
 .account-grid-title {
+    width: 900px;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto 5px;
+
+    text-align: left;
     font-size: 19px;
     font-weight: 650;
-    margin: 0 0 5px;
-    color: var(--text, #20283a);
+    color: #FFFFFF;
 }
 
 .account-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    width: 900px;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto 5px;
     gap: 20px;
     padding: 24px;
     background: var(--card-bg, #ffffff);
@@ -138,6 +161,11 @@
     justify-content: center;
     text-align: center;
     padding: 35px 20px;
+    width: 900px;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+
     background: var(--card-bg, #ffffff);
     border-style: dashed;
     box-shadow: none;
@@ -167,20 +195,26 @@
     border-color: #e9b4b4;
 }
 
-/* ========================================
-   FORM CONTAINER
-======================================== */
-
 .form-divider-row {
     height: 1px;
-    background: var(--border-color, #e8eaf0);
-    margin: 40px 0;
+    width: 1000px;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 20px auto 20px;
+    text-align: left;
+
+    background: var(--text, #20283a);
 }
 
 .account-form-container {
+    width: 800px;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
     padding: 30px;
-    background: var(--card-bg, #ffffff);
-    border: 1px solid var(--border-color, #e8eaf0);
+
+    background: var(--header-background);
+    border: 1px solid var(--text);
     border-radius: 16px;
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035);
 }
@@ -193,7 +227,7 @@
     font-size: 21px;
     font-weight: 700;
     margin: 0 0 9px;
-    color: var(--text, #20283a);
+    color: var(--text);
 }
 
 .form-internal-header p {
@@ -222,7 +256,7 @@
 }
 
 .form-group label {
-    color: var(--text, #384255);
+    color: var(--hnnw-yellow-500);
     font-size: 13px;
     font-weight: 600;
 }
@@ -235,7 +269,7 @@
     padding: 12px 14px;
     border: 1px solid var(--border-color, #dfe3ea);
     border-radius: 9px;
-    background: var(--input-bg, #ffffff);
+    background: var(--header-background);
     color: var(--text, #20283a);
     font-family: inherit;
     font-size: 14px;
@@ -256,7 +290,7 @@
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-    color: #aab1bd;
+    color: var(--text), opacity 90%;
 }
 
 .form-group input:focus,
@@ -357,7 +391,7 @@
 ======================================== */
 
 @media (max-width: 768px) {
-    #account-centre-container {
+    .account-centre-container {
         padding: 25px 18px 50px;
     }
 
