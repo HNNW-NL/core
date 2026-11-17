@@ -330,11 +330,21 @@ final class AccountsController extends AbstractController
             $location = trim((string) $request->request->get('location') ?: null);
             $bio = trim((string) $request->request->get('bio')?: null);
 
-            if (!empty($username) and strlen($username) <= 12) {
-                $account->setUsername($username);
-            }
-            if (!empty($email)) {
-                $account->setEmail($email);
+            if ($username !== $account->getUsername()) {
+                if (!empty($username) && strlen($username) <= 12) {
+                    $existingAccount = $em->getRepository(Account::class)
+                        ->findOneBy(['username' => $username]);
+
+                    if ($existingAccount) {
+                        $this->addFlash('error', 'Username is al in gebruik.');
+                        return $this->redirectToRoute('account.modify');
+                    }
+
+                    $account->setUsername($username);
+                } else {
+                    $this->addFlash('error', 'Username invoer ongeldig.');
+                    return $this->redirectToRoute('account.modify');
+                }
             }
 
             if ($profile) {
