@@ -319,8 +319,8 @@ final class AccountsController extends AbstractController
     {
         $account = $this->account();
         $profile = $this->profile($em);
-        $settings = $this->settings($em);
         if ($request->isMethod('POST')) {
+            $this->csrf($request, 'account_modify');
             $username = trim((string) $request->request->get('username'));
             $email = trim((string) $request->request->get('email'));
             $firstName = trim((string) $request->request->get('first_name'));
