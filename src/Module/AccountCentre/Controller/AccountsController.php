@@ -566,7 +566,7 @@ final class AccountsController extends AbstractController
         }
         $entry = $em->getRepository(ProfileSkill::class)->findOneBy(['profile' => $profile, 'skill' => $skill]);
         if (!$entry) {
-            $entry = (new ProfileSkill())->setProfile($profile)->setSkill($skill);
+            $entry = new ProfileSkill()->setProfile($profile)->setSkill($skill);
             $em->persist($entry);
         }
         $entry->setProficiencyLevel($level);
