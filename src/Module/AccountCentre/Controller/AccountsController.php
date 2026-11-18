@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Module\AccountCentre\Controller;
 
 use App\Entity\Account\Account;
+use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
 use App\Entity\Account\Availability;
 use App\Entity\Account\Notification;
-use App\Entity\Account\Profile;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Account\ProfileSkill;
 use App\Entity\Account\Review;
@@ -93,6 +93,10 @@ final class AccountsController extends AbstractController
     #[Route('/applications', name: 'applications', methods: ['GET'])]
     public function applications(EntityManagerInterface $em): Response
     {
+        $account = $this->getAndCheckAccount();
+
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
         return $this->render('pages/account-centre/applications.html.twig', [
             'profile' => $this->profile($em),
         ]);
@@ -102,12 +106,19 @@ final class AccountsController extends AbstractController
     public function applicationsCancel(string $id, Request $request, EntityManagerInterface $em): Response
     {
         $application = $em->getRepository(ProjectApplication::class)->find($id);
+        $account = $this->getAndCheckAccount();
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
         if (!$application || $application->getDeletedAt() !== null) {
             throw $this->createNotFoundException('Aanmelding niet gevonden.');
         }
         if ($application->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
             throw $this->createAccessDeniedException();
         }
+        if (!$profile || $application->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze aanmelding.');
+        }
+
         $this->csrf($request, 'cancel_application' . $id);
         if ($application->getParticipant() !== null) {
             $this->addFlash('error', 'Een geaccepteerde aanmelding kan niet op deze manier worden ingetrokken.');
@@ -122,7 +133,15 @@ final class AccountsController extends AbstractController
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
     public function availability(Request $request, EntityManagerInterface $em): Response
     {
+        $account = $this->getAndCheckAccount();
+
         $profile = $this->profile($em);
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
+        // POST: Schema opslaan in de `availabilities` tabel
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_availability');
             $from = $this->date((string) $request->request->get('start_date', ''));
@@ -214,7 +233,14 @@ final class AccountsController extends AbstractController
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
     public function experience(Request $request, EntityManagerInterface $em): Response
     {
+        $account = $this->getAndCheckAccount();
+
         $profile = $this->profile($em);
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_experience');
             $title = trim((string) $request->request->get('job_title', ''));
@@ -284,6 +310,8 @@ final class AccountsController extends AbstractController
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $em): Response
     {
+        $account = $this->getAndCheckAccount();
+
         $experience = $em->getRepository(ProfileExperience::class)->find($id);
         if (!$experience || $experience->getDeletedAt() !== null) {
             throw $this->createNotFoundException();
@@ -291,62 +319,114 @@ final class AccountsController extends AbstractController
         if ($experience->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
             throw $this->createAccessDeniedException();
         }
+
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
+        if (!$profile || $experience->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze ervaring.');
+        }
+
         $this->csrf($request, 'delete_experience' . $id);
         $experience->softDelete();
         $em->flush();
+
         return $this->redirectToRoute('account.experience');
     }
+
 
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $em): Response
     {
         $account = $this->account();
         $profile = $this->profile($em);
-        $settings = $this->settings($em);
+
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_modify');
-            $username = trim((string) $request->request->get('username', ''));
-            $first = trim((string) $request->request->get('first_name', ''));
-            $last = trim((string) $request->request->get('last_name', ''));
-            if ($username === '' || $first === '' || $last === '') {
-                $this->addFlash('error', 'Controleer de verplichte velden.');
-            } else {
+
+            $username = trim((string) $request->request->get('username'));
+            $firstName = trim((string) $request->request->get('first_name'));
+            $lastName = trim((string) $request->request->get('last_name'));
+            $displayName = $this->nullableTrim($request->request->get('display_name'));
+            $avatarUrl = trim((string) $request->request->get('avatar_url'));
+            $location = $this->nullableTrim($request->request->get('location'));
+            $bio = $this->nullableTrim($request->request->get('bio'));
+
+            if (empty($username) || mb_strlen($username) > 12) {
+                $this->addFlash('error', 'Username invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if ($username !== $account->getUsername()) {
                 $existingAccount = $em->getRepository(Account::class)
                     ->findOneBy(['username' => $username]);
 
-                if (
-                    $existingAccount !== null
-                    && $existingAccount->getId() !== $account->getId()
-                ) {
-                    $this->addFlash(
-                        'error',
-                        'Deze gebruikersnaam is al in gebruik.'
-                    );
-
+                if ($existingAccount) {
+                    $this->addFlash('error', 'Username is al in gebruik.');
                     return $this->redirectToRoute('account.modify');
                 }
-
-                $account->setUsername($username);
-                $profile->setFirstName($first)
-                    ->setLastName($last)
-                    ->setDisplayName(
-                        trim($request->request->getString('display_name')) ?: null
-                    )
-                    ->setAvatarUrl(trim((string) $request->request->get('avatar_url', '')) ?: null)
-                    ->setLocation(trim((string) $request->request->get('location', '')) ?: null)
-                    ->setDescription(trim((string) $request->request->get('bio', '')) ?: null);
-                $em->flush();
-                $this->addFlash('success', 'Wijzigingen opgeslagen.');
             }
+
+            if (empty($firstName) || mb_strlen($firstName) > 50) {
+                $this->addFlash('error', 'Voornaam invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if (empty($lastName) || mb_strlen($lastName) > 50) {
+                $this->addFlash('error', 'Achternaam invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if ($displayName !== null && mb_strlen($displayName) > 50) {
+                $this->addFlash('error', 'Display name invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if ($bio !== null && mb_strlen($bio) > 250) {
+                $this->addFlash('error', 'Bio invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if ($username !== $account->getUsername()) {
+                $account->setUsername($username);
+            }
+
+            if ($profile instanceof Profile) {
+                $profile->setFirstName($firstName);
+                $profile->setLastName($lastName);
+                $profile->setDisplayName($displayName);
+                $profile->setDescription($bio);
+                $profile->setAvatarUrl($avatarUrl);
+                $profile->setLocation($location);
+
+                if (method_exists($profile, 'setLastModified')) {
+                    $profile->setLastModified(new \DateTimeImmutable());
+                }
+            }
+
+            $em->flush();
+
+            $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
+
             return $this->redirectToRoute('account.modify');
         }
-        return $this->render('pages/account-centre/modify.html.twig', compact('account', 'profile', 'settings'));
+
+        return $this->render('pages/account-centre/modify.html.twig', [
+            'account' => $account,
+            'profile' => $profile
+        ]);
     }
+
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
     public function notifications(Request $request, EntityManagerInterface $em): Response
     {
-        $settings = $this->settings($em);
+        $account = $this->getAndCheckAccount();
+        $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
+
+        if (!$settings) {
+            $settings = $this->createAccountSettings($em, $account);
+        }
+
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_notifications');
             $settings->setEmailNotificationsEnabled(
@@ -534,5 +614,43 @@ final class AccountsController extends AbstractController
         $em->remove($item);
         $em->flush();
         return $this->redirectToRoute('account.saved_items');
+    }
+
+    private function getAndCheckAccount(): Account
+    {
+        $account = $this->getUser();
+
+        if (!$account instanceof Account) {
+            throw $this->createAccessDeniedException();
+        }
+        return $account;
+    }
+
+    private function createAccountSettings($entityManager, $account): AccountSetting
+    {
+        $settings = new AccountSetting();
+        $settings->setAccount($account);
+        $settings->setLanguage('nl');
+        $settings->setTheme('dark');
+        $settings->setProfileVisibility('public');
+        $settings->setEmailNotificationsEnabled(true);
+
+        if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Uuid::class, 'v4')) {
+            $settings->setId(\Symfony\Component\Uid\Uuid::v4());
+        }
+        if (method_exists($settings, 'setCreatedAt')) {
+            $settings->setCreatedAt(new \DateTimeImmutable());
+        }
+
+        $entityManager->persist($settings);
+
+        return $settings;
+    }
+
+    private function nullableTrim(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value !== '' ? $value : null;
     }
 }
