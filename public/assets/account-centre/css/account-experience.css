@@ -3,29 +3,10 @@
 
 }
 
-/* Back button */
-.btn-back {
-    display: inline-flex;
-    align-items: start;
-    gap: 9px;
-    margin-top: 30px;
-    transform: translateX(10%);
-
-    color: var(--text);
-    background: var(--hnnw-yellow-400);
-    border: var(--hnnw-yellow-400) 1px solid;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.btn-back:hover {
-
-}
-
 /* Page header */
 .dashboard-header {
     margin-bottom: 35px;
+    margin-top: 60px;
 }
 
 .dashboard-header h1 {
