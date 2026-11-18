@@ -15,8 +15,6 @@ use App\Entity\Account\Review;
 use App\Entity\Account\SavedItem;
 use App\Entity\Account\Skill;
 use App\Entity\Project\ProjectApplication;
-use App\Repository\Project\ProjectRepository;
-use Doctrine\DBAL\Connection;
 use App\Entity\Project\ProjectParticipant;
 use App\Enum\AvailabilityType;
 use App\Enum\DayOfWeek;
@@ -314,13 +312,16 @@ final class AccountsController extends AbstractController
         return $this->redirectToRoute('account.experience');
     }
 
+
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $em): Response
     {
         $account = $this->account();
         $profile = $this->profile($em);
+
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_modify');
+
             $username = trim((string) $request->request->get('username'));
             $firstName = trim((string) $request->request->get('first_name'));
             $lastName = trim((string) $request->request->get('last_name'));
@@ -329,54 +330,52 @@ final class AccountsController extends AbstractController
             $location = $this->nullableTrim($request->request->get('location'));
             $bio = $this->nullableTrim($request->request->get('bio'));
 
+            if (empty($username) || mb_strlen($username) > 12) {
+                $this->addFlash('error', 'Username invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
             if ($username !== $account->getUsername()) {
-                if (!empty($username) && strlen($username) <= 12) {
-                    $existingAccount = $em->getRepository(Account::class)
-                        ->findOneBy(['username' => $username]);
+                $existingAccount = $em->getRepository(Account::class)
+                    ->findOneBy(['username' => $username]);
 
-                    if ($existingAccount) {
-                        $this->addFlash('error', 'Username is al in gebruik.');
-                        return $this->redirectToRoute('account.modify');
-                    }
-
-                    $account->setUsername($username);
-                } else {
-                    $this->addFlash('error', 'Username invoer ongeldig.');
+                if ($existingAccount) {
+                    $this->addFlash('error', 'Username is al in gebruik.');
                     return $this->redirectToRoute('account.modify');
                 }
             }
 
+            if (empty($firstName) || mb_strlen($firstName) > 50) {
+                $this->addFlash('error', 'Voornaam invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if (empty($lastName) || mb_strlen($lastName) > 50) {
+                $this->addFlash('error', 'Achternaam invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if ($displayName !== null && mb_strlen($displayName) > 50) {
+                $this->addFlash('error', 'Display name invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if ($bio !== null && mb_strlen($bio) > 250) {
+                $this->addFlash('error', 'Bio invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
+            if ($username !== $account->getUsername()) {
+                $account->setUsername($username);
+            }
+
             if ($profile instanceof Profile) {
-                if (strlen($firstName) <= 50 or !empty($firstName)) {
-                    $profile->setFirstName($firstName);
-                } else {
-                    $this->addFlash('error', 'Voornaam invoer ongeldig.');
-                    return $this->redirectToRoute('account.modify');
-                }
-                if (strlen($lastName) <= 50 or !empty($lastName)) {
-                    $profile->setLastName($lastName);
-                } else {
-                    $this->addFlash('error', 'Achternaam invoer ongeldig.');
-                    return $this->redirectToRoute('account.modify');
-                }
-
-                if (mb_strlen($displayName) <= 50) {
-                    $profile->setDisplayName($displayName);
-                } else {
-                    $this->addFlash('error', 'Display name invoer ongeldig.');
-                    return $this->redirectToRoute('account.modify');
-                }
-
-                if (mb_strlen($bio) <= 250) {
-                    $profile->setDescription($bio);
-                } else {
-                    $this->addFlash('error', 'Bio invoer ongeldig.');
-                    return $this->redirectToRoute('account.modify');
-                }
-
+                $profile->setFirstName($firstName);
+                $profile->setLastName($lastName);
+                $profile->setDisplayName($displayName);
+                $profile->setDescription($bio);
                 $profile->setAvatarUrl($avatarUrl);
                 $profile->setLocation($location);
-
 
                 if (method_exists($profile, 'setLastModified')) {
                     $profile->setLastModified(new \DateTimeImmutable());
@@ -395,6 +394,7 @@ final class AccountsController extends AbstractController
             'profile' => $profile
         ]);
     }
+
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
     public function notifications(Request $request, EntityManagerInterface $em): Response
