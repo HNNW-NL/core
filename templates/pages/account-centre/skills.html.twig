@@ -70,9 +70,9 @@
                 <p>Bekijk en beheer de vaardigheden op je profiel.</p>
             </div>
 
-            {% if skills is not empty %}
+            {% if ProfileSkills is not empty %}
                 <div class="account-card-list">
-                    {% for item in skills %}
+                    {% for item in ProfileSkills %}
                         <article class="account-card">
                             <div class="account-card-content">
                                 <h3>{{ item.skill.name }}</h3>

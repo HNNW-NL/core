@@ -549,7 +549,7 @@ final class AccountsController extends AbstractController
     {
         $profile = $this->profile($em);
         return $this->render('pages/account-centre/skills.html.twig', [
-            'skills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
+            'ProfileSkills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
             'availableSkills' => $em->getRepository(Skill::class)->findBy(['active' => true], ['name' => 'ASC']),
         ]);
     }
