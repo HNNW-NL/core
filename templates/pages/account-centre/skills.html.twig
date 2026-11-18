@@ -80,7 +80,7 @@
                             </div>
 
                             <form method="post" action="{{ path('account.skills_delete', {'id': item.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('account_skill_delete_' ~ item.id) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_account_skill' ~ item.id) }}">
                                 <button type="submit" class="btn-danger">Verwijderen</button>
                             </form>
                         </article>
