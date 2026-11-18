@@ -260,6 +260,27 @@ final class AccountsController extends AbstractController
         ]);
     }
 
+    #[Route('/experience/{id}/modify', name: 'modify_experience', methods: ['GET', 'POST'])]
+    public function modifyExperience(
+        string $id,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $experience = $em->getRepository(ProfileExperience::class)->find($id);
+
+        if (!$experience || $experience->getDeletedAt() !== null) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($experience->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->render('pages/account-centre/modify-experience.html.twig', [
+            'experience' => $experience,
+        ]);
+    }
+
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $em): Response
     {
