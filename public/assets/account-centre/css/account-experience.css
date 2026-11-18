@@ -71,9 +71,9 @@
     margin: 0 auto 5px;
 
 
-    background: #fff0f0;
+    background: var(--header-background);
     color: #b83232;
-    border: 1px solid #f3cccc;
+    border: 1px solid #912626;
 }
 
 /* ========================================
@@ -143,7 +143,7 @@
 }
 
 .account-card-meta em {
-    color: #26945b;
+    color: var(--hnnw-yellow-500);
     font-style: normal;
     font-weight: 600;
 }
@@ -183,7 +183,7 @@
     border: 1px solid #f0d5d5;
     border-radius: 8px;
     background: transparent;
-    color: #cf5555;
+    color: #cf2d2d;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -191,8 +191,8 @@
 }
 
 .btn-card-cancel:hover {
-    background: #fff0f0;
-    border-color: #e9b4b4;
+    background: #7a1515;
+    border-color: #470b0b;
 }
 
 .form-divider-row {
@@ -270,7 +270,7 @@
     border: 1px solid var(--border-color, #dfe3ea);
     border-radius: 9px;
     background: var(--header-background);
-    color: var(--text, #20283a);
+    color: var(--text);
     font-family: inherit;
     font-size: 14px;
     outline: none;
@@ -290,7 +290,7 @@
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-    color: var(--text), opacity 90%;
+    color: var(--text);
 }
 
 .form-group input:focus,
