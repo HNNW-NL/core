@@ -53,10 +53,9 @@
                 <div class="form-group">
                     <label for="level">Niveau</label>
                     <select name="level" id="level" required>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Zelfstandig</option>
-                        <option value="advanced">Gevorderd</option>
-                        <option value="expert">Expert</option>
+                        {% for level in levels %}
+                        <option value="{{ level.value }}">{{ level.value }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
