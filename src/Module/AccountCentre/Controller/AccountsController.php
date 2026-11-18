@@ -568,7 +568,9 @@ final class AccountsController extends AbstractController
         if (!$entry) {
             $entry = new ProfileSkill()->setProfile($profile)->setSkill($skill);
             $em->persist($entry);
+            $this->addFlash('info', 'Vaardigheid is toegevoegd.');
         }
+        else { $this->addFlash('info', 'Vaardigheid is aangepast.'); }
         $entry->setProficiencyLevel($level);
         $em->flush();
         return $this->redirectToRoute('account.skills');
