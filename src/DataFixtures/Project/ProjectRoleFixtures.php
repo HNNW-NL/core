@@ -11,6 +11,7 @@ use Doctrine\Persistence\ObjectManager;
 class ProjectRoleFixtures extends Fixture implements DependentFixtureInterface
 {
     public const TEST_PROJECT_ROLE = "test_project_role";
+    public const TEST_PROJECT_ADMIN_ROLE = 'test_project_admin_role';
     public const TEST_PROJECT_ROLE_2 = "test_project_role_2";
 
     public function load(ObjectManager $manager): void
@@ -20,6 +21,12 @@ class ProjectRoleFixtures extends Fixture implements DependentFixtureInterface
         $projectRole->setName("Developer");
         $manager->persist($projectRole);
 
+        $administrator = (new ProjectRole())
+            ->setProject($projectRole->getProject())
+            ->setName('Project Administrator')
+            ->setPermissionsMask(ProjectRole::PERMISSION_VIEW | ProjectRole::PERMISSION_EDIT);
+        $manager->persist($administrator);
+
         $secondProjectRole = new ProjectRole();
         $secondProjectRole->setProject($this->getReference(ProjectFixtures::TEST_PROJECT_2_REFERENCE, Project::class));
         $secondProjectRole->setName("Developer");
@@ -28,6 +35,7 @@ class ProjectRoleFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
 
         $this->addReference(SELF::TEST_PROJECT_ROLE,$projectRole);
+        $this->addReference(self::TEST_PROJECT_ADMIN_ROLE, $administrator);
         $this->addReference(self::TEST_PROJECT_ROLE_2, $secondProjectRole);
     }
 

@@ -26,6 +26,7 @@
         {% endfor %}
 
         <form action="{{ path('account.availability') }}" method="POST" id="tidycal-schedule-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('account_availability') }}">
 
             <input type="hidden" name="type" value="TidyCal Schema">
             <input type="hidden" name="hours" id="calculated_hours" value="40">

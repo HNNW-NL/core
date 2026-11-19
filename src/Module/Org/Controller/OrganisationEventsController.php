@@ -1,30 +1,30 @@
 <?php
 
-namespace App\Module\Admin\Controller;
+namespace App\Module\Org\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/admin/organizations', name: 'admin.organizations.')]
-final class DashboardOrganizationsController extends AbstractController
+#[Route('/org/events', name: 'org.events.')]
+final class OrganisationEventsController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(): Response
     {
-        return $this->render('pages/admin/organizations/index.html.twig');
+        return $this->render('pages/org/events/index.html.twig');
     }
 
     #[Route('/create', name: 'create', methods: ['GET'])]
     public function create(): Response
     {
-        return $this->render('pages/admin/organizations/create.html.twig');
+        return $this->render('pages/org/events/create.html.twig');
     }
 
     #[Route('/modify/{id}', name: 'modify', methods: ['GET'])]
     public function modify(string $id): Response
     {
-        return $this->render('pages/admin/organizations/modify.html.twig', [
+        return $this->render('pages/org/events/modify.html.twig', [
             'id' => $id
         ]);
     }

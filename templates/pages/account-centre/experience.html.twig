@@ -77,24 +77,11 @@
             </div>
 
             <form action="{{ path('account.experience') }}" method="POST" class="account-form">
+                <input type="hidden" name="_token" value="{{ csrf_token('account_experience') }}">
 
                 <div class="form-group">
                     <label for="exp-job-title">Titel / Functietitel</label>
                     <input type="text" id="exp-job-title" name="job_title" placeholder="bijv. Full Stack Developer" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-employment-type">Type Dienstverband</label>
-                    <select id="exp-employment-type" name="employment_type" required>
-                        <option value="" disabled selected>Kies een optie...</option>
-                        <option value="vast">Vast dienstverband (onbepaalde tijd)</option>
-                        <option value="tijdelijk">Tijdelijk dienstverband (bepaalde tijd)</option>
-                        <option value="oproep">Oproepcontract (nuluren / min-max)</option>
-                        <option value="uitzend_detachering">Uitzendbasis / Detachering</option>
-                        <option value="zzp_freelance">Zelfstandige zonder personeel (zzp / freelance)</option>
-                        <option value="stage_afstuderen">Stage / Afstuderen</option>
-                        <option value="payroll">Payroll</option>
-                    </select>
                 </div>
 
                 <div class="form-group">
@@ -117,46 +104,6 @@
                         <label for="exp-end-date">Einddatum</label>
                         <input type="date" id="exp-end-date" name="end_date">
                     </div>
-                </div>
-
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label for="exp-location">Locatie</label>
-                        <input type="text" id="exp-location" name="location" placeholder="bijv. Amsterdam, NL">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="exp-location-type">Locatie type</label>
-                        <select id="exp-location-type" name="location_type">
-                            <option value="onsite">On-site</option>
-                            <option value="hybrid">Hybride</option>
-                            <option value="remote">Remote</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-headline">Profiel headline <span class="form-note">(Dit update je user profile tagline)</span></label>
-                    <input type="text" id="exp-headline" name="profile_headline" placeholder="bijv. Ervaren Developer gespecialiseerd in Symfony">
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-source">Waar heb je de vacature gevonden?</label>
-                    <select id="exp-source" name="vacancy_source">
-                        <option value="hier">Hier</option>
-                        <option value="linkedin">LinkedIn</option>
-                        <option value="website_organisatie">Website organisatie</option>
-                        <option value="indeed">Indeed</option>
-                        <option value="andere_vacaturesites">Andere vacature websites</option>
-                        <option value="aanbeveling">Aanbeveling</option>
-                        <option value="recruiter">Via een recruiter</option>
-                        <option value="anders">Anders</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="exp-skills">Skills <span class="form-note">(Gescheiden door komma's)</span></label>
-                    <input type="text" id="exp-skills" name="skills" placeholder="bijv. PHP, Symfony, Git, SQL">
                 </div>
 
                 <div class="form-group">

@@ -7,7 +7,7 @@ use App\Entity\Project\PackageTask;
 use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 /**
  * @extends ServiceEntityRepository<PackageTask>
@@ -19,7 +19,7 @@ class PackageTaskRepository extends ServiceEntityRepository
         parent::__construct($registry, PackageTask::class);
     }
 
-    public function findOneAvailableForProject(Uuid|string $taskId, Project $project): ?PackageTask
+    public function findOneAvailableForProject(Ulid|string $taskId, Project $project): ?PackageTask
     {
         return $this->createQueryBuilder('packageTask')
             ->innerJoin('packageTask.workPackage', 'workPackage')
@@ -33,7 +33,7 @@ class PackageTaskRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findOneForProject(Uuid|string $taskId, Project $project): ?PackageTask
+    public function findOneForProject(Ulid|string $taskId, Project $project): ?PackageTask
     {
         return $this->createQueryBuilder('packageTask')
             ->innerJoin('packageTask.workPackage', 'workPackage')

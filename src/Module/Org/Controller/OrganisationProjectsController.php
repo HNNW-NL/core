@@ -3,26 +3,29 @@
 namespace App\Module\Org\Controller;
 
 use App\Entity\Project\Project;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
+use App\Module\Main\Service\CurrentProfileProvider;
+use App\Module\Main\Handler\ChangeWorkPackageStatusHandler;
+use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
 use App\Repository\Project\ProjectRepository;
 use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 use App\Security\Permission;
 
 #[Route('/org', name: 'org.')]
-final class PanelController extends AbstractController
+final class OrganisationProjectsController extends AbstractController
 {
-    #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
-    {
-        return $this->render('pages/org/index.html.twig');
-    }
-
     #[Route('/projects', name: 'projects', methods: ['GET'])]
     public function projects(): Response
     {
+        if ($this->getUser() === null) {
+            throw $this->createAccessDeniedException('Log eerst in.');
+        }
         return $this->render('pages/org/projects.html.twig');
     }
 
@@ -136,29 +139,116 @@ final class PanelController extends AbstractController
         ]);
     }
 
-    #[Route('/staff', name: 'staff', methods: ['GET'])]
-    public function staff(): Response
-    {
-        return $this->render('pages/org/staff.html.twig');
+    #[Route(
+        '/projects/modify/{id}/participants/applications/{applicationId}/accept',
+        name: 'modifyProject.participants.acceptApplication',
+        methods: ['POST'],
+    )]
+    public function acceptApplication(
+        string $id,
+        string $applicationId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
+        CurrentProfileProvider $currentProfileProvider,
+    ): RedirectResponse {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid(self::reviewTokenId($applicationId), $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+
+            return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+        }
+
+        $reviewer = $currentProfileProvider->getProfile();
+
+        if ($reviewer === null) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden voor de ingelogde gebruiker.');
+        }
+
+        $result = $applicationHandler->acceptApplication($project, $applicationId, $reviewer);
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
+
+        return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
     }
 
-    #[Route('/staff/{id}', name: 'viewStaff', methods: ['GET'])]
-    public function viewStaff(string $id): Response
+    #[Route(
+        '/projects/modify/{id}/participants/applications/{applicationId}/reject',
+        name: 'modifyProject.participants.rejectApplication',
+        methods: ['POST'],
+    )]
+    public function rejectApplication(
+        string $id,
+        string $applicationId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
+        CurrentProfileProvider $currentProfileProvider,
+    ): RedirectResponse {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid(self::reviewTokenId($applicationId), $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+
+            return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+        }
+
+        $reviewer = $currentProfileProvider->getProfile();
+
+        if ($reviewer === null) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden voor de ingelogde gebruiker.');
+        }
+
+        $result = $applicationHandler->rejectApplication(
+            $project,
+            $applicationId,
+            $request->request->getString('reason'),
+            $reviewer,
+        );
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
+
+        return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
+    }
+
+    #[Route('/projects/modify/{id}/work-packages/{workPackageId}/status', name: 'modifyProject.workPackages.status', methods: ['POST'])]
+    public function changeWorkPackageStatus(
+        string $id,
+        string $workPackageId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ChangeWorkPackageStatusHandler $handler,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if (!$this->isCsrfTokenValid('work_package_status_' . $workPackageId, $request->request->getString('_token'))) {
+            throw $this->createAccessDeniedException('Ongeldig veiligheidstoken.');
+        }
+
+        try {
+            $handler->handle(new ChangeWorkPackageStatusDTO($workPackageId, $request->request->getString('status')), $project);
+            $this->addFlash('success', 'De werkpakketstatus is gewijzigd.');
+        } catch (\InvalidArgumentException) {
+            $this->addFlash('error', 'De statuswijziging is niet mogelijk. Controleer de huidige status en probeer opnieuw.');
+        }
+
+        return $this->redirectToRoute('org.modifyProject.workPackages', ['id' => $id], Response::HTTP_SEE_OTHER);
+    }
+
+    /** CSRF-token id per aanvraag; de template gebruikt exact dezelfde string. */
+    private static function reviewTokenId(string $applicationId): string
     {
-        return $this->render('pages/org/staff/view.html.twig', [
-            'id' => $id,
-        ]);
+        return 'org_review_application_' . $applicationId;
     }
 
     private function getProjectAndCheckEditAccess(
         string $id,
         ProjectRepository $projectRepository,
     ): Project {
-        if (!Uuid::isValid($id)) {
+        if (!Ulid::isValid($id)) {
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        $project = $projectRepository->findOneActiveById(Uuid::fromString($id));
+        $project = $projectRepository->findOneActiveById(Ulid::fromString($id));
 
         if ($project === null) {
             throw $this->createNotFoundException('Project niet gevonden.');

@@ -1,17 +1,19 @@
 <?php
+
 namespace App\Entity\Project;
 
 use App\Entity\Account\Profile;
 use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'project_applications', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: "uniq_project_application_scope", columns: ["project_id", "profile_id"])
+    new ORM\UniqueConstraint(
+        name: 'uniq_project_application_scope',
+        columns: ['project_id', 'profile_id']
+    )
 ])]
 #[ORM\HasLifecycleCallbacks]
 class ProjectApplication
@@ -19,18 +21,18 @@ class ProjectApplication
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
-    #[ORM\ManyToOne(inversedBy: "applications")]
+    #[ORM\ManyToOne(inversedBy: 'applications')]
     #[ORM\JoinColumn(name: 'project_id', nullable: false)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(inversedBy: "projectApplications")]
+    #[ORM\ManyToOne(inversedBy: 'projectApplications')]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
     private ?Profile $profile = null;
 
-    #[ORM\ManyToOne(inversedBy: "projectApplications")]
+    #[ORM\ManyToOne(inversedBy: 'projectApplications')]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
 
@@ -40,15 +42,12 @@ class ProjectApplication
     #[ORM\Column(name: 'reviewed_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $reviewedAt = null;
 
-    #[ORM\ManyToOne(inversedBy: "reviewedProjectApplications")]
+    #[ORM\ManyToOne(inversedBy: 'reviewedProjectApplications')]
     #[ORM\JoinColumn(name: 'reviewer_profile_id', nullable: true)]
     private ?Profile $reviewerProfile = null;
 
     #[ORM\Column(name: 'review', type: 'text', nullable: true)]
     private ?string $review = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -59,18 +58,21 @@ class ProjectApplication
 
     // Reverse FKs
 
-    #[ORM\OneToOne(targetEntity: ProjectParticipant::class, mappedBy: 'application')]
-    private ?ProjectParticipant $participant;
+    #[ORM\OneToOne(
+        targetEntity: ProjectParticipant::class,
+        mappedBy: 'application'
+    )]
+    private ?ProjectParticipant $participant = null;
 
 
     // Functions
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -78,10 +80,7 @@ class ProjectApplication
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -111,7 +110,7 @@ class ProjectApplication
     }
 
 
-    /// Getters & Setters Functions
+    // Getters & Setters
 
     public function getProject(): ?Project
     {
@@ -192,7 +191,7 @@ class ProjectApplication
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
@@ -205,8 +204,7 @@ class ProjectApplication
         return $this->deletedAt;
     }
 
-    /** @return Collection<int, ProjectParticipant> */
-    public function getParticipant(): Collection
+    public function getParticipant(): ?ProjectParticipant
     {
         return $this->participant;
     }

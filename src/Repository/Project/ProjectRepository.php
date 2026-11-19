@@ -7,7 +7,7 @@ use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 /**
  * @extends ServiceEntityRepository<Project>
@@ -29,7 +29,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findOneActiveById(Uuid $id): ?Project
+    public function findOneActiveById(Ulid $id): ?Project
     {
         return $this->createQueryBuilder('project')
             ->andWhere('project.id = :id')

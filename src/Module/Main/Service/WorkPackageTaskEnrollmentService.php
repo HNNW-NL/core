@@ -9,7 +9,7 @@ use App\Module\Main\DTO\WorkPackageTaskEnrollmentStatus;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectParticipantRepository;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 final readonly class WorkPackageTaskEnrollmentService
 {
@@ -31,7 +31,7 @@ final readonly class WorkPackageTaskEnrollmentService
     ) {
     }
 
-    public function enroll(Project $project, Uuid|string $taskId, Profile $profile): WorkPackageTaskEnrollmentResult
+    public function enroll(Project $project, Ulid|string $taskId, Profile $profile): WorkPackageTaskEnrollmentResult
     {
         if (!$this->projectParticipantRepository->isActiveParticipant($project, $profile)) {
             return new WorkPackageTaskEnrollmentResult(
