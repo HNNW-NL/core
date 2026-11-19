@@ -19,6 +19,7 @@ use App\Entity\Project\ProjectParticipant;
 use App\Enum\AvailabilityType;
 use App\Enum\DayOfWeek;
 use App\Enum\SkillProficiencyLevel;
+use App\Form\ProfileSkillType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -547,11 +548,13 @@ final class AccountsController extends AbstractController
     #[Route('/skills', name: 'skills', methods: ['GET'])]
     public function skills(EntityManagerInterface $em): Response
     {
+        $form = $this->createForm(ProfileSkillType::class);
         $profile = $this->profile($em);
         return $this->render('pages/account-centre/skills.html.twig', [
             'ProfileSkills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
             'availableSkills' => $em->getRepository(Skill::class)->findBy(['active' => true], ['name' => 'ASC']),
-            'levels' => SkillProficiencyLevel::cases()
+            'levels' => SkillProficiencyLevel::cases(),
+            'form' => $form->createView(),
         ]);
     }
 

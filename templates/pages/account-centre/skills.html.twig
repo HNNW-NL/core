@@ -37,7 +37,16 @@
                 <p>Voeg je belangrijkste vaardigheden toe om beter gevonden te worden.</p>
             </div>
 
-            <form method="post" action="{{ path('account.skills_save') }}">
+            {{ form_start(form) }}
+                <div class="form-group">
+                    {{ form_row(form.skill) }}
+                </div>
+                <div class="form-group">
+                    {{ form_row(form.proficiencyLevel) }}
+                </div>
+            {{ form_end(form) }}
+
+            {# <form method="post" action="{{ path('account.skills_save') }}">
                 <input type="hidden" name="_token" value="{{ csrf_token('account_skills') }}">
 
                 <div class="form-group">
@@ -60,7 +69,7 @@
                 </div>
 
                 <button type="submit" class="btn-primary">Vaardigheid toevoegen</button>
-            </form>
+            </form> #}
         </section>
 
         <section class="account-form-container" aria-labelledby="skills-list-heading">
