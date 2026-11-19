@@ -40,12 +40,13 @@
             </div>
 
             {{ form_start(form) }}
-                <div class="form-group">
-                    {{ form_row(form.skill) }}
-                </div>
-                <div class="form-group">
-                    {{ form_row(form.proficiencyLevel) }}
-                </div>
+                {{ form_row(form.skill) }}
+
+                {{ form_row(form.proficiencyLevel) }}
+
+                <button type="submit" class="btn btn-primary">
+                    Vaardigheid toevoegen
+                </button>
             {{ form_end(form) }}
 
             {# <form method="post" action="{{ path('account.skills_save') }}">

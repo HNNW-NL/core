@@ -548,8 +548,12 @@ final class AccountsController extends AbstractController
     #[Route('/skills', name: 'skills', methods: ['GET'])]
     public function skills(EntityManagerInterface $em): Response
     {
-        $form = $this->createForm(ProfileSkillType::class);
         $profile = $this->profile($em);
+
+        $form = $this->createForm(ProfileSkillType::class, new ProfileSkill(),[
+            'action' => $this->generateUrl('account.skills_save'),
+            'method' => 'POST',
+        ]);
         return $this->render('pages/account-centre/skills.html.twig', [
             'ProfileSkills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
             'availableSkills' => $em->getRepository(Skill::class)->findBy(['active' => true], ['name' => 'ASC']),
@@ -561,22 +565,43 @@ final class AccountsController extends AbstractController
     #[Route('/skills', name: 'skills_save', methods: ['POST'])]
     public function saveSkill(Request $request, EntityManagerInterface $em): Response
     {
-        $this->csrf($request, 'account_skills');
         $profile = $this->profile($em);
-        $skill = $em->getRepository(Skill::class)->find((string) $request->request->get('skill_id', ''));
-        $level = SkillProficiencyLevel::tryFrom((string) $request->request->get('level', 'beginner'));
-        if (!$skill || !$skill->isActive() || !$level) {
-            throw $this->createNotFoundException('Skill of niveau niet gevonden.');
+        $form = $this->createForm(ProfileSkillType::class, new ProfileSkill());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var ProfileSkill $data */
+            $data = $form->getData();
+
+            $skill = $data->getSkill();
+            $level = $data->getProficiencyLevel();
+
+            if (!$skill || !$skill->isActive()) {
+                throw $this->createNotFoundException('Skill niet gevonden.');
+            }
+
+            $entry = $em->getRepository(ProfileSkill::class)->findOneBy([
+                'profile' => $profile,
+                'skill' => $skill,
+            ]);
+
+            if (!$entry) {
+                $entry = new ProfileSkill();
+                $entry->setProfile($profile);
+                $entry->setSkill($skill);
+
+                $em->persist($entry);
+                $this->addFlash('info', 'Vaardigheid is toegevoegd.');
+            } else {
+                $this->addFlash('info', 'Vaardigheid is aangepast.');
+            }
+
+            $entry->setProficiencyLevel($level);
+            $em->flush();
+            return $this->redirectToRoute('account.skills');
         }
-        $entry = $em->getRepository(ProfileSkill::class)->findOneBy(['profile' => $profile, 'skill' => $skill]);
-        if (!$entry) {
-            $entry = new ProfileSkill()->setProfile($profile)->setSkill($skill);
-            $em->persist($entry);
-            $this->addFlash('info', 'Vaardigheid is toegevoegd.');
-        }
-        else { $this->addFlash('info', 'Vaardigheid is aangepast.'); }
-        $entry->setProficiencyLevel($level);
-        $em->flush();
+
+        $this->addFlash('error', 'Controleer de ingevoerde gegevens.');
         return $this->redirectToRoute('account.skills');
     }
 
