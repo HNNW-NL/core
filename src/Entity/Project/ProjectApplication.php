@@ -9,12 +9,8 @@ use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'project_applications', uniqueConstraints: [
-    new ORM\UniqueConstraint(
-        name: 'uniq_project_application_scope',
-        columns: ['project_id', 'profile_id']
-    )
-])]
+#[ORM\UniqueConstraint(name: 'uniq_project_application_scope', columns: ['project_id', 'profile_id'])]
+#[ORM\Table(name: 'project_applications')]
 #[ORM\HasLifecycleCallbacks]
 class ProjectApplication
 {

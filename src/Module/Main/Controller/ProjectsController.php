@@ -50,14 +50,42 @@ final class ProjectsController extends AbstractController
         ]);
     }
 
-    #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
-    public function apply(string $slug, ProjectRepository $projectRepository): Response
+    #[Route('/{slug}/apply', name: 'apply', methods: ['GET', 'POST'])]
+    public function apply(string $slug, ProjectRepository $projectRepository, Request $request,
+        CurrentProfileProvider $profiles, \App\Module\Main\Service\ProjectApplicationService $applications,
+        \Doctrine\ORM\EntityManagerInterface $em): Response
     {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository, true);
+        $account = $this->getUser();
+        $profile = $profiles->getProfile();
+        if (!$account instanceof \App\Entity\Account\Account || $profile === null) {
+            throw $this->createAccessDeniedException();
+        }
+        $error = null;
+        $motivation = '';
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('project-apply-'.$project->getId(), $request->request->getString('_token'))) {
+                throw $this->createAccessDeniedException();
+            }
+            $motivation = $request->request->getString('motivation');
+            try {
+                $applications->submit($project, $account, $profile, $motivation);
+                $this->addFlash('success', 'Je aanvraag staat in Mijn aanmeldingen.');
+                return $this->redirectToRoute('account.applications', status: 303);
+            } catch (\DomainException $exception) {
+                $error = $exception->getMessage();
+            }
+        }
+        $existing = $em->getRepository(\App\Entity\Project\ProjectApplication::class)
+            ->findOneBy(['project' => $project, 'profile' => $profile]);
+        $participant = $em->getRepository(\App\Entity\Project\ProjectParticipant::class)
+            ->findOneBy(['project' => $project, 'profile' => $profile]);
         return $this->render('pages/main/projects/apply.html.twig', [
-            'slug' => $slug,
-            'project' => $project,
-        ]);
+            'project' => $project, 'slug' => $slug, 'applicant' => $profile, 'existing' => $existing,
+            'participant' => $participant, 'error' => $error, 'motivation' => $motivation,
+            'applicationLabel' => $existing ? $applications->label($existing) : null,
+        ], new Response(status: $error ? 422 : 200));
     }
 
     #[Route('/{slug}/chat', name: 'chat', methods: ['GET'])]

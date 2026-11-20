@@ -91,32 +91,38 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/applications', name: 'applications', methods: ['GET'])]
-    public function applications(EntityManagerInterface $em): Response
+    public function applications(Request $request, EntityManagerInterface $em, \App\Module\Main\Service\ProjectApplicationService $service): Response
     {
-        return $this->render('pages/account-centre/applications.html.twig', [
-            'profile' => $this->profile($em),
-        ]);
+        $profile = $this->profile($em);
+        $filter = $request->query->getString('status');
+        $applications = $em->getRepository(ProjectApplication::class)->findBy(['profile' => $profile], ['id' => 'DESC']);
+        $rows = [];
+        foreach ($applications as $application) {
+            $label = $service->label($application);
+            if ($filter === '' || $label === $filter) {
+                $rows[] = ['application' => $application, 'label' => $label,
+                    'withdrawable' => $application->getDeletedAt() === null && $service->pending($application)];
+            }
+        }
+        return $this->render('pages/account-centre/applications.html.twig', ['rows' => $rows, 'filter' => $filter]);
     }
 
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
-    public function applicationsCancel(string $id, Request $request, EntityManagerInterface $em): Response
+    public function applicationsCancel(string $id, Request $request, EntityManagerInterface $em, \App\Module\Main\Service\ProjectApplicationService $service): Response
     {
-        $application = $em->getRepository(ProjectApplication::class)->find($id);
-        if (!$application || $application->getDeletedAt() !== null) {
+        $profile = $this->profile($em);
+        $this->csrf($request, 'cancel_application'.$id);
+        $application = \Symfony\Component\Uid\Ulid::isValid($id) ? $em->find(ProjectApplication::class, new \Symfony\Component\Uid\Ulid($id)) : null;
+        if (!$application) {
             throw $this->createNotFoundException('Aanmelding niet gevonden.');
         }
-        if ($application->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
-            throw $this->createAccessDeniedException();
-        }
-        $this->csrf($request, 'cancel_application' . $id);
-        if ($application->getParticipant() !== null) {
-            $this->addFlash('error', 'Een geaccepteerde aanmelding kan niet op deze manier worden ingetrokken.');
-        } else {
-            $application->softDelete();
-            $em->flush();
+        try {
+            $service->withdraw($application, $profile);
             $this->addFlash('success', 'Aanmelding ingetrokken.');
+        } catch (\DomainException $exception) {
+            $this->addFlash('error', $exception->getMessage());
         }
-        return $this->redirectToRoute('account.applications');
+        return $this->redirectToRoute('account.applications', status: 303);
     }
 
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]

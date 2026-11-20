@@ -1,21 +1,21 @@
 {% extends 'layouts/main.base.html.twig' %}
-
-{# Page title meta tag #}
-{% block title %}Applying for project {{ slug }}{% endblock %}
-
-{# SEO #}
-{% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
-{% block seoAuthor %}HNNW{% endblock %}
-
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
+{% block title %}Aanmelden voor {{ project.title }}{% endblock %}
 {% block body %}
-    <h2>Projects - Apply</h2>
-    <p>Main - projects apply page. For project {{ slug }}.</p>
+<h1>Aanmelden voor {{ project.title }}</h1>
+<p>Aanvrager {{ applicant.displayName|default(applicant.firstName) }}</p>
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+{% if existing %}
+    <p>Je aanvraag heeft de status {{ applicationLabel }}.</p>
+    <a href="{{ path('account.applications') }}">Mijn aanmeldingen</a>
+{% elseif participant %}
+    <p>Er bestaat al een deelname voor dit project.</p>
+{% else %}
+    <p>De bevoegde projectbeheerders kunnen je motivatie lezen om je aanvraag te beoordelen.</p>
+    <form method="post">
+        <input type="hidden" name="_token" value="{{ csrf_token('project-apply-' ~ project.id) }}">
+        <label for="motivation">Motivatie (20–2.000 tekens)</label>
+        <textarea id="motivation" name="motivation" required minlength="20" maxlength="2000">{{ motivation }}</textarea>
+        <button type="submit">Aanvraag indienen</button>
+    </form>
+{% endif %}
 {% endblock %}
