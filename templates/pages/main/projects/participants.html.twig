@@ -18,4 +18,22 @@
 {% block body %}
     <h2>Projects - Participants</h2>
     <p>Main - projects participants page. For project {{ slug }}.</p>
+
+    {% if participants is defined and participants is not empty %}
+        <ul>
+            {% for participant in participants %}
+                {% set profile = participant.profile ?? participant.user ?? participant %}
+                <li>
+                    <a href="{{ path('profile_show', {'slug': profile.slug}) }}">
+                        {{ profile.name ?? profile.username ?? profile.id }}
+                    </a>
+                    {% if participant.role is defined and participant.role %}
+                        <span>— {{ participant.role.name ?? participant.role }}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Geen actieve deelnemers gevonden.</p>
+    {% endif %}
 {% endblock %}
