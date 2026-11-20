@@ -78,6 +78,7 @@ final readonly class PublicProfileService
             'headline' => $visible(ProfileVisibilityPermission::HEADLINE) ? $profile->getHeadline() : null,
             'location' => $visible(ProfileVisibilityPermission::LOCATION) ? $profile->getLocation() : null,
             'canEdit' => $owner,
+            'emailVerified' => $account->getEmailVerifiedAt() !== null,
             'sections' => [
                 'experience' => $visible(ProfileVisibilityPermission::EXPERIENCE),
                 'education' => $visible(ProfileVisibilityPermission::EDUCATION),

@@ -154,6 +154,10 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorExists('link[rel="stylesheet"][href$="/assets/main/css/profile.css"]');
         self::assertSelectorExists('link[rel="stylesheet"][href$="/assets/main/css/home.css"]');
         self::assertSelectorExists('#inner-main > #profile #basic-info #p-avatar');
+        foreach (['#p-cover #pc-img', '#pi-icon', '#pcin-verification', '#pci-pronouns'] as $selector) {
+            self::assertSelectorExists('#basic-info '.$selector);
+        }
+        self::assertSelectorExists('#pcin-verification[hidden]');
         self::assertSelectorExists('#inner-main > #suggestions');
         self::assertSelectorTextContains('#pi-stats', '1 openbare projecten');
         self::assertSelectorTextContains('#profile-projects', 'Samen bouwen');
@@ -178,6 +182,7 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $em = static::getContainer()->get(EntityManagerInterface::class);
         $profile = $em->find(Profile::class, $this->owner->getProfile()->getId());
         $profile->setDisplayName('Bijgewerkte naam');
+        $profile->getAccount()->verifyEmail();
         $profile->getAccount()->getSetting()->setSectionVisibility(ProfileVisibilityPermission::EXPERIENCE, VisibilityLevel::PUBLIC);
         foreach ([ProfileVisibilityPermission::EDUCATION, ProfileVisibilityPermission::CERTIFICATIONS, ProfileVisibilityPermission::SOCIAL_LINKS] as $section) {
             $profile->getAccount()->getSetting()->setSectionVisibility($section, VisibilityLevel::PUBLIC);
@@ -186,6 +191,7 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $em->flush();
         $this->client->request('GET', $path);
         self::assertSelectorTextContains('h1', 'Bijgewerkte naam');
+        self::assertSelectorNotExists('#pcin-verification[hidden]');
         self::assertSelectorTextContains('.profile-experience', 'Private werkervaring');
         self::assertSelectorExists('#pc-companies img[src="/uploads/organisation-logo.png"]');
         self::assertSelectorExists('.profile-experience .ei-logo img[src="/uploads/organisation-logo.png"]');
@@ -194,6 +200,9 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorExists('#education .edui-logo img[src="/uploads/organisation-logo.png"]');
         self::assertSelectorTextContains('#licenses', 'Certificaat uit database');
         self::assertSelectorTextContains('#licenses', 'Geldig tot 12-2030');
+        foreach (['.e-footer', '.edu-footer', '.l-footer', '.s-footer', '.suggestion-footer'] as $selector) {
+            self::assertSelectorExists($selector);
+        }
         foreach (['#pcin-name', '#pc-companies', '#experience', '#education', '#licenses', '#skills', '#recommendations'] as $selector) {
             self::assertSelectorExists('#profile '.$selector);
         }

@@ -23,11 +23,16 @@
     <div id="inner-main" class="profile-page">
         <article id="profile">
             <section id="basic-info">
-                {# Profile has no persisted cover field; preserve the original container without a fake image. #}
-                <figure id="p-cover" aria-hidden="true"></figure>
+                {# Vaste standaarddecoratie uit develop; geen persoonlijke database-omslagfoto. #}
+                <figure id="p-cover">
+                    <img id="pc-img" src="https://media.licdn.com/dms/image/v2/D5616AQHtxtU_sS1o7w/profile-displaybackgroundimage-shrink_200_800/B56Zl2YtDMHUAU-/0/1758627819695?e=1794441600&v=beta&t=ZiD7Z1BJWgWRmtmRrDPZjT7PravrhrK5zkbA81-h-ws" alt="">
+                </figure>
 
                 <div id="p-image">
                     <figure id="p-avatar" data-profile-fallback="{{ profileView.name|slice(0, 1)|upper }}">{% if profileView.avatar %}<img src="{{ profileView.avatar }}" alt="Profielfoto van {{ profileView.name }}" referrerpolicy="no-referrer">{% else %}<span>{{ profileView.name|slice(0, 1)|upper }}</span>{% endif %}</figure>
+                    <a id="pi-icon" href="" aria-disabled="true" tabindex="-1" title="Profielmeldingen zijn niet beschikbaar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M14.826 19A3 3 0 0 1 12 21a3 3 0 0 1-2.825-2zM12 2a7 7 0 0 1 7 7v3.528a1 1 0 0 0 .106.447l1.717 3.433A1.1 1.1 0 0 1 19.838 18H4.162a1.1 1.1 0 0 1-.984-1.592l1.717-3.433A1 1 0 0 0 5 12.528V9a7 7 0 0 1 7-7"/></svg>
+                    </a>
                 </div>
 
                 <div id="p-info">
@@ -38,11 +43,17 @@
                                     <div id="pcin-name">
                                         <h1>{{ profileView.name }}</h1>
                                     </div>
+                                    <figure id="pcin-verification" title="E-mailadres bevestigd"{% if not profileView.emailVerified %} hidden{% endif %}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="m8.38 12l2.41 2.42l4.83-4.84"/><path d="M10.75 2.45c.69-.59 1.82-.59 2.52 0l1.58 1.36c.3.26.86.47 1.26.47h1.7c1.06 0 1.93.87 1.93 1.93v1.7c0 .39.21.96.47 1.26l1.36 1.58c.59.69.59 1.82 0 2.52l-1.36 1.58c-.26.3-.47.86-.47 1.26v1.7c0 1.06-.87 1.93-1.93 1.93h-1.7c-.39 0-.96.21-1.26.47l-1.58 1.36c-.69.59-1.82.59-2.52 0l-1.58-1.36c-.3-.26-.86-.47-1.26-.47H6.18c-1.06 0-1.93-.87-1.93-1.93V16.1c0-.39-.21-.95-.46-1.25l-1.35-1.59c-.58-.69-.58-1.81 0-2.5l1.35-1.59c.25-.3.46-.86.46-1.25V6.2c0-1.06.87-1.93 1.93-1.93h1.73c.39 0 .96-.21 1.26-.47z"/></g></svg>
+                                    </figure>
+                                </div>
+                                <div id="pci-pronouns" hidden aria-hidden="true">
+                                    <p></p>
                                 </div>
                             </div>
 
-                            {% if profileView.headline %}<p id="pci-headline">{{ profileView.headline }}</p>{% endif %}
-                            {% if profileView.location %}<p id="pci-location">{{ profileView.location }}</p>{% endif %}
+                            <p id="pci-headline">{{ profileView.headline }}</p>
+                            <p id="pci-location">{{ profileView.location }}</p>
                         </div>
                         {% if profileView.experience is not empty or profileView.education is not empty %}
                         <div id="pc-companies">
@@ -80,7 +91,7 @@
 
             <section id="about" class="section">
                 <h2 id="a-title">Over</h2>
-                <p id="a-descr" class="profile-biography">{{ profileView.biography|default('Er is nog geen biografie toegevoegd.') }}</p>
+                <p id="a-descr" class="profile-biography">{{ profileView.biography|default('Er is nog geen biografie toegevoegd.')|nl2br }}</p>
                 {% if profileView.skills is not empty %}<div id="top-skills">
                     <figure id="ts-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.467 8.694l.246-.566a4.36 4.36 0 0 1 2.22-2.25l.759-.339a.53.53 0 0 0 0-.963l-.717-.319a4.37 4.37 0 0 1-2.251-2.326l-.253-.611a.506.506 0 0 0-.942 0l-.253.61a4.37 4.37 0 0 1-2.25 2.327l-.718.32a.53.53 0 0 0 0 .962l.76.338a4.36 4.36 0 0 1 2.219 2.251l.246.566c.18.414.753.414.934 0M5 6a1 1 0 0 0-.8.4l-3 4a1 1 0 0 0 .057 1.269l9 10a1 1 0 0 0 1.486 0l9-10l-1.486-1.338L11 19.505l-7.707-8.563L5.5 8H14V6z"/></svg>
@@ -127,7 +138,7 @@
                                                     <p class="ei-muted">{{ position.location }}</p>
                                                 {% endif %}
                                                 {% if position.description %}
-                                                    <p class="ei-description">{{ position.description }}</p>
+                                                    <p class="ei-description">{{ position.description|nl2br }}</p>
                                                 {% endif %}
                                             </div>
                                         {% endfor %}
@@ -139,7 +150,7 @@
                                     <p class="ei-muted">{{ position.period }}</p>
                                     {% if position.location %}<p class="ei-muted">{{ position.location }}</p>{% endif %}
                                     {% if position.description %}
-                                        <p class="ei-description">{{ position.description }}</p>
+                                        <p class="ei-description">{{ position.description|nl2br }}</p>
                                     {% endif %}
                                 {% endif %}
                             </div>
@@ -147,6 +158,10 @@
                     {% else %}<p class="profile-empty">Er is nog geen werkervaring toegevoegd.</p>
                     {% endfor %}
                 </div>
+                <a class="e-footer" href="#e-list" data-profile-toggle="e-list">
+                    <p>Alle werkervaring weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
             </section>
             {% endif %}
 
@@ -178,7 +193,7 @@
                                 <p class="edui-muted">{{ education.period }}</p>
 
                                 {% if education.description %}
-                                    <p class="edui-description">{{ education.description }}</p>
+                                    <p class="edui-description">{{ education.description|nl2br }}</p>
                                 {% endif %}
 
                                 {% if education.skills %}
@@ -191,6 +206,10 @@
                     {% else %}<p class="profile-empty">Er zijn nog geen opleidingen toegevoegd.</p>
                     {% endfor %}
                 </div>
+                <a class="edu-footer" href="#edu-list" data-profile-toggle="edu-list">
+                    <p>Alle opleidingen weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
             </section>
             {% endif %}
 
@@ -239,6 +258,10 @@
                     {% else %}<p class="profile-empty">Er zijn nog geen certificaten toegevoegd.</p>
                     {% endfor %}
                 </div>
+                <a class="l-footer" href="#l-list" data-profile-toggle="l-list">
+                    <p>Alle certificeringen weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
             </section>
             {% endif %}
 
@@ -269,6 +292,10 @@
                     {% else %}<p class="profile-empty">Er zijn nog geen vaardigheden toegevoegd.</p>
                     {% endfor %}
                 </div>
+                <a class="s-footer" href="#s-list" data-profile-toggle="s-list">
+                    <p>Alle {{ profileView.skills|length }} vaardigheden weergeven</p>
+                    <span aria-hidden="true">→</span>
+                </a>
             </section>
             {% endif %}
 
@@ -316,7 +343,7 @@
                                     {% if recommendation.headline|default('') %}<p class="ri-headline">{{ recommendation.headline }}</p>{% endif %}
                                     <p class="ri-muted">{{ recommendation.date|date('m-Y') }}</p>
                                     {% if recommendation.relation|default('') %}<p class="ri-muted">{{ recommendation.relation }}</p>{% endif %}
-                                    <p class="ri-description">{{ recommendation.text }}</p>
+                                    <p class="ri-description">{{ recommendation.text|nl2br }}</p>
                                 </div>
                             </article>
                         {% else %}
@@ -335,7 +362,7 @@
                                     <h3>{{ recommendation.name }}</h3>
                                     {% if recommendation.headline|default('') %}<p class="ri-headline">{{ recommendation.headline }}</p>{% endif %}
                                     <p class="ri-muted">{{ recommendation.date|date('m-Y') }}</p>
-                                    <p class="ri-description">{{ recommendation.text }}</p>
+                                    <p class="ri-description">{{ recommendation.text|nl2br }}</p>
                                 </div>
                             </article>
                         {% else %}
@@ -369,6 +396,12 @@
                     {% else %}<p class="profile-empty">Er zijn nog geen andere openbare profielen beschikbaar.</p>
                     {% endfor %}
                 </div>
+                <a class="suggestion-footer" href="#more-profiles-for-you">
+                    <p>Alles weergeven</p>
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M5 12h14m-6-6 6 6-6 6"/>
+                    </svg>
+                </a>
             </section>
 
             <section id="people-you-may-know" class="section">
@@ -393,6 +426,12 @@
                     {% else %}<p class="profile-empty">Er zijn nog geen andere openbare profielen beschikbaar.</p>
                     {% endfor %}
                 </div>
+                <a class="suggestion-footer" href="#people-you-may-know">
+                    <p>Alles weergeven</p>
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                        <path d="M5 12h14m-6-6 6 6-6 6"/>
+                    </svg>
+                </a>
             </section>
         </section>
     </div>
