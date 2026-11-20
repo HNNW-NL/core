@@ -85,7 +85,8 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->project->publish();
         $this->persist($this->project);
         foreach (['Developer', 'Designer'] as $name) {
-            $role = (new ProjectRole())->setProject($this->project)->setName($name);
+            $role = (new ProjectRole())->setProject($this->project)->setName($name)
+                ->setPermissionsMask($name === 'Developer' ? \App\Security\ProjectPermission::VIEW->value : 0);
             $this->persist($role);
             $participant = (new ProjectParticipant())->setProject($this->project)->setProfile($this->member->getProfile())
                 ->setRole($role)->setStatus($this->fixtureStatus('ProjectParticipant', 'active'));
@@ -205,6 +206,39 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorExists('a[href="/account/modify"]');
     }
 
+    #[\PHPUnit\Framework\Attributes\TestWith([0])]
+    #[\PHPUnit\Framework\Attributes\TestWith([2])]
+    public function testActiveParticipantWithoutProjectViewCannotReadParticipants(int $permissions): void
+    {
+        foreach ($this->em->getRepository(ProjectRole::class)->findBy(['project' => $this->project]) as $role) {
+            $role->setPermissionsMask($permissions);
+        }
+        $this->em->flush();
+        $this->client->loginUser($this->member);
+        $this->client->request('GET', '/projects/'.$this->project->getSlug().'/participants');
+        self::assertResponseStatusCodeSame(403);
+        self::assertSelectorNotExists('.participant-card');
+        self::assertSelectorNotExists('.participants-heading');
+    }
+
+    public function testProjectViewStillRequiresActiveParticipationForThisList(): void
+    {
+        $inactive = $this->fixtureStatus('ProjectParticipant', 'inactive');
+        foreach ($this->em->getRepository(ProjectParticipant::class)->findBy([
+            'project' => $this->project, 'profile' => $this->member->getProfile(),
+        ]) as $participant) {
+            $participant->setStatus($inactive);
+        }
+        $this->em->flush();
+        $voter = static::getContainer()->get(\App\Security\Voter\ProjectVoter::class);
+        $token = new \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken($this->member, 'main', $this->member->getRoles());
+        self::assertSame(1, $voter->vote($token, $this->project, ['PROJECT_VIEW']));
+        $this->client->loginUser($this->member);
+        $this->client->request('GET', '/projects/'.$this->project->getSlug().'/participants');
+        self::assertResponseStatusCodeSame(403);
+        self::assertSelectorNotExists('.participant-card');
+    }
+
     public function testParticipantsExcludeFormerMembersAndPrivateData(): void
     {
         $path = '/projects/'.$this->project->getSlug().'/participants';
@@ -235,6 +269,11 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $workflow = static::getContainer()->get(\App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler::class);
         $result = $workflow->acceptApplication($project, (string) $application->getId(), $project->getOwnerAccount()->getProfile());
         self::assertTrue($result['success']);
+        $this->client->loginUser($this->outsider);
+        $this->client->request('GET', $path);
+        self::assertResponseStatusCodeSame(403);
+        self::assertSelectorNotExists('.participant-card');
+        $this->client->loginUser($this->member);
         $this->client->request('GET', $path);
         self::assertSelectorCount(3, '.participant-card');
         $em = static::getContainer()->get(EntityManagerInterface::class);

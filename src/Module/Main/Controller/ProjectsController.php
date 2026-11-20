@@ -111,10 +111,7 @@ final class ProjectsController extends AbstractController
         \App\Module\Main\Service\ProjectParticipantsService $participants,
     ): Response {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        $project = $projectRepository->findOneVisibleBySlug($slug);
-        if ($project === null) {
-            throw $this->createNotFoundException('Project niet gevonden.');
-        }
+        $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository);
         $viewer = $this->getUser();
         $response = $this->render('pages/main/projects/participants.html.twig', [
             'project' => $project,
