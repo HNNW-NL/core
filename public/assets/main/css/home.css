@@ -537,3 +537,13 @@
     background: var(--dark-bg);
 }
 }
+
+/* De profielafbeelding mag het mobiele navigatiemenu niet overlappen. */
+body {
+    &:has(#inner-main.profile-page) {
+        .page_navbar {
+            position: relative;
+            z-index: 20;
+        }
+    }
+}

@@ -105,6 +105,16 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->persist((new ProfileSkill())->setProfile($this->owner->getProfile())->setSkill($skill));
         $this->persist((new ProfileExperience())->setProfile($this->owner->getProfile())->setJobTitle('Private werkervaring')
             ->setExternalOrganisationName('Voorbeeldbedrijf')->setStartDate(new \DateTimeImmutable('2024-01-01')));
+        $this->persist((new \App\Entity\Account\ProfileEducation())->setProfile($this->owner->getProfile())
+            ->setInstitutionName('Opleiding uit database')->setDegree('Softwareontwikkeling')->setStartDate(new \DateTimeImmutable('2023-01-01')));
+        $this->persist((new \App\Entity\Account\ProfileCertification())->setProfile($this->owner->getProfile())
+            ->setName('Certificaat uit database')->setIssuer('Testinstituut')->setCredentialUrl('javascript:alert(1)'));
+        $this->persist((new \App\Entity\Account\ProfileSocialLink())->setProfile($this->owner->getProfile())
+            ->setLabel('Mijn website')->setUrl('https://example.test/profiel'));
+        $review = (new \App\Entity\Account\Review())->setProfile($this->owner->getProfile())->setReviewerProfile($this->outsider->getProfile())
+            ->setProject($this->project)->setStatus($this->fixtureStatus('review', 'active'))->setMessage('Openbare aanbeveling uit database');
+        $review->makePublic();
+        $this->persist($review);
         $this->em->flush();
     }
 
@@ -142,6 +152,10 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertStringNotContainsString($this->owner->getEmail(), $html);
         self::assertStringNotContainsString('Private werkervaring', $html);
         self::assertStringNotContainsString('Private headline', $html);
+        self::assertStringNotContainsString('Opleiding uit database', $html);
+        self::assertStringNotContainsString('Certificaat uit database', $html);
+        self::assertStringNotContainsString('https://example.test/profiel', $html);
+        self::assertStringNotContainsString('Openbare aanbeveling uit database', $html);
         self::assertStringNotContainsString('<script>alert(1)</script>', $html);
         self::assertStringContainsString('&lt;script&gt;', $html);
         self::assertStringContainsString('no-store', $this->client->getResponse()->headers->get('Cache-Control'));
@@ -150,10 +164,19 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $profile = $em->find(Profile::class, $this->owner->getProfile()->getId());
         $profile->setDisplayName('Bijgewerkte naam');
         $profile->getAccount()->getSetting()->setSectionVisibility(ProfileVisibilityPermission::EXPERIENCE, VisibilityLevel::PUBLIC);
+        foreach ([ProfileVisibilityPermission::EDUCATION, ProfileVisibilityPermission::CERTIFICATIONS, ProfileVisibilityPermission::SOCIAL_LINKS] as $section) {
+            $profile->getAccount()->getSetting()->setSectionVisibility($section, VisibilityLevel::PUBLIC);
+        }
+        $em->find(Account::class, $this->outsider->getId())->getSetting()->setProfileVisibility('public');
         $em->flush();
         $this->client->request('GET', $path);
         self::assertSelectorTextContains('h1', 'Bijgewerkte naam');
         self::assertSelectorTextContains('.profile-experience', 'Private werkervaring');
+        self::assertSelectorTextContains('#education', 'Opleiding uit database');
+        self::assertSelectorTextContains('#licenses', 'Certificaat uit database');
+        self::assertSelectorTextContains('#recommendations', 'Openbare aanbeveling uit database');
+        self::assertSelectorExists('#pi-website a[href="https://example.test/profiel"]');
+        self::assertSelectorNotExists('a[href^="javascript:"]');
         $em = static::getContainer()->get(EntityManagerInterface::class);
         $em->find(Account::class, $this->owner->getId())->getSetting()->setProfileVisibility('private');
         $em->flush();

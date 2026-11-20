@@ -23,7 +23,13 @@ final class PublicProfileServiceTest extends TestCase
         $repository->method('findOneBy')->willReturn($account);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getRepository')->willReturn($repository);
-        $em->expects(self::never())->method('createQueryBuilder');
+        $query = $this->createStub(\Doctrine\ORM\Query::class);
+        foreach (['setParameters', 'setFirstResult', 'setMaxResults'] as $method) {
+            $query->method($method)->willReturnSelf();
+        }
+        $query->method('getResult')->willReturn([]);
+        $em->method('createQuery')->willReturn($query);
+        $em->expects(self::once())->method('createQueryBuilder')->willReturn(new \Doctrine\ORM\QueryBuilder($em));
         $service = new PublicProfileService($em);
         self::assertSame('Openbare biografie', $service->load('public', null)['biography']);
         $settings->setProfileVisibility('private');

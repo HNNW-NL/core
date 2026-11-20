@@ -1,57 +1,383 @@
 {% extends 'layouts/main.base.html.twig' %}
+
+{# Page title meta tag #}
 {% block title %}{{ profileView.name }}{% endblock %}
+
+{# SEO #}
+{% block seoKeywords %}{% endblock %}
+{% block seoDescription %}{% endblock %}
+{% block seoAuthor %}HNNW{% endblock %}
+
+{# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('assets/main/css/profile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/main/css/profile-responsive.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/main/css/profile-navigation.css') }}">
+    <link rel="stylesheet" href="{{ asset("assets/main/css/home.css") }}">
+    <link rel="stylesheet" href="{{ asset("assets/main/css/profile.css") }}">
 {% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
 {% block body %}
-<article class="profile-page">
-    <section class="profile-hero">
-        <div class="profile-cover" aria-hidden="true"></div>
-        <div class="profile-intro">
-            {% if profileView.avatar %}
-                <img class="profile-avatar" src="{{ profileView.avatar }}" alt="Profielfoto van {{ profileView.name }}" referrerpolicy="no-referrer">
-            {% else %}
-                <span class="profile-avatar profile-avatar--empty" aria-hidden="true">{{ profileView.name|slice(0, 1)|upper }}</span>
-            {% endif %}
-            <div>
-                <h1>{{ profileView.name }}</h1>
-                <p class="profile-username">@{{ profileView.username }}</p>
-                {% if profileView.headline %}<p class="profile-headline">{{ profileView.headline }}</p>{% endif %}
-                {% if profileView.location %}<p class="profile-location">{{ profileView.location }}</p>{% endif %}
-                {% if profileView.canEdit %}<a class="profile-edit" href="{{ path('account.modify') }}">Profiel bewerken</a>{% endif %}
-            </div>
-        </div>
-    </section>
-    <div class="profile-columns">
-        <div class="profile-main">
-            <section class="profile-section">
-                <h2>Over mij</h2>
-                <p class="profile-biography">{{ profileView.biography|default('Er is nog geen biografie toegevoegd.') }}</p>
-            </section>
-            {% if profileView.experience is not empty %}
-                <section class="profile-section">
-                    <h2>Ervaring</h2>
-                    <ul class="profile-experience">
-                        {% for experience in profileView.experience %}
-                            <li>
-                                <h3>{{ experience.jobTitle }}</h3>
-                                <p>{{ experience.organisationName|default(experience.externalOrganisationName) }}</p>
-                                <p class="profile-period">{{ experience.startDate|date('m-Y') }} – {{ experience.endDate ? experience.endDate|date('m-Y') : 'heden' }}</p>
-                                {% if experience.description %}<p class="profile-biography">{{ experience.description }}</p>{% endif %}
-                            </li>
+    <div id="inner-main" class="profile-page">
+        <article id="profile">
+            <section id="basic-info">
+<figure id="p-cover" aria-hidden="true"></figure>
+
+                <div id="p-image">
+                    <figure id="p-avatar">{% if profileView.avatar %}<img src="{{ profileView.avatar }}" alt="Profielfoto van {{ profileView.name }}" referrerpolicy="no-referrer">{% else %}<span>{{ profileView.name|slice(0, 1)|upper }}</span>{% endif %}</figure>
+                </div>
+
+                <div id="p-info">
+                    <div id="pi-core">
+                        <div id="pc-info">
+                            <div id="pci-title">
+                                <div id="pci-name">
+                                    <div id="pcin-name">
+                                        <h1>{{ profileView.name }}</h1>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if profileView.headline %}<p id="pci-headline">{{ profileView.headline }}</p>{% endif %}
+                            {% if profileView.location %}<p id="pci-location">{{ profileView.location }}</p>{% endif %}
+                        </div>
+                        {% if profileView.experience is not empty or profileView.education is not empty %}
+                        <div id="pc-companies">
+                            {% for experience in profileView.experience|slice(0, 1) %}
+                                {% set companyName = experience.organisationName|default(experience.externalOrganisationName) %}
+                                <div class="company">
+                                    <figure class="comp-icon"><span>{{ companyName|slice(0, 1) }}</span></figure>
+                                    <p>{{ companyName }}</p>
+                                </div>
+                            {% endfor %}
+                            {% for education in profileView.education|slice(0, 1) %}
+                                <div class="company">
+                                    <figure class="comp-icon"><span>{{ education.school|slice(0, 1) }}</span></figure>
+                                    <p>{{ education.school }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if profileView.socialLinks is not empty %}
+                    <div id="pi-website">
+                        {% for link in profileView.socialLinks %}
+                            <a class="profile-website" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label|default(link.url) }} ↗</a>
                         {% endfor %}
-                    </ul>
-                </section>
-            {% endif %}
-        </div>
-        {% if profileView.skills is not empty %}
-            <section class="profile-section profile-skills">
-                <h2>Vaardigheden</h2>
-                <ul class="profile-skill-list">{% for skill in profileView.skills %}<li>{{ skill.name }}</li>{% endfor %}</ul>
+                    </div>
+                    {% endif %}
+                    {% if profileView.canEdit %}
+                    <div id="pi-btns">
+                        <a href="{{ path('account.modify') }}" id="pib-projects"><span>Profiel bewerken</span></a>
+                    </div>
+                    {% endif %}
+                </div>
             </section>
-        {% endif %}
+
+            <section id="about" class="section">
+                <h2 id="a-title">Over</h2>
+                <p id="a-descr" class="profile-biography">{{ profileView.biography|default('Er is nog geen biografie toegevoegd.') }}</p>
+                {% if profileView.skills is not empty %}<div id="top-skills">
+                    <figure id="ts-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.467 8.694l.246-.566a4.36 4.36 0 0 1 2.22-2.25l.759-.339a.53.53 0 0 0 0-.963l-.717-.319a4.37 4.37 0 0 1-2.251-2.326l-.253-.611a.506.506 0 0 0-.942 0l-.253.61a4.37 4.37 0 0 1-2.25 2.327l-.718.32a.53.53 0 0 0 0 .962l.76.338a4.36 4.36 0 0 1 2.219 2.251l.246.566c.18.414.753.414.934 0M5 6a1 1 0 0 0-.8.4l-3 4a1 1 0 0 0 .057 1.269l9 10a1 1 0 0 0 1.486 0l9-10l-1.486-1.338L11 19.505l-7.707-8.563L5.5 8H14V6z"/></svg>
+                    </figure>
+                    <div id="ts-content">
+                        <p id="ts-title">Top skills</p>
+                        <p>{{ profileView.skills|slice(0, 5)|map(skill => skill.name)|join(' • ') }}</p>
+                    </div>
+                </div>
+            {% endif %}</section>
+
+            {% if profileView.canEdit or profileView.experience is not empty %}
+            <section id="experience" class="section">
+                <h2 id="e-title">Werkervaring</h2>
+
+                {% set experiences = profileView.experience|map(experience => {
+    company: experience.organisationName|default(experience.externalOrganisationName), logo: '',
+    positions: [{title: experience.jobTitle, type: '',
+        period: experience.startDate|date('m-Y') ~ ' – ' ~ (experience.endDate ? experience.endDate|date('m-Y') : 'heden'),
+        location: '', description: experience.description}]
+}) %}
+
+                <div id="e-list" class="profile-experience">
+                    {% for experience in experiences %}
+                        <article class="e-item">
+                            <figure class="ei-logo">
+                                {% if experience.logo %}
+                                    <img src="{{ experience.logo }}" alt="{{ experience.company }}">
+                                {% else %}
+                                    <span>{{ experience.company|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
+
+                            <div class="ei-content">
+                                {% if experience.positions|length > 1 %}
+                                    <div class="ei-company">
+                                        <h3>{{ experience.company }}</h3>
+                                        <p class="ei-muted">{{ experience.duration|default('') }}</p>
+                                        <p class="ei-muted">{{ experience.location|default('') }}</p>
+                                    </div>
+
+                                    <div class="ei-timeline">
+                                        {% for position in experience.positions %}
+                                            <div class="ei-position">
+                                                <h4>{{ position.title }}</h4>
+                                                <p>{{ position.type }}</p>
+                                                <p class="ei-muted">{{ position.period }}</p>
+                                                {% if position.location %}
+                                                    <p class="ei-muted">{{ position.location }}</p>
+                                                {% endif %}
+                                                {% if position.description %}
+                                                    <p class="ei-description">{{ position.description }}</p>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    {% set position = experience.positions|first %}
+                                    <h3>{{ position.title }}</h3>
+                                    <p>{{ experience.company }}{% if position.type %} · {{ position.type }}{% endif %}</p>
+                                    <p class="ei-muted">{{ position.period }}</p>
+                                    <p class="ei-muted">{{ position.location }}</p>
+                                    {% if position.description %}
+                                        <p class="ei-description">{{ position.description }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% else %}<p class="profile-empty">Er is nog geen werkervaring toegevoegd.</p>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if profileView.canEdit or profileView.education is not empty %}
+            <section id="education" class="section">
+                <h2 id="edu-title">Onderwijs</h2>
+
+                {% set educations = profileView.education|map(education => {
+    school: education.school, degree: education.degree, logo: '', skills: '',
+    period: education.startDate|date('m-Y') ~ ' – ' ~ (education.endDate ? education.endDate|date('m-Y') : 'heden'),
+    description: education.description
+}) %}
+
+                <div id="edu-list">
+                    {% for education in educations %}
+                        <article class="edu-item">
+                            <figure class="edui-logo">
+                                {% if education.logo %}
+                                    <img src="{{ education.logo }}" alt="{{ education.school }}">
+                                {% else %}
+                                    <span>{{ education.school|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
+
+                            <div class="edui-content">
+                                <h3>{{ education.school }}</h3>
+                                <p>{{ education.degree }}</p>
+                                <p class="edui-muted">{{ education.period }}</p>
+
+                                {% if education.description %}
+                                    <p class="edui-description">{{ education.description }}</p>
+                                {% endif %}
+
+                                {% if education.skills %}
+                                    <p class="edui-skills">
+                                        <strong>Vaardigheden:</strong> {{ education.skills }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% else %}<p class="profile-empty">Er zijn nog geen opleidingen toegevoegd.</p>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if profileView.canEdit or profileView.certificates is not empty %}
+            <section id="licenses" class="section">
+                <h2 id="l-title">Licenties en certificeringen ({{ profileView.certificates|length }})</h2>
+
+                {% set certificates = profileView.certificates|map(certificate => {
+    title: certificate.title, issuer: certificate.issuer, logo: '',
+    issued: certificate.issuedOn ? certificate.issuedOn|date('m-Y') : '',
+    credential: certificate.credential, url: certificate.url
+}) %}
+
+                <div id="l-list">
+                    {% for certificate in certificates %}
+                        <article class="l-item">
+                            <figure class="li-logo">
+                                {% if certificate.logo %}
+                                    <img src="{{ certificate.logo }}" alt="{{ certificate.issuer }}">
+                                {% else %}
+                                    <span>{{ certificate.issuer|slice(0, 1) }}</span>
+                                {% endif %}
+                            </figure>
+
+                            <div class="li-content">
+                                <h3>{{ certificate.title }}</h3>
+                                <p>{{ certificate.issuer }}</p>
+                                <p class="li-muted">{{ certificate.issued }}</p>
+
+                                {% if certificate.credential %}
+                                    <p class="li-muted">
+                                        Credential ID: {{ certificate.credential }}
+                                    </p>
+                                {% endif %}
+
+                                {% if certificate.url %}
+                                    <a class="li-action" href="{{ certificate.url }}" target="_blank" rel="noopener noreferrer">
+                                        <p>Certificaat weergeven</p>
+                                        <span aria-hidden="true">↗</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% else %}<p class="profile-empty">Er zijn nog geen certificaten toegevoegd.</p>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if profileView.canEdit or profileView.skills is not empty %}
+            <section id="skills" class="section">
+                <h2 id="s-title">Vaardigheden ({{ profileView.skills|length }})</h2>
+
+                {% set profileSkills = profileView.skills|map(skill => {name: skill.name, context: '', endorsements: 0}) %}
+
+                <div id="s-list" class="profile-skill-list">
+                    {% for skill in profileSkills %}
+                        <article class="s-item">
+                            <h3>{{ skill.name }}</h3>
+
+                            {% if skill.context %}
+                                <div class="si-context">
+                                    <span aria-hidden="true">◇</span>
+                                    <p>{{ skill.context }}</p>
+                                </div>
+                            {% endif %}
+
+                            {% if skill.endorsements > 0 %}
+                                <p class="si-endorsements">
+                                    {{ skill.endorsements }} onderschrijvingen
+                                </p>
+                            {% endif %}
+                        </article>
+                    {% else %}<p class="profile-empty">Er zijn nog geen vaardigheden toegevoegd.</p>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <section id="recommendations" class="section">
+                <h2 id="r-title">Aanbevelingen</h2>
+
+                {% set receivedRecommendations = profileView.receivedRecommendations %}
+
+                {% set givenRecommendations = profileView.givenRecommendations %}
+
+                <div id="r-tabs">
+                    <input type="radio" name="recommendation-tab" id="rt-received" checked>
+                    <input type="radio" name="recommendation-tab" id="rt-given">
+
+                    <div id="rt-navigation">
+                        <label for="rt-received">Ontvangen</label>
+                        <label for="rt-given">Gegeven</label>
+                    </div>
+
+                    <div id="rt-received-content" class="rt-content">
+                        {% for recommendation in receivedRecommendations %}
+                            <article class="r-item">
+                                <figure class="ri-avatar">
+                                    <span>{{ recommendation.initials }}</span>
+                                </figure>
+
+                                <div class="ri-content">
+                                    <h3>{{ recommendation.name }}</h3>
+                                    <p class="ri-headline">{{ recommendation.headline|default('') }}</p>
+                                    <p class="ri-muted">{{ recommendation.date|date('m-Y') }}</p>
+                                    <p class="ri-muted">{{ recommendation.relation|default('') }}</p>
+                                    <p class="ri-description">{{ recommendation.text }}</p>
+                                </div>
+                            </article>
+                        {% else %}
+                            <p class="r-empty">Er zijn nog geen ontvangen aanbevelingen.</p>
+                        {% endfor %}
+                    </div>
+
+                    <div id="rt-given-content" class="rt-content">
+                        {% for recommendation in givenRecommendations %}
+                            <article class="r-item">
+                                <figure class="ri-avatar">
+                                    <span>{{ recommendation.initials }}</span>
+                                </figure>
+
+                                <div class="ri-content">
+                                    <h3>{{ recommendation.name }}</h3>
+                                    <p class="ri-headline">{{ recommendation.headline|default('') }}</p>
+                                    <p class="ri-muted">{{ recommendation.date|date('m-Y') }}</p>
+                                    <p class="ri-description">{{ recommendation.text }}</p>
+                                </div>
+                            </article>
+                        {% else %}
+                            <p class="r-empty">Er zijn nog geen gegeven aanbevelingen.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+        </article>
+
+        <section id="suggestions">
+            <section id="more-profiles-for-you" class="section">
+                <h3>Meer profielen voor jou</h3>
+                {% set suggestedProfiles = profileView.suggestions|slice(0, 3) %}
+
+                <div class="suggestion-list">
+                    {% for person in suggestedProfiles %}
+                        <article class="suggestion-person">
+                            <figure class="sp-avatar" aria-hidden="true">
+                                <span>{{ person.initials }}</span>
+                            </figure>
+                            <div class="sp-content">
+                                <p class="sp-name">{{ person.name }}</p>
+                                <p class="sp-headline">{{ person.headline|default('') }}</p>
+
+                                <a class="sp-action" href="{{ path('main.profile', {slug: person.username}) }}">
+                                    <p>Bekijk profiel</p>
+                                </a>
+                            </div>
+                        </article>
+                    {% else %}<p class="profile-empty">Er zijn nog geen andere openbare profielen beschikbaar.</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section id="people-you-may-know" class="section">
+                <h3>Personen die jij wellicht kent</h3>
+                {% set peopleYouMayKnow = profileView.suggestions|slice(3, 3) %}
+
+                <div class="suggestion-list">
+                    {% for person in peopleYouMayKnow %}
+                        <article class="suggestion-person">
+                            <figure class="sp-avatar" aria-hidden="true">
+                                <span>{{ person.initials }}</span>
+                            </figure>
+                            <div class="sp-content">
+                                <p class="sp-name">{{ person.name }}</p>
+                                <p class="sp-headline">{{ person.headline|default('') }}</p>
+
+                                <a class="sp-action" href="{{ path('main.profile', {slug: person.username}) }}">
+                                    <p>Bekijk profiel</p>
+                                </a>
+                            </div>
+                        </article>
+                    {% else %}<p class="profile-empty">Er zijn nog geen andere openbare profielen beschikbaar.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </section>
     </div>
-</article>
 {% endblock %}
