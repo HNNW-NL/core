@@ -288,7 +288,7 @@ final class OrganisationProjectsController extends AbstractController
         }
 
         $result = $applicationHandler->acceptApplication($project, $applicationId, $reviewer);
-        $this->addFlash($result['success'] ? 'success' : 'error', $result['error']);
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
 
         return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
     }
@@ -326,7 +326,7 @@ final class OrganisationProjectsController extends AbstractController
             $request->request->getString('reason'),
             $reviewer,
         );
-        $this->addFlash($result['success'] ? 'success' : 'error', $result['error']);
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
 
         return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
     }

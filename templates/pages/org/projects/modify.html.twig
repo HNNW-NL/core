@@ -46,8 +46,9 @@
             {% endif %}
 
             {% if project %}
-                <form method="post" action="{{ path('org.modifyProject', {id: id}) }}">
+                <form data-modify-project-form method="post" action="{{ path('org.modifyProject', {id: id}) }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ id) }}">
+                    <input type="hidden" name="intent" value="modify">
                     <input type="hidden" name="last_modified" value="{{ project.lastModified|date('c') }}">
                     <fieldset class="modify-fields" aria-label="Project details">
                             <legend>Project details</legend>
@@ -97,7 +98,7 @@
                                 <p id="capacityHelp" class="field-help">Enter a whole number from {{ capacityMin }} to {{ capacityMax }}.</p>
                             </div>
                     </fieldset>
-                    <button type="submit" name="intent" value="modify">Save changes</button>
+                    <button type="submit">Save changes</button>
                 </form>
                 {% if canDelete %}
                     <button type="button" class="button-danger" data-open-project-delete>Delete project</button>
