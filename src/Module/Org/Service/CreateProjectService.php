@@ -26,12 +26,15 @@ final class CreateProjectService
     {
         $accounts = [$organisation->getOwnerAccount()];
         foreach ($organisation->getOrgMembers() as $member) {
-            $accounts[] = $member->getAccount();
+            if ($member->getOrganisation() === $organisation) {
+                $accounts[] = $member->getAccount();
+            }
         }
 
         $leads = [];
         foreach ($accounts as $account) {
-            if ($account?->getProfile() !== null && $account->getDeletedAt() === null) {
+            $profile = $account?->getProfile();
+            if ($profile !== null && $profile->getDeletedAt() === null && $account->getDeletedAt() === null) {
                 $leads[(string) $account->getId()] = $account;
             }
         }

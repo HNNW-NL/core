@@ -56,7 +56,7 @@
                     <dt>Participants</dt><dd>{{ row.participantCount }}</dd>
                     <dt>Submitted applications</dt><dd>{{ row.applicationCount }}</dd>
                 </dl>
-                {% if project.publishedAt and project.visibility == 'public' %}
+                {% if this.hasPublicPage(project) %}
                     <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Public page: {{ project.slug }}</a>
                 {% endif %}
                 <a href="{{ path('org.modifyProject', {'id': project.id}) }}" class="project-slug">Edit page: {{ project.slug }}</a>

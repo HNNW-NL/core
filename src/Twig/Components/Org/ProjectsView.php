@@ -3,6 +3,8 @@
 namespace App\Twig\Components\Org;
 
 use App\Repository\Project\ProjectRepository;
+use App\Entity\Project\Project;
+use App\Module\Org\Service\ProjectLifecycle;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
@@ -82,6 +84,11 @@ class ProjectsView
     public function canCreate(): bool
     {
         return $this->projectAccess->creationOrganisations() !== [];
+    }
+
+    public function hasPublicPage(Project $project): bool
+    {
+        return ProjectLifecycle::isPubliclyVisible($project);
     }
 
     public function getStatuses(): array

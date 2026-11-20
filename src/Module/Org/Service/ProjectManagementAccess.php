@@ -78,7 +78,7 @@ final class ProjectManagementAccess
 
         $participant = $this->participants->findLatestActiveParticipantByProjectAndProfile($project, $profile);
 
-        return ProjectPermission::EDIT->in($participant?->getRole()?->getPermissionsMask());
+        return ProjectPermission::EDIT->isGrantedBy($participant?->getRole(), $project);
     }
 
     public function canDelete(Project $project): bool

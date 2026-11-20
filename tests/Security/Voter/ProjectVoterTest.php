@@ -71,7 +71,7 @@ class ProjectVoterTest extends TestCase
             ->willReturn(null);
 
         $repository
-            ->method('findActiveParticipant')
+            ->method('findLatestActiveParticipantByProjectAndProfile')
             ->with($project, $profile)
             ->willReturn(null);
 
@@ -116,7 +116,7 @@ class ProjectVoterTest extends TestCase
         $participant = new ProjectParticipant();
 
         $repository
-            ->method('findActiveParticipant')
+            ->method('findLatestActiveParticipantByProjectAndProfile')
             ->with($project, $profile)
             ->willReturn($participant);
 
@@ -161,7 +161,7 @@ class ProjectVoterTest extends TestCase
         /*
          * VIEW gebruikt bit 1 van de permissions mask.
          */
-        $role = new ProjectRole();
+        $role = (new ProjectRole())->setProject($project);
         $role->setPermissionsMask(1);
 
         $participant = new ProjectParticipant();
@@ -170,7 +170,7 @@ class ProjectVoterTest extends TestCase
         $participant->setRole($role);
 
         $repository
-            ->method('findActiveParticipant')
+            ->method('findLatestActiveParticipantByProjectAndProfile')
             ->with($project, $profile)
             ->willReturn($participant);
 

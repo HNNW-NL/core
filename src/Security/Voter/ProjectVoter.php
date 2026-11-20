@@ -73,34 +73,12 @@ class ProjectVoter extends Voter
         $participant = $this->participantRepository
             ->findLatestActiveParticipantByProjectAndProfile($project, $profile);
 
-        if ($participant === null) {
-            return false;
-        }
+        $role = $participant?->getRole();
 
-        /*
-         * Een participant zonder projectrol heeft geen
-         * projectrechten.
-         */
-        $role = $participant->getRole();
-
-        if ($role === null) {
-            return false;
-        }
-
-        /*
-         * Controleer de permissionsMask van de rol
-         * binnen dit specifieke project.
-         */
         return match ($attribute) {
-            self::VIEW =>
-                ProjectPermission::VIEW->in($role->getPermissionsMask()),
-
-            self::EDIT =>
-                ProjectPermission::EDIT->in($role->getPermissionsMask()),
-
-            self::DELETE =>
-                ProjectPermission::DELETE->in($role->getPermissionsMask()),
-
+            self::VIEW => ProjectPermission::VIEW->isGrantedBy($role, $project),
+            self::EDIT => ProjectPermission::EDIT->isGrantedBy($role, $project),
+            self::DELETE => ProjectPermission::DELETE->isGrantedBy($role, $project),
             default => false,
         };
     }

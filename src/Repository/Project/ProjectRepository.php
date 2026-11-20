@@ -128,7 +128,10 @@ class ProjectRepository extends ServiceEntityRepository
             ->innerJoin('participant.role', 'projectRole')
             ->where('participant.project = project.id AND participant.profile = :profile')
             ->andWhere('participant.joinedAt IS NOT NULL AND participant.leftAt IS NULL')
-            ->andWhere('BIT_AND(projectRole.permissionsMask, :editPermission) = :editPermission')
+            ->andWhere('projectRole.project = project.id')
+            // The EDIT bit is set in the upper half of each mask period, including signed masks.
+            ->andWhere('(MOD(projectRole.permissionsMask, :editPeriod) >= :editPermission
+                OR MOD(projectRole.permissionsMask, :editPeriod) BETWEEN :negativeEditRemainder AND -1)')
             ->andWhere('NOT EXISTS (' . $newerParticipant->getDQL() . ')');
 
         $access->add('EXISTS (' . $editableParticipation->getDQL() . ')');
@@ -136,7 +139,9 @@ class ProjectRepository extends ServiceEntityRepository
         return $query
             ->andWhere($access)
             ->setParameter('profile', $account->getProfile())
-            ->setParameter('editPermission', ProjectPermission::EDIT->value);
+            ->setParameter('editPeriod', ProjectPermission::EDIT->value * 2)
+            ->setParameter('editPermission', ProjectPermission::EDIT->value)
+            ->setParameter('negativeEditRemainder', -ProjectPermission::EDIT->value);
     }
 
     public function findOrganisationOverviewPage(QueryBuilder $query, int $offset, int $limit): array
