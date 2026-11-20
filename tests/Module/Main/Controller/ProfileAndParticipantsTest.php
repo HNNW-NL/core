@@ -77,7 +77,8 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->owner = $this->account('leader', true);
         $this->member = $this->account('member', false);
         $this->outsider = $this->account('outsider', false);
-        $org = (new Organisation())->setName('Projectorganisatie')->setSlug('org-'.$this->runId)->setStatus($this->fixtureStatus('organisation', 'active'));
+        $org = (new Organisation())->setName('Projectorganisatie')->setSlug('org-'.$this->runId)
+            ->setLogoUrl('/uploads/organisation-logo.png')->setStatus($this->fixtureStatus('organisation', 'active'));
         $this->persist($org);
         $this->project = (new Project())->setOwnerAccount($this->owner)->setOwnerOrganisation($org)->setStatus($this->fixtureStatus('project', 'published'))
             ->setTitle('Samen bouwen')->setSlug('participants-'.$this->runId)->setVisibility('public')->setSummary('Test')->setDescription('Test')
@@ -105,6 +106,7 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->persist($skill);
         $this->persist((new ProfileSkill())->setProfile($this->owner->getProfile())->setSkill($skill));
         $this->persist((new ProfileExperience())->setProfile($this->owner->getProfile())->setJobTitle('Private werkervaring')
+            ->setOrganisation($org)
             ->setExternalOrganisationName('Voorbeeldbedrijf')->setStartDate(new \DateTimeImmutable('2024-01-01')));
         $this->persist((new \App\Entity\Account\ProfileEducation())->setProfile($this->owner->getProfile())
             ->setInstitutionName('Opleiding uit database')->setDegree('Softwareontwikkeling')->setStartDate(new \DateTimeImmutable('2023-01-01')));
@@ -181,12 +183,15 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->client->request('GET', $path);
         self::assertSelectorTextContains('h1', 'Bijgewerkte naam');
         self::assertSelectorTextContains('.profile-experience', 'Private werkervaring');
+        self::assertSelectorExists('#pc-companies img[src="/uploads/organisation-logo.png"]');
+        self::assertSelectorExists('.profile-experience .ei-logo img[src="/uploads/organisation-logo.png"]');
         self::assertSelectorTextContains('#education', 'Opleiding uit database');
         self::assertSelectorTextContains('#licenses', 'Certificaat uit database');
         foreach (['#pcin-name', '#pc-companies', '#experience', '#education', '#licenses', '#skills', '#recommendations'] as $selector) {
             self::assertSelectorExists('#profile '.$selector);
         }
         self::assertSelectorTextContains('#recommendations', 'Openbare aanbeveling uit database');
+        self::assertSelectorTextNotContains('#recommendations', 'Private headline');
         self::assertSelectorExists('#pi-website a[href="https://example.test/profiel"]');
         self::assertSelectorNotExists('a[href^="javascript:"]');
         $em = static::getContainer()->get(EntityManagerInterface::class);

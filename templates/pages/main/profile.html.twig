@@ -48,7 +48,7 @@
                             {% for experience in profileView.experience|slice(0, 1) %}
                                 {% set companyName = experience.organisationName|default(experience.externalOrganisationName) %}
                                 <div class="company">
-                                    <figure class="comp-icon"><span>{{ companyName|slice(0, 1) }}</span></figure>
+                                    <figure class="comp-icon">{% if experience.organisationLogo %}<img src="{{ experience.organisationLogo }}" alt="" referrerpolicy="no-referrer">{% else %}<span>{{ companyName|slice(0, 1) }}</span>{% endif %}</figure>
                                     <p>{{ companyName }}</p>
                                 </div>
                             {% endfor %}
@@ -65,11 +65,11 @@
                     {% if profileView.socialLinks is not empty %}
                     <div id="pi-website">
                         {% for link in profileView.socialLinks %}
-                            <a class="profile-website" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label|default(link.url) }} ↗</a>
+                            <a {% if loop.first %}id="piw-link"{% endif %} class="profile-website" href="{{ link.url }}" target="_blank" rel="noopener noreferrer"><p>{{ link.label|default(link.url) }}</p><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6v2H5v12h12v-6zM13 3v2h4.586l-7.793 7.793l1.414 1.414L19 6.414V11h2V3z"/></svg></a>
                         {% endfor %}
                     </div>
                     {% endif %}
-                    <p id="pi-stats">{{ profileView.publicProjectCount }} openbare projecten</p>
+                    <div id="pi-stats"><p><span>{{ profileView.publicProjectCount }}</span> openbare projecten</p></div>
                     <div id="pi-btns">
                         <a href="#profile-projects" id="pib-projects"><span>Bekijk projecten</span></a>
                         {% if profileView.canEdit %}<a href="{{ path('account.modify') }}"><span>Profiel bewerken</span></a>{% endif %}
@@ -96,7 +96,7 @@
                 <h2 id="e-title">Werkervaring</h2>
 
                 {% set experiences = profileView.experience|map(experience => {
-    company: experience.organisationName|default(experience.externalOrganisationName), logo: '',
+    company: experience.organisationName|default(experience.externalOrganisationName), logo: experience.organisationLogo,
     positions: [{title: experience.jobTitle, type: '',
         period: experience.startDate|date('m-Y') ~ ' – ' ~ (experience.endDate ? experience.endDate|date('m-Y') : 'heden'),
         location: '', description: experience.description}]

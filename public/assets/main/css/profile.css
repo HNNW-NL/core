@@ -982,18 +982,12 @@ body {
                 min-width: 0;
 
                 #basic-info {
-                    #p-cover {
-                        background: linear-gradient(115deg, #1c3450, #2c4850 65%, #697348);
-                    }
-
                     #p-image {
                         #p-avatar {
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            width: clamp(84px, 14vw, 156px);
                             flex-shrink: 0;
-                            background: var(--card-background);
 
                             > span {
                                 font-size: clamp(2rem, 5vw, 4rem);
@@ -1004,7 +998,6 @@ body {
                     #p-info {
                         #pi-core {
                             #pc-info {
-                                flex: 1;
                                 min-width: 0;
 
                                 #pci-title #pci-name #pcin-name {
@@ -1028,11 +1021,19 @@ body {
                         }
 
                         #pi-website .profile-website {
-                            display: inline-block;
+                            display: flex;
+                            align-items: center;
+                            width: fit-content;
+                            max-width: 100%;
                             margin: 4px 12px 4px 0;
                             overflow-wrap: anywhere;
                             color: var(--hnnw-yellow-500);
+
+                            p { min-width: 0; margin-right: .25em; }
+                            svg { width: 1em; height: 1em; flex-shrink: 0; fill: currentColor; }
                         }
+
+                        #pi-website #piw-link { white-space: normal; }
                     }
                 }
 
@@ -1076,7 +1077,7 @@ body {
                 }
             }
 
-            @media (max-width: 768px) {
+            @media (max-width: 900px) {
                 width: calc(100% - 16px);
                 flex-direction: column;
                 gap: 16px;
@@ -1098,6 +1099,13 @@ body {
                     }
 
                     #basic-info {
+                        #p-image {
+                            margin-top: -56px;
+                            padding: 0 16px 16px;
+
+                            #p-avatar { width: 112px; }
+                        }
+
                         #p-cover {
                             min-height: 112px;
                         }
@@ -1174,5 +1182,4 @@ body main #inner-main.profile-page #profile {
         li { margin-top: 12px; overflow-wrap: anywhere; }
     }
 
-    #pi-btns { gap: 12px; }
 }

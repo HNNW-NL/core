@@ -91,11 +91,15 @@ final readonly class PublicProfileService
         }
         if ($visible(ProfileVisibilityPermission::EXPERIENCE)) {
             $data['experience'] = $this->em->createQueryBuilder()
-                ->select('record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.name AS organisationName')
+                ->select('record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
                 ->from(ProfileExperience::class, 'record')->leftJoin('record.organisation', 'organisation')
                 ->andWhere('record.profile = :profile')->andWhere('record.deletedAt IS NULL')
                 ->setParameter('profile', $profile->getId(), 'ulid')
                 ->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC')->getQuery()->getArrayResult();
+            foreach ($data['experience'] as &$experience) {
+                $experience['organisationLogo'] = self::safeImageUrl($experience['organisationLogo']);
+            }
+            unset($experience);
         }
         if ($visible(ProfileVisibilityPermission::EDUCATION)) {
             foreach ($this->em->getRepository(ProfileEducation::class)->findBy(['profile' => $profile], ['startDate' => 'DESC', 'id' => 'DESC']) as $education) {
@@ -135,6 +139,9 @@ final readonly class PublicProfileService
                 $summary = $this->summary($person, $viewer);
                 $data[$key][] = [
                     'name' => $summary['name'], 'initials' => mb_substr($summary['name'], 0, 1),
+                    'headline' => $viewer?->getId() == $person->getAccount()->getId()
+                        || $person->getAccount()->getSetting()?->getSectionVisibility(ProfileVisibilityPermission::HEADLINE) === VisibilityLevel::PUBLIC
+                        ? $person->getHeadline() : null,
                     'date' => $review->getCreatedAt(), 'text' => $review->getMessage(),
                 ];
             }
