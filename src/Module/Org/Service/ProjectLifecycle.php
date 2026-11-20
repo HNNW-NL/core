@@ -8,6 +8,9 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class ProjectLifecycle
 {
+    private const OPEN_APPLICATION_STATUSES = ['active', 'published'];
+    public const PUBLIC_STATUSES = [...self::OPEN_APPLICATION_STATUSES, 'applications_closed', 'completed'];
+
     private const TRANSITIONS = [
         'draft' => ['published', 'archived'],
         'published' => ['applications_closed'],
@@ -29,22 +32,38 @@ final class ProjectLifecycle
             return [];
         }
 
-        $configuredStatuses = $this->entityManager->getRepository(Status::class)
-            ->findBy(['scope' => 'project', 'name' => $targets]);
-        $configuredNames = array_map(static fn (Status $status): ?string => $status->getName(), $configuredStatuses);
-
-        return array_values(array_intersect($targets, $configuredNames));
+        return array_values(array_filter($targets, fn (string $target): bool => $this->transitionStatus($target) !== null));
     }
 
-    public function status(string $name): Status
+    public function initialStatus(): Status
     {
-        $status = $this->entityManager->getRepository(Status::class)
-            ->findOneBy(['scope' => 'project', 'name' => $name]);
-        if (!$status instanceof Status) {
-            throw new \InvalidArgumentException(sprintf('This action is unavailable until the project status "%s" is configured.', $name));
-        }
+        return $this->findStatus('draft') ?? $this->findStatus('active')
+            ?? throw new \InvalidArgumentException('Configure the draft or active project status before creating projects.');
+    }
 
-        return $status;
+    public static function isPubliclyVisible(Project $project): bool
+    {
+        return $project->getVisibility() === 'public'
+            && $project->getPublishedAt() !== null
+            && in_array(strtolower((string) $project->getStatus()?->getName()), self::PUBLIC_STATUSES, true);
+    }
+
+    public static function acceptsApplications(Project $project): bool
+    {
+        return $project->getPublishedAt() !== null
+            && in_array(strtolower((string) $project->getStatus()?->getName()), self::OPEN_APPLICATION_STATUSES, true);
+    }
+
+    private function findStatus(string $name): ?Status
+    {
+        return $this->entityManager->getRepository(Status::class)
+            ->findOneBy(['scope' => 'project', 'name' => $name]);
+    }
+
+    private function transitionStatus(string $target): ?Status
+    {
+        // Legacy installations publish an active project by setting its publication timestamp.
+        return $this->findStatus($target) ?? ($target === 'published' ? $this->findStatus('active') : null);
     }
 
     public function transition(Project $project, string $next): void
@@ -53,7 +72,8 @@ final class ProjectLifecycle
             throw new \InvalidArgumentException('This status change is no longer available.');
         }
 
-        $status = $this->status($next);
+        $status = $this->transitionStatus($next)
+            ?? throw new \InvalidArgumentException('This status change is no longer configured.');
         if ($next === 'published') {
             if (trim((string) $project->getTitle()) === '' || trim((string) $project->getSummary()) === ''
                 || trim((string) $project->getDescription()) === '' || $project->getOwnerAccount() === null) {

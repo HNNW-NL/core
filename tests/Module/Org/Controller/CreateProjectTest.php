@@ -3,6 +3,7 @@
 namespace App\Tests\Module\Org\Controller;
 
 use App\Entity\Account\Account;
+use App\Entity\Common\Status;
 use App\Entity\Org\OrgMember;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
@@ -39,7 +40,8 @@ final class CreateProjectTest extends WebTestCase
         self::assertInstanceOf(Project::class, $project);
         self::assertSame($form['organisation'], (string) $project->getOwnerOrganisation()->getId());
         self::assertSame($input['project_lead'], (string) $project->getOwnerAccount()->getId());
-        self::assertSame('draft', $project->getStatus()->getName());
+        $draft = $entityManager->getRepository(Status::class)->findOneBy(['scope' => 'project', 'name' => 'draft']);
+        self::assertSame($draft === null ? 'active' : 'draft', $project->getStatus()->getName());
         self::assertNull($project->getPublishedAt());
         $participant = $entityManager->getRepository(ProjectParticipant::class)->findOneBy([
             'project' => $project, 'profile' => $project->getOwnerAccount()->getProfile(),

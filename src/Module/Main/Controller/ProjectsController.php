@@ -5,6 +5,7 @@ namespace App\Module\Main\Controller;
 use App\Entity\Project\Project;
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
+use App\Module\Org\Service\ProjectLifecycle;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectRepository;
 use App\Repository\Project\WorkPackageRepository;
@@ -24,6 +25,9 @@ final class ProjectsController extends AbstractController
         $projects = $projectRepository->createQueryBuilder('p')
             ->andWhere('p.deletedAt IS NULL')
             ->andWhere('p.publishedAt IS NOT NULL')
+            ->join('p.status', 'projectStatus')
+            ->andWhere('LOWER(projectStatus.name) IN (:publicStatuses)')
+            ->setParameter('publicStatuses', ProjectLifecycle::PUBLIC_STATUSES)
             ->andWhere('p.visibility = :visibility')
             ->setParameter('visibility', 'public')
             ->orderBy('p.publishedAt', 'DESC')
@@ -54,8 +58,7 @@ final class ProjectsController extends AbstractController
     public function apply(string $slug, ProjectRepository $projectRepository): Response
     {
         $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository, true);
-        if ($project->getPublishedAt() === null
-            || !in_array($project->getStatus()?->getName(), ['published', 'active'], true)) {
+        if (!ProjectLifecycle::acceptsApplications($project)) {
             throw $this->createAccessDeniedException('Applications are closed for this project.');
         }
 
@@ -261,11 +264,7 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        if ($allowPublicAccess && $project->getVisibility() === 'public' && $project->getPublishedAt() !== null) {
-            return $project;
-        }
-
-        if (!$allowPublicAccess || $project->getVisibility() !== 'public' || $project->getPublishedAt() === null) {
+        if (!$allowPublicAccess || !ProjectLifecycle::isPubliclyVisible($project)) {
             $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
         }
 

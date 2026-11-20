@@ -78,7 +78,7 @@ final class CreateProjectService
             ->setEndDate($end)
             ->setVisibility($visibility)
             ->setCapacity($capacity)
-            ->setStatus($this->lifecycle->status('draft'))
+            ->setStatus($this->lifecycle->initialStatus())
             ->setOwnerOrganisation($organisation)
             ->setOwnerAccount($lead);
 
