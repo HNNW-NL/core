@@ -29,6 +29,8 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final class PackageTaskCreationAccessTest extends KernelTestCase
 {
+    private const VALID_DOD = 'Alle drie bronnen zijn gecontroleerd en het overzicht bevat bronverwijzingen.';
+
     protected static function getKernelClass(): string
     {
         return Kernel::class;
@@ -40,7 +42,7 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
         [$em, $project, $package] = $this->prepareActor($actor);
         $before = $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id');
         try {
-            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Rejected', 'access-rejected', '', null, 'normal'));
+            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Rejected', 'access-rejected', self::VALID_DOD, null, 'normal'));
             self::fail('Task creation must require project, work package and organisation rights.');
         } catch (AccessDeniedException) {
             self::assertSame($before, $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id'));
@@ -51,13 +53,14 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
     public function testExistingCreationPathsStillWorkForAuthorisedActors(string $entry, string $actor): void
     {
         [$em, $project, $package] = $this->prepareActor($actor);
-        $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Allowed', 'access-allowed', 'Description', null, 'normal'));
+        $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Allowed', 'access-allowed', " \n" . self::VALID_DOD . "\t ", null, 'normal'));
         $em->clear();
         $task = $em->getRepository(PackageTask::class)->findOneBy(['slug' => 'access-allowed']);
         self::assertInstanceOf(PackageTask::class, $task);
         self::assertEquals($package->getId(), $task->getWorkPackage()->getId());
         self::assertEquals($project->getId(), $task->getWorkPackage()->getProject()->getId());
         self::assertSame(1, $em->getRepository(PackageTask::class)->count(['slug' => 'access-allowed']));
+        self::assertSame(self::VALID_DOD, $task->getDescription());
     }
 
     #[DataProvider('entryProvider')]
@@ -72,7 +75,7 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
         $em->flush();
         $before = $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id');
         try {
-            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Wrong project', 'access-other', '', null, 'normal'), $other);
+            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Wrong project', 'access-other', self::VALID_DOD, null, 'normal'), $other);
             self::fail('The work package must belong to the supplied project.');
         } catch (\InvalidArgumentException $exception) {
             self::assertSame(
@@ -91,7 +94,7 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
         self::assertInstanceOf(Status::class, $default);
         $this->addOtherStatuses($em);
 
-        $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Default status', 'access-default', '', null, 'normal'), $project);
+        $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Default status', 'access-default', self::VALID_DOD, null, 'normal'), $project);
         $em->clear();
         $task = $em->getRepository(PackageTask::class)->findOneBy(['slug' => 'access-default']);
         self::assertInstanceOf(PackageTask::class, $task);
@@ -111,7 +114,7 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
         $before = $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id');
 
         try {
-            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Missing default', 'access-missing-default', '', null, 'normal'), $project);
+            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Missing default', 'access-missing-default', self::VALID_DOD, null, 'normal'), $project);
             self::fail('Another scope or status must not replace the existing task default.');
         } catch (\InvalidArgumentException $exception) {
             self::assertSame('Default task status not found.', $exception->getMessage());
@@ -129,7 +132,7 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
         $before = $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id');
 
         try {
-            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Deleted parent', 'access-deleted', '', null, 'normal'), $project);
+            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Deleted parent', 'access-deleted', self::VALID_DOD, null, 'normal'), $project);
             self::fail('Deleted projects and work packages must not accept new tasks.');
         } catch (\InvalidArgumentException) {
             self::assertSame($before, $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id'));
@@ -141,6 +144,33 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
         foreach (self::entryProvider() as [$entry]) {
             foreach (['anonymous', 'outsider', 'no project rights', 'no organisation rights'] as $actor) {
                 yield $entry . ' / ' . $actor => [$entry, $actor];
+            }
+        }
+    }
+
+    #[DataProvider('invalidDoDProvider')]
+    public function testAllCreationPathsRejectMissingOrBlankDoDWithoutWriting(string $entry, ?string $definitionOfDone): void
+    {
+        [$em, $project, $package] = $this->prepareActor('owner');
+        $beforeTasks = $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id');
+        $beforePackages = $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id');
+
+        try {
+            $this->createTask($entry, new CreatePackageTaskDTO((string) $package->getId(), 'Missing DoD', 'access-missing-dod', $definitionOfDone, null, 'normal'), $project);
+            self::fail('A task must have a concrete DoD before it can be saved.');
+        } catch (\InvalidArgumentException $exception) {
+            self::assertSame('Vul een concrete taak-DoD met acceptatiecriteria in.', $exception->getMessage());
+        }
+        $em->flush();
+        self::assertSame($beforeTasks, $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id'));
+        self::assertSame($beforePackages, $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id'));
+    }
+
+    public static function invalidDoDProvider(): iterable
+    {
+        foreach (self::entryProvider() as [$entry]) {
+            foreach (['missing' => null, 'empty' => '', 'whitespace' => " \t\r\n ", 'unicode whitespace' => "\u{00A0}\u{2003}"] as $case => $value) {
+                yield $entry . ' / ' . $case => [$entry, $value];
             }
         }
     }
@@ -195,8 +225,8 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
                 new InputBag([
                     '_action' => 'create_package_task', 'workPackageId' => $dto->workPackageId,
                     'taskTitle' => $dto->title, 'taskSlug' => $dto->slug,
-                    'taskDescription' => $dto->description, 'taskDueDate' => $dto->dueDate?->format('Y-m-d') ?? '',
-                ]),
+                    'taskDueDate' => $dto->dueDate?->format('Y-m-d') ?? '',
+                ] + ($dto->description === null ? [] : ['taskDescription' => $dto->description])),
             ),
         };
     }

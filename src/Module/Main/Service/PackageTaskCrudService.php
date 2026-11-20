@@ -56,12 +56,18 @@ class PackageTaskCrudService
                 throw new AccessDeniedException('Je mag geen taken aanmaken binnen dit werkpakket.');
             }
 
+            // Keep the concrete task DoD in the existing description field.
+            $definitionOfDone = trim($dto->description ?? '');
+            if (preg_match('/[^\s\p{Z}]/u', $definitionOfDone) !== 1) {
+                throw new \InvalidArgumentException('Vul een concrete taak-DoD met acceptatiecriteria in.');
+            }
+
             $task = new PackageTask();
             $task->setWorkPackage($workPackage);
             $task->setStatus($this->findDefaultStatus());
             $task->setTitle($dto->title);
             $task->setSlug($dto->slug);
-            $task->setDescription($dto->description);
+            $task->setDescription($definitionOfDone);
             $task->setDueDate($dto->dueDate);
             $task->setPriority($dto->priority);
 

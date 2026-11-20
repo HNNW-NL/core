@@ -92,7 +92,28 @@ final class WorkPackageManagementTest extends WebTestCase
             static fn ($form): bool => $form->filter('input[name="_action"][value="create_package_task"]')->count() > 0
                 && $form->filter('input[name="workPackageId"][value="' . $packageId . '"]')->count() > 0,
         )->form();
-        $client->submit($taskForm, ['taskTitle' => 'OR11 Child', 'taskSlug' => 'or11-child', 'taskDueDate' => '2026-12-15']);
+        self::assertSelectorExists('textarea[name="taskDescription"][required]');
+        self::assertSelectorTextContains('label[for="taskDescription-' . $packageId . '"]', 'taak-DoD');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $beforeTasks = $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id');
+        $beforePackages = $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id');
+        foreach ([[], ['taskDescription' => ''], ['taskDescription' => " \t\r\n "], ['taskDescription' => "\u{00A0}\u{2003}"]] as $invalidDoD) {
+            $client->request('POST', $path, [
+                '_action' => 'create_package_task', '_token' => $taskForm->get('_token')->getValue(),
+                'workPackageId' => $packageId, 'taskTitle' => 'Missing DoD', 'taskSlug' => 'or11-missing-dod',
+            ] + $invalidDoD);
+            self::assertResponseRedirects($path, 303);
+            $client->followRedirect();
+            self::assertSelectorTextContains('[role="alert"]', 'Vul een concrete taak-DoD met acceptatiecriteria in.');
+            $em = static::getContainer()->get(EntityManagerInterface::class);
+            self::assertSame($beforeTasks, $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id'));
+            self::assertSame($beforePackages, $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id'));
+        }
+        $definitionOfDone = "Alle drie bronnen zijn gecontroleerd.\nHet overzicht bevat bronverwijzingen.";
+        $client->submit($taskForm, [
+            'taskTitle' => 'OR11 Child', 'taskSlug' => 'or11-child', 'taskDueDate' => '2026-12-15',
+            'taskDescription' => $definitionOfDone,
+        ]);
         self::assertResponseRedirects($path, 303);
         $client->followRedirect();
         self::assertResponseIsSuccessful();
@@ -103,6 +124,7 @@ final class WorkPackageManagementTest extends WebTestCase
         self::assertNull($saved->getDueDate());
         self::assertSame('Changed description', $saved->getDescription());
         $task = $em->getRepository(PackageTask::class)->findOneBy(['slug' => 'or11-child']);
+        self::assertSame($definitionOfDone, $task->getDescription());
         self::assertSame('PackageTask', $task->getStatus()->getScope());
         self::assertSame('active', $task->getStatus()->getName());
 
