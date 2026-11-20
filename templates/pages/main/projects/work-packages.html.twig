@@ -40,11 +40,12 @@
         {% else %}
             <div class="work-package-list">
                 {% for workPackage in workPackageOverviews %}
-                    {% set packageTasks = workPackage.workPackageTasks|filter(task => task.deletedAt is null) %}
+                    {% set packageTasks = workPackage.tasks %}
 
                     <article class="work-package-card">
                         <header class="work-package-card__header">
                             <h3>{{ workPackage.title }}</h3>
+                            <p>Voortgang: {{ workPackage.progress }}% ({{ workPackage.completedTaskCount }}/{{ workPackage.taskCount }} taken gereed)</p>
 
                             {% if workPackage.dueDate %}
                                 <p>Deadline: {{ workPackage.dueDate|date('d-m-Y') }}</p>
@@ -62,8 +63,8 @@
                         {% else %}
                             <div class="package-task-list">
                                 {% for packageTask in packageTasks %}
-                                    {% set assignedProfile = packageTask.assignedProfile %}
-                                    {% set isAssignedToCurrentProfile = currentProfile and assignedProfile and assignedProfile.id == currentProfile.id %}
+                                    {% set assignedProfileId = packageTask.assignedProfileId %}
+                                    {% set isAssignedToCurrentProfile = currentProfile and assignedProfileId == currentProfile.id.toRfc4122() %}
 
                                     <article class="package-task-card">
                                         <div class="package-task-card__content">
@@ -82,15 +83,15 @@
                                         </div>
 
                                         <div class="package-task-card__action">
-                                            {% if assignedProfile %}
+                                            {% if assignedProfileId %}
                                                 {% if isAssignedToCurrentProfile %}
                                                     <span>Jij bent ingeschreven op deze taak.</span>
                                                 {% else %}
                                                     <span>Deze taak is al toegewezen.</span>
                                                 {% endif %}
                                             {% elseif currentProfile %}
-                                                <form method="post" action="{{ path('main.projects.tasks.enroll', { slug: slug, taskId: packageTask.id.toRfc4122() }) }}">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('enroll-package-task-' ~ packageTask.id.toRfc4122()) }}">
+                                                <form method="post" action="{{ path('main.projects.workPackages.enrollTask', { slug: slug, taskId: packageTask.id }) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('enroll-package-task-' ~ packageTask.id) }}">
                                                     <button type="submit">Inschrijven</button>
                                                 </form>
                                             {% else %}

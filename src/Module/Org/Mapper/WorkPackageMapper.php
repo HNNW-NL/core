@@ -95,6 +95,7 @@ class WorkPackageMapper
                 'status' => $statusName,
                 'statusClass' => $this->getTaskStatusClass($statusName),
                 'assignedName' => $assignedName,
+                'assignedProfileId' => $assignedProfile?->getId()->toRfc4122(),
                 'assignedInitials' => $this->getInitials($assignedName),
                 'isCompleted' => $this->isCompletedStatus($statusName),
             ];

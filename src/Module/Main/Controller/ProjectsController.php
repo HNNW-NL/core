@@ -3,6 +3,7 @@
 namespace App\Module\Main\Controller;
 
 use App\Entity\Project\Project;
+use App\Module\Main\Handler\GetProjectWorkPackagesHandler;
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
 use App\Repository\Project\PackageTaskRepository;
@@ -226,7 +227,7 @@ final class ProjectsController extends AbstractController
     #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
     public function workPackages(
         string $slug,
-        WorkPackageRepository $workPackageRepository,
+        GetProjectWorkPackagesHandler $workPackagesHandler,
         ProjectRepository $projectRepository,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
@@ -237,7 +238,7 @@ final class ProjectsController extends AbstractController
         return $this->render('pages/main/projects/work-packages.html.twig', [
             'slug' => $slug,
             'project' => $project,
-            'workPackages' => $workPackageRepository->findActiveByProject($project),
+            'workPackages' => $workPackagesHandler->handle($project),
         ]);
     }
 

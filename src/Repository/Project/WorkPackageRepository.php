@@ -53,7 +53,7 @@ class WorkPackageRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('workPackage')
             ->andWhere('workPackage.project = :project')
             ->andWhere('workPackage.deletedAt IS NULL')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId(), 'ulid')
             ->orderBy('workPackage.dueDate', 'ASC')
             ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()
