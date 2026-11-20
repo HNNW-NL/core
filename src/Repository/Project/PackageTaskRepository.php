@@ -35,13 +35,20 @@ class PackageTaskRepository extends ServiceEntityRepository
 
     public function findOneForProject(Ulid|string $taskId, Project $project): ?PackageTask
     {
+        try {
+            $taskId = is_string($taskId) ? Ulid::fromString($taskId) : $taskId;
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
+
         return $this->createQueryBuilder('packageTask')
             ->innerJoin('packageTask.workPackage', 'workPackage')
             ->andWhere('packageTask.id = :taskId')
             ->andWhere('workPackage.project = :project')
+            ->andWhere('workPackage.deletedAt IS NULL')
             ->andWhere('packageTask.deletedAt IS NULL')
-            ->setParameter('taskId', $taskId)
-            ->setParameter('project', $project)
+            ->setParameter('taskId', $taskId, 'ulid')
+            ->setParameter('project', $project->getId(), 'ulid')
             ->getQuery()
             ->getOneOrNullResult();
     }

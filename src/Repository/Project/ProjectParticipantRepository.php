@@ -43,8 +43,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('pp.profile = :profile')
             ->andWhere('pp.leftAt IS NULL')
             ->andWhere('pp.joinedAt IS NOT NULL')
-            ->setParameter('project', $project)
-            ->setParameter('profile', $profile)
+            ->setParameter('project', $project->getId(), 'ulid')
+            ->setParameter('profile', $profile->getId(), 'ulid')
             ->orderBy('pp.joinedAt', 'DESC')
             ->getQuery()
             ->getResult();
