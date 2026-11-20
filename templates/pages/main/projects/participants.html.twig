@@ -1,9 +1,8 @@
 {% extends 'layouts/main.base.html.twig' %}
 {% block title %}Deelnemers · {{ project.title }}{% endblock %}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('assets/main/css/profile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/main/css/profile-responsive.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/main/css/profile-navigation.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/main/css/home.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/main/css/participants.css') }}">
 {% endblock %}
 {% block body %}
 <section class="participants-page">
@@ -21,7 +20,7 @@
                 {% if participant.avatar %}
                     <img class="participant-avatar" src="{{ participant.avatar }}" alt="" referrerpolicy="no-referrer" loading="lazy">
                 {% else %}
-                    <span class="participant-avatar profile-avatar--empty" aria-hidden="true">{{ participant.name|slice(0, 1)|upper }}</span>
+                    <span class="participant-avatar participant-avatar--empty" aria-hidden="true">{{ participant.name|slice(0, 1)|upper }}</span>
                 {% endif %}
                 <div class="participant-info">
                     <h2>{% if participant.username %}<a href="{{ path('main.profile', {slug: participant.username}) }}">{{ participant.name }}</a>{% else %}{{ participant.name }}{% endif %}</h2>
@@ -29,7 +28,7 @@
                 </div>
             </li>
         {% else %}
-            <li class="profile-section">Er zijn nog geen actieve deelnemers.</li>
+            <li class="participant-empty">Er zijn nog geen actieve deelnemers.</li>
         {% endfor %}
     </ul>
 </section>

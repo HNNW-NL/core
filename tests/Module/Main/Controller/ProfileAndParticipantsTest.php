@@ -146,6 +146,11 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->client->request('GET', $path);
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Leader');
+        self::assertSelectorExists('link[rel="stylesheet"][href$="/assets/main/css/profile.css"]');
+        self::assertSelectorExists('link[rel="stylesheet"][href$="/assets/main/css/home.css"]');
+        self::assertSelectorExists('#inner-main > #profile #basic-info #p-avatar');
+        self::assertSelectorExists('#inner-main > #suggestions');
+        self::assertSelectorNotExists('link[href$="/profile-responsive.css"], link[href$="/profile-navigation.css"]');
         self::assertSelectorNotExists('a[href="/account/modify"]');
         self::assertSelectorTextContains('.profile-skill-list', 'Databasevaardigheid');
         $html = $this->client->getResponse()->getContent();
@@ -174,6 +179,9 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorTextContains('.profile-experience', 'Private werkervaring');
         self::assertSelectorTextContains('#education', 'Opleiding uit database');
         self::assertSelectorTextContains('#licenses', 'Certificaat uit database');
+        foreach (['#pcin-name', '#pc-companies', '#experience', '#education', '#licenses', '#skills', '#recommendations'] as $selector) {
+            self::assertSelectorExists('#profile '.$selector);
+        }
         self::assertSelectorTextContains('#recommendations', 'Openbare aanbeveling uit database');
         self::assertSelectorExists('#pi-website a[href="https://example.test/profiel"]');
         self::assertSelectorNotExists('a[href^="javascript:"]');
@@ -207,6 +215,8 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->client->request('GET', $path);
         self::assertResponseIsSuccessful();
         self::assertSelectorCount(2, '.participant-card');
+        self::assertSelectorExists('link[rel="stylesheet"][href$="/assets/main/css/participants.css"]');
+        self::assertSelectorNotExists('link[href$="/profile-responsive.css"], link[href$="/profile-navigation.css"]');
         self::assertSelectorTextContains('.participant-grid', 'Projectleider');
         self::assertSelectorTextContains('.participant-grid', 'Developer');
         self::assertSelectorTextContains('.participant-grid', 'Designer');

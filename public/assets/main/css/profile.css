@@ -971,7 +971,7 @@ body {
     }
 }
 
-/* Aanvullingen voor databasegegevens en responsive weergave. */
+/* Responsive aanvullingen op de ID-structuur, geladen door profile.html.twig. */
 body {
     main {
         #inner-main {
