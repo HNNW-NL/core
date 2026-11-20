@@ -9,6 +9,7 @@ use App\Repository\Project\WorkPackageRepository;
 use App\Repository\Account\ProfileRepository;
 use App\Repository\Common\StatusRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\DBAL\LockMode;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
@@ -25,6 +26,13 @@ class ModifyTasksHandler
 
     public function handleModifyTask(array $taskData, Project $project): void
     {
+        $this->em->getConnection()->transactional(function () use ($taskData, $project): void {
+            $this->updateTask($taskData, $project);
+        });
+    }
+
+    private function updateTask(array $taskData, Project $project): void
+    {
         $task = $this->packageTaskRepository->find($taskData['id']);
         $workPackage = $this->workPackageRepository->find($taskData['workPackage']);
         $status = $this->statusRepository->find($taskData['status']);
@@ -35,6 +43,11 @@ class ModifyTasksHandler
 
         if (!$workPackage || $workPackage->getProject() !== $project) {
             throw new InvalidArgumentException('Invalid work package id');
+        }
+        // Synchronize reassignment with work package deletion.
+        $this->em->refresh($workPackage, LockMode::PESSIMISTIC_WRITE);
+        if ($workPackage->getDeletedAt() !== null) {
+            throw new InvalidArgumentException('Work package has been deleted');
         }
 
         if (!$status || $status->getScope() !== 'PackageTask') {

@@ -29,10 +29,15 @@ final readonly class ManageProjectWorkPackagesHandler
     public function handle(Project $project, InputBag $input): void
     {
         $action = $input->getString('_action');
-        if (!in_array($action, ['create_work_package', 'update_work_package', 'create_package_task'], true)) {
+        if (!in_array($action, ['create_work_package', 'update_work_package', 'create_package_task', 'delete_work_package'], true)) {
             throw new \InvalidArgumentException('Onbekende bewerking.');
         }
-        $package = $action === 'create_work_package' ? null : $this->findPackage($project, $input->getString('workPackageId'));
+        $permission = $action === 'delete_work_package' ? WorkPackageVoter::DELETE : WorkPackageVoter::EDIT;
+        $package = $action === 'create_work_package' ? null : $this->findPackage($project, $input->getString('workPackageId'), $permission);
+        if ($action === 'delete_work_package') {
+            $this->packages->delete((string) $package->getId(), $project);
+            return;
+        }
         $isTask = $action === 'create_package_task';
         $title = trim($input->getString($isTask ? 'taskTitle' : 'title'));
         $slug = trim($input->getString($isTask ? 'taskSlug' : 'slug'));
@@ -61,7 +66,7 @@ final readonly class ManageProjectWorkPackagesHandler
         }
     }
 
-    private function findPackage(Project $project, string $id): WorkPackage
+    private function findPackage(Project $project, string $id, string $permission): WorkPackage
     {
         if (!Ulid::isValid($id)) {
             throw new \InvalidArgumentException('Ongeldig werkpakket.');
@@ -70,8 +75,8 @@ final readonly class ManageProjectWorkPackagesHandler
         if ($package === null) {
             throw new \InvalidArgumentException('Werkpakket niet gevonden in dit project.');
         }
-        if (!$this->authorization->isGranted(WorkPackageVoter::EDIT, $package)) {
-            throw new AccessDeniedException('Je mag dit werkpakket niet wijzigen.');
+        if (!$this->authorization->isGranted($permission, $package)) {
+            throw new AccessDeniedException('Je hebt onvoldoende rechten voor deze bewerking.');
         }
         return $package;
     }

@@ -7,6 +7,7 @@ use App\Entity\Project\PackageTask;
 use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreatePackageTaskDTO;
 use App\Repository\Common\StatusRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Ulid;
 
@@ -24,25 +25,31 @@ class PackageTaskCrudService
             throw new \InvalidArgumentException('Invalid work package id.');
         }
 
-        $workPackage = $this->entityManager->find(WorkPackage::class, Ulid::fromString($dto->workPackageId));
+        return $this->entityManager->getConnection()->transactional(function () use ($dto): PackageTask {
+            $workPackage = $this->entityManager->find(
+                WorkPackage::class,
+                Ulid::fromString($dto->workPackageId),
+                LockMode::PESSIMISTIC_WRITE,
+            );
 
-        if (!$workPackage) {
-            throw new \InvalidArgumentException('Work package not found.');
-        }
+            if (!$workPackage || $workPackage->getDeletedAt() !== null || $workPackage->getProject()?->getDeletedAt() !== null) {
+                throw new \InvalidArgumentException('Work package not found.');
+            }
 
-        $task = new PackageTask();
-        $task->setWorkPackage($workPackage);
-        $task->setStatus($this->findDefaultStatus());
-        $task->setTitle($dto->title);
-        $task->setSlug($dto->slug);
-        $task->setDescription($dto->description);
-        $task->setDueDate($dto->dueDate);
-        $task->setPriority($dto->priority);
+            $task = new PackageTask();
+            $task->setWorkPackage($workPackage);
+            $task->setStatus($this->findDefaultStatus());
+            $task->setTitle($dto->title);
+            $task->setSlug($dto->slug);
+            $task->setDescription($dto->description);
+            $task->setDueDate($dto->dueDate);
+            $task->setPriority($dto->priority);
 
-        $this->entityManager->persist($task);
-        $this->entityManager->flush();
+            $this->entityManager->persist($task);
+            $this->entityManager->flush();
 
-        return $task;
+            return $task;
+        });
     }
 
     private function findDefaultStatus(): Status
