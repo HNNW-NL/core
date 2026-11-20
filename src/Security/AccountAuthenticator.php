@@ -16,6 +16,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordC
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 
 /**
  * Neemt de POST naar /auth/login over van de firewall, zodra dit request
@@ -73,7 +74,7 @@ final class AccountAuthenticator extends AbstractAuthenticator implements Authen
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        $request->getSession()->getFlashBag()->add('error', 'Ongeldige gebruikersnaam/e-mail of wachtwoord.');
+                $request->getSession()->getFlashBag()->add('error', $exception instanceof CustomUserMessageAccountStatusException ? $exception->getMessageKey() : 'Ongeldige gebruikersnaam/e-mail of wachtwoord.');
 
         $lastUsername = (string) $request->getSession()->get('_last_username', '');
 
