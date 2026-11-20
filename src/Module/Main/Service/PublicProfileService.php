@@ -10,6 +10,7 @@ use App\Entity\Account\ProfileEducation;
 use App\Entity\Account\ProfileCertification;
 use App\Entity\Account\ProfileSocialLink;
 use App\Entity\Account\Review;
+use App\Entity\Project\Project;
 use App\Enum\ProfileVisibilityPermission;
 use App\Enum\VisibilityLevel;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,11 +31,20 @@ final readonly class PublicProfileService
 
     public function summary(Profile $profile, ?Account $viewer): array
     {
+        $name = trim((string) $profile->getDisplayName()) ?: trim($profile->getFirstName().' '.$profile->getLastName());
         return [
-            'name' => $profile->getDisplayName() ?: trim($profile->getFirstName().' '.$profile->getLastName()),
+            'name' => $name !== '' ? $name : (string) $profile->getAccount()?->getUsername(),
             'username' => $this->canView($profile, $viewer) ? $profile->getAccount()->getUsername() : null,
-            'avatar' => self::safeUrl($profile->getAvatarUrl()),
+            'avatar' => self::safeImageUrl($profile->getAvatarUrl()),
         ];
+    }
+
+    private static function safeImageUrl(?string $url): ?string
+    {
+        if ($url !== null && preg_match('~\A/(?!/)[^\\\\\x00-\x20]*\z~', $url)) {
+            return $url;
+        }
+        return self::safeUrl($url);
     }
 
     public static function safeUrl(?string $url): ?string
@@ -63,6 +73,12 @@ final readonly class PublicProfileService
             'headline' => $visible(ProfileVisibilityPermission::HEADLINE) ? $profile->getHeadline() : null,
             'location' => $visible(ProfileVisibilityPermission::LOCATION) ? $profile->getLocation() : null,
             'canEdit' => $owner,
+            'sections' => [
+                'experience' => $visible(ProfileVisibilityPermission::EXPERIENCE),
+                'education' => $visible(ProfileVisibilityPermission::EDUCATION),
+                'certificates' => $visible(ProfileVisibilityPermission::CERTIFICATIONS),
+                'skills' => $visible(ProfileVisibilityPermission::SKILLS),
+            ],
             'skills' => [], 'experience' => [], 'education' => [], 'certificates' => [], 'socialLinks' => [],
             'receivedRecommendations' => [], 'givenRecommendations' => [], 'suggestions' => [],
         ];
@@ -138,6 +154,18 @@ final readonly class PublicProfileService
                     ? $suggestedProfile->getHeadline() : null,
             ];
         }
+        $projects = $this->em->createQueryBuilder()->from(Project::class, 'project')
+            ->leftJoin('project.participants', 'participant', 'WITH',
+                'participant.profile = :profile AND participant.joinedAt IS NOT NULL AND participant.leftAt IS NULL')
+            ->leftJoin('participant.status', 'participantStatus')
+            ->andWhere('project.deletedAt IS NULL')->andWhere('project.publishedAt IS NOT NULL')
+            ->andWhere('project.visibility = :visibility')->setParameter('visibility', 'public')
+            ->andWhere('project.ownerAccount = :account OR (participant.id IS NOT NULL AND LOWER(participantStatus.scope) = :scope AND LOWER(participantStatus.name) IN (:active))')
+            ->setParameter('account', $account->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid')
+            ->setParameter('scope', 'projectparticipant')->setParameter('active', ['active', 'actief']);
+        $data['publicProjectCount'] = (int) (clone $projects)->select('COUNT(DISTINCT project.id)')->getQuery()->getSingleScalarResult();
+        $data['projects'] = $projects->select('DISTINCT project.title, project.slug')
+            ->orderBy('project.title', 'ASC')->addOrderBy('project.slug', 'ASC')->getQuery()->getArrayResult();
         return $data;
     }
 }

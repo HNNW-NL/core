@@ -151,6 +151,9 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorExists('link[rel="stylesheet"][href$="/assets/main/css/home.css"]');
         self::assertSelectorExists('#inner-main > #profile #basic-info #p-avatar');
         self::assertSelectorExists('#inner-main > #suggestions');
+        self::assertSelectorTextContains('#pi-stats', '1 openbare projecten');
+        self::assertSelectorTextContains('#profile-projects', 'Samen bouwen');
+        self::assertSelectorExists('#pi-btns a[href="#profile-projects"]');
         self::assertSelectorNotExists('link[href$="/profile-responsive.css"], link[href$="/profile-navigation.css"]');
         self::assertSelectorNotExists('a[href="/account/modify"]');
         self::assertSelectorTextContains('.profile-skill-list', 'Databasevaardigheid');
@@ -204,6 +207,38 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->client->request('GET', '/profile/'.$this->member->getUsername());
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('a[href="/account/modify"]');
+    }
+
+    public function testEmptyPublicSectionsRemainVisibleWithoutExposingPrivateSections(): void
+    {
+        $setting = $this->member->getSetting()->setProfileVisibility('public');
+        foreach ([ProfileVisibilityPermission::EXPERIENCE, ProfileVisibilityPermission::EDUCATION,
+            ProfileVisibilityPermission::CERTIFICATIONS] as $section) {
+            $setting->setSectionVisibility($section, VisibilityLevel::PUBLIC);
+        }
+        $this->em->flush();
+        $this->client->request('GET', '/profile/'.$this->member->getUsername());
+        self::assertResponseIsSuccessful();
+        foreach (['#experience', '#education', '#licenses', '#skills'] as $selector) {
+            self::assertSelectorExists($selector.' .profile-empty');
+        }
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->find(Account::class, $this->member->getId())->getSetting()
+            ->setSectionVisibility(ProfileVisibilityPermission::EXPERIENCE, VisibilityLevel::PRIVATE);
+        $em->flush();
+        $this->client->request('GET', '/profile/'.$this->member->getUsername());
+        self::assertSelectorNotExists('#experience');
+        self::assertSelectorExists('#education');
+    }
+
+    public function testPrivateProjectsAreNotPublishedOnTheProfile(): void
+    {
+        $this->project->setVisibility('private');
+        $this->em->flush();
+        $this->client->request('GET', '/profile/'.$this->owner->getUsername());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('#pi-stats', '0 openbare projecten');
+        self::assertSelectorNotExists('#profile-projects a');
     }
 
     #[\PHPUnit\Framework\Attributes\TestWith([0])]

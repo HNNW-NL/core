@@ -16,7 +16,7 @@
 {% endblock %}
 
 {# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block javascript %}<script src="{{ asset('assets/main/js/profile.js') }}" defer></script>{% endblock %}
 
 {# Page content #}
 {% block body %}
@@ -69,11 +69,11 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                    {% if profileView.canEdit %}
+                    <p id="pi-stats">{{ profileView.publicProjectCount }} openbare projecten</p>
                     <div id="pi-btns">
-                        <a href="{{ path('account.modify') }}" id="pib-projects"><span>Profiel bewerken</span></a>
+                        <a href="#profile-projects" id="pib-projects"><span>Bekijk projecten</span></a>
+                        {% if profileView.canEdit %}<a href="{{ path('account.modify') }}"><span>Profiel bewerken</span></a>{% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </section>
 
@@ -91,7 +91,7 @@
                 </div>
             {% endif %}</section>
 
-            {% if profileView.canEdit or profileView.experience is not empty %}
+            {% if profileView.sections.experience %}
             <section id="experience" class="section">
                 <h2 id="e-title">Werkervaring</h2>
 
@@ -154,7 +154,7 @@
             </section>
             {% endif %}
 
-            {% if profileView.canEdit or profileView.education is not empty %}
+            {% if profileView.sections.education %}
             <section id="education" class="section">
                 <h2 id="edu-title">Onderwijs</h2>
 
@@ -197,7 +197,7 @@
             </section>
             {% endif %}
 
-            {% if profileView.canEdit or profileView.certificates is not empty %}
+            {% if profileView.sections.certificates %}
             <section id="licenses" class="section">
                 <h2 id="l-title">Licenties en certificeringen ({{ profileView.certificates|length }})</h2>
 
@@ -243,7 +243,7 @@
             </section>
             {% endif %}
 
-            {% if profileView.canEdit or profileView.skills is not empty %}
+            {% if profileView.sections.skills %}
             <section id="skills" class="section">
                 <h2 id="s-title">Vaardigheden ({{ profileView.skills|length }})</h2>
 
@@ -272,6 +272,15 @@
                 </div>
             </section>
             {% endif %}
+
+            <section id="profile-projects" class="section">
+                <h2>Openbare projecten</h2>
+                <ul>
+                    {% for project in profileView.projects %}
+                        <li><a href="{{ path('main.projects.detail', {slug: project.slug}) }}">{{ project.title }}</a></li>
+                    {% else %}<li class="profile-empty">Er zijn geen openbare projecten beschikbaar.</li>{% endfor %}
+                </ul>
+            </section>
 
             <section id="recommendations" class="section">
                 <h2 id="r-title">Aanbevelingen</h2>

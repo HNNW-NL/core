@@ -14,6 +14,20 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class PublicProfileServiceTest extends TestCase
 {
+    #[TestWith(['/uploads/avatar.jpg', '/uploads/avatar.jpg'])]
+    #[TestWith(['https://example.test/avatar.jpg', 'https://example.test/avatar.jpg'])]
+    #[TestWith(['//example.test/avatar.jpg', null])]
+    #[TestWith(['javascript:alert(1)', null])]
+    #[TestWith(['/\\example.test/avatar.jpg', null])]
+    public function testAvatarUrlsAndMissingDisplayName(string $url, ?string $expected): void
+    {
+        $account = (new Account())->setUsername('profielnaam');
+        $profile = (new Profile())->setAccount($account)->setDisplayName('')->setAvatarUrl($url);
+        $summary = (new PublicProfileService($this->createStub(EntityManagerInterface::class)))->summary($profile, $account);
+        self::assertSame('profielnaam', $summary['name']);
+        self::assertSame($expected, $summary['avatar']);
+    }
+
     public function testBiographyFollowsProfileVisibilityWithoutASeparateSectionBit(): void
     {
         $account = new Account();
@@ -28,8 +42,10 @@ final class PublicProfileServiceTest extends TestCase
             $query->method($method)->willReturnSelf();
         }
         $query->method('getResult')->willReturn([]);
+        $query->method('getArrayResult')->willReturn([]);
+        $query->method('getSingleScalarResult')->willReturn(0);
         $em->method('createQuery')->willReturn($query);
-        $em->expects(self::once())->method('createQueryBuilder')->willReturn(new \Doctrine\ORM\QueryBuilder($em));
+        $em->expects(self::exactly(2))->method('createQueryBuilder')->willReturnCallback(fn () => new \Doctrine\ORM\QueryBuilder($em));
         $service = new PublicProfileService($em);
         self::assertSame('Openbare biografie', $service->load('public', null)['biography']);
         $settings->setProfileVisibility('private');
