@@ -20,13 +20,13 @@ class ProjectParticipantUpdateRoleHandler
     // OR06-A: aanvragen beoordelen
     public const REJECT_REASON_MAX_LENGTH = 500;
 
-    private const APPLICATION_SCOPE = 'ProjectApplication';
+    public const APPLICATION_SCOPE = 'ProjectApplication';
     private const PARTICIPANT_SCOPE = 'ProjectParticipant';
 
     /** 'send' komt uit de bestaande fixtures; de rest zijn toegestane synoniemen. */
-    private const PENDING_NAMES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
-    private const ACCEPTED_NAMES = ['accepted', 'geaccepteerd'];
-    private const REJECTED_NAMES = ['rejected', 'afgewezen'];
+    public const PENDING_NAMES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
+    public const ACCEPTED_NAMES = ['accepted', 'geaccepteerd'];
+    public const REJECTED_NAMES = ['rejected', 'afgewezen'];
     private const PARTICIPANT_ACTIVE_NAMES = ['active', 'actief'];
 
     public function __construct(

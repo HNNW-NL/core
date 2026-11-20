@@ -8,6 +8,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
 use App\Repository\Common\StatusRepository;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler as ApplicationWorkflow;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -39,7 +40,7 @@ final readonly class ProjectApplicationService
             }
             if ($project->getDeletedAt() !== null || $project->getPublishedAt() === null
                 || strcasecmp((string) $project->getStatus()?->getScope(), 'project') !== 0
-                || !in_array(mb_strtolower((string) $project->getStatus()?->getName()), ['active', 'open', 'actief'], true)
+                || !in_array(mb_strtolower((string) $project->getStatus()?->getName()), ['published', 'active', 'open', 'actief'], true)
                 || ($project->getEndDate() !== null && $project->getEndDate() < new \DateTimeImmutable())) {
                 return 'Dit project staat niet open voor aanmeldingen.';
             }
@@ -48,9 +49,15 @@ final readonly class ProjectApplicationService
             }
             $existing = $this->em->getRepository(ProjectApplication::class)->findOneBy(['project' => $project, 'profile' => $profile]);
             if ($existing !== null) {
+                if ($existing->getDeletedAt() !== null) {
+                    return 'Je eerdere aanvraag is ingetrokken. Deze wordt niet opnieuw ingediend.';
+                }
+                if (!$this->pending($existing)) {
+                    return 'Je eerdere aanvraag is al behandeld ('.$this->label($existing).').';
+                }
                 return $existing;
             }
-            $status = $this->statuses->findFirstByScopeAndNames('ProjectApplication', ['send', 'sent', 'pending', 'submitted', 'ingediend']);
+            $status = $this->statuses->findFirstByScopeAndNames(ApplicationWorkflow::APPLICATION_SCOPE, ApplicationWorkflow::PENDING_NAMES);
             if ($status === null) {
                 return 'De aanvraagstatus is nog niet geconfigureerd.';
             }
@@ -85,8 +92,8 @@ final readonly class ProjectApplicationService
 
     public function pending(ProjectApplication $application): bool
     {
-        return strcasecmp((string) $application->getStatus()?->getScope(), 'ProjectApplication') === 0
-            && in_array(mb_strtolower((string) $application->getStatus()?->getName()), ['send', 'sent', 'pending', 'submitted', 'ingediend'], true);
+        return strcasecmp((string) $application->getStatus()?->getScope(), ApplicationWorkflow::APPLICATION_SCOPE) === 0
+            && in_array(mb_strtolower((string) $application->getStatus()?->getName()), ApplicationWorkflow::PENDING_NAMES, true);
     }
 
     public function label(ProjectApplication $application): string
@@ -97,9 +104,10 @@ final readonly class ProjectApplicationService
         if ($this->pending($application)) {
             return 'Ingediend';
         }
-        return match (mb_strtolower((string) $application->getStatus()?->getName())) {
-            'accepted', 'geaccepteerd' => 'Geaccepteerd',
-            'rejected', 'afgewezen' => 'Afgewezen',
+        $name = mb_strtolower((string) $application->getStatus()?->getName());
+        return match (true) {
+            in_array($name, ApplicationWorkflow::ACCEPTED_NAMES, true) => 'Geaccepteerd',
+            in_array($name, ApplicationWorkflow::REJECTED_NAMES, true) => 'Afgewezen',
             default => (string) $application->getStatus()?->getName(),
         };
     }

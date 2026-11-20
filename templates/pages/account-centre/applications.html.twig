@@ -33,4 +33,11 @@
 {% else %}
     <p>Geen aanmeldingen gevonden.</p>
 {% endfor %}
+{% if pagination.pages > 1 %}
+    <nav aria-label="Paginering aanvragen">
+        {% if pagination.page > 1 %}<a href="{{ path('account.applications', {status: filter, page: pagination.page - 1}) }}">Vorige</a>{% endif %}
+        <span>Pagina {{ pagination.page }} van {{ pagination.pages }}</span>
+        {% if pagination.page < pagination.pages %}<a href="{{ path('account.applications', {status: filter, page: pagination.page + 1}) }}">Volgende</a>{% endif %}
+    </nav>
+{% endif %}
 {% endblock %}

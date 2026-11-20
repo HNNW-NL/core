@@ -72,5 +72,33 @@ final class ProjectApplicationFlowTest extends WebTestCase
         self::assertSelectorNotExists('button[type="submit"].btn-card-cancel');
         $client->request('GET', '/account/applications?status=Ingediend');
         self::assertSelectorTextContains('body', 'Geen aanmeldingen gevonden.');
+        $client->request('POST', '/projects/aanvraagproject/apply', ['_token' => $token, 'motivation' => $motivation]);
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('body', 'niet opnieuw ingediend');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $profile = $em->find(Profile::class, $profile->getId());
+        $owner = $em->find(Account::class, $owner->getId());
+        $org = $em->find(Organisation::class, $org->getId());
+        $pending = $em->find(Status::class, $pending->getId());
+        $projectStatus = $em->find(Status::class, $projectStatus->getId());
+        for ($i = 0; $i < 21; ++$i) {
+            $anotherProject = (new Project())->setOwnerAccount($owner)->setOwnerOrganisation($org)->setStatus($projectStatus)
+                ->setTitle('Project '.$i)->setSlug('pagination-'.$i)->setVisibility('public')->setSummary('Test')
+                ->setDescription('Test')->setCapacity(10)->setStartDate(new \DateTimeImmutable())->setEndDate(null);
+            $anotherApplication = (new ProjectApplication())->setProject($anotherProject)->setProfile($profile)->setStatus($pending);
+            $em->persist($anotherProject);
+            $em->persist($anotherApplication);
+        }
+        $em->flush();
+        $repository = static::getContainer()->get(\App\Repository\Project\AccountApplicationRepository::class);
+        $firstPage = $repository->pageForProfile($profile, 'Ingediend', 1);
+        $secondPage = $repository->pageForProfile($profile, 'Ingediend', 2);
+        self::assertSame(21, $firstPage['total']);
+        self::assertCount(20, $firstPage['items']);
+        self::assertCount(1, $secondPage['items']);
+        self::assertSame(2, $secondPage['page']);
+        self::assertSame(1, $repository->pageForProfile($profile, 'Ingetrokken', 1)['total']);
+        self::assertSame(0, $repository->pageForProfile(new Profile(), '', 1)['total']);
+        self::assertSame(0, $repository->pageForProfile($profile, 'unknown', 1)['total']);
     }
 }

@@ -56,12 +56,16 @@ final class ProjectApplicationServiceTest extends TestCase
     #[TestWith([20, true])]
     #[TestWith([2000, true])]
     #[TestWith([2001, false])]
-    public function testMotivationAndDuplicateSubmission(int $length, bool $valid): void
+    #[TestWith([20, true, 'published'])]
+    #[TestWith([20, true, 'active', 'withdrawn'])]
+    #[TestWith([20, true, 'published', 'accepted'])]
+    #[TestWith([20, true, 'active', 'rejected'])]
+    public function testMotivationAndDuplicateSubmission(int $length, bool $valid, string $projectStatus = 'active', ?string $existingState = null): void
     {
         $account = new Account();
         $account->verifyEmail();
         $profile = (new Profile())->setAccount($account);
-        $project = (new Project())->setStatus((new Status())->setScope('project')->setName('active'))->setEndDate(null);
+        $project = (new Project())->setStatus((new Status())->setScope('project')->setName($projectStatus))->setEndDate(null);
         $project->publish();
         $existing = null;
         $repository = $this->createStub(EntityRepository::class);
@@ -84,6 +88,15 @@ final class ProjectApplicationServiceTest extends TestCase
         self::assertSame(str_repeat('é', $length), $application->getMotivation());
         self::assertSame($profile, $application->getProfile());
         self::assertSame('Ingediend', $service->label($application));
+        if ($existingState !== null) {
+            if ($existingState === 'withdrawn') {
+                $application->softDelete();
+            } else {
+                $application->setStatus((new Status())->setScope('ProjectApplication')->setName($existingState));
+            }
+            $this->expectException(\DomainException::class);
+            $this->expectExceptionMessage($existingState === 'withdrawn' ? 'ingetrokken' : 'behandeld');
+        }
         self::assertSame($application, $service->submit($project, $account, $profile, str_repeat('é', $length)));
     }
 

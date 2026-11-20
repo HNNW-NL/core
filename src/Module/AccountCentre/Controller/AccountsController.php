@@ -91,20 +91,19 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/applications', name: 'applications', methods: ['GET'])]
-    public function applications(Request $request, EntityManagerInterface $em, \App\Module\Main\Service\ProjectApplicationService $service): Response
+    public function applications(Request $request, EntityManagerInterface $em, \App\Module\Main\Service\ProjectApplicationService $service, \App\Repository\Project\AccountApplicationRepository $repository): Response
     {
         $profile = $this->profile($em);
         $filter = $request->query->getString('status');
-        $applications = $em->getRepository(ProjectApplication::class)->findBy(['profile' => $profile], ['id' => 'DESC']);
+        $pagination = $repository->pageForProfile($profile, $filter, max(1, $request->query->getInt('page', 1)));
         $rows = [];
-        foreach ($applications as $application) {
-            $label = $service->label($application);
-            if ($filter === '' || $label === $filter) {
-                $rows[] = ['application' => $application, 'label' => $label,
-                    'withdrawable' => $application->getDeletedAt() === null && $service->pending($application)];
-            }
+        foreach ($pagination['items'] as $application) {
+            $rows[] = ['application' => $application, 'label' => $service->label($application),
+                'withdrawable' => $application->getDeletedAt() === null && $service->pending($application)];
         }
-        return $this->render('pages/account-centre/applications.html.twig', ['rows' => $rows, 'filter' => $filter]);
+        return $this->render('pages/account-centre/applications.html.twig', [
+            'rows' => $rows, 'filter' => $filter, 'pagination' => $pagination,
+        ]);
     }
 
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
