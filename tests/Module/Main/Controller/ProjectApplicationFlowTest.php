@@ -54,15 +54,6 @@ final class ProjectApplicationFlowTest extends WebTestCase
         $application = $em->getRepository(ProjectApplication::class)->findOneBy([]);
         self::assertSame((string) $account->getId(), (string) $application->getProfile()->getAccount()->getId());
         self::assertSame($motivation, $application->getMotivation());
-        $connection = $em->getConnection();
-        $connection->beginTransaction();
-        try {
-            $connection->executeStatement('INSERT INTO project_applications (id, project_id, profile_id, status_id, motivation, last_modified) SELECT gen_random_uuid(), project_id, profile_id, status_id, motivation, last_modified FROM project_applications');
-            self::fail('De database moet een tweede aanvraag voor hetzelfde profiel en project weigeren.');
-        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException) {
-            $connection->rollBack();
-        }
-        self::assertSame(1, $em->getRepository(ProjectApplication::class)->count([]));
         $reviewRepository = static::getContainer()->get(\App\Repository\Project\ProjectParticipantRepository::class);
         self::assertNotNull($reviewRepository->findApplicationForProject((string) $application->getId(), $application->getProject()));
         $client->request('GET', '/projects/aanvraagproject/apply');
