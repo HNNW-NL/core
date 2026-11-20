@@ -36,4 +36,47 @@ self::assertSame(
 );
         }
     }
+    public function testGebruikerZonderLidmaatschapZietGeenOrganisatie(): void
+{
+    $client = static::createClient();
+
+    $em = static::getContainer()->get(
+        \Doctrine\ORM\EntityManagerInterface::class
+    );
+
+    $account = $em->getRepository(\App\Entity\Account\Account::class)
+        ->findOneBy(['username' => 'AdminUser']);
+
+    self::assertNotNull($account);
+    self::assertFalse($account->getAdmin()?->isSuperAdmin() ?? false);
+
+    $organisatie = $em->getRepository(\App\Entity\Org\Organisation::class)
+        ->findOneBy(['name' => 'Test Organistion']);
+
+    self::assertNotNull($organisatie);
+
+    $client->loginUser($account);
+    $client->request('GET', '/org');
+
+    self::assertResponseIsSuccessful();
+    self::assertStringContainsString(
+        'Je bent nog niet gekoppeld',
+        $client->getResponse()->getContent()
+    );
+
+    // Een organisatie van iemand anders mag niet gekozen worden.
+    $client->request(
+        'GET',
+        '/org?organisation=' . $organisatie->getId()->toRfc4122()
+    );
+
+    self::assertResponseStatusCodeSame(404);
+    // Zonder organisatierechten mag je ook geen projecten bekijken.
+$client->request(
+    'GET',
+    '/org/projects?organisation=' . $organisatie->getId()->toRfc4122()
+);
+
+self::assertResponseStatusCodeSame(403);
+}
 }

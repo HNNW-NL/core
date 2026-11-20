@@ -14,6 +14,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Account\Account;
+use App\Entity\Org\Organisation;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Uid\Uuid;
 use App\Security\Permission;
@@ -54,7 +56,10 @@ public function index(Request $request): Response
         if ($membership->getOrgRole()?->getOrganisation()?->getId()->toRfc4122() !== $id) {
         continue;
         }
-
+     // Toon alleen organisaties waarvoor de gebruiker kijkrechten heeft.
+      if (!$this->isGranted(Permission::ORG_VIEW->name, $organisatie)) {
+      continue;
+        }
         if (!isset($organisaties[$id])) {
        $aantalNietBeoordeeld = 0;
 
@@ -114,10 +119,31 @@ public function index(Request $request): Response
     }
 
     #[Route('/projects', name: 'projects', methods: ['GET'])]
-    public function projects(): Response
-    {
-        return $this->render('pages/org/projects.html.twig');
+public function projects(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $organisatieId = $request->query->get('organisation');
+
+    if (!is_string($organisatieId) || !Uuid::isValid($organisatieId)) {
+        throw $this->createNotFoundException('Organisatie niet gevonden.');
     }
+
+    $organisatie = $entityManager
+        ->getRepository(Organisation::class)
+        ->find($organisatieId);
+
+    if ($organisatie === null || $organisatie->getDeletedAt() !== null) {
+        throw $this->createNotFoundException('Organisatie niet gevonden.');
+    }
+
+    $this->denyAccessUnlessGranted(
+        Permission::ORG_VIEW->name,
+        $organisatie
+    );
+
+    return $this->render('pages/org/projects.html.twig', [
+        'organisationId' => $organisatieId,
+    ]);
+}
 
     #[Route('/projects/create', name: 'createProject', methods: ['GET'])]
     public function createProject(): Response
