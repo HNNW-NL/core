@@ -3,7 +3,7 @@
 namespace App\Module\Admin\Handler;
 
 use App\Entity\Project\Project;
-use App\Module\Admin\Service\WorkPackageCrudService;
+use App\Module\Main\Service\WorkPackageCrudService;
 
 class DeleteWorkPackageHandler
 {

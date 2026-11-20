@@ -3,7 +3,6 @@
 namespace App\Module\Org\Controller;
 
 use App\Entity\Project\Project;
-use App\Repository\Account\ProfileRepository;
 use App\Module\Org\Handler\GetOrgProjectWorkPackagesHandler;
 use App\Module\Org\Handler\ManageProjectWorkPackagesHandler;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -137,7 +136,6 @@ final class OrganisationProjectsController extends AbstractController
         Request $request,
         GetOrgProjectWorkPackagesHandler $overview,
         ManageProjectWorkPackagesHandler $handler,
-        ProfileRepository $profiles,
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
@@ -161,7 +159,6 @@ final class OrganisationProjectsController extends AbstractController
             'project' => $project,
             'projectTitle' => $project->getTitle(),
             'projectMemberCount' => $project->getParticipants()->count(),
-            'responsibleProfiles' => $profiles->findActiveByProject($project),
         ]);
     }
 

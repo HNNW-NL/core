@@ -4,8 +4,8 @@ namespace App\Module\Org\Handler;
 
 use App\Entity\Project\WorkPackage;
 use App\Entity\Project\Project;
-use App\Module\Admin\DTO\CreateWorkPackageDTO;
-use App\Module\Admin\Service\WorkPackageCrudService;
+use App\Module\Main\DTO\CreateWorkPackageDTO;
+use App\Module\Main\Service\WorkPackageCrudService;
 
 class CreateWorkPackageHandler
 {

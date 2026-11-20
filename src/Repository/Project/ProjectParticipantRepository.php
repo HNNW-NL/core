@@ -8,7 +8,6 @@ use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\LockMode;
 use Symfony\Component\Uid\Uuid;
-use Symfony\Component\Uid\Ulid;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -69,25 +68,6 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     public function isActiveParticipant(Project $project, Profile $profile): bool
     {
         return $this->findActiveParticipantsByProjectAndProfile($project, $profile) !== [];
-    }
-
-    /** The caller must hold a transaction while validating and saving the assignment. */
-    public function findActiveParticipantForAssignment(Project $project, Ulid $profileId): ?ProjectParticipant
-    {
-        return $this->createQueryBuilder('participant')
-            ->innerJoin('participant.profile', 'profile')
-            ->addSelect('profile')
-            ->andWhere('participant.project = :project')
-            ->andWhere('participant.profile = :profile')
-            ->andWhere('participant.joinedAt IS NOT NULL')
-            ->andWhere('participant.leftAt IS NULL')
-            ->andWhere('profile.deletedAt IS NULL')
-            ->setParameter('project', $project->getId(), 'ulid')
-            ->setParameter('profile', $profileId, 'ulid')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->setLockMode(LockMode::PESSIMISTIC_READ)
-            ->getOneOrNullResult();
     }
 
     /**

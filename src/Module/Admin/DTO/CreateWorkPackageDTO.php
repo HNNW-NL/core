@@ -2,15 +2,7 @@
 
 namespace App\Module\Admin\DTO;
 
-class CreateWorkPackageDTO
+/** Retained for callers using the original Admin namespace. */
+class CreateWorkPackageDTO extends \App\Module\Main\DTO\CreateWorkPackageDTO
 {
-    public function __construct(
-        public readonly string $projectId,
-        public readonly string $title,
-        public readonly string $slug,
-        public readonly ?string $description,
-        public readonly ?\DateTimeImmutable $dueDate,
-        public readonly ?string $responsibleProfileId = null,
-    ) {
-    }
 }

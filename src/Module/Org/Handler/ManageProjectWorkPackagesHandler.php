@@ -4,11 +4,11 @@ namespace App\Module\Org\Handler;
 
 use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
-use App\Module\Admin\DTO\CreatePackageTaskDTO;
-use App\Module\Admin\DTO\CreateWorkPackageDTO;
-use App\Module\Admin\DTO\UpdateWorkPackageDTO;
-use App\Module\Admin\Service\PackageTaskCrudService;
-use App\Module\Admin\Service\WorkPackageCrudService;
+use App\Module\Main\DTO\CreatePackageTaskDTO;
+use App\Module\Main\DTO\CreateWorkPackageDTO;
+use App\Module\Main\DTO\UpdateWorkPackageDTO;
+use App\Module\Main\Service\PackageTaskCrudService;
+use App\Module\Main\Service\WorkPackageCrudService;
 use App\Repository\Project\WorkPackageRepository;
 use App\Security\Voter\WorkPackageVoter;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -28,6 +28,9 @@ final readonly class ManageProjectWorkPackagesHandler
 
     public function handle(Project $project, InputBag $input): void
     {
+        if ($input->has('responsibleProfileId') && trim($input->getString('responsibleProfileId')) !== '') {
+            throw new \InvalidArgumentException('Een werkpakketverantwoordelijke kan pas worden opgeslagen na de databasewijziging door de Product Owner.');
+        }
         $action = $input->getString('_action');
         if (!in_array($action, ['create_work_package', 'update_work_package', 'create_package_task', 'delete_work_package'], true)) {
             throw new \InvalidArgumentException('Onbekende bewerking.');
@@ -59,11 +62,10 @@ final readonly class ManageProjectWorkPackagesHandler
         if ($existing !== null && $existing !== $package) {
             throw new \InvalidArgumentException('Deze slug wordt al gebruikt binnen dit project.');
         }
-        $responsibleId = $input->has('responsibleProfileId') ? trim($input->getString('responsibleProfileId')) : null;
         if ($package === null) {
-            $this->packages->create(new CreateWorkPackageDTO((string) $project->getId(), $title, $slug, $description, $dueDate, $responsibleId), $project);
+            $this->packages->create(new CreateWorkPackageDTO((string) $project->getId(), $title, $slug, $description, $dueDate), $project);
         } else {
-            $this->packages->update(new UpdateWorkPackageDTO((string) $package->getId(), $title, $slug, $description, $dueDate, $responsibleId), $project);
+            $this->packages->update(new UpdateWorkPackageDTO((string) $package->getId(), $title, $slug, $description, $dueDate), $project);
         }
     }
 

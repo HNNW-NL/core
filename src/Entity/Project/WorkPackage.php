@@ -3,7 +3,6 @@
 namespace App\Entity\Project;
 
 use App\Entity\Common\Status;
-use App\Entity\Account\Profile;
 use App\Repository\Project\WorkPackageRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,10 +26,6 @@ class WorkPackage
     #[ORM\ManyToOne(inversedBy: 'workPackages')]
     #[ORM\JoinColumn(name: 'project_id', nullable: false)]
     private ?Project $project = null;
-
-    #[ORM\ManyToOne(targetEntity: Profile::class)]
-    #[ORM\JoinColumn(name: 'responsible_profile_id', nullable: true, onDelete: 'SET NULL')]
-    private ?Profile $responsibleProfile = null;
 
     #[ORM\ManyToOne(inversedBy: 'workPackages')]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
@@ -115,18 +110,6 @@ class WorkPackage
     public function getStatus(): ?Status
     {
         return $this->status;
-    }
-
-    public function getResponsibleProfile(): ?Profile
-    {
-        return $this->responsibleProfile;
-    }
-
-    public function setResponsibleProfile(?Profile $profile): static
-    {
-        $this->responsibleProfile = $profile;
-
-        return $this;
     }
 
     public function setStatus(?Status $status): static

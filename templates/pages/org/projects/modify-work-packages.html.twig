@@ -134,9 +134,6 @@
                                         {% if workPackage.description %}
                                             <p>{{ workPackage.description }}</p>
                                         {% endif %}
-                                        {% if workPackage.responsibleProfileId %}
-                                            <p>Verantwoordelijke: {{ workPackage.responsibleName|default('Projectdeelnemer', true) }}</p>
-                                        {% endif %}
                                         <details>
                                             <summary>Werkpakket bewerken</summary>
                                             <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-create-form">
@@ -159,11 +156,6 @@
                                                     <label for="edit-date-{{ workPackage.id }}">Deadline</label>
                                                     <input id="edit-date-{{ workPackage.id }}" name="dueDate" type="date" value="{{ workPackage.dueDateInput }}">
                                                 </div>
-                                                {% include 'pages/org/projects/_work-package-responsible.html.twig' with {
-                                                    inputId: 'responsible-' ~ workPackage.id,
-                                                    selectedId: workPackage.responsibleProfileId,
-                                                    selectedName: workPackage.responsibleName
-                                                } %}
                                                 <button type="submit" class="work-packages-primary-button">Werkpakket bijwerken</button>
                                             </form>
                                         </details>
@@ -273,9 +265,6 @@
                                             <label for="dueDate">Deadline</label>
                                             <input id="dueDate" name="dueDate" type="date">
                                         </div>
-                                        {% include 'pages/org/projects/_work-package-responsible.html.twig' with {
-                                            inputId: 'create-responsible', selectedId: null, selectedName: null
-                                        } %}
 
                                         <button class="work-packages-primary-button" type="submit">Werkpakket opslaan</button>
                                     </form>

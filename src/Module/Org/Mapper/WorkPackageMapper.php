@@ -23,8 +23,6 @@ class WorkPackageMapper
             'dueDateInput' => $workPackage->getDueDate()?->format('Y-m-d'),
             'status' => $statusName,
             'statusClass' => $this->getStatusClass($statusName),
-            'responsibleProfileId' => $workPackage->getResponsibleProfile()?->getId()->toBase32(),
-            'responsibleName' => $this->getAssignedName($workPackage->getResponsibleProfile()),
             'taskCount' => $taskCount,
             'completedTaskCount' => $completedTaskCount,
             'progress' => $taskCount > 0 ? (int) round(($completedTaskCount / $taskCount) * 100) : 0,

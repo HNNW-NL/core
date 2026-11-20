@@ -14,7 +14,7 @@ use App\Module\Admin\DTO\UpdateWorkPackageDTO;
 use App\Module\Admin\Handler\CreateWorkPackageHandler;
 use App\Module\Admin\Handler\DeleteWorkPackageHandler;
 use App\Module\Admin\Handler\UpdateWorkPackageHandler;
-use App\Module\Admin\Service\WorkPackageCrudService;
+use App\Module\Main\Service\WorkPackageCrudService;
 use App\Security\Permission;
 use App\Security\ProjectPermission;
 use Doctrine\ORM\EntityManagerInterface;

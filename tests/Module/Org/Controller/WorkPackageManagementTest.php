@@ -46,6 +46,17 @@ final class WorkPackageManagementTest extends WebTestCase
         $before = (int) $page->filter('.work-packages-stat-card strong')->eq(1)->text();
         $packageCount = (int) $page->filter('.work-packages-stat-card strong')->eq(0)->text();
         $token = $page->filter('form input[name="_token"]')->last()->attr('value');
+        $snapshot = $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id');
+        $client->request('POST', $path, [
+            '_action' => 'create_work_package', '_token' => $token,
+            'title' => 'Unavailable responsible', 'slug' => 'or11-unavailable-responsible',
+            'responsibleProfileId' => (string) $account->getProfile()->getId(),
+        ]);
+        self::assertResponseRedirects($path, 303);
+        $client->followRedirect();
+        self::assertSelectorTextContains('[role="alert"]', 'databasewijziging door de Product Owner');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        self::assertSame($snapshot, $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id'));
         $client->request('POST', $path, [
             '_action' => 'create_work_package', '_token' => $token,
             'title' => 'Invalid date', 'slug' => 'or11-invalid', 'dueDate' => '2026-02-30',

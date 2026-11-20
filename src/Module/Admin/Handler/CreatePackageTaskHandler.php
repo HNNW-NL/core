@@ -3,7 +3,7 @@
 namespace App\Module\Admin\Handler;
 
 use App\Module\Admin\DTO\CreatePackageTaskDTO;
-use App\Module\Admin\Service\PackageTaskCrudService;
+use App\Module\Main\Service\PackageTaskCrudService;
 
 class CreatePackageTaskHandler
 {

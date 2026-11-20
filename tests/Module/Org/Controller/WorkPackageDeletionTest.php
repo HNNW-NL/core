@@ -12,7 +12,7 @@ use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\WorkPackage;
 use App\Kernel;
 use App\Module\Admin\DTO\CreatePackageTaskDTO;
-use App\Module\Admin\Service\PackageTaskCrudService;
+use App\Module\Main\Service\PackageTaskCrudService;
 use App\Module\Org\Handler\ModifyTasksHandler;
 use App\Security\Permission;
 use App\Security\ProjectPermission;
