@@ -60,9 +60,9 @@ final readonly class ManageProjectWorkPackagesHandler
             throw new \InvalidArgumentException('Deze slug wordt al gebruikt binnen dit project.');
         }
         if ($package === null) {
-            $this->packages->create(new CreateWorkPackageDTO((string) $project->getId(), $title, $slug, $description, $dueDate));
+            $this->packages->create(new CreateWorkPackageDTO((string) $project->getId(), $title, $slug, $description, $dueDate), $project);
         } else {
-            $this->packages->update(new UpdateWorkPackageDTO((string) $package->getId(), $title, $slug, $description, $dueDate));
+            $this->packages->update(new UpdateWorkPackageDTO((string) $package->getId(), $title, $slug, $description, $dueDate), $project);
         }
     }
 

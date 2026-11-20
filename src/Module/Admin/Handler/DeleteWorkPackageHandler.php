@@ -2,6 +2,7 @@
 
 namespace App\Module\Admin\Handler;
 
+use App\Entity\Project\Project;
 use App\Module\Admin\Service\WorkPackageCrudService;
 
 class DeleteWorkPackageHandler
@@ -11,8 +12,8 @@ class DeleteWorkPackageHandler
     ) {
     }
 
-    public function handle(string $workPackageId): void
+    public function handle(string $workPackageId, Project $project): void
     {
-        $this->workPackageCrudService->delete($workPackageId);
+        $this->workPackageCrudService->delete($workPackageId, $project);
     }
 }

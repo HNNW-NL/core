@@ -3,6 +3,7 @@
 namespace App\Module\Admin\Handler;
 
 use App\Entity\Project\WorkPackage;
+use App\Entity\Project\Project;
 use App\Module\Admin\DTO\UpdateWorkPackageDTO;
 use App\Module\Admin\Service\WorkPackageCrudService;
 
@@ -13,8 +14,8 @@ class UpdateWorkPackageHandler
     ) {
     }
 
-    public function handle(UpdateWorkPackageDTO $dto): WorkPackage
+    public function handle(UpdateWorkPackageDTO $dto, Project $project): WorkPackage
     {
-        return $this->workPackageCrudService->update($dto);
+        return $this->workPackageCrudService->update($dto, $project);
     }
 }

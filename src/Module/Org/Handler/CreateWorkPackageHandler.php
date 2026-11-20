@@ -3,8 +3,9 @@
 namespace App\Module\Org\Handler;
 
 use App\Entity\Project\WorkPackage;
-use App\Module\Org\DTO\CreateWorkPackageDTO;
-use App\Module\Org\Service\WorkPackageCrudService;
+use App\Entity\Project\Project;
+use App\Module\Admin\DTO\CreateWorkPackageDTO;
+use App\Module\Admin\Service\WorkPackageCrudService;
 
 class CreateWorkPackageHandler
 {
@@ -13,8 +14,8 @@ class CreateWorkPackageHandler
     ) {
     }
 
-    public function handle(CreateWorkPackageDTO $dto): WorkPackage
+    public function handle(CreateWorkPackageDTO $dto, Project $project): WorkPackage
     {
-        return $this->workPackageCrudService->create($dto);
+        return $this->workPackageCrudService->create($dto, $project);
     }
 }
