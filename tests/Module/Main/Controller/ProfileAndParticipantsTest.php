@@ -154,6 +154,16 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->client->request('GET', $path);
         self::assertSelectorTextContains('h1', 'Bijgewerkte naam');
         self::assertSelectorTextContains('.profile-experience', 'Private werkervaring');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->find(Account::class, $this->owner->getId())->getSetting()->setProfileVisibility('private');
+        $em->flush();
+        $this->client->request('GET', $path);
+        self::assertResponseStatusCodeSame(404);
+        self::assertSelectorNotExists('.profile-biography');
+        $this->client->loginUser($this->owner);
+        $this->client->request('GET', $path);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.profile-biography', 'Een biografie');
         $this->client->request('GET', '/profile/'.$this->member->getUsername());
         self::assertResponseStatusCodeSame(404);
         $this->client->request('GET', '/profile/not-found-'.$this->runId);

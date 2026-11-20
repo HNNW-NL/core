@@ -49,10 +49,13 @@ final readonly class PublicProfileService
             throw new NotFoundHttpException('Profiel niet beschikbaar.');
         }
         $owner = $viewer?->getId() == $account->getId();
-        $visible = static fn (ProfileVisibilityPermission $section): bool => $owner
-            || $account->getSetting()?->getSectionVisibility($section) === VisibilityLevel::PUBLIC;
+        // Voor de biografie bestaat geen sectiebit; daarvoor geldt profile_visibility.
+        $visible = static fn (?ProfileVisibilityPermission $section): bool => $owner
+            || ($section === null
+                ? $account->getSetting()?->getProfileVisibility() === 'public'
+                : $account->getSetting()?->getSectionVisibility($section) === VisibilityLevel::PUBLIC);
         $data = $this->summary($profile, $viewer) + [
-            'biography' => $profile->getDescription(),
+            'biography' => $visible(null) ? $profile->getDescription() : null,
             'headline' => $visible(ProfileVisibilityPermission::HEADLINE) ? $profile->getHeadline() : null,
             'location' => $visible(ProfileVisibilityPermission::LOCATION) ? $profile->getLocation() : null,
             'canEdit' => $owner,

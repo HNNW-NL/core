@@ -14,6 +14,23 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class PublicProfileServiceTest extends TestCase
 {
+    public function testBiographyFollowsProfileVisibilityWithoutASeparateSectionBit(): void
+    {
+        $account = new Account();
+        $settings = (new AccountSetting())->setProfileVisibility('public');
+        $account->setProfile((new Profile())->setAccount($account)->setDescription('Openbare biografie'))->setSetting($settings);
+        $repository = $this->createStub(EntityRepository::class);
+        $repository->method('findOneBy')->willReturn($account);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('getRepository')->willReturn($repository);
+        $em->expects(self::never())->method('createQueryBuilder');
+        $service = new PublicProfileService($em);
+        self::assertSame('Openbare biografie', $service->load('public', null)['biography']);
+        $settings->setProfileVisibility('private');
+        $this->expectException(NotFoundHttpException::class);
+        $service->load('public', null);
+    }
+
     #[TestWith(['public', true])]
     #[TestWith(['private', false])]
     #[TestWith(['connections', false])]
