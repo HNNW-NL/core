@@ -78,5 +78,12 @@ $client->request(
 );
 
 self::assertResponseStatusCodeSame(403);
+// Zonder medewerkersrechten mag je de medewerkerspagina niet openen.
+$client->request(
+    'GET',
+    '/org/staff?organisation=' . $organisatie->getId()->toRfc4122()
+);
+
+self::assertResponseStatusCodeSame(403);
 }
 }

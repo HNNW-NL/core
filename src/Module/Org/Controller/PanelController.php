@@ -83,6 +83,8 @@ public function index(Request $request): Response
                 ->count(),
                 'aantalNietBeoordeeld' => $aantalNietBeoordeeld,
                 'rollen' => [],
+                'magProjectenBeheren' => $this->isGranted(Permission::ORG_MANAGE_PROJECTS->name, $organisatie),
+                'magMedewerkersBeheren' => $this->isGranted(Permission::ORG_MANAGE_MEMBERS->name, $organisatie),
             ];
         }
 
@@ -136,7 +138,7 @@ public function projects(Request $request, EntityManagerInterface $entityManager
     }
 
     $this->denyAccessUnlessGranted(
-        Permission::ORG_VIEW->name,
+        Permission::ORG_MANAGE_PROJECTS->name,
         $organisatie
     );
 
@@ -337,10 +339,29 @@ public function projects(Request $request, EntityManagerInterface $entityManager
     }
 
     #[Route('/staff', name: 'staff', methods: ['GET'])]
-    public function staff(): Response
-    {
-        return $this->render('pages/org/staff.html.twig');
+public function staff(Request $request, EntityManagerInterface $entityManager): Response
+{
+    $organisatieId = $request->query->get('organisation');
+
+    if (!is_string($organisatieId) || !Uuid::isValid($organisatieId)) {
+        throw $this->createNotFoundException('Organisatie niet gevonden.');
     }
+
+    $organisatie = $entityManager
+        ->getRepository(Organisation::class)
+        ->find($organisatieId);
+
+    if ($organisatie === null || $organisatie->getDeletedAt() !== null) {
+        throw $this->createNotFoundException('Organisatie niet gevonden.');
+    }
+
+    $this->denyAccessUnlessGranted(
+        Permission::ORG_MANAGE_MEMBERS->name,
+        $organisatie
+    );
+
+    return $this->render('pages/org/staff.html.twig');
+}
 
     #[Route('/staff/{id}', name: 'viewStaff', methods: ['GET'])]
     public function viewStaff(string $id): Response

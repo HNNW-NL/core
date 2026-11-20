@@ -52,19 +52,21 @@
         <h2>Beheer</h2>
 
         <ul>
-            <li>
-                <a href="{{ path('org.projects', {'organisation': actieveOrganisatie.id}) }}">
-                    Projecten
-                </a>
-            </li>
+            {% if actieveOrganisatie.magProjectenBeheren|default(false) %}
+    <li>
+        <a href="{{ path('org.projects', {'organisation': actieveOrganisatie.id}) }}">
+            Projecten
+        </a>
+    </li>
+{% endif %}
 
-            <li>
-                <a href="{{ path('org.staff') }}">
-                    Medewerkers
-                </a>
-            </li>
-
-            <li>
+           {% if actieveOrganisatie.magMedewerkersBeheren|default(false) %}
+    <li>
+        <a href="{{ path('org.staff', {'organisation': actieveOrganisatie.id}) }}">
+            Medewerkers
+        </a>
+    </li>
+{% endif %}
                 Events (nog niet beschikbaar)
             </li>
         </ul>
