@@ -80,6 +80,18 @@ final class WorkPackageAccessTest extends WebTestCase
         self::assertCount(2, $client->getCrawler()->filter('.package-task-card'));
         self::assertSelectorExists('form[action*="/enroll"]');
 
+        $client->clickLink('Projectoverzicht');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main', 'Projects - Detail');
+        $client->clickLink('Werkpakketten');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.project-work-packages', 'Visible MS12 package');
+        $client->clickLink('Taken');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.project-tasks', 'Visible open task');
+        $client->clickLink('Werkpakketten');
+        self::assertResponseIsSuccessful();
+
         // Even the owner cannot open another project's packages without membership.
         $client->request('GET', '/projects/ms12-other/work-packages');
         self::assertResponseStatusCodeSame(403);

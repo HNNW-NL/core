@@ -51,4 +51,20 @@ class ProfileRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<Profile> */
+    public function findActiveByProject(Project $project): array
+    {
+        return $this->createQueryBuilder('profile')
+            ->select('DISTINCT profile')
+            ->innerJoin(ProjectParticipant::class, 'participant', 'WITH', 'participant.profile = profile')
+            ->andWhere('participant.project = :project')
+            ->andWhere('participant.joinedAt IS NOT NULL')
+            ->andWhere('participant.leftAt IS NULL')
+            ->andWhere('profile.deletedAt IS NULL')
+            ->setParameter('project', $project->getId(), 'ulid')
+            ->orderBy('profile.firstName', 'ASC')
+            ->addOrderBy('profile.lastName', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

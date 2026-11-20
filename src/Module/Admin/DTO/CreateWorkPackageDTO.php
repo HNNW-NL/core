@@ -10,6 +10,7 @@ class CreateWorkPackageDTO
         public readonly string $slug,
         public readonly ?string $description,
         public readonly ?\DateTimeImmutable $dueDate,
+        public readonly ?string $responsibleProfileId = null,
     ) {
     }
 }

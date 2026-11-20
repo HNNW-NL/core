@@ -12,7 +12,7 @@ class DeleteWorkPackageHandler
     ) {
     }
 
-    public function handle(string $workPackageId, Project $project): void
+    public function handle(string $workPackageId, ?Project $project = null): void
     {
         $this->workPackageCrudService->delete($workPackageId, $project);
     }

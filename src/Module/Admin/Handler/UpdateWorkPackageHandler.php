@@ -14,7 +14,7 @@ class UpdateWorkPackageHandler
     ) {
     }
 
-    public function handle(UpdateWorkPackageDTO $dto, Project $project): WorkPackage
+    public function handle(UpdateWorkPackageDTO $dto, ?Project $project = null): WorkPackage
     {
         return $this->workPackageCrudService->update($dto, $project);
     }

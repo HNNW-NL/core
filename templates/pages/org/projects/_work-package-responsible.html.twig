@@ -1,0 +1,14 @@
+<div class="work-package-form-field">
+    <label for="{{ inputId }}">Verantwoordelijke (optioneel)</label>
+    <select id="{{ inputId }}" name="responsibleProfileId">
+        <option value="">Geen verantwoordelijke</option>
+        {% if selectedId and selectedId not in responsibleProfiles|map(profile => profile.id ~ '') %}
+            <option value="{{ selectedId }}" selected disabled>{{ selectedName|default('Huidige verantwoordelijke') }} (niet meer actief)</option>
+        {% endif %}
+        {% for profile in responsibleProfiles %}
+            <option value="{{ profile.id }}" {% if selectedId == (profile.id ~ '') %}selected{% endif %}>
+                {{ profile.displayName ?: (profile.firstName ~ ' ' ~ profile.lastName)|trim ?: 'Projectdeelnemer' }}
+            </option>
+        {% endfor %}
+    </select>
+</div>

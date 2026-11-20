@@ -6,9 +6,11 @@ use App\Entity\Project\Project;
 use App\Module\Main\Service\CurrentProfileProvider;
 use App\Module\Org\Mapper\WorkPackageMapper;
 use App\Repository\Project\ProjectParticipantRepository;
+use App\Repository\Project\ProjectRepository;
 use App\Repository\Project\WorkPackageRepository;
 use App\Security\ProjectPermission;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final readonly class GetProjectWorkPackagesHandler
 {
@@ -17,11 +19,18 @@ final readonly class GetProjectWorkPackagesHandler
         private ProjectParticipantRepository $participantRepository,
         private WorkPackageRepository $workPackageRepository,
         private WorkPackageMapper $mapper,
+        private ProjectRepository $projectRepository,
     ) {
     }
 
-    public function handle(Project $project): array
+    public function handle(Project|string $project): array
     {
+        if (is_string($project)) {
+            $project = $this->projectRepository->findOneVisibleBySlug($project);
+        }
+        if ($project === null || $project->getDeletedAt() !== null) {
+            throw new NotFoundHttpException('Project niet gevonden.');
+        }
         $profile = $this->currentProfileProvider->getProfile();
         $participant = $profile === null ? null : $this->participantRepository
             ->findLatestActiveParticipantByProjectAndProfile($project, $profile);

@@ -15,6 +15,7 @@
 
 {# Page content #}
 {% block body %}
+    {% include 'core/main/_project-navigation.html.twig' %}
     {% set workPackageOverviews = workPackages %}
     {% set currentProfile = hnnw_current_profile() %}
 

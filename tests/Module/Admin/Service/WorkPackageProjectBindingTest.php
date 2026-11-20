@@ -96,20 +96,17 @@ final class WorkPackageProjectBindingTest extends KernelTestCase
         [$em, $service, $project] = $this->prepareEditor();
         $package = (new CreateWorkPackageHandler($service))->handle(
             new CreateWorkPackageDTO((string) $project->getId(), 'FLOW-03 created', 'flow03-created', '', null),
-            $project,
         );
         self::assertSame($project, $package->getProject());
         $updated = (new UpdateWorkPackageHandler($service))->handle(
             new UpdateWorkPackageDTO((string) $package->getId(), 'FLOW-03 updated', 'flow03-created', 'Updated', null),
-            $project,
         );
         self::assertSame($project, $updated->getProject());
         self::assertSame('FLOW-03 updated', $updated->getTitle());
-        (new DeleteWorkPackageHandler($service))->handle((string) $package->getId(), $project);
+        (new DeleteWorkPackageHandler($service))->handle((string) $package->getId());
         self::assertNotNull($package->getDeletedAt());
         $orgCreated = (new \App\Module\Org\Handler\CreateWorkPackageHandler($service))->handle(
             new CreateWorkPackageDTO((string) $project->getId(), 'FLOW-03 organisation', 'flow03-org', '', null),
-            $project,
         );
         $em->clear();
         self::assertEquals($project->getId(), $em->find(WorkPackage::class, $orgCreated->getId())->getProject()->getId());

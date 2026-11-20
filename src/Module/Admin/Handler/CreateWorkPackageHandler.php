@@ -14,7 +14,7 @@ class CreateWorkPackageHandler
     ) {
     }
 
-    public function handle(CreateWorkPackageDTO $dto, Project $project): WorkPackage
+    public function handle(CreateWorkPackageDTO $dto, ?Project $project = null): WorkPackage
     {
         return $this->workPackageCrudService->create($dto, $project);
     }

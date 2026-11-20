@@ -59,10 +59,11 @@ final readonly class ManageProjectWorkPackagesHandler
         if ($existing !== null && $existing !== $package) {
             throw new \InvalidArgumentException('Deze slug wordt al gebruikt binnen dit project.');
         }
+        $responsibleId = $input->has('responsibleProfileId') ? trim($input->getString('responsibleProfileId')) : null;
         if ($package === null) {
-            $this->packages->create(new CreateWorkPackageDTO((string) $project->getId(), $title, $slug, $description, $dueDate), $project);
+            $this->packages->create(new CreateWorkPackageDTO((string) $project->getId(), $title, $slug, $description, $dueDate, $responsibleId), $project);
         } else {
-            $this->packages->update(new UpdateWorkPackageDTO((string) $package->getId(), $title, $slug, $description, $dueDate), $project);
+            $this->packages->update(new UpdateWorkPackageDTO((string) $package->getId(), $title, $slug, $description, $dueDate, $responsibleId), $project);
         }
     }
 

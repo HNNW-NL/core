@@ -3,6 +3,8 @@
 namespace App\Module\Admin\Service;
 
 use App\Entity\Project\Project;
+use App\Entity\Account\Profile;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Entity\Project\PackageTask;
 use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreateWorkPackageDTO;
@@ -24,15 +26,16 @@ class WorkPackageCrudService
         private readonly EntityManagerInterface $entityManager,
         private readonly StatusRepository $statusRepository,
         private readonly AuthorizationCheckerInterface $authorization,
+        private readonly ProjectParticipantRepository $participantRepository,
     ) {
     }
 
-    public function create(CreateWorkPackageDTO $dto, Project $project): WorkPackage
+    public function create(CreateWorkPackageDTO $dto, ?Project $project = null): WorkPackage
     {
         if (!Ulid::isValid($dto->projectId)) {
             throw new \InvalidArgumentException('Invalid project id.');
         }
-        if (!Ulid::fromString($dto->projectId)->equals($project->getId())) {
+        if ($project !== null && !Ulid::fromString($dto->projectId)->equals($project->getId())) {
             throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
         }
 
@@ -42,6 +45,7 @@ class WorkPackageCrudService
                 throw new \InvalidArgumentException('Project not found.');
             }
             $this->assertProjectAccess($project);
+            $responsible = $this->resolveResponsibleProfile($project, $dto->responsibleProfileId);
 
             $status = $this->statusRepository->findFirstByScopeAndNames(WorkPackageWorkflowService::STATUS_SCOPE, ['Open', 'active'])
                 ?? $this->statusRepository->findFirstByScopeAndNames('WorkPackage', ['Open', 'active']);
@@ -56,30 +60,34 @@ class WorkPackageCrudService
             $workPackage->setSlug($dto->slug);
             $workPackage->setDescription($dto->description);
             $workPackage->setDueDate($dto->dueDate);
+            $workPackage->setResponsibleProfile($responsible);
             $this->entityManager->persist($workPackage);
             $this->entityManager->flush();
             return $workPackage;
         });
     }
 
-    public function update(UpdateWorkPackageDTO $dto, Project $project): WorkPackage
+    public function update(UpdateWorkPackageDTO $dto, ?Project $project = null): WorkPackage
     {
         return $this->entityManager->getConnection()->transactional(function () use ($dto, $project): WorkPackage {
             $workPackage = $this->findWorkPackage($dto->workPackageId, $project, WorkPackageVoter::EDIT);
             if ($workPackage->getDeletedAt() !== null) {
                 throw new \InvalidArgumentException('Werkpakket is verwijderd.');
             }
+            $responsibleId = $dto->responsibleProfileId ?? $workPackage->getResponsibleProfile()?->getId()->toBase32();
+            $responsible = $this->resolveResponsibleProfile($workPackage->getProject(), $responsibleId);
             $workPackage->setTitle($dto->title);
             $workPackage->setSlug($dto->slug);
             $workPackage->setDescription($dto->description);
             $workPackage->setDueDate($dto->dueDate);
+            $workPackage->setResponsibleProfile($responsible);
             $this->entityManager->flush();
 
             return $workPackage;
         });
     }
 
-    public function delete(string $workPackageId, Project $project): void
+    public function delete(string $workPackageId, ?Project $project = null): void
     {
         $this->entityManager->getConnection()->transactional(function () use ($workPackageId, $project): void {
             $workPackage = $this->findWorkPackage($workPackageId, $project, WorkPackageVoter::DELETE);
@@ -92,7 +100,7 @@ class WorkPackageCrudService
         });
     }
 
-    private function findWorkPackage(string $workPackageId, Project $project, string $permission): WorkPackage
+    private function findWorkPackage(string $workPackageId, ?Project $project, string $permission): WorkPackage
     {
         if (!Ulid::isValid($workPackageId)) {
             throw new \InvalidArgumentException('Invalid work package id.');
@@ -106,7 +114,7 @@ class WorkPackageCrudService
             throw new \InvalidArgumentException('Work package not found.');
         }
         $actualProject = $workPackage->getProject();
-        if ($actualProject === null || !$actualProject->getId()->equals($project->getId())) {
+        if ($actualProject === null || ($project !== null && !$actualProject->getId()->equals($project->getId()))) {
             throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
         }
         $this->assertProjectAccess($actualProject);
@@ -126,5 +134,20 @@ class WorkPackageCrudService
         ) {
             throw new AccessDeniedException('Je mag de werkpakketten van dit project niet beheren.');
         }
+    }
+
+    private function resolveResponsibleProfile(Project $project, ?string $profileId): ?Profile
+    {
+        if ($profileId === null || $profileId === '') {
+            return null;
+        }
+        if (!Ulid::isValid($profileId)) {
+            throw new \InvalidArgumentException('Ongeldige verantwoordelijke.');
+        }
+        $participant = $this->participantRepository->findActiveParticipantForAssignment($project, Ulid::fromString($profileId));
+        if ($participant === null) {
+            throw new \InvalidArgumentException('De verantwoordelijke moet actief deelnemen aan dit project.');
+        }
+        return $participant->getProfile();
     }
 }
