@@ -134,6 +134,31 @@
                                         {% if workPackage.description %}
                                             <p>{{ workPackage.description }}</p>
                                         {% endif %}
+                                        <details>
+                                            <summary>Werkpakket bewerken</summary>
+                                            <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-create-form">
+                                                <input type="hidden" name="_action" value="update_work_package">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('org_work_packages_' ~ id) }}">
+                                                <input type="hidden" name="workPackageId" value="{{ workPackage.id }}">
+                                                <div class="work-package-form-field">
+                                                    <label for="edit-title-{{ workPackage.id }}">Titel</label>
+                                                    <input id="edit-title-{{ workPackage.id }}" name="title" value="{{ workPackage.title }}" maxlength="255" required>
+                                                </div>
+                                                <div class="work-package-form-field">
+                                                    <label for="edit-slug-{{ workPackage.id }}">Slug</label>
+                                                    <input id="edit-slug-{{ workPackage.id }}" name="slug" value="{{ workPackage.slug }}" maxlength="255" required>
+                                                </div>
+                                                <div class="work-package-form-field">
+                                                    <label for="edit-description-{{ workPackage.id }}">Omschrijving</label>
+                                                    <textarea id="edit-description-{{ workPackage.id }}" name="description">{{ workPackage.description }}</textarea>
+                                                </div>
+                                                <div class="work-package-form-field">
+                                                    <label for="edit-date-{{ workPackage.id }}">Deadline</label>
+                                                    <input id="edit-date-{{ workPackage.id }}" name="dueDate" type="date" value="{{ workPackage.dueDateInput }}">
+                                                </div>
+                                                <button type="submit" class="work-packages-primary-button">Werkpakket bijwerken</button>
+                                            </form>
+                                        </details>
                                         {% if workPackage.tasks is not empty %}
                                             {% for task in workPackage.tasks %}
                                                 <div class="work-package-task-row{% if task.isCompleted %} done{% endif %}">
@@ -163,6 +188,7 @@
 
                                             <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-create-form">
                                                 <input type="hidden" name="_action" value="create_package_task">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('org_work_packages_' ~ id) }}">
                                                 <input type="hidden" name="workPackageId" value="{{ workPackage.id }}">
 
                                                 <div class="work-package-form-field">
@@ -194,14 +220,7 @@
                                         <div class="work-package-card-actions">
                                             <div class="work-package-card-action-group">
 
-                                                <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-delete-form">
-                                                    <input type="hidden" name="_action" value="delete_work_package">
-                                                    <input type="hidden" name="workPackageId" value="{{ workPackage.id }}">
-
-                                                    <button class="work-packages-text-button work-packages-danger-action" type="submit">
-                                                        Verwijderen
-                                                    </button>
-                                                </form>
+                                                <a href="{{ path('org.modifyProject.tasks', { id: id }) }}">Taken beheren (OR09)</a>
                                             </div>
                                         </div>
                                     </article>
@@ -214,20 +233,12 @@
                             </div>
 
                             <div class="work-package-side-panel-stack">
-                                <aside id="work-package-edit-panel" class="work-package-edit-preview-panel">
-                                    <div class="work-package-edit-preview-header">
-                                        <span>Bewerk werkpakket</span>
-                                        <h3>Werkpakket aanpassen</h3>
-                                    </div>
-
-                                
-                                </aside>
-
                                 <aside class="work-package-create-panel">
                                     <h3>Nieuw werkpakket</h3>
 
                                     <form method="post" action="{{ path('org.modifyProject.workPackages', { id: id }) }}" class="work-package-create-form">
                                         <input type="hidden" name="_action" value="create_work_package">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('org_work_packages_' ~ id) }}">
 
                                         <div class="work-package-form-field">
                                             <label for="title">Titel</label>

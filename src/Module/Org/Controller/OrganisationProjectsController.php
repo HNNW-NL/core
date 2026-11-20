@@ -3,6 +3,9 @@
 namespace App\Module\Org\Controller;
 
 use App\Entity\Project\Project;
+use App\Module\Org\Handler\GetOrgProjectWorkPackagesHandler;
+use App\Module\Org\Handler\ManageProjectWorkPackagesHandler;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
@@ -126,16 +129,36 @@ final class OrganisationProjectsController extends AbstractController
         ]);
     }
 
-    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET'])]
+    #[Route('/projects/modify/{id}/work-packages', name: 'modifyProject.workPackages', methods: ['GET', 'POST'])]
     public function modifyProjectWorkPackages(
         string $id,
         ProjectRepository $projectRepository,
+        Request $request,
+        GetOrgProjectWorkPackagesHandler $overview,
+        ManageProjectWorkPackagesHandler $handler,
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
-        return $this->render('pages/org/projects/modify-work-packages.html.twig', [
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('org_work_packages_' . $id, $request->request->getString('_token'))) {
+                throw $this->createAccessDeniedException('Ongeldig veiligheidstoken.');
+            }
+            try {
+                $handler->handle($project, $request->request);
+                $this->addFlash('success', 'Je wijzigingen zijn opgeslagen.');
+            } catch (\InvalidArgumentException $exception) {
+                $this->addFlash('error', $exception->getMessage());
+            } catch (UniqueConstraintViolationException) {
+                $this->addFlash('error', 'Deze slug is inmiddels in gebruik. Probeer een andere slug.');
+            }
+            return $this->redirectToRoute('org.modifyProject.workPackages', ['id' => $id], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->render('pages/org/projects/modify-work-packages.html.twig', $overview->handle($id) + [
             'id' => $id,
             'project' => $project,
+            'projectTitle' => $project->getTitle(),
+            'projectMemberCount' => $project->getParticipants()->count(),
         ]);
     }
 

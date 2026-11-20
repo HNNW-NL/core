@@ -6,6 +6,7 @@ use App\Entity\Common\Status;
 use App\Entity\Project\PackageTask;
 use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreatePackageTaskDTO;
+use App\Repository\Common\StatusRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Ulid;
 
@@ -13,6 +14,7 @@ class PackageTaskCrudService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly StatusRepository $statusRepository,
     ) {
     }
 
@@ -30,7 +32,7 @@ class PackageTaskCrudService
 
         $task = new PackageTask();
         $task->setWorkPackage($workPackage);
-        $task->setStatus($this->findDefaultStatus($workPackage));
+        $task->setStatus($this->findDefaultStatus());
         $task->setTitle($dto->title);
         $task->setSlug($dto->slug);
         $task->setDescription($dto->description);
@@ -43,21 +45,10 @@ class PackageTaskCrudService
         return $task;
     }
 
-    private function findDefaultStatus(WorkPackage $workPackage): Status
+    private function findDefaultStatus(): Status
     {
-        $statusRepository = $this->entityManager->getRepository(Status::class);
-
-        $status = $statusRepository->findOneBy([
-            'name' => 'open',
-            'scope' => 'package_task',
-        ]) ?? $statusRepository->findOneBy([
-            'name' => 'Open',
-            'scope' => 'package_task',
-        ]) ?? $statusRepository->findOneBy([
-            'name' => 'open',
-        ]) ?? $statusRepository->findOneBy([
-            'name' => 'Open',
-        ]) ?? $workPackage->getStatus();
+        $status = $this->statusRepository->findFirstByScopeAndNames('package_task', ['Open', 'active'])
+            ?? $this->statusRepository->findFirstByScopeAndNames('PackageTask', ['Open', 'active']);
 
         if (!$status) {
             throw new \InvalidArgumentException('Default task status not found.');
