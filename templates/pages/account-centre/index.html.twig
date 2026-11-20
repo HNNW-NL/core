@@ -1,47 +1,29 @@
 {% extends 'layouts/ac.base.html.twig' %}
-
-{# Page title meta tag #}
-{% block title %}Account Dashboard{% endblock %}
-
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
+{% block title %}Mijn account{% endblock %}
 {% block body %}
-<div id="account-centre-container">
-    <div class="dashboard-header">
-        <h1>Welkom bij je Account</h1>
-        <p>Account Centre - home page.</p>
+<section id="account-dashboard" aria-labelledby="account-title">
+    <header class="account-dashboard-header">
+        <p class="account-eyebrow">Jouw HNNW</p><h1 id="account-title">Mijn account</h1>
+        <p>Welkom, <strong id="account-name">{{ profile ? (profile.displayName ?: account.username) : account.username }}</strong>.</p>
+    </header>
+    <section class="account-verification" aria-labelledby="verification-title">
+        <div><h2 id="verification-title">Je e-mailadres</h2><p class="account-email">{{ account.email }}</p></div>
+        <div><strong id="email-status">{{ account.emailVerifiedAt ? 'Bevestigd' : 'Nog niet bevestigd' }}</strong>
+            {% if not account.emailVerifiedAt %}<p>Controleer je e-mail en open de bevestigingslink om je registratie af te ronden.</p>{% endif %}
+        </div>
+    </section>
+    <div class="account-statistics" aria-label="Jouw overzicht">
+        <a class="account-statistic" href="{{ path('account.applications', {status: 'pending'}) }}"><span id="account-total-applications" class="account-statistic-value">{{ totals.applications }}</span><h2>Lopende aanmeldingen</h2><p>Bekijk de status van je aanvragen.</p></a>
+        <a class="account-statistic" href="{{ path('account.projects') }}"><span id="account-total-projects" class="account-statistic-value">{{ totals.projects }}</span><h2>Actieve projecten</h2><p>Bekijk de projecten waaraan je deelneemt.</p></a>
+        <a class="account-statistic" href="{{ path('account.messages') }}"><span id="account-total-notifications" class="account-statistic-value">{{ totals.notifications }}</span><h2>Ongelezen meldingen</h2><p>Bekijk wat er voor je klaarstaat.</p></a>
     </div>
-
-    <nav class="account-grid">
-        <a href="{{ path('account.modify') }}" class="account-card">
-            <h3>Profiel Wijzigen</h3>
-            <p>Pas je naam en contactgegevens aan zodat we je altijd kunnen bereiken.</p>
-        </a>
-
-        <a href="{{ path('account.notifications') }}" class="account-card">
-            <h3>Notificaties</h3>
-            <p>Bepaal zelf welke updates en nieuwsbrieven je van ons wilt ontvangen.</p>
-        </a>
-
-        <a href="{{ path('account.applications') }}" class="account-card">
-            <h3>Aanmeldingen</h3>
-            <p>Bekijk de status van je lopende aanmeldingen voor projecten.</p>
-        </a>
-
-        <a href="{{ path('account.availability') }}" class="account-card">
-            <h3>Beschikbaarheid</h3>
-            <p>Laat ons weten wanneer je beschikbaar bent om aan de slag te gaan.</p>
-        </a>
-
-        <a href="{{ path('account.experience') }}" class="account-card">
-            <h3>Ervaring</h3>
-            <p>Houd je skills en werkervaring up-to-date voor de beste matches.</p>
-        </a>
+    {% if totals.applications == 0 and totals.projects == 0 and totals.notifications == 0 %}
+        <section id="account-empty" class="account-welcome" aria-labelledby="welcome-title"><h2 id="welcome-title">Welkom bij HNNW</h2><p>Je hebt nog geen lopende aanmeldingen, actieve projecten of ongelezen meldingen. Vul je profiel in en ontdek waar je kunt bijdragen.</p><a class="account-action" href="{{ path('account.modify') }}">Profiel invullen</a><a href="{{ path('main.projects.home') }}">Ontdek projecten</a></section>
+    {% endif %}
+    <nav class="account-shortcuts" aria-label="Je account beheren">
+        <a href="{{ path('app_profile') }}"><h2>Mijn profiel</h2><p>Bekijk je profiel en expertise.</p></a>
+        <a href="{{ path('account.modify') }}"><h2>Profiel wijzigen</h2><p>Werk je naam en profielgegevens bij.</p></a>
+        <a href="{{ path('account.settings') }}"><h2>Instellingen</h2><p>Ga naar je profiel- en meldingsvoorkeuren.</p></a>
     </nav>
-</div>
+</section>
 {% endblock %}

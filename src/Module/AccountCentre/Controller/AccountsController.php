@@ -14,44 +14,48 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Uuid;
+use App\Module\AccountCentre\Service\AccountDashboardService;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/account', name: 'account.')]
+#[IsGranted('ROLE_USER')]
 final class AccountsController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
+    public function index(AccountDashboardService $dashboard): Response
     {
-        return $this->render('pages/account-centre/index.html.twig');
+        $account = $this->currentAccount();
+
+        return $this->render('pages/account-centre/index.html.twig', [
+            'account' => $account,
+            'profile' => $account->getProfile()?->getDeletedAt() === null ? $account->getProfile() : null,
+            'totals' => $dashboard->totals($account),
+        ]);
     }
 
     #[Route('/applications', name: 'applications', methods: ['GET'])]
-    public function applications(Request $request, EntityManagerInterface $entityManager): Response
+    public function applications(Request $request, AccountDashboardService $dashboard): Response
     {
-        $accountId = $this->getUser();
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je aanmeldingen te bekijken.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-
-        if (!$account) {
-            $this->addFlash('error', 'Account niet gevonden.');
-            return $this->redirectToRoute('auth.login');
-        }
-
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-
+        $pendingOnly = $request->query->getString('status') === 'pending';
         return $this->render('pages/account-centre/applications.html.twig', [
-            'profile' => $profile
+            'records' => $dashboard->applications($this->currentAccount(), $pendingOnly, $request->query->getInt('page', 1)),
+            'pending_only' => $pendingOnly,
+            'pending_statuses' => AccountDashboardService::PENDING_STATUSES,
+        ]);
+    }
+
+    #[Route('/messages', name: 'messages', methods: ['GET'])]
+    public function messages(Request $request, AccountDashboardService $dashboard): Response
+    {
+        return $this->render('pages/account-centre/messages.html.twig', [
+            'records' => $dashboard->notifications($this->currentAccount(), $request->query->getInt('page', 1)),
         ]);
     }
 
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
     public function applicationsCancel(ProjectApplication $application, Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accountId = $this->getUser();
+        $accountId = $this->currentAccount()->getId();
 
         if (!$accountId) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze actie uit te voeren.');
@@ -67,6 +71,11 @@ final class AccountsController extends AbstractController
         $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
         if (!$profile || $application->getProfile() !== $profile) {
             throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze aanmelding.');
+        }
+
+        if ($application->getDeletedAt() !== null || !in_array(strtolower($application->getStatus()?->getName() ?? ''), AccountDashboardService::PENDING_STATUSES, true)) {
+            $this->addFlash('error', 'Deze aanmelding kan niet meer worden geannuleerd.');
+            return $this->redirectToRoute('account.applications');
         }
 
         $csrfToken = $request->request->get('_token');
@@ -429,7 +438,7 @@ final class AccountsController extends AbstractController
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $accountId = $this->getUser();
+        $accountId = $this->currentAccount()->getId();
 
         if (!$accountId) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
@@ -500,7 +509,7 @@ final class AccountsController extends AbstractController
     public function notifications(Request $request, EntityManagerInterface $entityManager): Response
     {
 
-        $accountId = $this->getUser();
+        $accountId = $this->currentAccount()->getId();
 
         if (!$accountId) {
             $this->addFlash('error', 'Je moet ingelogd zijn om deze pagina te bekijken.');
@@ -556,9 +565,11 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/projects', name: 'projects', methods: ['GET'])]
-    public function projects(): Response
+    public function projects(Request $request, AccountDashboardService $dashboard): Response
     {
-        return $this->render('pages/account-centre/projects.html.twig');
+        return $this->render('pages/account-centre/projects.html.twig', [
+            'records' => $dashboard->projects($this->currentAccount(), $request->query->getInt('page', 1)),
+        ]);
     }
 
     #[Route('/reputation', name: 'reputation', methods: ['GET'])]
@@ -589,5 +600,15 @@ final class AccountsController extends AbstractController
     public function skills(): Response
     {
         return $this->render('pages/account-centre/skills.html.twig');
+    }
+
+    private function currentAccount(): Account
+    {
+        $account = $this->getUser();
+        if (!$account instanceof Account || $account->getDeletedAt() !== null) {
+            throw $this->createAccessDeniedException('Je account is niet beschikbaar.');
+        }
+
+        return $account;
     }
 }

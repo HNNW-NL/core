@@ -12,8 +12,10 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="{{ asset("assets/shared/css/style.css") }}">
+    <link rel="stylesheet" href="{{ asset('assets/main/css/core.css') }}">
     <link rel="stylesheet" href="{{ asset("assets/main/css/style.css") }}">
     <link rel="stylesheet" href="{{ asset("assets/account-centre/css/style.css") }}?v=1">
+    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/dashboard.css') }}">
     {% block stylesheets %}{% endblock %}
 
     <!-- JavaScript -->
@@ -26,7 +28,7 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
     {% endif %}
 </head>
-<body data-theme="dark">
+<body data-theme="dark" class="account-centre-page">
     <div class="site-wrapper">
 
         {% include "/core/main/_header.html.twig" %}

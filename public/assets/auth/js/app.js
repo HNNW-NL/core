@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', function () {
 	const fullNameError = document.getElementById('full_name-error');
 	const usernameError = document.getElementById('username-error');
 	const confirmError = document.getElementById('confirm_password-error');
+	const passwordError = document.getElementById('password-error');
+	const termsError = document.getElementById('terms-error');
 	const strengthEl = document.getElementById('password-strength');
 	const meter = document.getElementById('pw-meter');
 
@@ -37,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function clearFieldErrors() {
-		[emailError, fullNameError, usernameError, confirmError].forEach(function (el) {
+		[emailError, fullNameError, usernameError, confirmError, passwordError, termsError].forEach(function (el) {
 			if (!el) return;
 			el.textContent = '';
 			el.classList.add('visually-hidden');
@@ -75,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 
 		if (password.value.length < 8) {
-			setFieldError(strengthEl, 'Wachtwoord moet minimaal 8 tekens bevatten');
+			setFieldError(passwordError || strengthEl, 'Wachtwoord moet minimaal 8 tekens bevatten');
 			valid = false;
 		}
 
@@ -85,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 
 		if (!terms.checked) {
+			setFieldError(termsError, 'Ga akkoord met de voorwaarden en privacyverklaring');
 			valid = false;
 		}
 

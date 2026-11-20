@@ -1,0 +1,37 @@
+.account-centre-page{font-family:lato,Arial,sans-serif}
+.account-centre-page .site-wrapper{min-height:100vh;display:flex;flex-direction:column}
+.account-centre-page .site-wrapper>main{flex:1;min-height:0}
+.account-centre-page .main-header{padding:1rem max(1rem,calc((100% - 1120px)/2));gap:1rem;flex-wrap:wrap}
+.account-centre-page .logo-name{margin-left:0;white-space:nowrap;font-family:inter,Arial,sans-serif}
+.account-centre-page .main-header .nav-links{margin:0;gap:.1rem;flex-wrap:wrap}
+.account-centre-page .nav-icons,.account-centre-page .hamburger{display:none}
+.account-centre-page .account-dashboard-header,.account-centre-page .account-records .dashboard-header{display:block;position:static;background:transparent;backdrop-filter:none;padding:0}
+.account-centre-page .hamburger{background:transparent;border:1px solid #64748b;border-radius:.4rem;padding:.4rem;cursor:pointer}
+@media(max-width:900px){.account-centre-page .hamburger{display:block}.account-centre-page .navbar{display:none;flex-basis:100%}.account-centre-page .navbar.active{display:block}.account-centre-page .main-header .nav-links{flex-direction:column;align-items:stretch}.account-centre-page .nav-button{display:block}}
+.account-navigation{max-width:1120px;margin:1rem auto 0;padding:.5rem 1.5rem;display:flex;gap:.5rem;flex-wrap:wrap;box-sizing:border-box}
+.account-navigation a{color:inherit;padding:.6rem .8rem;border-radius:.5rem;text-decoration:none}
+.account-navigation a[aria-current="page"]{background:#f4c400;color:#111827;font-weight:700}
+#account-dashboard{max-width:1120px;margin:0 auto;padding:2rem 1.5rem 3rem;box-sizing:border-box}
+.account-dashboard-header{margin-bottom:1.75rem}
+.account-dashboard-header h1{font-size:clamp(2rem,5vw,3rem);margin:.4rem 0}
+.account-eyebrow{text-transform:uppercase;letter-spacing:.12em;color:#f4c400;font-size:.85rem;font-weight:700}
+.account-verification,.account-welcome,.account-shortcuts a,.account-statistic{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:1.4rem}
+.account-verification{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;margin-bottom:1.5rem}
+.account-verification h2,.account-statistic h2,.account-shortcuts h2{font-size:1.1rem;margin:0 0 .5rem}
+.account-verification p,.account-statistic p,.account-shortcuts p{margin:.4rem 0 0;line-height:1.6}
+.account-email,#account-name{overflow-wrap:anywhere}
+.account-statistics,.account-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:1.5rem 0}
+.account-statistic,.account-shortcuts a{color:inherit;text-decoration:none;display:block}
+.account-statistic-value{display:block;color:#f4c400;font-size:2.6rem;font-weight:700;margin-bottom:.8rem}
+.account-statistic:hover,.account-shortcuts a:hover{border-color:#f4c400}
+.account-welcome p{line-height:1.7;margin:.5rem 0 1.5rem}
+.account-action{display:inline-block;background:#f4c400;color:#111827;padding:.75rem 1rem;border-radius:.5rem;margin-right:1rem;text-decoration:none;font-weight:700}
+.account-pagination{display:flex;flex-wrap:wrap;justify-content:center;gap:1.4rem;margin:2rem 0}
+.account-records h2{font-size:1.25rem;margin:0 0 .5rem}
+.account-records .account-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);gap:1rem;overflow-wrap:anywhere}
+.account-records .account-card:hover{transform:none}
+.account-records .account-card>div{min-width:0}
+.account-records .account-record-date{margin-top:.75rem;font-size:.85rem}
+.account-empty-records{padding:1.5rem;border:1px solid rgba(255,255,255,.15);border-radius:.75rem;line-height:1.7}
+.account-navigation a:focus-visible,#account-dashboard a:focus-visible,.account-records a:focus-visible,.account-records button:focus-visible{outline:3px solid #f4c400;outline-offset:4px}
+@media(max-width:700px){.account-statistics,.account-shortcuts{grid-template-columns:1fr}.account-verification{flex-direction:column;align-items:flex-start}#account-dashboard{padding:1.25rem 1rem}.account-navigation{padding:.5rem}.account-records .account-card{align-items:flex-start;flex-direction:column}}

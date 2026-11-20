@@ -1,3 +1,5 @@
-<aside>
-    <p>Account Centre Navigation</p>
-</aside>
+<nav class="account-navigation" aria-label="Accountnavigatie">
+    {% for route, label in {'account.home': 'Overzicht', 'account.applications': 'Aanmeldingen', 'account.projects': 'Projecten', 'account.messages': 'Meldingen', 'account.settings': 'Instellingen'} %}
+        <a href="{{ path(route) }}"{% if app.request.attributes.get('_route') == route %} aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+</nav>

@@ -1,210 +1,100 @@
-{% extends 'layouts/main.base.html.twig' %}
+{% extends 'layouts/ac.base.html.twig' %}
 
-{% block title %}
-	Profiel
-{% endblock %}
-
+{% block title %}Mijn profiel{% endblock %}
 {% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('assets/main/css/home.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/account-centre/css/profile.css') }}">
+{% endblock %}
+{% block javascripts %}
+    <script src="{{ asset('assets/account-centre/js/profile.js') }}" defer></script>
 {% endblock %}
 
 {% block body %}
-<div class="page">
+{% set account = app.user %}
+{% set fullName = profile ? (profile.firstName ~ ' ' ~ profile.lastName)|trim : '' %}
+{% set displayName = (profile ? profile.displayName : '') ?: fullName ?: (account ? account.username : 'Mijn profiel') %}
+{% set isOnline = profile and profile.online %}
+<section class="profile-page" aria-labelledby="profile-name">
+    <a class="profile-back" href="{{ path(account ? 'account.home' : 'main.home') }}">
+        <span aria-hidden="true">&larr;</span> {{ account ? 'Terug naar dashboard' : 'Terug naar home' }}
+    </a>
 
-        <div class="header">
-
-                  <!-- Profile Picture -->
-                 <div class="profile-avatar">
-                 <img id="preview" src="default-profile.png" alt="Profile Picture">
-                 </div>
-
-                 <input type="file" id="upload" style="display: none;">
-
-                 <!-- eigen knop -->
-                 <label for="upload" class="upload-btn">
-                   Kies profielfoto
-                 </label>
-
-
-                 <script>
-                const upload = document.getElementById("upload");
-                const preview = document.getElementById("preview");
-
-                upload.addEventListener("change", function () {
-                const file = this.files[0];
-
-                if (file) {
-                const reader = new FileReader();
-
-                reader.onload = function () {
-                preview.src = reader.result;
-                };
-
-                 reader.readAsDataURL(file);
-                }
-                });
-                </script>
-                 </div>
-
-
-
-
-
-
-
-                <div class="profile-text">
-                    <h1>Naam</h1>
-                    <p>@username</p>
-                    {# <p>Locatie</p> #}
-                     <p onclick="openLocationPopup()" style="cursor: pointer;">
-                   Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
-                    <span style="font-size: 12px;">✏️</span>
-                      </p>
-
-                    {% if app and app.user %}
-
-                        <p>Status:
-                            {% if app.user.status and app.user.status.id == 1 %}
-                                Online
-                            {% elseif app.user.status and app.user.status.id == 2 %}
-                                Afwezig
-                            {% else %}
-                                Offline
-                            {% endif %}
-                        </p>
-
-
-                        <p>
-                            {% if app.user.lastLoginAt %}
-
-                                Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
-                            {% else %}
-                                Laatst actief: Onbekend
-                            {% endif %}
-                        </p>
-                    {% else %}
-
-                        <p>Occupation / Status</p>
-                        <p>Laatst actief: Onbekend</p>
-                    {% endif %}
-                </div>
-                <div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
-    <h3>Locatie aanpassen</h3>
-    <select id="new-location">
-        <option value="">-- Kies een stad --</option>
-        <option value="Den Haag">Den Haag</option>
-        <option value="Amsterdam">Amsterdam</option>
-        <option value="Rotterdam">Rotterdam</option>
-        <option value="Utrecht">Utrecht</option>
-        <option value="Eindhoven">Eindhoven</option>
-        <option value="Groningen">Groningen</option>
-        <option value="Maastricht">Maastricht</option>
-    </select>
-    <button onclick="saveLocation()">Opslaan</button>
-    <button onclick="closePopup()">Annuleren</button>
-</div>
-
-			<div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
-		</div>
-	</div>
-
-	<div class="main-grid">
-
-		<div class="card-about-me">
-			<h2 class="about-me">Over mij</h2>
-			<p class="text-muted">This is an example text.</p>
-
-			<h2 class="expertise" style="margin-top: 40px;">Expertise</h2>
-			<div class="expertise-container">
-				<div class="bubble">Expertise 1</div>
-				<div class="bubble">Expertise 2</div>
-				<div class="bubble">Expertise 3</div>
-			</div>
-		</div>
-
-		<div class="card">
-			<div class="action-buttons">
-				<a href="#" class="btn-outline">Edit Profile</a>
-				<a href="#" class="btn-outline">Projects</a>
-                    <a href="#" class="socials">Socials
-                    <div class="socials-icons">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/instagram.svg" alt="Instagram Icon" width="50" height="50">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/youtube.svg" alt="YouTube Icon" width="50" height="50">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/tiktok.svg" alt="TikTok Icon" width="50" height="50">
+    <div class="profile-hero">
+        <div class="profile-identity">
+            <div class="profile-avatar" aria-hidden="true">
+                <span>{{ displayName|slice(0, 1)|upper }}</span>
+                {% if profile and profile.avatarUrl %}
+                    <img src="{{ profile.avatarUrl }}" alt="" referrerpolicy="no-referrer" data-profile-avatar>
+                {% endif %}
             </div>
-</a>
-                    </a>
-			</div>
-		</div>
+            <div id="profile-text">
+                <p class="profile-eyebrow">Mijn profiel</p>
+                <h1 id="profile-name">{{ displayName }}</h1>
+                {% if account %}<p class="profile-username">@{{ account.username }}</p>{% endif %}
+                {% if account %}
+                    <p id="profile-presence" class="profile-presence{{ isOnline ? ' is-online' : '' }}"><span aria-hidden="true"></span>Status: {{ isOnline ? 'Online' : 'Offline' }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <a class="profile-button profile-button-primary" href="{{ path(account ? 'account.modify' : 'auth.login') }}">{{ account ? 'Profiel wijzigen' : 'Inloggen' }} <span aria-hidden="true">&rarr;</span></a>
+    </div>
 
-		<div class="tech-stack">
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JS">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP">
-			</div>
-		</div>
+    <div class="profile-grid">
+        <div class="profile-main">
+            <section class="profile-panel" aria-labelledby="profile-about-title">
+                <p class="profile-eyebrow">Even voorstellen</p>
+                <h2 id="profile-about-title">Over mij</h2>
+                {% if profile and profile.description %}
+                    <p class="profile-description">{{ profile.description }}</p>
+                {% else %}
+                    <p class="profile-muted">Je hebt nog niets over jezelf verteld. Laat weten wie je bent, wat je graag doet en waar je aan wilt bijdragen.</p>
+                    {% if account %}<a class="profile-text-link" href="{{ path('account.modify') }}">Voeg een introductie toe <span aria-hidden="true">&rarr;</span></a>{% endif %}
+                {% endif %}
+            </section>
+            {% if account %}
+                <section class="profile-panel profile-next" aria-labelledby="profile-next-title">
+                    <div><h2 id="profile-next-title">Samen aan de slag</h2><p class="profile-muted">Bekijk je projecten en ontdek waar je kunt bijdragen.</p></div>
+                    <div class="profile-actions">
+                        <a class="profile-button profile-button-secondary" href="{{ path('account.projects') }}">Mijn projecten <span aria-hidden="true">&rarr;</span></a>
+                        <a class="profile-text-link" href="{{ path('main.projects.home') }}">Ontdek projecten</a>
+                    </div>
+                </section>
+            {% else %}
+                <section class="profile-panel"><h2>Jouw plek bij HNNW</h2><p class="profile-muted">Log in om je profiel en projecten te bekijken.</p></section>
+            {% endif %}
+        </div>
 
-		<div class="achievements-bar">
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-		</div>
+        <aside class="profile-panel profile-details" aria-labelledby="profile-details-title">
+            <h2 id="profile-details-title">Profielgegevens</h2>
+            <dl>
+                <div><dt>Locatie</dt><dd><span id="current-location">{{ profile and profile.location ? profile.location : 'Niet ingesteld' }}</span>{% if account %}<button class="profile-text-link" type="button" data-location-open aria-haspopup="dialog">Wijzigen</button>{% endif %}</dd></div>
+                {% if account %}
+                    <div><dt>E-mailadres</dt><dd>{{ account.email }}</dd></div>
+                    <div><dt>E-mailverificatie</dt><dd class="profile-verification{{ account.emailVerifiedAt ? ' is-verified' : '' }}">{{ account.emailVerifiedAt ? 'Bevestigd' : 'Nog niet bevestigd' }}</dd></div>
+                    <div><dt>Laatst ingelogd</dt><dd>{{ account.lastLoginAt ? account.lastLoginAt|date('d-m-Y H:i') : 'Onbekend' }}</dd></div>
+                {% endif %}
+            </dl>
+            {% if account %}<a class="profile-settings" href="{{ path('account.settings') }}">Accountinstellingen <span aria-hidden="true">&rarr;</span></a>{% endif %}
+        </aside>
+    </div>
 
-	</div>
-
-</div>
-
- <script>
-        function openLocationPopup() {
-            document.getElementById('location-popup').style.display = 'block';
-            document.getElementById('popup-overlay').style.display = 'block';
-        }
-
-		function closePopup() {
-			document.getElementById('location-popup').style.display = 'none';
-			document.getElementById('popup-overlay').style.display = 'none';
-		}
-
-		function saveLocation() {
-			const newLocation = document.getElementById('new-location').value;
-
-			if (!newLocation) {
-				alert('Kies eerst een stad alstublieft.');
-				return;
-			}
-
-			fetch('/profile/location', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ location: newLocation })
-			})
-			.then(response => response.json())
-			.then(data => {
-				if (data.success) {
-					document.getElementById('current-location').textContent = data.location;
-					closePopup();
-				} else {
-					alert('Error: ' + data.message);
-				}
-			})
-			.catch(error => {
-				console.error('Fetch error:', error);
-			});
-		}
-	   </script>
-
-    {% endblock %}
-
+    {% if account %}
+        <dialog id="location-popup" class="profile-location-dialog" aria-labelledby="location-title">
+            <form id="profile-location-form" action="{{ path('profile_update_location') }}" method="post">
+                <p class="profile-eyebrow">Jouw profiel</p>
+                <h2 id="location-title">Locatie wijzigen</h2>
+                <p class="profile-muted">In welke plaats ben je te vinden?</p>
+                <label for="new-location">Plaats</label>
+                <input type="text" id="new-location" name="location" list="profile-cities" value="{{ profile ? profile.location : '' }}" maxlength="255" placeholder="Bijvoorbeeld Den Haag" required>
+                <datalist id="profile-cities">
+                    {% for city in ['Den Haag', 'Amsterdam', 'Rotterdam', 'Utrecht', 'Eindhoven', 'Groningen', 'Maastricht'] %}<option value="{{ city }}"></option>{% endfor %}
+                </datalist>
+                <p id="profile-location-error" class="profile-location-error" role="alert" hidden></p>
+                <div class="profile-actions">
+                    <button class="profile-button profile-button-primary" type="submit">Opslaan</button>
+                    <button class="profile-button profile-button-secondary" type="button" data-location-close>Annuleren</button>
+                </div>
+            </form>
+        </dialog>
+    {% endif %}
+</section>
+{% endblock %}
