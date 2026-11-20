@@ -30,10 +30,10 @@ final class ProfileController extends AbstractController
     }
 
     #[Route('/profile/{slug}', name: 'main.profile', methods: ['GET'])]
-    public function viewProfile(string $slug, \App\Module\Main\Service\PublicProfileService $profiles): Response
+    public function viewProfile(string $slug, Request $request, \App\Module\Main\Service\PublicProfileService $profiles): Response
     {
         $response = $this->render('pages/main/profile.html.twig', [
-            'profileView' => $profiles->load($slug, $this->getAccount()),
+            'profileView' => $profiles->load($slug, $this->getAccount(), $request->query->getInt('projects_page', 1)),
         ]);
         $response->setPrivate();
         $response->headers->addCacheControlDirective('no-store');

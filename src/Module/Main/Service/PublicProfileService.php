@@ -18,6 +18,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final readonly class PublicProfileService
 {
+    public const PROJECT_PAGE_SIZE = 20;
+
     public function __construct(private EntityManagerInterface $em)
     {
     }
@@ -55,7 +57,7 @@ final readonly class PublicProfileService
         return preg_match('~\Ahttps?://~i', $url) && filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
     }
 
-    public function load(string $username, ?Account $viewer): array
+    public function load(string $username, ?Account $viewer, int $requestedProjectPage = 1): array
     {
         $account = $this->em->getRepository(Account::class)->findOneBy(['username' => $username, 'deletedAt' => null]);
         $profile = $account?->getProfile();
@@ -174,8 +176,12 @@ final readonly class PublicProfileService
             ->setParameter('account', $account->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid')
             ->setParameter('scope', 'projectparticipant')->setParameter('active', ['active', 'actief']);
         $data['publicProjectCount'] = (int) (clone $projects)->select('COUNT(DISTINCT project.id)')->getQuery()->getSingleScalarResult();
+        $data['projectPages'] = max(1, (int) ceil($data['publicProjectCount'] / self::PROJECT_PAGE_SIZE));
+        $data['projectPage'] = min($data['projectPages'], max(1, $requestedProjectPage));
         $data['projects'] = $projects->select('DISTINCT project.title, project.slug')
-            ->orderBy('project.title', 'ASC')->addOrderBy('project.slug', 'ASC')->getQuery()->getArrayResult();
+            ->orderBy('project.title', 'ASC')->addOrderBy('project.slug', 'ASC')
+            ->setFirstResult(($data['projectPage'] - 1) * self::PROJECT_PAGE_SIZE)->setMaxResults(self::PROJECT_PAGE_SIZE)
+            ->getQuery()->getArrayResult();
         return $data;
     }
 }

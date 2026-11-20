@@ -1177,6 +1177,15 @@ body main #inner-main.profile-page #profile {
     }
 
     #profile-projects {
+        .profile-project-pagination {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+
+            a { padding: 8px 12px; border: 1px solid currentColor; border-radius: 6px; }
+        }
         scroll-margin-top: 24px;
         ul { padding-left: 20px; }
         li { margin-top: 12px; overflow-wrap: anywhere; }

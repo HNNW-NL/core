@@ -1,4 +1,14 @@
 .participants-page {
+    .participants-pagination {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 24px;
+
+        a { padding: 8px 12px; border: 1px solid currentColor; border-radius: 6px; }
+    }
     width: min(1120px, calc(100% - 40px));
     margin: 32px auto 64px;
     color: var(--paragraph);

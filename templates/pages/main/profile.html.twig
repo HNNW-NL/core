@@ -283,6 +283,13 @@
                         <li><a href="{{ path('main.projects.detail', {slug: project.slug}) }}">{{ project.title }}</a></li>
                     {% else %}<li class="profile-empty">Er zijn geen openbare projecten beschikbaar.</li>{% endfor %}
                 </ul>
+                {% if profileView.projectPages > 1 %}
+                    <nav class="profile-project-pagination" aria-label="Paginering openbare projecten">
+                        {% if profileView.projectPage > 1 %}<a rel="prev" href="{{ path('main.profile', {slug: profileView.username, projects_page: profileView.projectPage - 1}) }}#profile-projects">Vorige</a>{% endif %}
+                        <span>Pagina {{ profileView.projectPage }} van {{ profileView.projectPages }}</span>
+                        {% if profileView.projectPage < profileView.projectPages %}<a rel="next" href="{{ path('main.profile', {slug: profileView.username, projects_page: profileView.projectPage + 1}) }}#profile-projects">Volgende</a>{% endif %}
+                    </nav>
+                {% endif %}
             </section>
 
             <section id="recommendations" class="section">

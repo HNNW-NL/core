@@ -9,13 +9,13 @@
     <a class="participants-back" href="{{ path('main.projects.detail', {slug: project.slug}) }}">Terug naar {{ project.title }}</a>
     <div class="participants-heading">
         <div><h1>Projectdeelnemers</h1><p>{{ project.title }}</p></div>
-        <p>{{ participants|length }} {{ participants|length == 1 ? 'deelnemer' : 'deelnemers' }}</p>
+        <p>{{ participants.total }} {{ participants.total == 1 ? 'deelnemer' : 'deelnemers' }}</p>
     </div>
     {% if is_granted('PROJECT_EDIT', project) and is_granted('ORG_MANAGE_PROJECTS', project.ownerOrganisation) %}
         <p class="participants-back"><a href="{{ path('org.modifyProject.participants', {id: project.id ~ ''}) }}">Aanvragen en deelnemers beheren</a></p>
     {% endif %}
     <ul class="participant-grid">
-        {% for participant in participants %}
+        {% for participant in participants.items %}
             <li class="participant-card">
                 {% if participant.avatar %}
                     <img class="participant-avatar" src="{{ participant.avatar }}" alt="" referrerpolicy="no-referrer" loading="lazy">
@@ -31,5 +31,12 @@
             <li class="participant-empty">Er zijn nog geen actieve deelnemers.</li>
         {% endfor %}
     </ul>
+    {% if participants.pages > 1 %}
+        <nav class="participants-pagination" aria-label="Paginering projectdeelnemers">
+            {% if participants.page > 1 %}<a rel="prev" href="{{ path('main.projects.participants', {slug: project.slug, page: participants.page - 1}) }}">Vorige</a>{% endif %}
+            <span>Pagina {{ participants.page }} van {{ participants.pages }}</span>
+            {% if participants.page < participants.pages %}<a rel="next" href="{{ path('main.projects.participants', {slug: project.slug, page: participants.page + 1}) }}">Volgende</a>{% endif %}
+        </nav>
+    {% endif %}
 </section>
 {% endblock %}

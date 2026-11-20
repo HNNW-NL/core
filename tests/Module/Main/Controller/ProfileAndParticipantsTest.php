@@ -234,6 +234,108 @@ final class ProfileAndParticipantsTest extends WebTestCase
         }
     }
 
+    public function testParticipantsArePagedByPersonWithStableOrderAndAllRoles(): void
+    {
+        $roles = $this->em->getRepository(ProjectRole::class)->findBy(['project' => $this->project], ['name' => 'ASC']);
+        $expected = [];
+        for ($i = 0; $i < 23; ++$i) {
+            $account = $this->account('paged-'.$i, false);
+            $avatar = '/uploads/page-'.$i.'.png';
+            $account->getProfile()->setDisplayName('Gelijke naam')->setAvatarUrl($avatar);
+            $expected[$account->getProfile()->getId()->toRfc4122()] = $avatar;
+            foreach ($roles as $role) {
+                $participant = (new ProjectParticipant())->setProject($this->project)->setProfile($account->getProfile())
+                    ->setRole($role)->setStatus($this->fixtureStatus('ProjectParticipant', 'active'));
+                $participant->join();
+                $this->persist($participant);
+            }
+        }
+        $inactiveAccount = $this->account('inactive-page', false);
+        $inactive = (new ProjectParticipant())->setProject($this->project)->setProfile($inactiveAccount->getProfile())
+            ->setStatus($this->fixtureStatus('ProjectParticipant', 'inactive'));
+        $inactive->join();
+        $this->persist($inactive);
+        $this->em->flush();
+        ksort($expected, SORT_STRING);
+        $expected = array_values($expected);
+
+        $path = '/projects/'.$this->project->getSlug().'/participants';
+        $this->client->loginUser($this->owner);
+        $page = $this->client->request('GET', $path);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.participants-heading', '25 deelnemers');
+        self::assertSelectorCount(20, '.participant-card');
+        self::assertSelectorTextContains('.participant-card:first-child', 'Projectleider');
+        self::assertSelectorTextContains('.participant-card:nth-child(2)', 'Developer');
+        self::assertSelectorTextContains('.participant-card:nth-child(2)', 'Designer');
+        self::assertSelectorCount(1, '.participant-card a');
+        $avatars = static fn ($crawler): array => $crawler->filter('.participant-card img')->each(static fn ($image): string => $image->attr('src'));
+        self::assertSame(array_slice($expected, 0, 19), $avatars($page));
+
+        $page = $this->client->click($page->selectLink('Volgende')->link());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(5, '.participant-card');
+        self::assertSelectorTextContains('.participants-pagination', 'Pagina 2 van 2');
+        self::assertSelectorNotExists('.participants-pagination [rel="next"]');
+        self::assertSelectorNotExists('.participant-card a');
+        self::assertSame(array_slice($expected, 19), $avatars($page));
+        self::assertStringNotContainsString('Inactive-page', $this->client->getResponse()->getContent());
+        self::assertStringNotContainsString('Outsider', $this->client->getResponse()->getContent());
+
+        $page = $this->client->request('GET', $path.'?page=999');
+        self::assertSelectorCount(5, '.participant-card');
+        self::assertSame(array_slice($expected, 19), $avatars($page));
+        $page = $this->client->request('GET', $path.'?page=-1');
+        self::assertSelectorCount(20, '.participant-card');
+        self::assertSame(array_slice($expected, 0, 19), $avatars($page));
+        $this->client->loginUser($this->outsider);
+        $this->client->request('GET', $path.'?page=2');
+        self::assertResponseStatusCodeSame(403);
+        self::assertSelectorNotExists('.participant-card');
+    }
+
+    public function testPublicProjectsArePagedWithoutDuplicateOrPrivateProjects(): void
+    {
+        $expected = [];
+        for ($i = 0; $i < 26; ++$i) {
+            $project = (new Project())->setOwnerAccount($this->owner)->setOwnerOrganisation($this->project->getOwnerOrganisation())
+                ->setStatus($this->project->getStatus())->setTitle('Paginaproject')->setSlug(sprintf('profile-page-%02d-%s', $i, $this->runId))
+                ->setVisibility($i === 24 ? 'private' : 'public')->setSummary('Test')->setDescription('Test')
+                ->setCapacity(10)->setStartDate(new \DateTimeImmutable());
+            if ($i !== 25) { $project->publish(); }
+            $this->persist($project);
+            if ($i < 24) { $expected[] = '/projects/'.$project->getSlug(); }
+            if ($i === 0) {
+                foreach (['Eerste rol', 'Tweede rol'] as $name) {
+                    $role = (new ProjectRole())->setProject($project)->setName($name)->setPermissionsMask(1);
+                    $this->persist($role);
+                    $participant = (new ProjectParticipant())->setProject($project)->setProfile($this->owner->getProfile())
+                        ->setRole($role)->setStatus($this->fixtureStatus('ProjectParticipant', 'active'));
+                    $participant->join();
+                    $this->persist($participant);
+                }
+            }
+        }
+        $this->em->flush();
+        $expected[] = '/projects/'.$this->project->getSlug();
+        $links = static fn ($crawler): array => $crawler->filter('#profile-projects li a')->each(static fn ($link): string => $link->attr('href'));
+        $path = '/profile/'.$this->owner->getUsername();
+        $page = $this->client->request('GET', $path);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('#pi-stats', '25 openbare projecten');
+        self::assertSame(array_slice($expected, 0, 20), $links($page));
+        $page = $this->client->click($page->selectLink('Volgende')->link());
+        self::assertResponseIsSuccessful();
+        self::assertSame(array_slice($expected, 20), $links($page));
+        self::assertSelectorTextContains('.profile-project-pagination', 'Pagina 2 van 2');
+        self::assertSelectorNotExists('.profile-project-pagination [rel="next"]');
+        self::assertSelectorExists('#experience, #education, #licenses, #skills, #recommendations');
+        self::assertSame(array_slice($expected, 20), $links($this->client->request('GET', $path.'?projects_page=999')));
+        self::assertSame(array_slice($expected, 0, 20), $links($this->client->request('GET', $path.'?projects_page=-1')));
+        $this->client->request('GET', '/profile/'.$this->member->getUsername().'?projects_page=2');
+        self::assertResponseStatusCodeSame(404);
+    }
+
     public function testEmptyPublicSectionsRemainVisibleWithoutExposingPrivateSections(): void
     {
         $setting = $this->member->getSetting()->setProfileVisibility('public');
@@ -264,6 +366,7 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('#pi-stats', '0 openbare projecten');
         self::assertSelectorNotExists('#profile-projects a');
+        self::assertSelectorNotExists('.profile-project-pagination');
     }
 
     #[\PHPUnit\Framework\Attributes\TestWith([0])]

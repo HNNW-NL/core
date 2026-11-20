@@ -107,6 +107,7 @@ final class ProjectsController extends AbstractController
     #[Route('/{slug}/participants', name: 'participants', methods: ['GET'])]
     public function participants(
         string $slug,
+        Request $request,
         ProjectRepository $projectRepository,
         \App\Module\Main\Service\ProjectParticipantsService $participants,
     ): Response {
@@ -115,7 +116,7 @@ final class ProjectsController extends AbstractController
         $viewer = $this->getUser();
         $response = $this->render('pages/main/projects/participants.html.twig', [
             'project' => $project,
-            'participants' => $participants->load($project, $viewer instanceof \App\Entity\Account\Account ? $viewer : null),
+            'participants' => $participants->load($project, $viewer instanceof \App\Entity\Account\Account ? $viewer : null, $request->query->getInt('page', 1)),
         ]);
         $response->setPrivate();
         $response->headers->addCacheControlDirective('no-store');
