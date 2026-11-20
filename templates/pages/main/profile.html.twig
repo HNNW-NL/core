@@ -54,7 +54,7 @@
                             {% endfor %}
                             {% for education in profileView.education|slice(0, 1) %}
                                 <div class="company">
-                                    <figure class="comp-icon"><span>{{ education.school|slice(0, 1) }}</span></figure>
+                                    <figure class="comp-icon">{% if education.logo %}<img src="{{ education.logo }}" alt="" referrerpolicy="no-referrer">{% else %}<span>{{ education.school|slice(0, 1) }}</span>{% endif %}</figure>
                                     <p>{{ education.school }}</p>
                                 </div>
                             {% endfor %}
@@ -159,7 +159,7 @@
                 <h2 id="edu-title">Onderwijs</h2>
 
                 {% set educations = profileView.education|map(education => {
-    school: education.school, degree: education.degree, logo: '', skills: '',
+    school: education.school, degree: education.degree, fieldOfStudy: education.fieldOfStudy, logo: education.logo, skills: '',
     period: education.startDate|date('m-Y') ~ ' – ' ~ (education.endDate ? education.endDate|date('m-Y') : 'heden'),
     description: education.description
 }) %}
@@ -178,6 +178,7 @@
                             <div class="edui-content">
                                 <h3>{{ education.school }}</h3>
                                 <p>{{ education.degree }}</p>
+                                {% if education.fieldOfStudy %}<p>{{ education.fieldOfStudy }}</p>{% endif %}
                                 <p class="edui-muted">{{ education.period }}</p>
 
                                 {% if education.description %}
@@ -204,6 +205,7 @@
                 {% set certificates = profileView.certificates|map(certificate => {
     title: certificate.title, issuer: certificate.issuer, logo: '',
     issued: certificate.issuedOn ? certificate.issuedOn|date('m-Y') : '',
+    expires: certificate.expiresOn ? certificate.expiresOn|date('m-Y') : '',
     credential: certificate.credential, url: certificate.url
 }) %}
 
@@ -222,6 +224,7 @@
                                 <h3>{{ certificate.title }}</h3>
                                 <p>{{ certificate.issuer }}</p>
                                 <p class="li-muted">{{ certificate.issued }}</p>
+                                {% if certificate.expires %}<p class="li-muted">Geldig tot {{ certificate.expires }}</p>{% endif %}
 
                                 {% if certificate.credential %}
                                     <p class="li-muted">

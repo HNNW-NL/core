@@ -2,196 +2,28 @@
 
 namespace App\Tests\Module\Main\Controller;
 
-use App\Entity\Account\Account;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Kernel;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-class ProfileControllerTest extends WebTestCase
+final class ProfileControllerTest extends WebTestCase
 {
-    // Index
-    public function testWhenLoggedInShouldDisplayUserName(): void
+    protected static function getKernelClass(): string
     {
-        $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        // retrieve the test user
-        $repo = $em->getRepository(Account::class);
-        $testUser = $repo->findOneBy(['email' => 'Test@test.nl']);
-
-        // simulate $testUser being logged in
-        $client->loginUser($testUser);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('#profile-text > p', "TestUser");
+        return Kernel::class;
     }
 
-    public function testWhenLoggedInShouldDisplayProfielFoto(): void
+    public function testProfileShortcutRequiresAuthentication(): void
     {
         $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        // retrieve the test user
-        $repo = $em->getRepository(Account::class);
-        $testUser = $repo->findOneBy(['email' => 'Test@test.nl']);
-
-        // simulate $testUser being logged in
-        $client->loginUser($testUser);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseIsSuccessful();
-
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $client->request('GET', '/profile');
+        self::assertResponseRedirects('/auth/login');
     }
 
-    public function testWhenLoggedInShouldDisplayLocation(): void
+    public function testUnknownPublicProfileDoesNotExposeProfileContent(): void
     {
         $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        // retrieve the test user
-        $repo = $em->getRepository(Account::class);
-        $testUser = $repo->findOneBy(['email' => 'Test@test.nl']);
-
-        // simulate $testUser being logged in
-        $client->loginUser($testUser);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseIsSuccessful();
-
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayStatus(): void
-    {
-        $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        // retrieve the test user
-        $repo = $em->getRepository(Account::class);
-        $testUser = $repo->findOneBy(['email' => 'Test@test.nl']);
-
-        // simulate $testUser being logged in
-        $client->loginUser($testUser);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseIsSuccessful();
-
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayLastLogin(): void
-    {
-        $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        // retrieve the test user
-        $repo = $em->getRepository(Account::class);
-        $testUser = $repo->findOneBy(['email' => 'Test@test.nl']);
-
-        // simulate $testUser being logged in
-        $client->loginUser($testUser);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseIsSuccessful();
-
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayExpertise(): void
-    {
-        $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        // retrieve the test user
-        $repo = $em->getRepository(Account::class);
-        $testUser = $repo->findOneBy(['email' => 'Test@test.nl']);
-
-        // simulate $testUser being logged in
-        $client->loginUser($testUser);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseIsSuccessful();
-
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplaySocials(): void
-    {
-        $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        // retrieve the test user
-        $repo = $em->getRepository(Account::class);
-        $testUser = $repo->findOneBy(['email' => 'Test@test.nl']);
-
-        // simulate $testUser being logged in
-        $client->loginUser($testUser);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseIsSuccessful();
-
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayAchievements(): void
-    {
-        $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        // retrieve the test user
-        $repo = $em->getRepository(Account::class);
-        $testUser = $repo->findOneBy(['email' => 'Test@test.nl']);
-
-        // simulate $testUser being logged in
-        $client->loginUser($testUser);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseIsSuccessful();
-
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenNotLoggedInShouldRedirectToLoginPage(): void
-    {
-        $client = static::createClient();
-
-        $container = static::getContainer();
-        $em  = $container->get(EntityManagerInterface::class);
-
-        $crawler = $client->request('GET', '/profile');
-
-        $this->assertResponseRedirects("/auth/login");
+        $client->request('GET', '/profile/missing-'.bin2hex(random_bytes(8)));
+        self::assertResponseStatusCodeSame(404);
+        self::assertSelectorNotExists('#profile, .profile-biography');
     }
 }

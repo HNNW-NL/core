@@ -105,6 +105,8 @@ final readonly class PublicProfileService
             foreach ($this->em->getRepository(ProfileEducation::class)->findBy(['profile' => $profile], ['startDate' => 'DESC', 'id' => 'DESC']) as $education) {
                 $data['education'][] = [
                     'school' => $education->getInstitutionName(), 'degree' => $education->getDegree(),
+                    'fieldOfStudy' => $education->getFieldOfStudy(),
+                    'logo' => self::safeImageUrl($education->getOrganisation()?->getLogoUrl()),
                     'startDate' => $education->getStartDate(), 'endDate' => $education->getEndDate(),
                     'description' => $education->getDescription(),
                 ];
@@ -114,7 +116,8 @@ final readonly class PublicProfileService
             foreach ($this->em->getRepository(ProfileCertification::class)->findBy(['profile' => $profile], ['issuedOn' => 'DESC', 'id' => 'DESC']) as $certificate) {
                 $data['certificates'][] = [
                     'title' => $certificate->getName(), 'issuer' => $certificate->getIssuer(),
-                    'issuedOn' => $certificate->getIssuedOn(), 'credential' => $certificate->getCredentialId(),
+                    'issuedOn' => $certificate->getIssuedOn(), 'expiresOn' => $certificate->getExpiresOn(),
+                    'credential' => $certificate->getCredentialId(),
                     'url' => self::safeUrl($certificate->getCredentialUrl()),
                 ];
             }

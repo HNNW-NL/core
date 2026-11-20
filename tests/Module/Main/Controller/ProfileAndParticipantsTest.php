@@ -109,9 +109,11 @@ final class ProfileAndParticipantsTest extends WebTestCase
             ->setOrganisation($org)
             ->setExternalOrganisationName('Voorbeeldbedrijf')->setStartDate(new \DateTimeImmutable('2024-01-01')));
         $this->persist((new \App\Entity\Account\ProfileEducation())->setProfile($this->owner->getProfile())
-            ->setInstitutionName('Opleiding uit database')->setDegree('Softwareontwikkeling')->setStartDate(new \DateTimeImmutable('2023-01-01')));
+            ->setInstitutionName('Opleiding uit database')->setDegree('Softwareontwikkeling')->setFieldOfStudy('Beveiligingsonderzoek')
+            ->setOrganisation($org)->setStartDate(new \DateTimeImmutable('2023-01-01')));
         $this->persist((new \App\Entity\Account\ProfileCertification())->setProfile($this->owner->getProfile())
-            ->setName('Certificaat uit database')->setIssuer('Testinstituut')->setCredentialUrl('javascript:alert(1)'));
+            ->setName('Certificaat uit database')->setIssuer('Testinstituut')->setExpiresOn(new \DateTimeImmutable('2030-12-01'))
+            ->setCredentialUrl('javascript:alert(1)'));
         $this->persist((new \App\Entity\Account\ProfileSocialLink())->setProfile($this->owner->getProfile())
             ->setLabel('Mijn website')->setUrl('https://example.test/profiel'));
         $review = (new \App\Entity\Account\Review())->setProfile($this->owner->getProfile())->setReviewerProfile($this->outsider->getProfile())
@@ -164,6 +166,8 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertStringNotContainsString('Private werkervaring', $html);
         self::assertStringNotContainsString('Private headline', $html);
         self::assertStringNotContainsString('Opleiding uit database', $html);
+        self::assertStringNotContainsString('Beveiligingsonderzoek', $html);
+        self::assertStringNotContainsString('Geldig tot 12-2030', $html);
         self::assertStringNotContainsString('Certificaat uit database', $html);
         self::assertStringNotContainsString('https://example.test/profiel', $html);
         self::assertStringNotContainsString('Openbare aanbeveling uit database', $html);
@@ -186,7 +190,10 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorExists('#pc-companies img[src="/uploads/organisation-logo.png"]');
         self::assertSelectorExists('.profile-experience .ei-logo img[src="/uploads/organisation-logo.png"]');
         self::assertSelectorTextContains('#education', 'Opleiding uit database');
+        self::assertSelectorTextContains('#education', 'Beveiligingsonderzoek');
+        self::assertSelectorExists('#education .edui-logo img[src="/uploads/organisation-logo.png"]');
         self::assertSelectorTextContains('#licenses', 'Certificaat uit database');
+        self::assertSelectorTextContains('#licenses', 'Geldig tot 12-2030');
         foreach (['#pcin-name', '#pc-companies', '#experience', '#education', '#licenses', '#skills', '#recommendations'] as $selector) {
             self::assertSelectorExists('#profile '.$selector);
         }
@@ -212,6 +219,19 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->client->request('GET', '/profile/'.$this->member->getUsername());
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('a[href="/account/modify"]');
+    }
+
+    public function testProfileShortcutRedirectsToTheSignedInAccount(): void
+    {
+        $this->client->loginUser($this->owner);
+        $this->client->request('GET', '/profile');
+        self::assertResponseRedirects('/profile/'.$this->owner->getUsername());
+        $this->client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Leader');
+        foreach (['#experience', '#education', '#licenses', '#skills'] as $section) {
+            self::assertSelectorExists($section);
+        }
     }
 
     public function testEmptyPublicSectionsRemainVisibleWithoutExposingPrivateSections(): void
