@@ -5,13 +5,18 @@ namespace App\Module\Org\Service;
 use App\Entity\Account\Account;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Security\Permission;
+use App\Security\ProjectPermission;
 use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\SecurityBundle\Security;
 
 final class ProjectManagementAccess
 {
-    public function __construct(private readonly Security $security) {}
+    public function __construct(
+        private readonly Security $security,
+        private readonly ProjectParticipantRepository $participants,
+    ) {}
 
     /** @return array<string, Organisation> */
     public function organisations(): array
@@ -61,12 +66,25 @@ final class ProjectManagementAccess
             return false;
         }
 
-        return $this->security->isGranted(Permission::ORG_MANAGE_PROJECTS->name, $organisation);
+        if ($this->security->isGranted(Permission::ORG_MANAGE_PROJECTS->name, $organisation)) {
+            return true;
+        }
+
+        $account = $this->security->getUser();
+        $profile = $account instanceof Account ? $account->getProfile() : null;
+        if ($profile === null) {
+            return false;
+        }
+
+        $participant = $this->participants->findLatestActiveParticipantByProjectAndProfile($project, $profile);
+
+        return ProjectPermission::EDIT->in($participant?->getRole()?->getPermissionsMask());
     }
 
     public function canDelete(Project $project): bool
     {
         return $this->canEdit($project)
+            && $this->security->isGranted(Permission::ORG_MANAGE_PROJECTS->name, $project->getOwnerOrganisation())
             && $this->security->isGranted(ProjectVoter::DELETE, $project);
     }
 }

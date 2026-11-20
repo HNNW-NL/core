@@ -87,23 +87,34 @@ class ProjectRepository extends ServiceEntityRepository
             ->leftJoin('project.status', 'status')
             ->andWhere('project.deletedAt IS NULL');
 
-        if ($organisations === [] || $account === null) {
+        if ($account === null) {
             return $query->andWhere('1 = 0');
         }
 
         $query->innerJoin('project.ownerOrganisation', 'organisation')
             ->andWhere('organisation.deletedAt IS NULL')
-            ->andWhere('organisation.id IN (:organisationIds)')
-            ->setParameter('organisationIds', array_map(static fn ($organisation): string => $organisation->getId()->toRfc4122(), array_values($organisations)))
             ->andWhere("LOWER(project.title) LIKE :title ESCAPE '!'")
-            ->setParameter('title', '%' . strtr(mb_strtolower(trim($title)), ['!' => '!!', '%' => '!%', '_' => '!_']) . '%')
-            ->setParameter('account', $account);
+            ->setParameter('title', '%' . strtr(mb_strtolower(trim($title)), ['!' => '!!', '%' => '!%', '_' => '!_']) . '%');
 
-        if ($account->getProfile() === null) {
-            return $query->andWhere('project.ownerAccount = :account');
+        $access = $query->expr()->orX();
+        if ($account->getAdmin()?->isSuperAdmin() || $organisations !== []) {
+            $owner = $query->expr()->andX('project.ownerAccount = :account');
+            $query->setParameter('account', $account);
+            if (!$account->getAdmin()?->isSuperAdmin()) {
+                $owner->add('organisation.id IN (:organisationIds)');
+                $query->setParameter('organisationIds', array_map(
+                    static fn ($organisation): string => $organisation->getId()->toRfc4122(),
+                    array_values($organisations),
+                ));
+            }
+            $access->add($owner);
         }
 
-        // Match the voters: owner or latest active participant with the EDIT permission.
+        if ($account->getProfile() === null) {
+            return $query->andWhere($access->count() === 0 ? '1 = 0' : $access);
+        }
+
+        // Active project roles grant access only to the project they belong to.
         $newerParticipant = $this->getEntityManager()->createQueryBuilder()
             ->select('newer.id')
             ->from(ProjectParticipant::class, 'newer')
@@ -120,8 +131,10 @@ class ProjectRepository extends ServiceEntityRepository
             ->andWhere('BIT_AND(projectRole.permissionsMask, :editPermission) = :editPermission')
             ->andWhere('NOT EXISTS (' . $newerParticipant->getDQL() . ')');
 
+        $access->add('EXISTS (' . $editableParticipation->getDQL() . ')');
+
         return $query
-            ->andWhere('project.ownerAccount = :account OR EXISTS (' . $editableParticipation->getDQL() . ')')
+            ->andWhere($access)
             ->setParameter('profile', $account->getProfile())
             ->setParameter('editPermission', ProjectPermission::EDIT->value);
     }
