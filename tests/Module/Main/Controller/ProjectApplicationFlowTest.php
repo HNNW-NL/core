@@ -75,6 +75,11 @@ final class ProjectApplicationFlowTest extends WebTestCase
             ->setDescription('Test')->setCapacity(10)->setStartDate(new \DateTimeImmutable())->setEndDate(null);
         $project->publish();
         foreach ([$active, $pending, $projectStatus, $owner, $account, $profile, $org, $project] as $entity) { $this->persistFixture($em, $entity); }
+        // Een andere aanvraag bewijst dat de test geen lege tabel veronderstelt.
+        $otherProfile = (new Profile())->setAccount($owner)->setFirstName('Other')->setLastName('Applicant')->setAvatarUrl('');
+        $owner->setProfile($otherProfile);
+        $this->persistFixture($em, $otherProfile);
+        $this->persistFixture($em, (new ProjectApplication())->setProject($project)->setProfile($otherProfile)->setStatus($pending));
         $em->flush();
         $client->loginUser($account);
         $applyPath = '/projects/'.$project->getSlug().'/apply';
