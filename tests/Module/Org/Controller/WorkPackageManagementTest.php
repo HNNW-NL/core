@@ -103,7 +103,8 @@ final class WorkPackageManagementTest extends WebTestCase
         self::assertNull($saved->getDueDate());
         self::assertSame('Changed description', $saved->getDescription());
         $task = $em->getRepository(PackageTask::class)->findOneBy(['slug' => 'or11-child']);
-        self::assertContains($task->getStatus()->getScope(), ['PackageTask', 'package_task']);
+        self::assertSame('PackageTask', $task->getStatus()->getScope());
+        self::assertSame('active', $task->getStatus()->getName());
 
         $client->request('GET', '/projects/Test-Project/work-packages');
         self::assertResponseIsSuccessful();

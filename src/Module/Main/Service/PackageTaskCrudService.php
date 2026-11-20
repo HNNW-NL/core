@@ -74,8 +74,7 @@ class PackageTaskCrudService
 
     private function findDefaultStatus(): Status
     {
-        $status = $this->statusRepository->findFirstByScopeAndNames('package_task', ['Open', 'active'])
-            ?? $this->statusRepository->findFirstByScopeAndNames('PackageTask', ['Open', 'active']);
+        $status = $this->statusRepository->findOneBy(['scope' => 'PackageTask', 'name' => 'active']);
 
         if (!$status) {
             throw new \InvalidArgumentException('Default task status not found.');
