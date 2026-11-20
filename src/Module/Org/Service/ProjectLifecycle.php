@@ -20,21 +20,26 @@ final class ProjectLifecycle
     public function allowedTargets(Project $project): array
     {
         $status = strtolower((string) $project->getStatus()?->getName());
-        if ($status === 'active') {
-            // The existing active status can represent either state. Publication is recorded separately.
-            $status = $project->getPublishedAt() === null ? 'draft' : 'published';
+        $targets = match ($status) {
+            'active' => $project->getPublishedAt() === null ? ['published'] : ['applications_closed'],
+            default => self::TRANSITIONS[$status] ?? [],
+        };
+
+        if ($targets === []) {
+            return [];
         }
 
-        return self::TRANSITIONS[$status] ?? [];
+        $configuredStatuses = $this->entityManager->getRepository(Status::class)
+            ->findBy(['scope' => 'project', 'name' => $targets]);
+        $configuredNames = array_map(static fn (Status $status): ?string => $status->getName(), $configuredStatuses);
+
+        return array_values(array_intersect($targets, $configuredNames));
     }
 
     public function status(string $name): Status
     {
-        $repository = $this->entityManager->getRepository(Status::class);
-        $status = $repository->findOneBy(['scope' => 'project', 'name' => $name]);
-        if ($status === null && in_array($name, ['draft', 'published'], true)) {
-            $status = $repository->findOneBy(['scope' => 'project', 'name' => 'active']);
-        }
+        $status = $this->entityManager->getRepository(Status::class)
+            ->findOneBy(['scope' => 'project', 'name' => $name]);
         if (!$status instanceof Status) {
             throw new \InvalidArgumentException(sprintf('This action is unavailable until the project status "%s" is configured.', $name));
         }

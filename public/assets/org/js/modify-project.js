@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const projectDeleteDialog = document.getElementById('projectDeleteDialog');
     if (projectDeleteDialog) {
         document.querySelector('[data-open-project-delete]')?.addEventListener('click', function () {
-            projectDeleteDialog.querySelector('form').reset();
+            projectDeleteDialog.querySelector('form')?.reset();
             projectDeleteDialog.showModal();
         });
         projectDeleteDialog.querySelector('[data-close-project-delete]')?.addEventListener('click', function () {
@@ -17,13 +17,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const saveButton = form.querySelector('button[type="submit"]');
-    const saveLabel = saveButton.textContent;
+    const saveLabel = saveButton?.textContent;
     const startDateInput = form.querySelector('#startDate');
     const endDateInput = form.querySelector('#endDate');
     const initialSnapshot = new URLSearchParams(new FormData(form)).toString();
     let isSubmitting = false;
 
     function syncDateConstraints() {
+        if (!startDateInput || !endDateInput) {
+            return;
+        }
+
         const startDate = startDateInput.value;
         const endDate = endDateInput.value;
         endDateInput.min = startDate;
@@ -32,8 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     for (const input of [startDateInput, endDateInput]) {
-        input.addEventListener('input', syncDateConstraints);
-        input.addEventListener('change', syncDateConstraints);
+        input?.addEventListener('input', syncDateConstraints);
+        input?.addEventListener('change', syncDateConstraints);
     }
     syncDateConstraints();
 
@@ -57,14 +61,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         isSubmitting = true;
-        saveButton.disabled = true;
-        saveButton.textContent = 'Updating...';
+        if (saveButton) {
+            saveButton.disabled = true;
+            saveButton.textContent = 'Updating...';
+        }
     });
 
     window.addEventListener('pageshow', function () {
         isSubmitting = false;
-        saveButton.disabled = false;
-        saveButton.textContent = saveLabel;
+        if (saveButton) {
+            saveButton.disabled = false;
+            saveButton.textContent = saveLabel;
+        }
         syncDateConstraints();
     });
 });

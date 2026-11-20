@@ -116,7 +116,7 @@ final class OrganisationProjectsController extends AbstractController
                         'id' => $id, 'organisation_id' => $fields['organisation_id'], '_current_project' => $project,
                     ]);
                     $result = $handler->handle($trustedRequest, $this->getUser());
-                    if (($result['success'] ?? true) === false || isset($result['error'])) {
+                    if (($result['success'] ?? false) !== true || isset($result['error'])) {
                         throw new \InvalidArgumentException($result['error'] ?? 'The project could not be saved.');
                     }
                 } elseif ($intent === 'delete') {
