@@ -10,7 +10,6 @@ final class ProjectLifecycle
 {
     private const TRANSITIONS = [
         'draft' => ['published', 'archived'],
-        'active' => ['published', 'applications_closed'],
         'published' => ['applications_closed'],
         'applications_closed' => ['completed'],
         'completed' => ['archived'],
@@ -20,12 +19,22 @@ final class ProjectLifecycle
 
     public function allowedTargets(Project $project): array
     {
-        return self::TRANSITIONS[strtolower((string) $project->getStatus()?->getName())] ?? [];
+        $status = strtolower((string) $project->getStatus()?->getName());
+        if ($status === 'active') {
+            // The existing active status can represent either state. Publication is recorded separately.
+            $status = $project->getPublishedAt() === null ? 'draft' : 'published';
+        }
+
+        return self::TRANSITIONS[$status] ?? [];
     }
 
     public function status(string $name): Status
     {
-        $status = $this->entityManager->getRepository(Status::class)->findOneBy(['scope' => 'project', 'name' => $name]);
+        $repository = $this->entityManager->getRepository(Status::class);
+        $status = $repository->findOneBy(['scope' => 'project', 'name' => $name]);
+        if ($status === null && in_array($name, ['draft', 'published'], true)) {
+            $status = $repository->findOneBy(['scope' => 'project', 'name' => 'active']);
+        }
         if (!$status instanceof Status) {
             throw new \InvalidArgumentException(sprintf('This action is unavailable until the project status "%s" is configured.', $name));
         }
