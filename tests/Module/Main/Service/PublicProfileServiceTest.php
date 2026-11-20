@@ -64,6 +64,10 @@ final class PublicProfileServiceTest extends TestCase
         $service = new PublicProfileService($this->createStub(EntityManagerInterface::class));
         self::assertSame($visible, $service->canView($profile, null));
         self::assertSame($visible ? 'username' : null, $service->summary($profile, new Account())['username']);
+        $profile->setAvatarUrl('https://example.test/private-avatar.jpg');
+        $summary = $service->summary($profile, new Account());
+        self::assertSame($visible ? 'Naam' : 'Afgeschermd profiel', $summary['name']);
+        self::assertSame($visible ? 'https://example.test/private-avatar.jpg' : null, $summary['avatar']);
         self::assertTrue($service->canView($profile, $account));
         $profile->softDelete();
         self::assertFalse($service->canView($profile, $account));

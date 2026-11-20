@@ -11,6 +11,11 @@
         <div><h1>Projectdeelnemers</h1><p>{{ project.title }}</p></div>
         <p>{{ participants.total }} {{ participants.total == 1 ? 'deelnemer' : 'deelnemers' }}</p>
     </div>
+    {% if participants.leader %}
+        <p class="project-leader">Projectleider:
+            {% if participants.leader.username %}<a href="{{ path('main.profile', {slug: participants.leader.username}) }}">{{ participants.leader.name }}</a>{% else %}{{ participants.leader.name }}{% endif %}
+        </p>
+    {% endif %}
     {% if is_granted('PROJECT_EDIT', project) and is_granted('ORG_MANAGE_PROJECTS', project.ownerOrganisation) %}
         <p class="participants-back"><a href="{{ path('org.modifyProject.participants', {id: project.id ~ ''}) }}">Aanvragen en deelnemers beheren</a></p>
     {% endif %}

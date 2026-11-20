@@ -33,10 +33,13 @@ final readonly class PublicProfileService
 
     public function summary(Profile $profile, ?Account $viewer): array
     {
+        if (!$this->canView($profile, $viewer)) {
+            return ['name' => 'Afgeschermd profiel', 'username' => null, 'avatar' => null];
+        }
         $name = trim((string) $profile->getDisplayName()) ?: trim($profile->getFirstName().' '.$profile->getLastName());
         return [
             'name' => $name !== '' ? $name : (string) $profile->getAccount()?->getUsername(),
-            'username' => $this->canView($profile, $viewer) ? $profile->getAccount()->getUsername() : null,
+            'username' => $profile->getAccount()->getUsername(),
             'avatar' => self::safeImageUrl($profile->getAvatarUrl()),
         ];
     }
@@ -81,7 +84,7 @@ final readonly class PublicProfileService
                 'certificates' => $visible(ProfileVisibilityPermission::CERTIFICATIONS),
                 'skills' => $visible(ProfileVisibilityPermission::SKILLS),
             ],
-            'skills' => [], 'experience' => [], 'education' => [], 'certificates' => [], 'socialLinks' => [],
+            'skills' => [], 'experience' => [], 'experienceGroups' => [], 'education' => [], 'certificates' => [], 'socialLinks' => [],
             'receivedRecommendations' => [], 'givenRecommendations' => [], 'suggestions' => [],
         ];
         if ($visible(ProfileVisibilityPermission::SKILLS)) {
@@ -93,7 +96,7 @@ final readonly class PublicProfileService
         }
         if ($visible(ProfileVisibilityPermission::EXPERIENCE)) {
             $data['experience'] = $this->em->createQueryBuilder()
-                ->select('record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
+                ->select('record.id, record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.id AS organisationId, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
                 ->from(ProfileExperience::class, 'record')->leftJoin('record.organisation', 'organisation')
                 ->andWhere('record.profile = :profile')->andWhere('record.deletedAt IS NULL')
                 ->setParameter('profile', $profile->getId(), 'ulid')
@@ -102,6 +105,18 @@ final readonly class PublicProfileService
                 $experience['organisationLogo'] = self::safeImageUrl($experience['organisationLogo']);
             }
             unset($experience);
+            $groups = [];
+            foreach ($data['experience'] as $experience) {
+                $company = $experience['organisationName'] ?: $experience['externalOrganisationName'];
+                $key = $experience['organisationId'] !== null ? 'org:'.$experience['organisationId']
+                    : ($company ? 'external:'.$company : 'record:'.$experience['id']);
+                $groups[$key] ??= ['company' => $company, 'logo' => $experience['organisationLogo'], 'positions' => []];
+                $groups[$key]['positions'][] = [
+                    'title' => $experience['jobTitle'], 'description' => $experience['description'], 'type' => '', 'location' => '',
+                    'period' => $experience['startDate']->format('m-Y').' – '.($experience['endDate']?->format('m-Y') ?? 'heden'),
+                ];
+            }
+            $data['experienceGroups'] = array_values($groups);
         }
         if ($visible(ProfileVisibilityPermission::EDUCATION)) {
             foreach ($this->em->getRepository(ProfileEducation::class)->findBy(['profile' => $profile], ['startDate' => 'DESC', 'id' => 'DESC']) as $education) {

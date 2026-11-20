@@ -23,10 +23,11 @@
     <div id="inner-main" class="profile-page">
         <article id="profile">
             <section id="basic-info">
-<figure id="p-cover" aria-hidden="true"></figure>
+                {# Profile has no persisted cover field; preserve the original container without a fake image. #}
+                <figure id="p-cover" aria-hidden="true"></figure>
 
                 <div id="p-image">
-                    <figure id="p-avatar">{% if profileView.avatar %}<img src="{{ profileView.avatar }}" alt="Profielfoto van {{ profileView.name }}" referrerpolicy="no-referrer">{% else %}<span>{{ profileView.name|slice(0, 1)|upper }}</span>{% endif %}</figure>
+                    <figure id="p-avatar" data-profile-fallback="{{ profileView.name|slice(0, 1)|upper }}">{% if profileView.avatar %}<img src="{{ profileView.avatar }}" alt="Profielfoto van {{ profileView.name }}" referrerpolicy="no-referrer">{% else %}<span>{{ profileView.name|slice(0, 1)|upper }}</span>{% endif %}</figure>
                 </div>
 
                 <div id="p-info">
@@ -48,13 +49,13 @@
                             {% for experience in profileView.experience|slice(0, 1) %}
                                 {% set companyName = experience.organisationName|default(experience.externalOrganisationName) %}
                                 <div class="company">
-                                    <figure class="comp-icon">{% if experience.organisationLogo %}<img src="{{ experience.organisationLogo }}" alt="" referrerpolicy="no-referrer">{% else %}<span>{{ companyName|slice(0, 1) }}</span>{% endif %}</figure>
+                                    <figure class="comp-icon" data-profile-fallback="{{ companyName|slice(0, 1) }}">{% if experience.organisationLogo %}<img src="{{ experience.organisationLogo }}" alt="" referrerpolicy="no-referrer">{% else %}<span>{{ companyName|slice(0, 1) }}</span>{% endif %}</figure>
                                     <p>{{ companyName }}</p>
                                 </div>
                             {% endfor %}
                             {% for education in profileView.education|slice(0, 1) %}
                                 <div class="company">
-                                    <figure class="comp-icon">{% if education.logo %}<img src="{{ education.logo }}" alt="" referrerpolicy="no-referrer">{% else %}<span>{{ education.school|slice(0, 1) }}</span>{% endif %}</figure>
+                                    <figure class="comp-icon" data-profile-fallback="{{ education.school|slice(0, 1) }}">{% if education.logo %}<img src="{{ education.logo }}" alt="" referrerpolicy="no-referrer">{% else %}<span>{{ education.school|slice(0, 1) }}</span>{% endif %}</figure>
                                     <p>{{ education.school }}</p>
                                 </div>
                             {% endfor %}
@@ -95,17 +96,12 @@
             <section id="experience" class="section">
                 <h2 id="e-title">Werkervaring</h2>
 
-                {% set experiences = profileView.experience|map(experience => {
-    company: experience.organisationName|default(experience.externalOrganisationName), logo: experience.organisationLogo,
-    positions: [{title: experience.jobTitle, type: '',
-        period: experience.startDate|date('m-Y') ~ ' – ' ~ (experience.endDate ? experience.endDate|date('m-Y') : 'heden'),
-        location: '', description: experience.description}]
-}) %}
+                {% set experiences = profileView.experienceGroups %}
 
                 <div id="e-list" class="profile-experience">
                     {% for experience in experiences %}
                         <article class="e-item">
-                            <figure class="ei-logo">
+                            <figure class="ei-logo" data-profile-fallback="{{ experience.company|slice(0, 1) }}">
                                 {% if experience.logo %}
                                     <img src="{{ experience.logo }}" alt="{{ experience.company }}">
                                 {% else %}
@@ -117,15 +113,15 @@
                                 {% if experience.positions|length > 1 %}
                                     <div class="ei-company">
                                         <h3>{{ experience.company }}</h3>
-                                        <p class="ei-muted">{{ experience.duration|default('') }}</p>
-                                        <p class="ei-muted">{{ experience.location|default('') }}</p>
+                                        {% if experience.duration|default('') %}<p class="ei-muted">{{ experience.duration }}</p>{% endif %}
+                                        {% if experience.location|default('') %}<p class="ei-muted">{{ experience.location }}</p>{% endif %}
                                     </div>
 
                                     <div class="ei-timeline">
                                         {% for position in experience.positions %}
                                             <div class="ei-position">
                                                 <h4>{{ position.title }}</h4>
-                                                <p>{{ position.type }}</p>
+                                                {% if position.type %}<p>{{ position.type }}</p>{% endif %}
                                                 <p class="ei-muted">{{ position.period }}</p>
                                                 {% if position.location %}
                                                     <p class="ei-muted">{{ position.location }}</p>
@@ -141,7 +137,7 @@
                                     <h3>{{ position.title }}</h3>
                                     <p>{{ experience.company }}{% if position.type %} · {{ position.type }}{% endif %}</p>
                                     <p class="ei-muted">{{ position.period }}</p>
-                                    <p class="ei-muted">{{ position.location }}</p>
+                                    {% if position.location %}<p class="ei-muted">{{ position.location }}</p>{% endif %}
                                     {% if position.description %}
                                         <p class="ei-description">{{ position.description }}</p>
                                     {% endif %}
@@ -167,7 +163,7 @@
                 <div id="edu-list">
                     {% for education in educations %}
                         <article class="edu-item">
-                            <figure class="edui-logo">
+                            <figure class="edui-logo" data-profile-fallback="{{ education.school|slice(0, 1) }}">
                                 {% if education.logo %}
                                     <img src="{{ education.logo }}" alt="{{ education.school }}">
                                 {% else %}
@@ -177,7 +173,7 @@
 
                             <div class="edui-content">
                                 <h3>{{ education.school }}</h3>
-                                <p>{{ education.degree }}</p>
+                                {% if education.degree %}<p>{{ education.degree }}</p>{% endif %}
                                 {% if education.fieldOfStudy %}<p>{{ education.fieldOfStudy }}</p>{% endif %}
                                 <p class="edui-muted">{{ education.period }}</p>
 
@@ -223,7 +219,7 @@
                             <div class="li-content">
                                 <h3>{{ certificate.title }}</h3>
                                 <p>{{ certificate.issuer }}</p>
-                                <p class="li-muted">{{ certificate.issued }}</p>
+                                {% if certificate.issued %}<p class="li-muted">{{ certificate.issued }}</p>{% endif %}
                                 {% if certificate.expires %}<p class="li-muted">Geldig tot {{ certificate.expires }}</p>{% endif %}
 
                                 {% if certificate.credential %}
@@ -317,9 +313,9 @@
 
                                 <div class="ri-content">
                                     <h3>{{ recommendation.name }}</h3>
-                                    <p class="ri-headline">{{ recommendation.headline|default('') }}</p>
+                                    {% if recommendation.headline|default('') %}<p class="ri-headline">{{ recommendation.headline }}</p>{% endif %}
                                     <p class="ri-muted">{{ recommendation.date|date('m-Y') }}</p>
-                                    <p class="ri-muted">{{ recommendation.relation|default('') }}</p>
+                                    {% if recommendation.relation|default('') %}<p class="ri-muted">{{ recommendation.relation }}</p>{% endif %}
                                     <p class="ri-description">{{ recommendation.text }}</p>
                                 </div>
                             </article>
@@ -337,7 +333,7 @@
 
                                 <div class="ri-content">
                                     <h3>{{ recommendation.name }}</h3>
-                                    <p class="ri-headline">{{ recommendation.headline|default('') }}</p>
+                                    {% if recommendation.headline|default('') %}<p class="ri-headline">{{ recommendation.headline }}</p>{% endif %}
                                     <p class="ri-muted">{{ recommendation.date|date('m-Y') }}</p>
                                     <p class="ri-description">{{ recommendation.text }}</p>
                                 </div>

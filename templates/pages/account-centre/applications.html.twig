@@ -2,7 +2,7 @@
 {% block title %}Mijn aanmeldingen{% endblock %}
 {% block body %}
 <h1>Mijn aanmeldingen</h1>
-{% for type in ['success', 'error'] %}
+{% for type in ['success', 'info', 'error'] %}
     {% for message in app.flashes(type) %}<p role="status">{{ message }}</p>{% endfor %}
 {% endfor %}
 <form method="get">

@@ -84,7 +84,9 @@ final class ProjectApplicationServiceTest extends TestCase
         if (!$valid) {
             $this->expectException(\DomainException::class);
         }
-        $application = $service->submit($project, $account, $profile, str_repeat('é', $length));
+        $submission = $service->submitWithResult($project, $account, $profile, str_repeat('é', $length));
+        self::assertTrue($submission->created);
+        $application = $submission->application;
         self::assertSame(str_repeat('é', $length), $application->getMotivation());
         self::assertSame($profile, $application->getProfile());
         self::assertSame('Ingediend', $service->label($application));
@@ -98,6 +100,7 @@ final class ProjectApplicationServiceTest extends TestCase
             $this->expectExceptionMessage($existingState === 'withdrawn' ? 'ingetrokken' : 'behandeld');
         }
         self::assertSame($application, $service->submit($project, $account, $profile, str_repeat('é', $length)));
+        self::assertFalse($service->submitWithResult($project, $account, $profile, str_repeat('é', $length))->created);
     }
 
     #[TestWith(['send', true])]

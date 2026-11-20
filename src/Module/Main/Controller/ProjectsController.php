@@ -70,8 +70,10 @@ final class ProjectsController extends AbstractController
             }
             $motivation = $request->request->getString('motivation');
             try {
-                $applications->submit($project, $account, $profile, $motivation);
-                $this->addFlash('success', 'Je aanvraag staat in Mijn aanmeldingen.');
+                $submission = $applications->submitWithResult($project, $account, $profile, $motivation);
+                $this->addFlash($submission->created ? 'success' : 'info', $submission->created
+                    ? 'Je aanvraag is ingediend en staat in Mijn aanmeldingen.'
+                    : 'Je had je al aangemeld voor dit project. Je bestaande aanvraag staat in Mijn aanmeldingen.');
                 return $this->redirectToRoute('account.applications', status: 303);
             } catch (\DomainException $exception) {
                 $error = $exception->getMessage();

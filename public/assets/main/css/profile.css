@@ -1000,7 +1000,15 @@ body {
                             #pc-info {
                                 min-width: 0;
 
+                                #pci-title #pci-name {
+                                    flex: 1;
+                                    min-width: 0;
+                                    justify-content: flex-start;
+                                }
+
                                 #pci-title #pci-name #pcin-name {
+                                    flex: 1;
+                                    min-width: 0;
                                     white-space: normal;
                                     overflow-wrap: anywhere;
                                 }
@@ -1161,18 +1169,17 @@ body {
 body main #inner-main.profile-page #profile {
     [hidden] { display: none !important; }
 
+    #basic-info:has(#p-cover:empty) {
+        #p-cover { display: none; }
+        #p-image { margin-top: 0; padding-top: 3%; }
+    }
+
     .profile-show-all {
         width: 100%;
-        margin-top: 16px;
-        padding: 12px;
         border: 0;
-        border-top: 1px solid #ddd;
         background: transparent;
-        color: inherit;
         font: inherit;
         cursor: pointer;
-
-        &:hover { background: rgb(128 128 128 / 15%); }
         &:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
     }
 

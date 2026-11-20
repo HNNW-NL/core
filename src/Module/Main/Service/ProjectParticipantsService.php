@@ -47,8 +47,7 @@ final readonly class ProjectParticipantsService
         $profiles = $this->em->createQueryBuilder()->from(Profile::class, 'profile')
             ->innerJoin('profile.account', 'account')->leftJoin('account.setting', 'setting')
             ->andWhere('profile.deletedAt IS NULL')->andWhere('account.deletedAt IS NULL')
-            ->andWhere('account.id = :owner OR '.$activeMembership)
-            ->setParameter('owner', $owner?->getId(), 'ulid')
+            ->andWhere($activeMembership)
             ->setParameter('project', $project->getId(), 'ulid')
             ->setParameter('scope', 'projectparticipant')->setParameter('active', ['active', 'actief']);
         $total = (int) (clone $profiles)->select('COUNT(profile.id)')->getQuery()->getSingleScalarResult();
@@ -56,13 +55,14 @@ final readonly class ProjectParticipantsService
         $page = min($pages, max(1, $requestedPage));
         $pageProfiles = $profiles->select('profile', 'account', 'setting')
             ->addSelect('CASE WHEN account.id = :owner THEN 0 ELSE 1 END AS HIDDEN leaderOrder')
-            ->addSelect("LOWER(COALESCE(NULLIF(TRIM(profile.displayName), ''), NULLIF(TRIM(CONCAT(CONCAT(profile.firstName, ' '), profile.lastName)), ''), account.username)) AS HIDDEN sortName")
+            ->setParameter('owner', $owner?->getId(), 'ulid')
+            ->addSelect("LOWER(COALESCE(NULLIF(TRIM(profile.displayName), ''), 'Deelnemer')) AS HIDDEN sortName")
             ->orderBy('leaderOrder', 'ASC')->addOrderBy('sortName', 'ASC')->addOrderBy('profile.id', 'ASC')
             ->setFirstResult(($page - 1) * self::PAGE_SIZE)->setMaxResults(self::PAGE_SIZE)->getQuery()->getResult();
         $rows = [];
         foreach ($pageProfiles as $profile) {
             $leader = $profile->getAccount()->getId() == $owner?->getId();
-            $rows[(string) $profile->getId()] = $this->profiles->summary($profile, $viewer)
+            $rows[(string) $profile->getId()] = $this->participantSummary($profile, $viewer)
                 + ['roles' => $leader ? ['Projectleider'] : [], 'leader' => $leader];
         }
         // Fetch every role only for this page's profiles, never for the whole project.
@@ -79,6 +79,19 @@ final readonly class ProjectParticipantsService
             }
             $rows[$id]['roles'] = array_values(array_unique($rows[$id]['roles']));
         }
-        return ['items' => array_values($rows), 'total' => $total, 'page' => $page, 'pages' => $pages];
+        $ownerProfile = $owner?->getProfile();
+        $leader = $ownerProfile !== null && $ownerProfile->getDeletedAt() === null && $owner->getDeletedAt() === null
+            ? $this->participantSummary($ownerProfile, $viewer) : null;
+        return ['items' => array_values($rows), 'leader' => $leader, 'total' => $total, 'page' => $page, 'pages' => $pages];
+    }
+
+    private function participantSummary(Profile $profile, Account $viewer): array
+    {
+        if ($this->profiles->canView($profile, $viewer)) {
+            return $this->profiles->summary($profile, $viewer);
+        }
+        // Called only after project access has been checked. Project members may see
+        // the display name and project roles, never a private avatar, legal name or link.
+        return ['name' => trim((string) $profile->getDisplayName()) ?: 'Deelnemer', 'username' => null, 'avatar' => null];
     }
 }

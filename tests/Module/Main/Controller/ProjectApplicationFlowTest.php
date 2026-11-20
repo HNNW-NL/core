@@ -94,8 +94,12 @@ final class ProjectApplicationFlowTest extends WebTestCase
         self::assertSelectorTextContains('body', '20 tot en met 2.000');
         $client->request('POST', $applyPath, ['_token' => $token, 'motivation' => $motivation, 'account_id' => (string) $owner->getId()]);
         self::assertResponseRedirects('/account/applications', 303);
+        $client->followRedirect();
+        self::assertSelectorTextContains('[role="status"]', 'Je aanvraag is ingediend');
         $client->request('POST', $applyPath, ['_token' => $token, 'motivation' => $motivation]);
         self::assertResponseRedirects('/account/applications', 303);
+        $client->followRedirect();
+        self::assertSelectorTextContains('[role="status"]', 'Je had je al aangemeld');
         $em = static::getContainer()->get(EntityManagerInterface::class);
         self::assertSame(1, $em->getRepository(ProjectApplication::class)->count(['project' => $project, 'profile' => $profile]));
         $application = $em->getRepository(ProjectApplication::class)->findOneBy(['project' => $project, 'profile' => $profile]);

@@ -8,6 +8,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
 use App\Repository\Common\StatusRepository;
+use App\Module\Main\DTO\ProjectApplicationSubmission;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler as ApplicationWorkflow;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,11 +24,16 @@ final readonly class ProjectApplicationService
 
     public function submit(Project $project, Account $account, Profile $profile, string $motivation): ProjectApplication
     {
+        return $this->submitWithResult($project, $account, $profile, $motivation)->application;
+    }
+
+    public function submitWithResult(Project $project, Account $account, Profile $profile, string $motivation): ProjectApplicationSubmission
+    {
         $motivation = trim($motivation);
         if (mb_strlen($motivation) < 20 || mb_strlen($motivation) > 2000) {
             throw new \DomainException('De motivatie moet 20 tot en met 2.000 tekens bevatten.');
         }
-        $result = $this->em->wrapInTransaction(function () use ($project, $account, $profile, $motivation): ProjectApplication|string {
+        $result = $this->em->wrapInTransaction(function () use ($project, $account, $profile, $motivation): ProjectApplicationSubmission|string {
             $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
             $this->em->refresh($project);
             $this->em->refresh($account);
@@ -55,7 +61,7 @@ final readonly class ProjectApplicationService
                 if (!$this->pending($existing)) {
                     return 'Je eerdere aanvraag is al behandeld ('.$this->label($existing).').';
                 }
-                return $existing;
+                return new ProjectApplicationSubmission($existing, false);
             }
             $status = $this->statuses->findFirstByScopeAndNames(ApplicationWorkflow::APPLICATION_SCOPE, ApplicationWorkflow::PENDING_NAMES);
             if ($status === null) {
@@ -63,7 +69,7 @@ final readonly class ProjectApplicationService
             }
             $application = (new ProjectApplication())->setProject($project)->setProfile($profile)->setStatus($status)->setMotivation($motivation);
             $this->em->persist($application);
-            return $application;
+            return new ProjectApplicationSubmission($application, true);
         });
         if (is_string($result)) {
             throw new \DomainException($result);

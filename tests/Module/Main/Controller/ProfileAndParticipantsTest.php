@@ -239,7 +239,7 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $roles = $this->em->getRepository(ProjectRole::class)->findBy(['project' => $this->project], ['name' => 'ASC']);
         $expected = [];
         for ($i = 0; $i < 23; ++$i) {
-            $account = $this->account('paged-'.$i, false);
+            $account = $this->account('paged-'.$i, true);
             $avatar = '/uploads/page-'.$i.'.png';
             $account->getProfile()->setDisplayName('Gelijke naam')->setAvatarUrl($avatar);
             $expected[$account->getProfile()->getId()->toRfc4122()] = $avatar;
@@ -263,31 +263,31 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->client->loginUser($this->owner);
         $page = $this->client->request('GET', $path);
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.participants-heading', '25 deelnemers');
+        self::assertSelectorTextContains('.participants-heading', '24 deelnemers');
         self::assertSelectorCount(20, '.participant-card');
-        self::assertSelectorTextContains('.participant-card:first-child', 'Projectleider');
+        self::assertSelectorTextContains('.project-leader', 'Leader');
         self::assertSelectorTextContains('.participant-card:nth-child(2)', 'Developer');
         self::assertSelectorTextContains('.participant-card:nth-child(2)', 'Designer');
-        self::assertSelectorCount(1, '.participant-card a');
+        self::assertSelectorCount(20, '.participant-card a');
         $avatars = static fn ($crawler): array => $crawler->filter('.participant-card img')->each(static fn ($image): string => $image->attr('src'));
-        self::assertSame(array_slice($expected, 0, 19), $avatars($page));
+        self::assertSame(array_slice($expected, 0, 20), $avatars($page));
 
         $page = $this->client->click($page->selectLink('Volgende')->link());
         self::assertResponseIsSuccessful();
-        self::assertSelectorCount(5, '.participant-card');
+        self::assertSelectorCount(4, '.participant-card');
         self::assertSelectorTextContains('.participants-pagination', 'Pagina 2 van 2');
         self::assertSelectorNotExists('.participants-pagination [rel="next"]');
-        self::assertSelectorNotExists('.participant-card a');
-        self::assertSame(array_slice($expected, 19), $avatars($page));
+        self::assertSelectorCount(3, '.participant-card a');
+        self::assertSame(array_slice($expected, 20), $avatars($page));
         self::assertStringNotContainsString('Inactive-page', $this->client->getResponse()->getContent());
         self::assertStringNotContainsString('Outsider', $this->client->getResponse()->getContent());
 
         $page = $this->client->request('GET', $path.'?page=999');
-        self::assertSelectorCount(5, '.participant-card');
-        self::assertSame(array_slice($expected, 19), $avatars($page));
+        self::assertSelectorCount(4, '.participant-card');
+        self::assertSame(array_slice($expected, 20), $avatars($page));
         $page = $this->client->request('GET', $path.'?page=-1');
         self::assertSelectorCount(20, '.participant-card');
-        self::assertSame(array_slice($expected, 0, 19), $avatars($page));
+        self::assertSame(array_slice($expected, 0, 20), $avatars($page));
         $this->client->loginUser($this->outsider);
         $this->client->request('GET', $path.'?page=2');
         self::assertResponseStatusCodeSame(403);
@@ -402,6 +402,73 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorNotExists('.participant-card');
     }
 
+    public function testPrivateParticipantOnlyExposesProjectDisplayNameAndRoles(): void
+    {
+        $profile = $this->member->getProfile();
+        $profile->setDisplayName('Naam binnen project')->setFirstName('VerborgenVoornaam')->setLastName('VerborgenAchternaam')
+            ->setAvatarUrl('https://example.test/verborgen-avatar.png');
+        $this->em->flush();
+        $path = '/projects/'.$this->project->getSlug().'/participants';
+        $this->client->loginUser($this->owner);
+        $this->client->request('GET', $path);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.participant-card', 'Naam binnen project');
+        self::assertSelectorTextContains('.participant-card', 'Developer');
+        $html = $this->client->getResponse()->getContent();
+        foreach (['VerborgenVoornaam', 'VerborgenAchternaam', 'verborgen-avatar.png', $this->member->getUsername()] as $private) {
+            self::assertStringNotContainsString($private, $html);
+        }
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->find(Profile::class, $profile->getId())->setDisplayName('');
+        $em->flush();
+        $this->client->request('GET', $path);
+        self::assertSelectorTextContains('.participant-card h2', 'Deelnemer');
+        self::assertStringNotContainsString('VerborgenVoornaam', $this->client->getResponse()->getContent());
+    }
+
+    public function testProjectLeaderOnlyCountsWhileActivelyParticipating(): void
+    {
+        $participant = (new ProjectParticipant())->setProject($this->project)->setProfile($this->owner->getProfile())
+            ->setStatus($this->fixtureStatus('ProjectParticipant', 'inactive'));
+        $participant->join();
+        $this->persist($participant);
+        $this->em->flush();
+        $path = '/projects/'.$this->project->getSlug().'/participants';
+        $this->client->loginUser($this->owner);
+        $this->client->request('GET', $path);
+        self::assertSelectorTextContains('.participants-heading', '1 deelnemer');
+        self::assertSelectorTextContains('.project-leader', 'Leader');
+        self::assertSelectorCount(1, '.participant-card');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->find(ProjectParticipant::class, $participant->getId())->setStatus($em->getRepository(Status::class)
+            ->findOneBy(['scope' => 'ProjectParticipant', 'name' => 'active']));
+        $em->flush();
+        $this->client->request('GET', $path);
+        self::assertSelectorTextContains('.participants-heading', '2 deelnemers');
+        self::assertSelectorTextContains('.participant-card:first-child', 'Projectleider');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->find(ProjectParticipant::class, $participant->getId())->leave();
+        $em->flush();
+        $this->client->request('GET', $path);
+        self::assertSelectorTextContains('.participants-heading', '1 deelnemer');
+        self::assertSelectorTextContains('.project-leader', 'Leader');
+    }
+
+    public function testExperienceUsesOriginalCompanyTimelineForMultiplePositions(): void
+    {
+        $this->owner->getSetting()->setSectionVisibility(ProfileVisibilityPermission::EXPERIENCE, VisibilityLevel::PUBLIC);
+        $this->persist((new ProfileExperience())->setProfile($this->owner->getProfile())
+            ->setOrganisation($this->project->getOwnerOrganisation())->setJobTitle('Eerdere functie')
+            ->setStartDate(new \DateTimeImmutable('2022-01-01'))->setEndDate(new \DateTimeImmutable('2023-12-31')));
+        $this->em->flush();
+        $this->client->request('GET', '/profile/'.$this->owner->getUsername());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(1, '#e-list .e-item');
+        self::assertSelectorCount(2, '#e-list .ei-position');
+        self::assertSelectorTextContains('#e-list .ei-timeline', 'Eerdere functie');
+        self::assertSelectorTextContains('#e-list .ei-timeline', 'Private werkervaring');
+    }
+
     public function testParticipantsExcludeFormerMembersAndPrivateData(): void
     {
         $path = '/projects/'.$this->project->getSlug().'/participants';
@@ -411,10 +478,10 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->client->loginUser($this->owner);
         $this->client->request('GET', $path);
         self::assertResponseIsSuccessful();
-        self::assertSelectorCount(2, '.participant-card');
+        self::assertSelectorCount(1, '.participant-card');
         self::assertSelectorExists('link[rel="stylesheet"][href$="/assets/main/css/participants.css"]');
         self::assertSelectorNotExists('link[href$="/profile-responsive.css"], link[href$="/profile-navigation.css"]');
-        self::assertSelectorTextContains('.participant-grid', 'Projectleider');
+        self::assertSelectorTextContains('.project-leader', 'Projectleider');
         self::assertSelectorTextContains('.participant-grid', 'Developer');
         self::assertSelectorTextContains('.participant-grid', 'Designer');
         self::assertSelectorNotExists('a[href="/profile/'.$this->member->getUsername().'"]');
@@ -438,7 +505,7 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorNotExists('.participant-card');
         $this->client->loginUser($this->member);
         $this->client->request('GET', $path);
-        self::assertSelectorCount(3, '.participant-card');
+        self::assertSelectorCount(2, '.participant-card');
         $em = static::getContainer()->get(EntityManagerInterface::class);
         $participant = $em->getRepository(ProjectParticipant::class)->findOneBy([
             'project' => $em->find(Project::class, $project->getId()),
@@ -447,6 +514,6 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $participant->leave();
         $em->flush();
         $this->client->request('GET', $path);
-        self::assertSelectorCount(2, '.participant-card');
+        self::assertSelectorCount(1, '.participant-card');
     }
 }
