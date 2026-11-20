@@ -70,36 +70,24 @@ class ProjectVoter extends Voter
          * Controleer of deze gebruiker daadwerkelijk een actieve
          * participant is van DIT specifieke project.
          */
-        $participant = $this->participantRepository
-            ->findActiveParticipant($project, $profile);
-
-        if ($participant === null) {
-            return false;
+        $participants = $this->participantRepository->findActiveParticipantsByProjectAndProfile($project, $profile);
+        $mask = 0;
+        foreach ($participants as $participant) {
+            $role = $participant->getRole();
+            if ($role !== null && ($role->getProject() === $project || $role->getProject()?->getId() == $project->getId())) {
+                $mask |= $role->getPermissionsMask() ?? 0;
+            }
         }
 
-        /*
-         * Een participant zonder projectrol heeft geen
-         * projectrechten.
-         */
-        $role = $participant->getRole();
-
-        if ($role === null) {
-            return false;
-        }
-
-        /*
-         * Controleer de permissionsMask van de rol
-         * binnen dit specifieke project.
-         */
         return match ($attribute) {
             self::VIEW =>
-                ProjectPermission::VIEW->in($role->getPermissionsMask()),
+                ProjectPermission::VIEW->in($mask),
 
             self::EDIT =>
-                ProjectPermission::EDIT->in($role->getPermissionsMask()),
+                ProjectPermission::EDIT->in($mask),
 
             self::DELETE =>
-                ProjectPermission::DELETE->in($role->getPermissionsMask()),
+                ProjectPermission::DELETE->in($mask),
 
             default => false,
         };

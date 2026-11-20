@@ -14,6 +14,25 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 class ProjectVoterTest extends TestCase
 {
+    public function testCombinedRolesDoNotGrantPermissionsFromAnotherProject(): void
+    {
+        $account = (new Account())->setProfile(new Profile());
+        $project = new Project();
+        $other = new Project();
+        $participants = [
+            (new ProjectParticipant())->setRole((new ProjectRole())->setProject($project)->setPermissionsMask(1)),
+            (new ProjectParticipant())->setRole((new ProjectRole())->setProject($project)->setPermissionsMask(2)),
+            (new ProjectParticipant())->setRole((new ProjectRole())->setProject($other)->setPermissionsMask(4)),
+        ];
+        $repository = $this->createStub(ProjectParticipantRepository::class);
+        $repository->method('findActiveParticipantsByProjectAndProfile')->willReturn($participants);
+        $voter = new ProjectVoter($repository);
+        $token = new UsernamePasswordToken($account, 'main', $account->getRoles());
+        self::assertSame(1, $voter->vote($token, $project, [ProjectVoter::VIEW]));
+        self::assertSame(1, $voter->vote($token, $project, [ProjectVoter::EDIT]));
+        self::assertSame(-1, $voter->vote($token, $project, [ProjectVoter::DELETE]));
+    }
+
     /*
      * Controleert dat de eigenaar van een project toegang heeft
      * tot zijn eigen project.
@@ -22,11 +41,12 @@ class ProjectVoterTest extends TestCase
     {
         $repository = $this->createMock(ProjectParticipantRepository::class);
 
+        $repository->expects(self::never())->method('findActiveParticipantsByProjectAndProfile');
         $voter = new ProjectVoter($repository);
 
         $account = new Account();
 
-        $project = $this->createMock(Project::class);
+        $project = $this->createStub(Project::class);
 
         $project
             ->method('getOwnerAccount')
@@ -57,23 +77,24 @@ class ProjectVoterTest extends TestCase
 
         $voter = new ProjectVoter($repository);
 
-        $account = $this->createMock(Account::class);
+        $account = $this->createStub(Account::class);
         $profile = new Profile();
 
         $account
             ->method('getProfile')
             ->willReturn($profile);
 
-        $project = $this->createMock(Project::class);
+        $project = $this->createStub(Project::class);
 
         $project
             ->method('getOwnerAccount')
             ->willReturn(null);
 
         $repository
-            ->method('findActiveParticipant')
+            ->expects(self::once())
+            ->method('findActiveParticipantsByProjectAndProfile')
             ->with($project, $profile)
-            ->willReturn(null);
+            ->willReturn([]);
 
         $token = new UsernamePasswordToken(
             $account,
@@ -100,14 +121,14 @@ class ProjectVoterTest extends TestCase
 
         $voter = new ProjectVoter($repository);
 
-        $account = $this->createMock(Account::class);
+        $account = $this->createStub(Account::class);
         $profile = new Profile();
 
         $account
             ->method('getProfile')
             ->willReturn($profile);
 
-        $project = $this->createMock(Project::class);
+        $project = $this->createStub(Project::class);
 
         $project
             ->method('getOwnerAccount')
@@ -116,9 +137,10 @@ class ProjectVoterTest extends TestCase
         $participant = new ProjectParticipant();
 
         $repository
-            ->method('findActiveParticipant')
+            ->expects(self::once())
+            ->method('findActiveParticipantsByProjectAndProfile')
             ->with($project, $profile)
-            ->willReturn($participant);
+            ->willReturn([$participant]);
 
         $token = new UsernamePasswordToken(
             $account,
@@ -145,14 +167,14 @@ class ProjectVoterTest extends TestCase
 
         $voter = new ProjectVoter($repository);
 
-        $account = $this->createMock(Account::class);
+        $account = $this->createStub(Account::class);
         $profile = new Profile();
 
         $account
             ->method('getProfile')
             ->willReturn($profile);
 
-        $project = $this->createMock(Project::class);
+        $project = $this->createStub(Project::class);
 
         $project
             ->method('getOwnerAccount')
@@ -162,7 +184,7 @@ class ProjectVoterTest extends TestCase
          * VIEW gebruikt bit 1 van de permissions mask.
          */
         $role = new ProjectRole();
-        $role->setPermissionsMask(1);
+        $role->setProject($project)->setPermissionsMask(1);
 
         $participant = new ProjectParticipant();
         $participant->setProject($project);
@@ -170,9 +192,10 @@ class ProjectVoterTest extends TestCase
         $participant->setRole($role);
 
         $repository
-            ->method('findActiveParticipant')
+            ->expects(self::once())
+            ->method('findActiveParticipantsByProjectAndProfile')
             ->with($project, $profile)
-            ->willReturn($participant);
+            ->willReturn([$participant]);
 
         $token = new UsernamePasswordToken(
             $account,

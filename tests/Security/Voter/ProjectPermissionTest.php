@@ -71,9 +71,10 @@ final class ProjectPermissionTest extends TestCase
         $account = (new Account())->setProfile($profile);
         $project = new Project();
         $otherProject = new Project();
-        $role = (new ProjectRole())->setPermissionsMask($mask);
+        $role = (new ProjectRole())->setProject($project)->setPermissionsMask($mask);
         $participant = (new ProjectParticipant())->setRole($role);
         $repository = $this->createStub(ProjectParticipantRepository::class);
+        $repository->method('findActiveParticipantsByProjectAndProfile')->willReturn([$participant]);
         foreach (['findActiveParticipant', 'findLatestActiveParticipantByProjectAndProfile'] as $method) {
             $repository->method($method)->willReturnMap([
                 [$project, $profile, $participant],
@@ -83,7 +84,7 @@ final class ProjectPermissionTest extends TestCase
         $security = $this->createStub(Security::class);
         $security->method('getUser')->willReturn($account);
         $token = new UsernamePasswordToken($account, 'main', $account->getRoles());
-        $inviteVoter = new OrgProjectVoter(new CurrentProfileProvider($security), $repository);
+        $inviteVoter = new OrgProjectVoter(new CurrentProfileProvider(new \App\Security\CurrentAccountProvider($security)), $repository);
         $deleteVoter = new ProjectVoter($repository);
 
         self::assertSame($invite ? VoterInterface::ACCESS_GRANTED : VoterInterface::ACCESS_DENIED, $inviteVoter->vote($token, $project, [OrgProjectVoter::INVITE]));

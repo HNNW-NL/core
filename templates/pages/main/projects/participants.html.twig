@@ -1,21 +1,34 @@
 {% extends 'layouts/main.base.html.twig' %}
-
-{# Page title meta tag #}
-{% block title %}Project {{ slug }} participants{% endblock %}
-
-{# SEO #}
-{% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
-{% block seoAuthor %}HNNW{% endblock %}
-
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
+{% block title %}Deelnemers · {{ project.title }}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/profile.css') }}">
+{% endblock %}
 {% block body %}
-    <h2>Projects - Participants</h2>
-    <p>Main - projects participants page. For project {{ slug }}.</p>
+<section class="participants-page">
+    <a class="participants-back" href="{{ path('main.projects.detail', {slug: project.slug}) }}">Terug naar {{ project.title }}</a>
+    <div class="participants-heading">
+        <div><h1>Projectdeelnemers</h1><p>{{ project.title }}</p></div>
+        <p>{{ participants|length }} {{ participants|length == 1 ? 'deelnemer' : 'deelnemers' }}</p>
+    </div>
+    {% if is_granted('PROJECT_EDIT', project) and is_granted('ORG_MANAGE_PROJECTS', project.ownerOrganisation) %}
+        <p class="participants-back"><a href="{{ path('org.modifyProject.participants', {id: project.id ~ ''}) }}">Aanvragen en deelnemers beheren</a></p>
+    {% endif %}
+    <ul class="participant-grid">
+        {% for participant in participants %}
+            <li class="participant-card">
+                {% if participant.avatar %}
+                    <img class="participant-avatar" src="{{ participant.avatar }}" alt="" referrerpolicy="no-referrer" loading="lazy">
+                {% else %}
+                    <span class="participant-avatar profile-avatar--empty" aria-hidden="true">{{ participant.name|slice(0, 1)|upper }}</span>
+                {% endif %}
+                <div class="participant-info">
+                    <h2>{% if participant.username %}<a href="{{ path('main.profile', {slug: participant.username}) }}">{{ participant.name }}</a>{% else %}{{ participant.name }}{% endif %}</h2>
+                    <p>{{ participant.roles|join(' · ')|default('Deelnemer') }}</p>
+                </div>
+            </li>
+        {% else %}
+            <li class="profile-section">Er zijn nog geen actieve deelnemers.</li>
+        {% endfor %}
+    </ul>
+</section>
 {% endblock %}

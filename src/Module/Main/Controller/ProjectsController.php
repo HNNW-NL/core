@@ -108,16 +108,21 @@ final class ProjectsController extends AbstractController
     public function participants(
         string $slug,
         ProjectRepository $projectRepository,
+        \App\Module\Main\Service\ProjectParticipantsService $participants,
     ): Response {
-        $project = $this->getProjectAndCheckViewAccess(
-            $slug,
-            $projectRepository
-        );
-
-        return $this->render('pages/main/projects/participants.html.twig', [
-            'slug' => $slug,
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        $project = $projectRepository->findOneVisibleBySlug($slug);
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+        $viewer = $this->getUser();
+        $response = $this->render('pages/main/projects/participants.html.twig', [
             'project' => $project,
+            'participants' => $participants->load($project, $viewer instanceof \App\Entity\Account\Account ? $viewer : null),
         ]);
+        $response->setPrivate();
+        $response->headers->addCacheControlDirective('no-store');
+        return $response;
     }
 
     #[Route('/{slug}/reviews', name: 'reviews', methods: ['GET'])]
