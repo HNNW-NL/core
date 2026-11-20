@@ -7,7 +7,8 @@ use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\Attribute\LiveAction;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
-use App\Entity\Project\Project;
+use App\Security\CurrentAccountProvider;
+use Doctrine\ORM\QueryBuilder;
 use App\Module\Org\Service\ProjectManagementAccess;
 
 #[AsLiveComponent]
@@ -30,10 +31,11 @@ class ProjectsView
     #[LiveProp(writable: true)]
     public int $page = 1;
 
-    public function __construct(readonly private ProjectRepository $projectRepository,
-                                private readonly ProjectManagementAccess $projectAccess,)
-    {
-    }
+    public function __construct(
+        private readonly ProjectRepository $projectRepository,
+        private readonly ProjectManagementAccess $projectAccess,
+        private readonly CurrentAccountProvider $accountProvider,
+    ) {}
 
     #[LiveAction]
     public function reset(): void
@@ -42,11 +44,12 @@ class ProjectsView
         $this->status = '';
         $this->cardSize = 'medium';
         $this->maxResultsPerPage = 16;
-        $this->page = 1;
+        $this->resetPage();
     }
 
     public function resetPage(): void
     {
+        $this->projectAmount = null;
         $this->page = 1;
     }
 
@@ -60,14 +63,20 @@ class ProjectsView
         return max(1, min($this->page, $this->getPageCount()));
     }
 
-    private ?array $manageableProjects = null;
+    private ?int $projectAmount = null;
 
-    private function manageableProjects(): array
+    private function overviewQuery(bool $filterStatus): QueryBuilder
     {
-        return $this->manageableProjects ??= array_values(array_filter(
-            $this->projectRepository->findForOrganisationOverview($this->query, $this->projectAccess->organisations()),
-            fn (Project $project): bool => $this->projectAccess->canEdit($project),
-        ));
+        $query = $this->projectRepository->organisationOverviewQuery(
+            $this->query,
+            $this->projectAccess->manageableOrganisations(),
+            $this->accountProvider->getAccount(),
+        );
+        if ($filterStatus && $this->status !== '') {
+            $query->andWhere('status.name = :statusName')->setParameter('statusName', $this->status);
+        }
+
+        return $query;
     }
 
     public function canCreate(): bool
@@ -77,24 +86,22 @@ class ProjectsView
 
     public function getStatuses(): array
     {
-        $statuses = array_unique(array_filter(array_map(
-            static fn (Project $project): ?string => $project->getStatus()?->getName(),
-            $this->manageableProjects(),
-        )));
+        $statuses = $this->overviewQuery(false)
+            ->select('DISTINCT status.name')
+            ->andWhere("status.name <> ''")
+            ->getQuery()
+            ->getSingleColumnResult();
         sort($statuses, SORT_NATURAL | SORT_FLAG_CASE);
 
         return $statuses;
     }
 
-    private function filteredProjects(): array
-    {
-        return array_filter($this->manageableProjects(), fn (Project $project): bool =>
-            $this->status === '' || $project->getStatus()?->getName() === $this->status);
-    }
-
     public function getProjectAmount(): int
     {
-        return count($this->filteredProjects());
+        return $this->projectAmount ??= (int) $this->overviewQuery(true)
+            ->select('COUNT(project.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getPageCount(): int
@@ -104,7 +111,13 @@ class ProjectsView
 
     public function getProjects(): array
     {
-        return array_slice($this->filteredProjects(), ($this->getSafePage() - 1) * $this->getSafeMaxResultsPerPage(), $this->getSafeMaxResultsPerPage());
+        $limit = $this->getSafeMaxResultsPerPage();
+
+        return $this->projectRepository->findOrganisationOverviewPage(
+            $this->overviewQuery(true),
+            ($this->getSafePage() - 1) * $limit,
+            $limit,
+        );
     }
 
     #[LiveAction]

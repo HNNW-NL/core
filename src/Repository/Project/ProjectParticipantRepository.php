@@ -60,6 +60,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->setParameter('project', $project)
             ->setParameter('profile', $profile)
             ->orderBy('pp.joinedAt', 'DESC')
+            ->addOrderBy('pp.id', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

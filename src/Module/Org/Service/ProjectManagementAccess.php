@@ -37,12 +37,20 @@ final class ProjectManagementAccess
     }
 
     /** @return array<string, Organisation> */
-    public function creationOrganisations(): array
+    public function manageableOrganisations(): array
     {
         return array_filter($this->organisations(), fn (Organisation $organisation): bool =>
-            $this->security->getUser() instanceof Account
-            && $this->security->getUser()->getProfile() !== null
-            && $this->security->isGranted(Permission::ORG_MANAGE_PROJECTS->name, $organisation));
+            $this->security->isGranted(Permission::ORG_MANAGE_PROJECTS->name, $organisation));
+    }
+
+    /** @return array<string, Organisation> */
+    public function creationOrganisations(): array
+    {
+        $account = $this->security->getUser();
+
+        return $account instanceof Account && $account->getProfile() !== null
+            ? $this->manageableOrganisations()
+            : [];
     }
 
     public function canEdit(Project $project): bool

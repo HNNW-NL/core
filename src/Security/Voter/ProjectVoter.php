@@ -71,7 +71,7 @@ class ProjectVoter extends Voter
          * participant is van DIT specifieke project.
          */
         $participant = $this->participantRepository
-            ->findActiveParticipant($project, $profile);
+            ->findLatestActiveParticipantByProjectAndProfile($project, $profile);
 
         if ($participant === null) {
             return false;
