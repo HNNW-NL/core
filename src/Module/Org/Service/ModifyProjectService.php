@@ -304,7 +304,7 @@ class ModifyProjectService
 
         // Accept both ULIDs and slugs so the route can be called with either the canonical id or the readable alias.
         if (\Symfony\Component\Uid\Ulid::isValid($identifier)) {
-            $project = $projectRepository->find($identifier);
+            $project = $projectRepository->find(\Symfony\Component\Uid\Ulid::fromString($identifier));
             if ($project instanceof Project) {
                 return $project;
             }

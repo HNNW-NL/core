@@ -77,4 +77,22 @@ class ProjectRepository extends ServiceEntityRepository
         return $qb;
     }
 
+    /** @return list<Project> */
+    public function findForOrganisationOverview(string $title, array $organisations): array
+    {
+        if ($organisations === []) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('project')
+            ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('IDENTITY(project.ownerOrganisation) IN (:organisationIds)')
+            ->setParameter('organisationIds', array_map(static fn ($organisation): string => $organisation->getId()->toRfc4122(), array_values($organisations)))
+            ->andWhere("LOWER(project.title) LIKE :title ESCAPE '!'")
+            ->setParameter('title', '%' . strtr(mb_strtolower(trim($title)), ['!' => '!!', '%' => '!%', '_' => '!_']) . '%')
+            ->orderBy('project.title', 'ASC')
+            ->addOrderBy('project.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

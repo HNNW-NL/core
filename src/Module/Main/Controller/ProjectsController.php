@@ -54,6 +54,11 @@ final class ProjectsController extends AbstractController
     public function apply(string $slug, ProjectRepository $projectRepository): Response
     {
         $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository, true);
+        if ($project->getPublishedAt() === null
+            || !in_array($project->getStatus()?->getName(), ['published', 'active'], true)) {
+            throw $this->createAccessDeniedException('Applications are closed for this project.');
+        }
+
         return $this->render('pages/main/projects/apply.html.twig', [
             'slug' => $slug,
             'project' => $project,

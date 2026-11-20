@@ -1,4 +1,7 @@
 <div {{ attributes }}>
+    {% if this.canCreate %}
+        <a href="{{ path('org.createProject') }}">Create project</a>
+    {% endif %}
     <div class="search-bar-projects">
         <input
             type="text"
@@ -8,6 +11,13 @@
             data-model="debounce(300)|query"
             value="{{ this.query }}"
         >
+        <label for="project-status">Status</label>
+        <select id="project-status" data-model="status">
+            <option value="">All statuses</option>
+            {% for status in this.statuses %}
+                <option value="{{ status }}">{{ status }}</option>
+            {% endfor %}
+        </select>
         <label for="input-max-result">Results per Page</label>
         <input
             type="number"
@@ -38,7 +48,15 @@
             <div class="project-card">
                 <h3 class="project-title">{{ project.title }}</h3>
                 <p class="project-summary">{{ project.summary }}</p>
-                <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Public page: {{ project.slug }}</a>
+                <dl>
+                    <dt>Project lead</dt><dd>{{ project.ownerAccount.profile.displayName ?: project.ownerAccount.email }}</dd>
+                    <dt>Status</dt><dd>{{ project.status.name }}</dd>
+                    <dt>Participants</dt><dd>{{ project.participants|filter(p => p.joinedAt is not null and p.leftAt is null)|length }}</dd>
+                    <dt>Submitted applications</dt><dd>{{ project.applications|filter(a => a.deletedAt is null and (a.status.name|lower) in ['send', 'submitted'])|length }}</dd>
+                </dl>
+                {% if project.publishedAt and project.visibility == 'public' %}
+                    <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Public page: {{ project.slug }}</a>
+                {% endif %}
                 <a href="{{ path('org.modifyProject', {'id': project.id}) }}" class="project-slug">Edit page: {{ project.slug }}</a>
             </div>
         {% endfor %}

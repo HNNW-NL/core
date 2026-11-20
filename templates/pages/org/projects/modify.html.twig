@@ -7,10 +7,6 @@
 <link rel="stylesheet" href="{{ asset('assets/org/css/modify-project.css') }}?v=20260625">
 {% endblock %}
 
-{% block javascript %}
-<script src="{{ asset('assets/org/js/modify-project.js') }}?v=20260630-1"></script>
-{% endblock %}
-
 {# Page content #}
 {% block body %}
     {% set queryStatus = app.request.query.get('status')|default('') %}
@@ -46,14 +42,9 @@
             {% endif %}
 
             {% if project %}
-                {# This one form handles both edit and delete actions; the button value tells the backend which path to take. #}
-                <form id="modifyProjectForm" data-modify-project-form method="post" action="{{ path('org.modifyProject', { id: id }) }}">
-                    <p class="form-status" role="status" aria-live="polite" hidden></p>
-                    {# Hidden fields send the security token, the current organisation, the project id, and the last-loaded timestamp. #}
-                    <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ project.id) }}">
-                    <input type="hidden" id="organisationId" name="organisation_id" value="{{ project.organisationId|default(organisationId|default('')) }}">
-                    <input type="hidden" name="project_id" value="{{ project.id|default('') }}">
-                    <input type="hidden" name="last_modified" value="{{ project.lastModified|default('') }}">
+                <form method="post" action="{{ path('org.modifyProject', {id: id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ id) }}">
+                    <input type="hidden" name="last_modified" value="{{ project.lastModified|date('c') }}">
                     <fieldset class="modify-fields" aria-label="Project details">
                             <legend>Project details</legend>
                             <div>
@@ -88,12 +79,12 @@
                             </div>
                             <div>
                                 <label for="startDate">Start date</label>
-                                <input type="date" id="startDate" name="startDate" required aria-describedby="startDateHelp" value="{{ project.startDate|default('') }}">
+                                <input type="date" id="startDate" name="startDate" required aria-describedby="startDateHelp" value="{{ project.startDate|date('Y-m-d') }}">
                                 <p id="startDateHelp" class="field-help">Enter the project start date.</p>
                             </div>
                             <div>
                                 <label for="endDate">End date</label>
-                                <input type="date" id="endDate" name="endDate" aria-describedby="endDateHelp" value="{{ project.endDate|default('') }}">
+                                <input type="date" id="endDate" name="endDate" aria-describedby="endDateHelp" value="{{ project.endDate ? project.endDate|date('Y-m-d') : '' }}">
                                 <p id="endDateHelp" class="field-help">Must be on or after start date.</p>
                             </div>
                             <div>
@@ -101,47 +92,20 @@
                                 <input type="number" id="capacity" name="capacity" min="{{ capacityMin }}" max="{{ capacityMax }}" step="1" inputmode="numeric" placeholder="Max participants" aria-describedby="capacityHelp" value="{{ project.capacity is not null ? project.capacity : '' }}">
                                 <p id="capacityHelp" class="field-help">Enter a whole number from {{ capacityMin }} to {{ capacityMax }}.</p>
                             </div>
-                            <div>
-                                <label for="statusId">Status</label>
-                                {% set currentStatusId = project.statusId|default('') %}
-                                {% set currentStatusName = project.statusName|default('')|lower %}
-                                {% set statusOptions = statusOptions|default([
-                                    { value: 'draft', label: 'Draft', name: 'draft' },
-                                    { value: 'published', label: 'Published', name: 'published' },
-                                    { value: 'archived', label: 'Archived', name: 'archived' }
-                                ]) %}
-                                <select id="statusId" name="status_id">
-                                    {% for option in statusOptions %}
-                                        {% set selected = (currentStatusId is not empty and currentStatusId == option.value)
-                                            or (currentStatusId is empty and currentStatusName == (option.name|default('')|lower)) %}
-                                        <option value="{{ option.value }}" {% if selected %}selected{% endif %}>{{ option.label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
                     </fieldset>
-                    <div class="button-row" role="group" aria-label="Danger actions">
-                        <div class="button-cell">
-                            <button type="submit" name="intent" value="modify">Modify project</button>
-                        </div>
-                        <div class="button-cell button-cell--delete button-cell--danger">
-                            <p class="danger-note">Danger zone: deleting a project is permanent.</p>
-                            <button type="submit" name="intent" value="delete" class="button-danger" formnovalidate>Delete project</button>
-                        </div>
-                    </div>
+                    <button type="submit" name="intent" value="modify">Save changes</button>
                 </form>
-                <dialog id="deleteConfirmDialog" class="delete-dialog" aria-labelledby="deleteDialogTitle">
-                    <form method="dialog" class="delete-dialog__form">
-                        <h2 id="deleteDialogTitle">Confirm permanent deletion</h2>
-                        <p>Type <strong>DELETE</strong> to permanently remove <strong>{{ project.title|default('this project') }}</strong>. This cannot be undone.</p>
-                        <label for="deleteConfirmInput">Confirmation</label>
-                        <input id="deleteConfirmInput" type="text" autocomplete="off" placeholder="Type DELETE" aria-describedby="deleteConfirmHint">
-                        <p id="deleteConfirmHint" class="field-help">Type DELETE (all caps) to enable the button.</p>
-                        <div class="delete-dialog__actions">
-                            <button value="cancel">Cancel</button>
-                            <button id="deleteConfirmButton" value="confirm" class="button-danger" disabled>Delete permanently</button>
-                        </div>
+                <p>Status: {{ project.status.name }}</p>
+                {% if transitions %}
+                    {% set labels = { published: 'Publish', applications_closed: 'Close applications', completed: 'Complete', archived: 'Archive' } %}
+                    <form method="post" action="{{ path('org.modifyProject', {id: id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ id) }}">
+                        <input type="hidden" name="intent" value="transition">
+                        {% for transition in transitions %}
+                            <button type="submit" name="transition" value="{{ transition }}">{{ labels[transition] }}</button>
+                        {% endfor %}
                     </form>
-                </dialog>
+                {% endif %}
             {% endif %}
         </section>
     </div>
