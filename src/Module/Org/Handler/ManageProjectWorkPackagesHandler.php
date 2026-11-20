@@ -54,7 +54,7 @@ final readonly class ManageProjectWorkPackagesHandler
         $description = trim($input->getString($isTask ? 'taskDescription' : 'description'));
         $dueDate = $this->parseDate($input->getString($isTask ? 'taskDueDate' : 'dueDate'));
         if ($isTask) {
-            $this->tasks->create(new CreatePackageTaskDTO((string) $package->getId(), $title, $slug, $description, $dueDate, 'normal'));
+            $this->tasks->create(new CreatePackageTaskDTO((string) $package->getId(), $title, $slug, $description, $dueDate, 'normal'), $project);
             return;
         }
 
