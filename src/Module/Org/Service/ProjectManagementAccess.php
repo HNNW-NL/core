@@ -57,4 +57,11 @@ final class ProjectManagementAccess
             || ($project->getOwnerAccount() === $this->security->getUser()
                 && isset($this->organisations()[(string) $organisation->getId()]));
     }
+
+    public function canDelete(Project $project): bool
+    {
+        return $this->canEdit($project)
+            && $this->security->isGranted(Permission::ORG_MANAGE_PROJECTS->name, $project->getOwnerOrganisation())
+            && $this->security->isGranted(ProjectVoter::DELETE, $project);
+    }
 }

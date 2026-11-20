@@ -7,6 +7,10 @@
 <link rel="stylesheet" href="{{ asset('assets/org/css/modify-project.css') }}?v=20260625">
 {% endblock %}
 
+{% block javascript %}
+<script src="{{ asset('assets/org/js/modify-project.js') }}"></script>
+{% endblock %}
+
 {# Page content #}
 {% block body %}
     {% set queryStatus = app.request.query.get('status')|default('') %}
@@ -95,6 +99,20 @@
                     </fieldset>
                     <button type="submit" name="intent" value="modify">Save changes</button>
                 </form>
+                {% if canDelete %}
+                    <button type="button" class="button-danger" data-open-project-delete>Delete project</button>
+                    <dialog id="projectDeleteDialog" class="delete-dialog" aria-labelledby="projectDeleteTitle">
+                        <form method="post" action="{{ path('org.modifyProject', {id: id}) }}">
+                            <h2 id="projectDeleteTitle">Confirm project deletion</h2>
+                            <p>Deleting <strong>{{ project.title }}</strong> removes it from the project lists.</p>
+                            <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ id) }}">
+                            <label for="projectDeleteConfirmation">Type DELETE to confirm</label>
+                            <input id="projectDeleteConfirmation" name="delete_confirmation" required pattern="DELETE" autocomplete="off">
+                            <button type="button" data-close-project-delete>Cancel</button>
+                            <button type="submit" name="intent" value="delete" class="button-danger">Delete project</button>
+                        </form>
+                    </dialog>
+                {% endif %}
                 <p>Status: {{ project.status.name }}</p>
                 {% if transitions %}
                     {% set labels = { published: 'Publish', applications_closed: 'Close applications', completed: 'Complete', archived: 'Archive' } %}

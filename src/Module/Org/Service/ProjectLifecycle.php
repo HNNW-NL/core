@@ -27,7 +27,7 @@ final class ProjectLifecycle
     {
         $status = $this->entityManager->getRepository(Status::class)->findOneBy(['scope' => 'project', 'name' => $name]);
         if (!$status instanceof Status) {
-            throw new \LogicException(sprintf('The project status "%s" is missing.', $name));
+            throw new \InvalidArgumentException(sprintf('This action is unavailable until the project status "%s" is configured.', $name));
         }
 
         return $status;
@@ -39,6 +39,7 @@ final class ProjectLifecycle
             throw new \InvalidArgumentException('This status change is no longer available.');
         }
 
+        $status = $this->status($next);
         if ($next === 'published') {
             if (trim((string) $project->getTitle()) === '' || trim((string) $project->getSummary()) === ''
                 || trim((string) $project->getDescription()) === '' || $project->getOwnerAccount() === null) {
@@ -64,7 +65,7 @@ final class ProjectLifecycle
             }
         }
 
-        $project->setStatus($this->status($next));
+        $project->setStatus($status);
         if ($next === 'archived') {
             $project->unpublish();
         }

@@ -50,11 +50,10 @@ final class OrganisationProjectsController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        $session = $request->getSession();
-        $organisationId = $request->isMethod('GET')
-            ? $request->query->get('organisation', $session->get('project_creation_organisation', array_key_first($organisations)))
-            : $session->get('project_creation_organisation');
-        $organisation = is_string($organisationId) ? ($organisations[$organisationId] ?? null) : null;
+        $organisationId = $request->isMethod('POST')
+            ? $request->request->getString('organisation_id')
+            : $request->query->getString('organisation', array_key_first($organisations));
+        $organisation = $organisations[$organisationId] ?? null;
         if ($organisation === null) {
             throw $this->createAccessDeniedException('Select an organisation you can manage.');
         }
@@ -67,14 +66,16 @@ final class OrganisationProjectsController extends AbstractController
             }
             $input = $request->request->all();
             try {
-                $project = $service->create($organisation, $input, $account);
+                $project = $service->create($organisation, $input);
 
-                return $this->redirectToRoute('org.modifyProject', ['id' => $project->getId()], Response::HTTP_SEE_OTHER);
+                if ($this->projectAccess->canEdit($project)) {
+                    return $this->redirectToRoute('org.modifyProject', ['id' => $project->getId()], Response::HTTP_SEE_OTHER);
+                }
+
+                return $this->redirectToRoute('org.projects', status: Response::HTTP_SEE_OTHER);
             } catch (\InvalidArgumentException $exception) {
                 $error = $exception->getMessage();
             }
-        } else {
-            $session->set('project_creation_organisation', $organisationId);
         }
 
         return $this->render('pages/org/projects/create.html.twig', [
@@ -118,6 +119,23 @@ final class OrganisationProjectsController extends AbstractController
                     if (($result['success'] ?? true) === false || isset($result['error'])) {
                         throw new \InvalidArgumentException($result['error'] ?? 'The project could not be saved.');
                     }
+                } elseif ($intent === 'delete') {
+                    $entityManager->getConnection()->transactional(function () use ($entityManager, $project, $request): void {
+                        $entityManager->refresh($project, LockMode::PESSIMISTIC_WRITE);
+                        $this->denyProjectEditAccess($project);
+                        if (!$this->projectAccess->canDelete($project)) {
+                            throw $this->createAccessDeniedException();
+                        }
+                        if ($request->request->getString('delete_confirmation') !== 'DELETE') {
+                            throw new \InvalidArgumentException('Type DELETE to confirm project deletion.');
+                        }
+
+                        $project->softDelete();
+                        $project->unpublish();
+                        $entityManager->flush();
+                    });
+
+                    return $this->redirectToRoute('org.projects', status: Response::HTTP_SEE_OTHER);
                 } elseif ($intent === 'transition') {
                     $previous = $entityManager->getConnection()->transactional(function () use ($entityManager, $project, $lifecycle, $target): ?string {
                         $entityManager->refresh($project, LockMode::PESSIMISTIC_WRITE);
@@ -145,6 +163,7 @@ final class OrganisationProjectsController extends AbstractController
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
             'project' => $project,
+            'canDelete' => $this->projectAccess->canDelete($project),
             'transitions' => $lifecycle->allowedTargets($project),
             'error' => $error,
         ], new Response(status: $error === null ? 200 : 422));

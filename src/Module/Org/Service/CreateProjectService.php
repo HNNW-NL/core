@@ -39,7 +39,7 @@ final class CreateProjectService
         return $leads;
     }
 
-    public function create(Organisation $organisation, array $input, Account $creator): Project
+    public function create(Organisation $organisation, array $input): Project
     {
         $title = self::text($input, 'name');
         $summary = self::text($input, 'summary');
@@ -91,7 +91,7 @@ final class CreateProjectService
         $participantStatus = $this->entityManager->getRepository(Status::class)
             ->findOneBy(['scope' => 'ProjectParticipant', 'name' => 'active']);
         if (!$participantStatus instanceof Status) {
-            throw new \LogicException('The active project participant status is missing.');
+            throw new \InvalidArgumentException('Project creation is unavailable until the active participant status is configured.');
         }
         $participant = (new ProjectParticipant())->setProject($project)->setProfile($lead->getProfile())
             ->setRole($role)->setStatus($participantStatus);
@@ -101,12 +101,6 @@ final class CreateProjectService
             $this->entityManager->persist($project);
             $this->entityManager->persist($role);
             $this->entityManager->persist($participant);
-            if ($creator !== $lead) {
-                $manager = (new ProjectParticipant())->setProject($project)->setProfile($creator->getProfile())
-                    ->setRole($role)->setStatus($participantStatus);
-                $manager->join();
-                $this->entityManager->persist($manager);
-            }
             $this->entityManager->flush();
         } catch (UniqueConstraintViolationException $e) {
             throw new \InvalidArgumentException('A project with this title already exists.', previous: $e);

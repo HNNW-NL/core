@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const projectDeleteDialog = document.getElementById('projectDeleteDialog');
+    if (projectDeleteDialog) {
+        document.querySelector('[data-open-project-delete]')?.addEventListener('click', function () {
+            projectDeleteDialog.querySelector('form').reset();
+            projectDeleteDialog.showModal();
+        });
+        projectDeleteDialog.querySelector('[data-close-project-delete]')?.addEventListener('click', function () {
+            projectDeleteDialog.close();
+        });
+    }
+
     // Only attach this behavior when the modify-project form is actually rendered.
     const form = document.querySelector('[data-modify-project-form]');
     if (!form) {

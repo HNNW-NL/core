@@ -45,10 +45,6 @@ class StatusFixtures extends Fixture
         $manager->persist($defaultProjectStatus);
 
 
-        foreach (['draft', 'published', 'applications_closed', 'completed', 'archived'] as $name) {
-            $manager->persist((new Status())->setName($name)->setScope('project')->setColourHex('#64748B'));
-        }
-
         $defaultReviewStatus = new Status();
         $defaultReviewStatus->setName('active');
         $defaultReviewStatus->setScope('review');

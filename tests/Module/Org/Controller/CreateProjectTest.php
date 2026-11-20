@@ -27,7 +27,6 @@ final class CreateProjectTest extends WebTestCase
         $client = self::createClient();
         $form = $this->openCreateForm($client);
         $input = $form['input'];
-        $input['organisation_id'] = (string) new Ulid();
         $input['status'] = 'published';
 
         $client->request('POST', self::PATH, $input);
@@ -85,6 +84,8 @@ final class CreateProjectTest extends WebTestCase
 
         $client->request('POST', self::PATH, array_replace($input, ['_token' => 'invalid']));
         self::assertResponseStatusCodeSame(403);
+        $client->request('POST', self::PATH, array_replace($input, ['organisation_id' => (string) new Ulid()]));
+        self::assertResponseStatusCodeSame(403);
         $client->request('GET', self::PATH . '?organisation=' . new Ulid());
         self::assertResponseStatusCodeSame(403);
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
@@ -110,6 +111,7 @@ final class CreateProjectTest extends WebTestCase
         return [
             'organisation' => $organisation,
             'input' => [
+                'organisation_id' => $page->filter('input[name="organisation_id"]')->attr('value'),
                 '_token' => $page->filter('input[name="_token"]')->attr('value'),
                 'name' => 'OR03 test ' . new Ulid(),
                 'summary' => 'Test project summary',

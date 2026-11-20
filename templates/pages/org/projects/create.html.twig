@@ -33,6 +33,7 @@
 {% if error %}<p role="alert">{{ error }}</p>{% endif %}
 <form method="post" action="{{ path('org.createProject') }}">
     <input type="hidden" name="_token" value="{{ csrf_token('org_create_project_' ~ organisation.id) }}">
+    <input type="hidden" name="organisation_id" value="{{ organisation.id }}">
     <p>Organisation: {{ organisation.name }}</p>
     <div>
         <label for="name">Project name</label>
