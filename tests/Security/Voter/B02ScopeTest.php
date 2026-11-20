@@ -40,9 +40,9 @@ final class B02ScopeTest extends TestCase
         $member = (new OrgMember())->setOrganisation($own)->setAccount($account)->setOrgRole($role);
         $account->getOrgMemberships()->add($member);
         $repository = $this->createStub(EntityRepository::class);
-        $repository->method('findOneBy')->willReturnMap([
-            [['organisation' => $own, 'account' => $account], null, $member],
-            [['organisation' => $other, 'account' => $account], null, null],
+        $repository->method('findBy')->willReturnMap([
+            [['organisation' => $own, 'account' => $account], null, null, null, [$member]],
+            [['organisation' => $other, 'account' => $account], null, null, null, []],
         ]);
         $em = $this->createStub(EntityManagerInterface::class);
         $em->method('getRepository')->willReturn($repository);
