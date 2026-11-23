@@ -1,7 +1,7 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Mijn Skills{% endblock %}
+{% block title %}Mijn vaardigheden{% endblock %}
 
 {# CSS #}
 {% block stylesheets %}{% endblock %}
@@ -11,21 +11,21 @@
 
 {# Page content #}
 {% block body %}
-    <div id="account-centre-container">
-
-        <a href="{{ path('account.home') }}" class="btn-back">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            Terug naar dashboard
+    <section id="account-centre-container">
+        <a href="{{ path('account.home') }}" class="btn-back" aria-label="Terug naar Account Centre">
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
         </a>
 
-        <div class="dashboard-header">
-            <h1>Mijn Skills</h1>
+        <header class="dashboard-header">
+            <h1>Mijn vaardigheden</h1>
             <p>Beheer hier de vaardigheden die je op je profiel wilt tonen.</p>
-        </div>
+        </header>
 
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="flash-alert alert-{{ label }}">
+                <div class="flash-alert alert-{{ label }}" role="status">
                     {{ message }}
                 </div>
             {% endfor %}
@@ -38,7 +38,7 @@
             </div>
 
             <form method="post" action="{{ path('account.skills_save') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('account_skills') }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('account_skill_save') }}">
 
                 <div class="form-group">
                     <label for="skill_id">Vaardigheid</label>
@@ -80,7 +80,7 @@
                             </div>
 
                             <form method="post" action="{{ path('account.skills_delete', {'id': item.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete_skill' ~ item.id) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('account_skill_delete_' ~ item.id) }}">
                                 <button type="submit" class="btn-danger">Verwijderen</button>
                             </form>
                         </article>
@@ -94,5 +94,5 @@
                 </div>
             {% endif %}
         </section>
-    </div>
+    </section>
 {% endblock %}

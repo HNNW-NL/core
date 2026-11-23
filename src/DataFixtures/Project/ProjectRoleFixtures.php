@@ -4,6 +4,7 @@ namespace App\DataFixtures\Project;
 
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectRole;
+use App\Security\ProjectPermission;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -24,14 +25,13 @@ class ProjectRoleFixtures extends Fixture implements DependentFixtureInterface
         $administrator = (new ProjectRole())
             ->setProject($projectRole->getProject())
             ->setName('Project Administrator')
-            ->setPermissionsMask(ProjectRole::PERMISSION_VIEW | ProjectRole::PERMISSION_EDIT);
+            ->setPermissionsMask(ProjectPermission::VIEW->value | ProjectPermission::INVITE->value);
         $manager->persist($administrator);
 
         $secondProjectRole = new ProjectRole();
         $secondProjectRole->setProject($this->getReference(ProjectFixtures::TEST_PROJECT_2_REFERENCE, Project::class));
         $secondProjectRole->setName("Developer");
         $manager->persist($secondProjectRole);
-
         $manager->flush();
 
         $this->addReference(SELF::TEST_PROJECT_ROLE,$projectRole);

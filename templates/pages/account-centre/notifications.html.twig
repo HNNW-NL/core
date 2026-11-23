@@ -37,10 +37,21 @@
                 <input type="hidden" name="_token" value="{{ csrf_token('account_notifications') }}">
 
                 <div class="form-group-checkbox">
-                    <input type="checkbox" id="notify_projects" name="notify_projects" {% if settings and settings.emailNotificationsEnabled %}checked{% endif %}>
+                    <input
+                        type="checkbox"
+                        id="notify_projects"
+                        name="notify_projects"
+                        {% if settings.emailNotificationsEnabled ?? true %}
+                            checked
+                        {% endif %}
+                    >
+
                     <label for="notify_projects">
-                        <strong>Nieuwe Projecten</strong>
-                        <span>Ontvang direct een melding zodra er een nieuw project start dat matcht met jouw skills.</span>
+                        <strong>E-mailnotificaties</strong>
+                        <span>
+                            Ontvang e-mailupdates over projecten,
+                            nieuws en andere relevante activiteiten.
+                        </span>
                     </label>
                 </div>
 

@@ -59,7 +59,13 @@
 
                 <div class="form-group">
                     <label for="display_name">Weergavenaam</label>
-                    <input type="text" id="display_name" name="display_name" value="{{ profile.displayName|default('') }}" placeholder="Hoe wil je zichtbaar zijn?">
+                    <input
+                        type="text"
+                        id="display_name"
+                        name="display_name"
+                        value="{{ profile.displayName|default('') }}"
+                        placeholder="Hoe wil je zichtbaar zijn?"
+                    >
                 </div>
 
                 <div class="form-group">

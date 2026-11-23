@@ -13,9 +13,6 @@
 
 {# Page content #}
 {% block body %}
-    {% set profile = app.user ? app.user.profile : null %}
-    {% set settings = app.user ? app.user.setting : null %}
-
     <div id="account-centre-container" class="settings-page">
         <a href="{{ path('account.home') }}" class="btn-back">
             Terug naar dashboard
@@ -31,10 +28,14 @@
                 {{ message }}
             </div>
         {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="account-flash" role="alert">{{ message }}</div>
+        {% endfor %}
 
         <div class="account-form-container">
             <div class="form-internal-header">
                 <h2>Accountgegevens</h2>
+                <p>Je huidige gegevens zijn vooraf ingevuld. Controleer ze voordat je opslaat.</p>
             </div>
 
             <form action="{{ path('account.settings') }}" method="POST" class="account-form">
