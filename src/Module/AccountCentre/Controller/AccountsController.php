@@ -364,6 +364,11 @@ final class AccountsController extends AbstractController
                 return $this->redirectToRoute('account.modify');
             }
 
+            if (empty($avatarUrl) || mb_strlen($avatarUrl) > 255 || !filter_var($avatarUrl, FILTER_VALIDATE_URL)) {
+                $this->addFlash('error', 'Avatar-url invoer ongeldig.');
+                return $this->redirectToRoute('account.modify');
+            }
+
             if ($bio !== null && mb_strlen($bio) > 250) {
                 $this->addFlash('error', 'Bio invoer ongeldig.');
                 return $this->redirectToRoute('account.modify');
