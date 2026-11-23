@@ -313,72 +313,86 @@ final class AccountsController extends AbstractController
     }
 
 
+
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
     public function modify(Request $request, EntityManagerInterface $em): Response
     {
         $account = $this->account();
         $profile = $this->profile($em);
 
+        $formData = [
+            'username' => $account->getUsername(),
+            'first_name' => $profile?->getFirstName() ?? '',
+            'last_name' => $profile?->getLastName() ?? '',
+            'display_name' => $profile?->getDisplayName() ?? '',
+            'avatar_url' => $profile?->getAvatarUrl() ?? '',
+            'location' => $profile?->getLocation() ?? '',
+            'bio' => $profile?->getDescription() ?? '',
+        ];
+
+        $errors = [];
+
         if ($request->isMethod('POST')) {
             if (!$profile) {
                 $this->addFlash('error', 'Profiel niet gevonden.');
+
                 return $this->redirectToRoute('account.modify');
             }
+
             $this->csrf($request, 'account_modify');
 
-            $username = trim((string) $request->request->get('username'));
-            $firstName = trim((string) $request->request->get('first_name'));
-            $lastName = trim((string) $request->request->get('last_name'));
-            $displayName = $this->nullableTrim($request->request->get('display_name'));
-            $avatarUrl = trim((string) $request->request->get('avatar_url'));
-            $location = $this->nullableTrim($request->request->get('location'));
-            $bio = $this->nullableTrim($request->request->get('bio'));
-
-            if (empty($username) || mb_strlen($username) > 12) {
-                $this->addFlash('error', 'Username invoer ongeldig.');
-                return $this->redirectToRoute('account.modify');
+            foreach ($formData as $field => $default) {
+                $formData[$field] = trim((string) $request->request->get($field, ''));
             }
 
-            if ($username !== $account->getUsername()) {
+            $username = $formData['username'];
+            $firstName = $formData['first_name'];
+            $lastName = $formData['last_name'];
+            $displayName = $this->nullableTrim($formData['display_name']);
+            $avatarUrl = $formData['avatar_url'];
+            $location = $this->nullableTrim($formData['location']);
+            $bio = $this->nullableTrim($formData['bio']);
+
+            if (empty($username) || mb_strlen($username) > 12) {
+                $errors['username'] = 'Username moet ingevuld zijn en mag maximaal 12 tekens bevatten.';
+            } elseif ($username !== $account->getUsername()) {
                 $existingAccount = $em->getRepository(Account::class)
                     ->findOneBy(['username' => $username]);
 
                 if ($existingAccount) {
-                    $this->addFlash('error', 'Username is al in gebruik.');
-                    return $this->redirectToRoute('account.modify');
+                    $errors['username'] = 'Deze username is al in gebruik.';
                 }
             }
 
             if (empty($firstName) || mb_strlen($firstName) > 50) {
-                $this->addFlash('error', 'Voornaam invoer ongeldig.');
-                return $this->redirectToRoute('account.modify');
+                $errors['first_name'] = 'Voornaam moet ingevuld zijn en mag maximaal 50 tekens bevatten.';
             }
 
             if (empty($lastName) || mb_strlen($lastName) > 50) {
-                $this->addFlash('error', 'Achternaam invoer ongeldig.');
-                return $this->redirectToRoute('account.modify');
+                $errors['last_name'] = 'Achternaam moet ingevuld zijn en mag maximaal 50 tekens bevatten.';
             }
 
             if ($displayName !== null && mb_strlen($displayName) > 50) {
-                $this->addFlash('error', 'Display name invoer ongeldig.');
-                return $this->redirectToRoute('account.modify');
+                $errors['display_name'] = 'Display name mag maximaal 50 tekens bevatten.';
             }
 
-            if (empty($avatarUrl) || mb_strlen($avatarUrl) > 255 || !filter_var($avatarUrl, FILTER_VALIDATE_URL)) {
-                $this->addFlash('error', 'Avatar-url invoer ongeldig.');
-                return $this->redirectToRoute('account.modify');
+            if (
+                empty($avatarUrl) ||
+                mb_strlen($avatarUrl) > 255 ||
+                !filter_var($avatarUrl, FILTER_VALIDATE_URL)
+            ) {
+                $errors['avatar_url'] = 'Voer een geldige avatar-URL in van maximaal 255 tekens.';
             }
 
             if ($bio !== null && mb_strlen($bio) > 250) {
-                $this->addFlash('error', 'Bio invoer ongeldig.');
-                return $this->redirectToRoute('account.modify');
+                $errors['bio'] = 'Bio mag maximaal 250 tekens bevatten.';
             }
 
-            if ($username !== $account->getUsername()) {
-                $account->setUsername($username);
-            }
+            if (empty($errors)) {
+                if ($username !== $account->getUsername()) {
+                    $account->setUsername($username);
+                }
 
-            if ($profile instanceof Profile) {
                 $profile->setFirstName($firstName);
                 $profile->setLastName($lastName);
                 $profile->setDisplayName($displayName);
@@ -389,20 +403,23 @@ final class AccountsController extends AbstractController
                 if (method_exists($profile, 'setLastModified')) {
                     $profile->setLastModified(new \DateTimeImmutable());
                 }
+
+                $em->flush();
+
+                $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
+
+                return $this->redirectToRoute('account.modify');
             }
-
-            $em->flush();
-
-            $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
-
-            return $this->redirectToRoute('account.modify');
         }
 
         return $this->render('pages/account-centre/modify.html.twig', [
             'account' => $account,
-            'profile' => $profile
+            'profile' => $profile,
+            'formData' => $formData,
+            'errors' => $errors,
         ]);
     }
+
 
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
