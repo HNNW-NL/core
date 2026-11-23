@@ -12,7 +12,13 @@ final class MainController extends AbstractController
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(): Response
     {
-        return $this->render('pages/main/index.html.twig');
+        $response = $this->render('pages/main/index.html.twig');
+        $response->setPrivate();
+        $response->setMaxAge(0);
+        $response->headers->set('Cache-Control', 'no-store, private, max-age=0, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+
+        return $response;
     }
 
     #[Route('/about', name: 'about', methods: ['GET'])]

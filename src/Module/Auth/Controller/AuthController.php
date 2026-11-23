@@ -52,6 +52,17 @@ final class AuthController extends AbstractController
         ]);
     }
 
+    #[Route('/logout', name: 'logout', methods: ['GET'])]
+    public function logout(Request $request): RedirectResponse
+    {
+        $session = $request->getSession();
+        $session->remove('account_id');
+        $session->remove('dev_account_id');
+        $session->invalidate();
+
+        return $this->redirectToRoute('main.home', [], Response::HTTP_SEE_OTHER);
+    }
+
     #[Route('/register', name: 'register', methods: ['GET','POST'])]
     public function register(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UrlGeneratorInterface $router): Response
     {

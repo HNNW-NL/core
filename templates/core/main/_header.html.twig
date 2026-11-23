@@ -23,7 +23,13 @@
                     <li><a href="/" class="nav-button">Home</a></li>
                     <li><a href="/work" class="nav-button">Work</a></li>
                     <li><a href="/about" class="nav-button">About us</a></li>
-                    <li><a href="/account" class="nav-button">Account</a></li>
+                    {% set accountId = app.request.getSession().get('account_id') %}
+                    {% if accountId %}
+                        <li><a href="/account" class="nav-button">Account</a></li>
+                        <li><a href="{{ path('auth.logout') }}" class="nav-button">Uitloggen</a></li>
+                    {% else %}
+                        <li><a href="{{ path('auth.login') }}" class="nav-button">Inloggen</a></li>
+                    {% endif %}
                     <li><a href="/projects" class="nav-button">Projecten</a></li>
                     <li><a href="/contact" class="nav-button">Contact</a></li>
                     <li class="nav-icons">
