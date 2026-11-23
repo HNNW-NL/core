@@ -320,6 +320,10 @@ final class AccountsController extends AbstractController
         $profile = $this->profile($em);
 
         if ($request->isMethod('POST')) {
+            if (!$profile) {
+                $this->addFlash('error', 'Profiel niet gevonden.');
+                return $this->redirectToRoute('account.home');
+            }
             $this->csrf($request, 'account_modify');
 
             $username = trim((string) $request->request->get('username'));
@@ -613,13 +617,6 @@ final class AccountsController extends AbstractController
         $settings->setTheme('dark');
         $settings->setProfileVisibility('public');
         $settings->setEmailNotificationsEnabled(true);
-
-        if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Uuid::class, 'v4')) {
-            $settings->setId(\Symfony\Component\Uid\Uuid::v4());
-        }
-        if (method_exists($settings, 'setCreatedAt')) {
-            $settings->setCreatedAt(new \DateTimeImmutable());
-        }
 
         $entityManager->persist($settings);
 
