@@ -322,7 +322,7 @@ final class AccountsController extends AbstractController
         if ($request->isMethod('POST')) {
             if (!$profile) {
                 $this->addFlash('error', 'Profiel niet gevonden.');
-                return $this->redirectToRoute('account.home');
+                return $this->redirectToRoute('account.modify');
             }
             $this->csrf($request, 'account_modify');
 
