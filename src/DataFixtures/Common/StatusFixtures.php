@@ -70,6 +70,18 @@ class StatusFixtures extends Fixture
         $defaultProjectApplicationStatus->setColourHex('#10B981');
         $manager->persist($defaultProjectApplicationStatus);
 
+        $acceptedProjectApplicationStatus = new Status();
+        $acceptedProjectApplicationStatus->setName('accepted');
+        $acceptedProjectApplicationStatus->setScope('ProjectApplication');
+        $acceptedProjectApplicationStatus->setColourHex('#10B981');
+        $manager->persist($acceptedProjectApplicationStatus);
+
+        $rejectedProjectApplicationStatus = new Status();
+        $rejectedProjectApplicationStatus->setName('rejected');
+        $rejectedProjectApplicationStatus->setScope('ProjectApplication');
+        $rejectedProjectApplicationStatus->setColourHex('#EF4444');
+        $manager->persist($rejectedProjectApplicationStatus);
+
         $defaultProjectParticipantStatus = new Status();
         $defaultProjectParticipantStatus->setName('active');
         $defaultProjectParticipantStatus->setScope('ProjectParticipant');

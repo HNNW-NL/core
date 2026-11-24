@@ -20,36 +20,22 @@ use App\Entity\Common\Status;
 #[Route('/auth', name: 'auth.')]
 final class AuthController extends AbstractController
 {
-    #[Route('/login', name: 'login', methods: ['GET','POST'])]
-    public function login(Request $request, EntityManagerInterface $em): Response
+    #[Route('/login', name: 'login', methods: ['GET', 'POST'])]
+    public function login(Request $request): Response
     {
-        if ($request->isMethod('POST')) {
-            $usernameOrEmail = (string)$request->request->get('username', '');
-            $password = (string)$request->request->get('password', '');
-
-            $repo = $em->getRepository(Account::class);
-            $account = $repo->findOneBy(['username' => $usernameOrEmail]);
-            if (!$account) {
-                $account = $repo->findOneBy(['email' => $usernameOrEmail]);
-            }
-
-            if (!$account || !password_verify($password, $account->getPasswordHash() ?? '')) {
-                $this->addFlash('error', 'Ongeldige gebruikersnaam/e-mail of wachtwoord.');
-                return $this->redirectToRoute('auth.login', ['last' => $usernameOrEmail]);
-            }
-
-            $account->login();
-            $em->persist($account);
-            $em->flush();
-
-            $request->getSession()->set('account_id', (string)$account->getId());
-
-            return new RedirectResponse('/');
-        }
-
+        // De POST naar deze route wordt onderschept en afgehandeld door
+        // App\Security\AccountAuthenticator (zie config/packages/security.yaml),
+        // dus hier hoeft alleen nog het GET-formulier gerenderd te worden.
         return $this->render('pages/auth/login.html.twig', [
-            'last_username' => (string)$request->query->get('last', ''),
+            'last_username' => $request->query->get('last', ''),
         ]);
+    }
+
+    #[Route('/logout', name: 'logout', methods: ['GET'])]
+    public function logout(): never
+    {
+        // Wordt afgehandeld door de firewall's logout listener; komt hier nooit aan.
+        throw new \LogicException('Deze route wordt afgehandeld door de Symfony Security logout listener.');
     }
 
     #[Route('/register', name: 'register', methods: ['GET','POST'])]
@@ -118,7 +104,7 @@ final class AuthController extends AbstractController
                 // 2. Setup Profile linked directly to Account
                 $nameParts = explode(' ', $data['full_name'], 2);
                 $firstName = $nameParts[0] !== '' ? $nameParts[0] : $data['username'];
-                $lastName = $nameParts[1] ?? ' ';
+                $lastName = $nameParts[1] ?? '';
 
                 $profile = new Profile();
                 $profile->setAccount($account);
@@ -161,13 +147,11 @@ final class AuthController extends AbstractController
             } catch (\Exception $e) {
                 $em->getConnection()->rollBack();
 
-                // Diagnostic dump to identify missing entity parameters easily
-                dd($e->getMessage(), $e->getTraceAsString());
-
-                $this->addFlash('error', 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.');
-                return $this->render('pages/auth/register.html.twig', [
-                    'old' => $data,
-                ]);
+              return $this->render('pages/auth/register.html.twig', [
+                'errors' => [
+                    'general' => 'Er is iets misgegaan tijdens de registratie. Probeer het opnieuw.'],
+                'old' => $data,
+            ]);
             }
 
             $this->addFlash('success', 'Account aangemaakt. Je kunt nu inloggen.');
