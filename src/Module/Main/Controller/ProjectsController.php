@@ -15,10 +15,62 @@ use App\Module\Main\Handler\GetProjectWorkPackagesHandler;
 #[Route('/projects', name: 'main.projects.')]
 final class ProjectsController extends AbstractController
 {
+    private const PROJECTS_PER_PAGE = 12;
+
     #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request, ProjectRepository $projectRepository): Response
     {
-        return $this->render('pages/main/projects.html.twig');
+        $query = $request->query->all();
+        $errors = [];
+
+        $rawSearch = $query['q'] ?? '';
+        if (!is_string($rawSearch) || preg_match('/\A.{0,100}\z/us', trim($rawSearch)) !== 1) {
+            $errors[] = 'Gebruik een zoekterm van maximaal 100 tekens.';
+            $search = '';
+        } else {
+            $search = trim($rawSearch);
+        }
+
+        $rawRemoteFilter = $query['remote'] ?? '';
+        if (!is_string($rawRemoteFilter) || !in_array($rawRemoteFilter, ['', 'yes', 'no'], true)) {
+            $errors[] = 'De gekozen projectfilter is ongeldig.';
+            $remoteFilter = '';
+        } else {
+            $remoteFilter = $rawRemoteFilter;
+        }
+
+        $rawPage = $query['page'] ?? '1';
+        $requestedPage = is_string($rawPage)
+            ? filter_var($rawPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])
+            : false;
+        if ($requestedPage === false) {
+            $errors[] = 'Het paginanummer is ongeldig. Je ziet pagina 1.';
+            $requestedPage = 1;
+        }
+
+        $projects = $projectRepository->findPublicPage(
+            $search,
+            $remoteFilter === 'yes' ? true : ($remoteFilter === 'no' ? false : null),
+            $requestedPage,
+            self::PROJECTS_PER_PAGE,
+        );
+
+        $response = $this->render('pages/main/projects.html.twig', [
+            'projects' => $projects['items'],
+            'total' => $projects['total'],
+            'page' => $projects['page'],
+            'pages' => $projects['pages'],
+            'search' => $search,
+            'remoteFilter' => $remoteFilter,
+            'filterErrors' => $errors,
+            'hasFilters' => $search !== '' || $remoteFilter !== '',
+        ]);
+        $response->setPrivate();
+        $response->setMaxAge(0);
+        $response->headers->set('Cache-Control', 'no-store, private, max-age=0, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+
+        return $response;
     }
 
     #[Route('/{slug}', name: 'detail', methods: ['GET'])]
