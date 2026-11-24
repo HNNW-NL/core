@@ -5,7 +5,7 @@ namespace App\Module\Main\Service;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
-use App\Entity\Project\ProjectParticipant;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Module\Main\DTO\ProjectApplyDto;
 use App\Module\Main\DTO\ProjectApplyResult;
 use App\Module\Main\DTO\ProjectApplyStatus;
@@ -25,6 +25,7 @@ final readonly class ProjectApplyService
         private EntityManagerInterface $entityManager,
         private StatusRepository $statusRepository,
         private ManagerRegistry $managerRegistry,
+        private ProjectParticipantRepository $projectParticipantRepository,
     ) {
     }
 
@@ -42,7 +43,7 @@ final readonly class ProjectApplyService
             );
         }
 
-        if ($this->isParticipant($project, $profile)) {
+        if ($this->projectParticipantRepository->isActiveParticipant($project, $profile)) {
             return new ProjectApplyResult(
                 ProjectApplyStatus::AlreadyParticipant,
                 'Je doet al mee aan dit project.',
@@ -133,18 +134,6 @@ final readonly class ProjectApplyService
             'Je aanmelding is verstuurd.',
             $application,
         );
-    }
-
-    // findActiveParticipant in ProjectParticipantRepository is nog leeg (team 4), dus zelf gezocht: leftAt leeg = doet nog mee
-    private function isParticipant(Project $project, Profile $profile): bool
-    {
-        $participant = $this->entityManager->getRepository(ProjectParticipant::class)->findOneBy([
-            'project' => $project,
-            'profile' => $profile,
-            'leftAt' => null,
-        ]);
-
-        return $participant !== null;
     }
 
     // zoekt ook geannuleerde aanmeldingen, daarom geen check op deletedAt
