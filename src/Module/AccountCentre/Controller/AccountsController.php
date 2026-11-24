@@ -20,6 +20,7 @@ use App\Enum\AvailabilityType;
 use App\Enum\DayOfWeek;
 use App\Enum\SkillProficiencyLevel;
 use App\Form\ProfileSkillType;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -597,7 +598,13 @@ final class AccountsController extends AbstractController
             }
 
             $entry->setProficiencyLevel($level);
-            $em->flush();
+            try {
+                $em->flush();
+                $this->addFlash('success', 'Vaardigheid is opgeslagen.');
+            } catch (UniqueConstraintViolationException $e) {
+                $this->addFlash('error', 'Deze vaardigheid is al toegevoegd.');
+            }
+
             return $this->redirectToRoute('account.skills');
         }
 
