@@ -11,7 +11,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 final class StaffManagementService
 {
@@ -79,7 +79,6 @@ final class StaffManagementService
     public function changeRole(string $memberId, string $roleId): OrgMember
     {
         $organisation = $this->getCurrentOrganisation();
-        $this->requireBeheerder($organisation);
 
         return $this->manage(
             [Permission::ORG_MANAGE_ROLES],
@@ -127,7 +126,6 @@ final class StaffManagementService
     public function removeMember(string $memberId): void
     {
         $organisation = $this->getCurrentOrganisation();
-        $this->requireBeheerder($organisation);
         $this->manage(
             [Permission::ORG_MANAGE_MEMBERS],
             fn (Organisation $organisation) => $this->remove($organisation, $memberId),
@@ -158,7 +156,7 @@ final class StaffManagementService
 
         try {
             return $this->entityManager->wrapInTransaction(function () use ($account, $request, $organisationId, $requiredPermissions, $operation): mixed {
-                $organisation = $this->entityManager->find(Organisation::class, Uuid::fromString($organisationId), LockMode::PESSIMISTIC_WRITE);
+                $organisation = $this->entityManager->find(Organisation::class, Ulid::fromString($organisationId), LockMode::PESSIMISTIC_WRITE);
                 if (!$organisation instanceof Organisation) {
                     throw new \RuntimeException('Geen toegang tot deze organisatie.');
                 }
@@ -234,31 +232,6 @@ final class StaffManagementService
         return $mask;
     }
 
-    private function requireBeheerder(Organisation $organisation): void
-    {
-        $memberships = $this->entityManager
-            ->getRepository(OrgMember::class)
-            ->findBy([
-                'organisation' => $organisation,
-                'account' => $this->getCurrentAccount(),
-            ]);
-
-        foreach ($memberships as $membership) {
-            $roleName = $membership->getOrgRole()?->getName();
-
-            if (
-                is_string($roleName)
-                && mb_strtolower(trim($roleName)) === 'beheerder'
-            ) {
-                return;
-            }
-        }
-
-        throw new \RuntimeException(
-            'Geen toegang: alleen een beheerder mag medewerkers beheren.'
-        );
-    }
-
     private function getCurrentAccount(): Account
     {
         $request = $this->requestStack->getCurrentRequest();
@@ -271,7 +244,7 @@ final class StaffManagementService
 
         $accountId = $request->getSession()->get('account_id');
 
-        if (!is_string($accountId) || !Uuid::isValid($accountId)) {
+        if (!is_string($accountId) || !Ulid::isValid($accountId)) {
             throw new \RuntimeException(
                 'Je moet ingelogd zijn om staff te beheren.'
             );
@@ -279,7 +252,7 @@ final class StaffManagementService
 
         $account = $this->entityManager->find(
             Account::class,
-            Uuid::fromString($accountId)
+            Ulid::fromString($accountId)
         );
 
         if (!$account instanceof Account) {
@@ -319,7 +292,7 @@ final class StaffManagementService
         string $roleId,
         Organisation $organisation
     ): OrgRole {
-        if (!Uuid::isValid($roleId)) {
+        if (!Ulid::isValid($roleId)) {
             throw new \InvalidArgumentException(
                 'Ongeldige rol-ID.'
             );
@@ -327,7 +300,7 @@ final class StaffManagementService
 
         $role = $this->entityManager->find(
             OrgRole::class,
-            Uuid::fromString($roleId)
+            Ulid::fromString($roleId)
         );
 
         if (
@@ -347,7 +320,7 @@ final class StaffManagementService
         string $memberId,
         Organisation $organisation
     ): OrgMember {
-        if (!Uuid::isValid($memberId)) {
+        if (!Ulid::isValid($memberId)) {
             throw new \InvalidArgumentException(
                 'Ongeldige medewerker-ID.'
             );
@@ -355,7 +328,7 @@ final class StaffManagementService
 
         $member = $this->entityManager->find(
             OrgMember::class,
-            Uuid::fromString($memberId)
+            Ulid::fromString($memberId)
         );
 
         if (

@@ -8,7 +8,7 @@ use App\Entity\Org\OrgRole;
 use App\Security\Permission;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 final class StaffViewService
 {
@@ -31,13 +31,13 @@ final class StaffViewService
         if (!$accountId) {
             return ['items' => [], 'roles' => []];
         }
-        if (!is_string($accountId) || !Uuid::isValid($accountId)) {
+        if (!is_string($accountId) || !Ulid::isValid($accountId)) {
             return $empty;
         }
 
         $user = $this->managerRegistry
             ->getRepository(Account::class)
-            ->find(Uuid::fromString($accountId));
+            ->find(Ulid::fromString($accountId));
 
         if (!$user instanceof Account) {
             return ['items' => [], 'roles' => []];

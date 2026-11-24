@@ -1,0 +1,29 @@
+{% extends 'layouts/org.base.html.twig' %}
+
+{# Page title meta tag #}
+{% block title %}{{ job.title }}{% endblock %}
+
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
+{% block body %}
+    <h1>{{ job.title }}</h1>
+    <p>{{ job.organisation.name }}</p>
+    <p>{{ job.description|nl2br }}</p>
+    <p>Status: {{ job.publishedAt ? 'Gepubliceerd' : 'Concept / ingetrokken' }}</p>
+    <p><a href="{{ job.applicationUrl }}" rel="noopener noreferrer">Sollicitatiepagina</a></p>
+    <p><a href="{{ path('org.jobs.modify', {id: job.id}) }}">Wijzigen</a></p>
+    {% if not job.publishedAt %}
+        <form method="post" action="{{ path('org.jobs.publish', {id: job.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('org_job_publish_' ~ job.id) }}">
+            <button type="submit">Publiceren</button></form>
+    {% else %}
+        <form method="post" action="{{ path('org.jobs.delete', {id: job.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('org_job_delete_' ~ job.id) }}">
+            <button type="submit">Intrekken</button></form>
+    {% endif %}
+{% endblock %}

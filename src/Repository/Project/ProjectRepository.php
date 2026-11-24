@@ -7,7 +7,7 @@ use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 /**
  * @extends ServiceEntityRepository<Project>
@@ -24,18 +24,19 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('project')
             ->andWhere('project.slug = :slug')
             ->andWhere('project.deletedAt IS NULL')
-            ->andWhere('project.visibility = "public"')
+            ->andWhere('project.visibility = :visibility')
             ->setParameter('slug', $slug)
+            ->setParameter('visibility', 'public')
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function findOneActiveById(Uuid $id): ?Project
+    public function findOneActiveById(Ulid $id): ?Project
     {
         return $this->createQueryBuilder('project')
             ->andWhere('project.id = :id')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('id', $id)
+            ->setParameter('id', $id, 'ulid')
             ->getQuery()
             ->getOneOrNullResult();
     }

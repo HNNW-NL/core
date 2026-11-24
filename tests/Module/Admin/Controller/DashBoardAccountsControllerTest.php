@@ -11,13 +11,13 @@ class DashBoardAccountsControllerTest extends WebTestCase
     public function testWhenUserIsNotAdminShouldRedirectFromIndex(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenUserIsAdminShouldDisplayIndex(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // modify
@@ -25,30 +25,30 @@ class DashBoardAccountsControllerTest extends WebTestCase
     public function testWhenUserIsNotAdminShouldRedirectFromModify(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenUserIsAdminAndAccountExistShouldDisplayModify(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenUserIsAdminAndFormSubmitShouldModifyAccount(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenUserIsNotAdminAndModifyFormSubmitShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenUserIsAdminAndAccountDoesntExistShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

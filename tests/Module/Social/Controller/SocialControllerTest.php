@@ -11,7 +11,7 @@ class SocialControllerTest extends WebTestCase
     public function testShouldDisplayIndex(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // categories
@@ -19,7 +19,7 @@ class SocialControllerTest extends WebTestCase
     public function testShouldDisplayCategories(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // viewCategory
@@ -27,19 +27,19 @@ class SocialControllerTest extends WebTestCase
     public function testWhenNotLoggedInShouldBeRedirectedFromViewCategory(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenCategoryDoesntExistsShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenCategoryExistsShouldDisplayViewCategory(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // createPost
@@ -47,19 +47,19 @@ class SocialControllerTest extends WebTestCase
     public function testWhenNotLoggedInShouldBeRedirectedFromCreatePost(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInShouldDisplayCreatePost(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndSubmitFormShouldCreatePost(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // viewPost
@@ -67,12 +67,12 @@ class SocialControllerTest extends WebTestCase
     public function testWhenPostDoesntExistsShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenPostExistsShouldDisplayViewPost(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

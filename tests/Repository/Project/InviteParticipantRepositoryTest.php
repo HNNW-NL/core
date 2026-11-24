@@ -11,18 +11,18 @@ class InviteParticipantRepositoryTest extends KernelTestCase
     public function testWhenDisplayNameExistShouldReturnArray(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenDisplayNameDoesntExistShouldReturnEmptyArray(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenDisplayNamesHigherThanLimitShouldReturnOrderedByNamesAscending(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

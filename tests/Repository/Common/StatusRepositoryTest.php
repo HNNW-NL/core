@@ -11,13 +11,13 @@ class StatusRepositoryTest extends KernelTestCase
     public function testWhenStatusWithScopeAndNameExistShouldReturnOneResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenStatusWithScopeAndNameDoesntExistShouldReturnNull(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // findFirstByScopeAndNames
@@ -25,24 +25,24 @@ class StatusRepositoryTest extends KernelTestCase
     public function testWhenAtLeastOneStatusWithScopeAndNamesExistShouldReturnFirstResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenStatusWithScopeAndSecondNameButNotFirstInArrayNamesExistShouldReturnResultWithSecondName(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenStatusWithScopeAndFirstAndSecondNameButInArrayNamesExistShouldReturnResultWithFirstName(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWheStatusWithScopeAndNamesDoesntExistShouldReturnNull(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

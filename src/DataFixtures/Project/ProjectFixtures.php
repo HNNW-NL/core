@@ -30,6 +30,7 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $project->setStartDate(new DateTimeImmutable("now"));
         $project->setCapacity(10);
         $project->setVisibility("public");
+        $project->publish();
         $project->setDescription("Dit is een test project");
 
         $manager->persist($project);

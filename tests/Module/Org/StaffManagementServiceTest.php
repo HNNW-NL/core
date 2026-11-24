@@ -299,7 +299,14 @@ final class StaffManagementServiceTest extends TestCase
 
     private function member(Account $account, OrgRole $role): OrgMember
     {
-        return (new OrgMember())->setAccount($account)->setOrganisation($this->org)->setOrgRole($role);
+        $member = (new OrgMember())
+    ->setAccount($account)
+    ->setOrganisation($role->getOrganisation())
+    ->setOrgRole($role);
+
+$account->getOrgMemberships()->add($member);
+
+return $member;
     }
 
     private function role(Organisation $org, Permission ...$permissions): OrgRole

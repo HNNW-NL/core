@@ -24,7 +24,7 @@ class WorkPackageRepository extends ServiceEntityRepository
             ->andWhere('workPackage.deletedAt IS NULL')
             ->setParameter('projectId', $projectId)
             ->orderBy('workPackage.dueDate', 'ASC')
-            ->addOrderBy('workPackage.createdAt', 'DESC')
+            ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -40,7 +40,7 @@ class WorkPackageRepository extends ServiceEntityRepository
             ->andWhere('workPackage.deletedAt IS NULL')
             ->setParameter('projectSlug', $projectSlug)
             ->orderBy('workPackage.dueDate', 'ASC')
-            ->addOrderBy('workPackage.createdAt', 'DESC')
+            ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -53,9 +53,9 @@ class WorkPackageRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('workPackage')
             ->andWhere('workPackage.project = :project')
             ->andWhere('workPackage.deletedAt IS NULL')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId(), 'ulid')
             ->orderBy('workPackage.dueDate', 'ASC')
-            ->addOrderBy('workPackage.createdAt', 'DESC')
+            ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()
             ->getResult();
     }

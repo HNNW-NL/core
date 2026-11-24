@@ -11,19 +11,19 @@ class WorkPackageRepositoryTest extends KernelTestCase
     public function testWhenProjectIdExistAndWorkPackageIsNotDeletedShouldReturnWorkPackages(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectIdExistAndWorkPackageIsDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectIdDoesntExistAndWorkPackageIsNotDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // findActiveByProjectSlug
@@ -31,19 +31,19 @@ class WorkPackageRepositoryTest extends KernelTestCase
     public function testWhenProjectSlugdExistAndWorkPackageIsNotDeletedShouldReturnWorkPackages(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectSlugExistAndWorkPackageIsDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectSlugDoesntExistAndWorkPackageIsNotDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // findActiveByProject
@@ -51,18 +51,18 @@ class WorkPackageRepositoryTest extends KernelTestCase
     public function testWhenProjectExistAndWorkPackageIsNotDeletedShouldReturnWorkPackages(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectExistAndWorkPackageIsDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectDoesntExistAndWorkPackageIsNotDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

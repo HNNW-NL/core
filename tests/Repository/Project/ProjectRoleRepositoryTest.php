@@ -11,12 +11,12 @@ class ProjectRoleRepositoryTest extends KernelTestCase
     public function testWhenProjectRolesExistShouldReturnProjectRoles(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectRolesDontExistShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }
