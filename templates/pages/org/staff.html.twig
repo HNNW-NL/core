@@ -1,3 +1,4 @@
+
 {% extends 'layouts/org.base.html.twig' %}
 
 {% block title %}Staff Management{% endblock %}
@@ -7,66 +8,66 @@
 {% endblock %}
 
 {% block javascript %}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('staff-search');
-    const staffCards = document.querySelectorAll('.staff-card');
-    const noResults = document.getElementById('staff-no-results');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('staff-search');
+            const staffCards = document.querySelectorAll('.staff-card');
+            const noResults = document.getElementById('staff-no-results');
 
-    if (searchInput) {
-    searchInput.addEventListener('input', function () {
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    let visibleCount = 0;
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    const searchTerm = searchInput.value.toLowerCase().trim();
+                    let visibleCount = 0;
 
-    staffCards.forEach(function (card) {
-    const staffText = [
-    card.querySelector('.staff-name')?.textContent || '',
-    card.querySelector('.staff-email')?.textContent || '',
-    card.querySelector('.staff-role')?.textContent || ''
-    ].join(' ').toLowerCase();
+                    staffCards.forEach(function (card) {
+                        const staffText = [
+                            card.querySelector('.staff-name')?.textContent || '',
+                            card.querySelector('.staff-email')?.textContent || '',
+                            card.querySelector('.staff-role')?.textContent || ''
+                        ].join(' ').toLowerCase();
 
-    const matches = staffText.includes(searchTerm);
-    card.style.display = matches ? '' : 'none';
+                        const matches = staffText.includes(searchTerm);
+                        card.style.display = matches ? '' : 'none';
 
-    if (matches) {
-    visibleCount++;
-}
-});
+                        if (matches) {
+                            visibleCount++;
+                        }
+                    });
 
-    if (noResults) {
-    noResults.hidden = visibleCount > 0;
-}
-});
-}
+                    if (noResults) {
+                        noResults.hidden = visibleCount > 0;
+                    }
+                });
+            }
 
-    const addButton = document.getElementById('staff-add-button');
-    const addForm = document.getElementById('staff-add-form');
-    const cancelButton = document.getElementById('staff-add-cancel');
+            const addButton = document.getElementById('staff-add-button');
+            const addForm = document.getElementById('staff-add-form');
+            const cancelButton = document.getElementById('staff-add-cancel');
 
-    document.querySelectorAll('.staff-delete-form').forEach(function (form) {
-    form.addEventListener('submit', function (event) {
-    if (!window.confirm('Wil je deze medewerker verwijderen?')) {
-    event.preventDefault();
-}
-});
-});
+            document.querySelectorAll('.staff-delete-form').forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!window.confirm('Wil je deze medewerker verwijderen?')) {
+                        event.preventDefault();
+                    }
+                });
+            });
 
-    if (addButton && addForm) {
-    addButton.addEventListener('click', function () {
-    addForm.hidden = false;
-    addButton.hidden = true;
-    document.getElementById('staff-add-email')?.focus();
-});
-}
+            if (addButton && addForm) {
+                addButton.addEventListener('click', function () {
+                    addForm.hidden = false;
+                    addButton.hidden = true;
+                    document.getElementById('staff-add-email')?.focus();
+                });
+            }
 
-    if (cancelButton && addForm && addButton) {
-    cancelButton.addEventListener('click', function () {
-    addForm.hidden = true;
-    addButton.hidden = false;
-});
-}
-});
-</script>
+            if (cancelButton && addForm && addButton) {
+                cancelButton.addEventListener('click', function () {
+                    addForm.hidden = true;
+                    addButton.hidden = false;
+                });
+            }
+        });
+    </script>
 {% endblock %}
 
 {% block body %}
@@ -98,59 +99,59 @@
     {% endif %}
 
     {% if data.canAdd and data.assignableRoles is not empty %}
-        <div class="staff-actions">
-            <button
-                type="button"
-                id="staff-add-button"
-                class="staff-btn staff-btn-primary"
-                aria-controls="staff-add-form"
+    <div class="staff-actions">
+        <button
+            type="button"
+            id="staff-add-button"
+            class="staff-btn staff-btn-primary"
+            aria-controls="staff-add-form"
+        >
+            + Medewerker toevoegen
+        </button>
+    </div>
+
+    <form id="staff-add-form" class="staff-card" method="post" action="{{ path('org.staff.manage.add', {organisation_id: data.organisationId}) }}" hidden>
+        <input type="hidden" name="_token" value="{{ csrf_token('staff_add') }}">
+        <h3>Medewerker toevoegen</h3>
+
+        <div class="staff-form-field">
+            <label for="staff-add-email">E-mailadres</label>
+            <input
+                type="email"
+                id="staff-add-email"
+                name="email"
+                placeholder="naam@voorbeeld.nl"
+                autocomplete="off"
+                required
             >
-                + Medewerker toevoegen
-            </button>
         </div>
 
-        <form id="staff-add-form" class="staff-card" method="post" action="{{ path('org.staff.manage.add', {organisation_id: data.organisationId}) }}" hidden>
-            <input type="hidden" name="_token" value="{{ csrf_token('staff_add') }}">
-            <h3>Medewerker toevoegen</h3>
+        <div class="staff-form-field">
+            <label for="staff-add-role">Organisatierol</label>
+            <select id="staff-add-role" name="role_id" required>
+                {% for role in data.assignableRoles %}
+                    <option value="{{ role.id }}">{{ role.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-            <div class="staff-form-field">
-                <label for="staff-add-email">E-mailadres</label>
-                <input
-                    type="email"
-                    id="staff-add-email"
-                    name="email"
-                    placeholder="naam@voorbeeld.nl"
-                    autocomplete="off"
-                    required
-                >
-            </div>
+        <div class="staff-actions">
+            <button
+                type="submit"
+                class="staff-btn staff-btn-primary"
+            >
+                Opslaan
+            </button>
 
-            <div class="staff-form-field">
-                <label for="staff-add-role">Organisatierol</label>
-                <select id="staff-add-role" name="role_id" required>
-                    {% for role in data.assignableRoles %}
-                        <option value="{{ role.id }}">{{ role.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="staff-actions">
-                <button
-                    type="submit"
-                    class="staff-btn staff-btn-primary"
-                >
-                    Opslaan
-                </button>
-
-                <button
-                    type="button"
-                    id="staff-add-cancel"
-                    class="staff-btn staff-btn-secondary"
-                >
-                    Annuleren
-                </button>
-            </div>
-        </form>
+            <button
+                type="button"
+                id="staff-add-cancel"
+                class="staff-btn staff-btn-secondary"
+            >
+                Annuleren
+            </button>
+        </div>
+    </form>
     {% endif %}
 
     <div class="staff-search">

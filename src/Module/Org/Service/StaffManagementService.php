@@ -71,16 +71,12 @@ final class StaffManagementService
         $member->setOrgRole($role);
 
         $this->entityManager->persist($member);
-        $this->entityManager->flush();
 
         return $member;
     }
 
     public function changeRole(string $memberId, string $roleId): OrgMember
     {
-        $organisation = $this->getCurrentOrganisation();
-        $this->requireBeheerder($organisation);
-
         return $this->manage(
             [Permission::ORG_MANAGE_ROLES],
             fn (Organisation $organisation, int $mask): OrgMember => $this->updateRole($organisation, $memberId, $roleId, $mask),
@@ -119,15 +115,12 @@ final class StaffManagementService
 
         $this->requireManagementContinuity($organisation, $member, $role);
         $member->setOrgRole($role);
-        $this->entityManager->flush();
 
         return $member;
     }
 
     public function removeMember(string $memberId): void
     {
-        $organisation = $this->getCurrentOrganisation();
-        $this->requireBeheerder($organisation);
         $this->manage(
             [Permission::ORG_MANAGE_MEMBERS],
             fn (Organisation $organisation) => $this->remove($organisation, $memberId),
@@ -143,7 +136,6 @@ final class StaffManagementService
 
         $this->requireManagementContinuity($organisation, $member, null);
         $this->entityManager->remove($member);
-        $this->entityManager->flush();
     }
 
     /** @param list<Permission> $requiredPermissions */
@@ -228,19 +220,10 @@ final class StaffManagementService
 
         $mask = 0;
         foreach ($memberships as $membership) {
-            $roleName = $membership->getOrgRole()?->getName();
-
-            if (
-                is_string($roleName)
-                && mb_strtolower(trim($roleName)) === 'beheerder'
-            ) {
-                return;
-            }
+            $mask |= StaffOrganisationContext::roleMask($membership->getOrgRole(), $organisation);
         }
 
-        throw new \RuntimeException(
-            'Geen toegang: alleen een beheerder mag medewerkers beheren.'
-        );
+        return $mask;
     }
 
     private function getCurrentAccount(): Account
@@ -273,30 +256,6 @@ final class StaffManagementService
         }
 
         return $account;
-    }
-
-    private function getCurrentOrganisation(): Organisation
-    {
-        $account = $this->getCurrentAccount();
-
-        $memberships = $account->getOrgMemberships();
-
-        if ($memberships->isEmpty()) {
-            throw new \RuntimeException(
-                'Je bent geen lid van een organisatie.'
-            );
-        }
-
-        $membership = $memberships->first();
-        $organisation = $membership->getOrganisation();
-
-        if (!$organisation instanceof Organisation) {
-            throw new \RuntimeException(
-                'De organisatie kon niet worden bepaald.'
-            );
-        }
-
-        return $organisation;
     }
 
     private function findRoleForOrganisation(

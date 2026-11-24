@@ -7,7 +7,7 @@ use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 /**
  * @extends ServiceEntityRepository<Project>
@@ -24,13 +24,12 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('project')
             ->andWhere('project.slug = :slug')
             ->andWhere('project.deletedAt IS NULL')
-            ->andWhere('project.visibility = "public"')
             ->setParameter('slug', $slug)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function findOneActiveById(Uuid $id): ?Project
+    public function findOneActiveById(Ulid $id): ?Project
     {
         return $this->createQueryBuilder('project')
             ->andWhere('project.id = :id')
@@ -54,17 +53,6 @@ class ProjectRepository extends ServiceEntityRepository
             ->orderBy('project.title', 'ASC')
             ->setMaxResults($maxResultsPerPage)
             ->setFirstResult(($page - 1) * $maxResultsPerPage)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findByProfile(Profile $profile): array
-    {
-        return $this->createQueryBuilder('project')
-            ->innerJoin('project.projectParticipants', 'participant')
-            ->andWhere('participant.profile = :profile')
-            ->setParameter('profile', $profile)
-            ->orderBy('project.title', 'ASC')
             ->getQuery()
             ->getResult();
     }

@@ -3,7 +3,7 @@
 namespace App\Security\Voter;
 
 use App\Entity\Account\Account;
-use App\Entity\Project\ProjectRole;
+use App\Security\ProjectPermission;
 use App\Entity\Project\WorkPackage;
 use App\Repository\Project\ProjectParticipantRepository;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -99,9 +99,9 @@ class WorkPackageVoter extends Voter
          * Gebruik dezelfde permissionsMask als de projectrol.
          */
         return match ($attribute) {
-            self::VIEW => $role->hasPermission(ProjectRole::PERMISSION_VIEW),
-            self::EDIT => $role->hasPermission(ProjectRole::PERMISSION_EDIT),
-            self::DELETE => $role->hasPermission(ProjectRole::PERMISSION_DELETE),
+            self::VIEW => ProjectPermission::VIEW->in($role->getPermissionsMask()),
+            self::EDIT => ProjectPermission::EDIT->in($role->getPermissionsMask()),
+            self::DELETE => ProjectPermission::DELETE->in($role->getPermissionsMask()),
             default => false,
         };
     }

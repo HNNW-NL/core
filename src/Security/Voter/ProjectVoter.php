@@ -4,7 +4,7 @@ namespace App\Security\Voter;
 
 use App\Entity\Account\Account;
 use App\Entity\Project\Project;
-use App\Entity\Project\ProjectRole;
+use App\Security\ProjectPermission;
 use App\Repository\Project\ProjectParticipantRepository;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
@@ -93,13 +93,13 @@ class ProjectVoter extends Voter
          */
         return match ($attribute) {
             self::VIEW =>
-                $role->hasPermission(ProjectRole::PERMISSION_VIEW),
+                ProjectPermission::VIEW->in($role->getPermissionsMask()),
 
             self::EDIT =>
-                $role->hasPermission(ProjectRole::PERMISSION_EDIT),
+                ProjectPermission::EDIT->in($role->getPermissionsMask()),
 
             self::DELETE =>
-                $role->hasPermission(ProjectRole::PERMISSION_DELETE),
+                ProjectPermission::DELETE->in($role->getPermissionsMask()),
 
             default => false,
         };

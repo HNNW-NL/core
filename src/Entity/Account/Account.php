@@ -10,11 +10,15 @@ use App\Entity\Log\AuditLog;
 use App\Entity\Org\OrgMember;
 use App\Entity\Project\Project;
 use App\Entity\Common\Event;
+use App\Entity\Org\Organisation;
+use App\Entity\Common\ModerationCase;
+use App\Entity\Common\TaxonomySuggestion;
+use App\Entity\Org\OrganisationOwnershipTransfer;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -26,8 +30,8 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\Column(name: 'username', length: 255, unique: true)]
     private ?string $username = null;
@@ -47,9 +51,6 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(name: 'last_login_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lastLoginAt = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -96,12 +97,79 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Event::class, mappedBy: 'authorAccount')]
     private Collection $authoredEvents;
 
+    /**
+     * @var Collection<int, Organisation>
+     */
+    #[ORM\OneToMany(
+        targetEntity: Organisation::class,
+        mappedBy: 'ownerAccount'
+    )]
+    private Collection $ownedOrganisations;
+
 
     // Functions
 
+    /** @var Collection<int, SavedItem> */
+    #[ORM\OneToMany(
+        targetEntity: SavedItem::class,
+        mappedBy: 'account'
+    )]
+    private Collection $savedItems;
+
+    /** @var Collection<int, TaxonomySuggestion> */
+    #[ORM\OneToMany(
+        targetEntity: TaxonomySuggestion::class,
+        mappedBy: 'suggestedBy'
+    )]
+    private Collection $taxonomySuggestions;
+
+    /** @var Collection<int, TaxonomySuggestion> */
+    #[ORM\OneToMany(
+        targetEntity: TaxonomySuggestion::class,
+        mappedBy: 'reviewedBy'
+    )]
+    private Collection $reviewedTaxonomySuggestions;
+
+    /** @var Collection<int, ModerationCase> */
+    #[ORM\OneToMany(
+        targetEntity: ModerationCase::class,
+        mappedBy: 'submittedBy'
+    )]
+    private Collection $submittedModerationCases;
+
+    /** @var Collection<int, ModerationCase> */
+    #[ORM\OneToMany(
+        targetEntity: ModerationCase::class,
+        mappedBy: 'reviewedBy'
+    )]
+    private Collection $reviewedModerationCases;
+
+    /** @var Collection<int, OrganisationOwnershipTransfer> */
+    #[ORM\OneToMany(
+        targetEntity: OrganisationOwnershipTransfer::class,
+        mappedBy: 'fromAccount'
+    )]
+    private Collection $outgoingOwnershipTransfers;
+
+    /** @var Collection<int, OrganisationOwnershipTransfer> */
+    #[ORM\OneToMany(
+        targetEntity: OrganisationOwnershipTransfer::class,
+        mappedBy: 'toAccount'
+    )]
+    private Collection $incomingOwnershipTransfers;
+
+
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
+        $this->incomingOwnershipTransfers = new ArrayCollection();
+        $this->outgoingOwnershipTransfers = new ArrayCollection();
+        $this->reviewedModerationCases = new ArrayCollection();
+        $this->submittedModerationCases = new ArrayCollection();
+        $this->reviewedTaxonomySuggestions = new ArrayCollection();
+        $this->taxonomySuggestions = new ArrayCollection();
+        $this->savedItems = new ArrayCollection();
+
         $this->auditLogs = new ArrayCollection();
         $this->orgMemberships = new ArrayCollection();
         $this->notifications = new ArrayCollection();
@@ -110,9 +178,10 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
         $this->resetPasswordTokens = new ArrayCollection();
         $this->verifyEmailTokens = new ArrayCollection();
         $this->authoredEvents = new ArrayCollection();
+        $this->ownedOrganisations = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -120,10 +189,7 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -262,7 +328,7 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
@@ -381,4 +447,55 @@ class Account implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, Organisation>
+     */
+    public function getOwnedOrganisations(): Collection
+    {
+        return $this->ownedOrganisations;
+    }
+
+    /** @return Collection<int, SavedItem> */
+    public function getSavedItems(): Collection
+    {
+        return $this->savedItems;
+    }
+
+    /** @return Collection<int, TaxonomySuggestion> */
+    public function getTaxonomySuggestions(): Collection
+    {
+        return $this->taxonomySuggestions;
+    }
+
+    /** @return Collection<int, TaxonomySuggestion> */
+    public function getReviewedTaxonomySuggestions(): Collection
+    {
+        return $this->reviewedTaxonomySuggestions;
+    }
+
+    /** @return Collection<int, ModerationCase> */
+    public function getSubmittedModerationCases(): Collection
+    {
+        return $this->submittedModerationCases;
+    }
+
+    /** @return Collection<int, ModerationCase> */
+    public function getReviewedModerationCases(): Collection
+    {
+        return $this->reviewedModerationCases;
+    }
+
+    /** @return Collection<int, OrganisationOwnershipTransfer> */
+    public function getOutgoingOwnershipTransfers(): Collection
+    {
+        return $this->outgoingOwnershipTransfers;
+    }
+
+    /** @return Collection<int, OrganisationOwnershipTransfer> */
+    public function getIncomingOwnershipTransfers(): Collection
+    {
+        return $this->incomingOwnershipTransfers;
+    }
+
 }

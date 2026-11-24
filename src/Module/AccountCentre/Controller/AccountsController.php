@@ -1,49 +1,103 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Module\AccountCentre\Controller;
 
 use App\Entity\Account\Account;
-use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
+use App\Entity\Account\Availability;
+use App\Entity\Account\Notification;
+use App\Entity\Account\Profile;
 use App\Entity\Account\ProfileExperience;
+use App\Entity\Account\ProfileSkill;
+use App\Entity\Account\Review;
+use App\Entity\Account\SavedItem;
+use App\Entity\Account\Skill;
 use App\Entity\Project\ProjectApplication;
-use App\Module\AccountCentre\DTO\AvailabilityDTO;
-use App\Module\AccountCentre\Enum\AvailabilityType;
-use App\Module\AccountCentre\Enum\DayOfWeek;
-use App\Module\AccountCentre\Handler\CreateAvailabilityHandler;
-use App\Repository\Account\AvailabilityRepository;
-use App\Repository\Project\ProjectRepository;
-use Doctrine\DBAL\Connection;
+use App\Entity\Project\ProjectParticipant;
+use App\Enum\AvailabilityType;
+use App\Enum\DayOfWeek;
+use App\Enum\SkillProficiencyLevel;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Uid\Uuid;
-use function PHPUnit\Framework\throwException;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
 {
-    #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
+    private const DAYS = [
+        DayOfWeek::MONDAY, DayOfWeek::TUESDAY, DayOfWeek::WEDNESDAY,
+        DayOfWeek::THURSDAY, DayOfWeek::FRIDAY, DayOfWeek::SATURDAY,
+        DayOfWeek::SUNDAY,
+    ];
+
+    private function account(): Account
     {
-        return $this->render('pages/account-centre/index.html.twig');
+        $user = $this->getUser();
+        if (!$user instanceof Account) {
+            throw $this->createAccessDeniedException('Je moet ingelogd zijn.');
+        }
+        return $user;
+    }
+
+    private function profile(EntityManagerInterface $em): Profile
+    {
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $this->account()]);
+        if (!$profile || $profile->getDeletedAt() !== null) {
+            throw $this->createNotFoundException('Profiel niet gevonden.');
+        }
+        return $profile;
+    }
+
+    private function settings(EntityManagerInterface $em): AccountSetting
+    {
+        $account = $this->account();
+        $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
+        if (!$settings) {
+            $settings = (new AccountSetting())->setAccount($account);
+            $em->persist($settings);
+        }
+        return $settings;
+    }
+
+    private function csrf(Request $request, string $id): void
+    {
+        if (!$this->isCsrfTokenValid($id, (string) $request->request->get('_token', ''))) {
+            throw $this->createAccessDeniedException('Ongeldig CSRF-token.');
+        }
+    }
+
+    private function date(string $value): ?\DateTimeImmutable
+    {
+        if ($value === '') {
+            return null;
+        }
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+        return $date && $date->format('Y-m-d') === $value ? $date : null;
+    }
+
+    #[Route('', name: 'home', methods: ['GET'])]
+    public function index(EntityManagerInterface $em): Response
+    {
+        $account = $this->account();
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        return $this->render('pages/account-centre/index.html.twig', [
+            'account' => $account,
+            'profile' => $profile,
+        ]);
     }
 
     #[Route('/applications', name: 'applications', methods: ['GET'])]
-    public function applications(Request $request, EntityManagerInterface $entityManager): Response
+    public function applications(EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
+        $profile = $this->profile($em);
 
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-
-        // Ophalen van de aanmeldingen MET verplichte 2e parameter (orderBy)
-        $applications = $entityManager->getRepository(ProjectApplication::class)->findBy(
+        $applications = $em->getRepository(ProjectApplication::class)->findBy(
             ['profile' => $profile, 'deletedAt' => null],
-            ['createdAt' => 'DESC']
+            ['id' => 'DESC']
         );
 
         return $this->render('pages/account-centre/applications.html.twig', [
@@ -53,439 +107,362 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
-    public function applicationsCancel(ProjectApplication $application, Request $request, EntityManagerInterface $entityManager): Response
+    public function applicationsCancel(string $id, Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
-
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-        if (!$profile || $application->getProfile() !== $profile) {
-            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze aanmelding.');
+        $application = $em->getRepository(ProjectApplication::class)->find($id);
+        if (!$application || $application->getDeletedAt() !== null) {
+            throw $this->createNotFoundException('Aanmelding niet gevonden.');
         }
-
-        $csrfToken = $request->request->get('_token');
-        if ($this->isCsrfTokenValid('cancel_application' . $application->getId()->toString(), $csrfToken)) {
-
-            $application->softDelete();
-
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Je aanmelding is succesvol geannuleerd.');
+        if ($application->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
+            throw $this->createAccessDeniedException();
+        }
+        $this->csrf($request, 'cancel_application' . $id);
+        if ($application->getParticipant() !== null) {
+            $this->addFlash('error', 'Een geaccepteerde aanmelding kan niet op deze manier worden ingetrokken.');
         } else {
-            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+            $application->softDelete();
+            $em->flush();
+            $this->addFlash('success', 'Aanmelding ingetrokken.');
         }
-
         return $this->redirectToRoute('account.applications');
     }
 
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
-    public function availability(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        CreateAvailabilityHandler $createAvailabilityHandler,
-        AvailabilityRepository $availabilityRepository,
-    ): Response {
-        $account = $this->getAndCheckAccount();
-
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-        if (!$profile) {
-            $this->addFlash('error', 'Profiel niet gevonden.');
-            return $this->redirectToRoute('account.home');
-        }
-
+    public function availability(Request $request, EntityManagerInterface $em): Response
+    {
+        $profile = $this->profile($em);
         if ($request->isMethod('POST')) {
-            $csrfToken = (string) $request->request->get('_token');
-
-            $daysInput = $request->request->all('days_config');
-
-            $activeDays = [];
-            $startTime = '08:00';
-            $endTime = '17:00';
-            $totalHours = 0;
-
-            foreach (range(0, 6) as $dayNum) {
-                $dayConfig = $daysInput[$dayNum] ?? [];
-
-                if (empty($dayConfig) && isset($daysInput[$dayNum + 1])) {
-                    $dayConfig = $daysInput[$dayNum + 1];
-                }
-
-                if (isset($dayConfig['enabled'])) {
-                    $activeDays[] = $dayNum;
-
-                    $start = $dayConfig['start'] ?? '08:00';
-                    $end = $dayConfig['end'] ?? '17:00';
-
-                    $startTime = $start;
-                    $endTime = $end;
-
-                    try {
-                        $timeStart = new \DateTime($start);
-                        $timeEnd = new \DateTime($end);
-                        if ($timeEnd > $timeStart) {
-                            $diff = $timeStart->diff($timeEnd);
-                            $totalHours += $diff->h + ($diff->i / 60);
-                        } else {
-                            $totalHours += 8;
-                        }
-                    } catch (\Exception $e) {
-                        $totalHours += 8;
-                    }
-                }
+            $this->csrf($request, 'account_availability');
+            $from = $this->date((string) $request->request->get('start_date', ''));
+            $until = $this->date((string) $request->request->get('end_date', ''));
+            $raw = $request->request->all('days_config');
+            if (!$from || ($until && $until < $from)) {
+                $this->addFlash('error', 'Ongeldige periode.');
+                return $this->redirectToRoute('account.availability');
             }
-
-            $daysInput = $request->request->all('days_config');
-
-            try {
-                $validFrom = new \DateTimeImmutable(
-                    (string) ($request->request->get('start_date') ?: 'today')
-                );
-                $validUntilInput = $request->request->get('end_date');
-                $validUntil = $validUntilInput
-                    ? new \DateTimeImmutable((string) $validUntilInput)
-                    : null;
-
-                $savedCount = 0;
-
-                foreach ($activeDays as $dayNumber => $dayOfWeek) {
-                    $dayConfig = $daysInput[$dayNumber] ?? [];
-
-                    if (!isset($dayConfig['enabled'])) {
-                        continue;
-                    }
-
-                    $startTimeInput = $dayConfig['start'] ?? null;
-                    $endTimeInput = $dayConfig['end'] ?? null;
-
-                    if (!$startTimeInput || !$endTimeInput) {
-                        continue;
-                    }
-
-                    $startTime = new \DateTimeImmutable((string) $startTimeInput);
-                    $endTime = new \DateTimeImmutable((string) $endTimeInput);
-
-                    if ($endTime <= $startTime) {
-                        throw new \InvalidArgumentException(sprintf(
-                            'De eindtijd van %s moet na de starttijd liggen.',
-                            $dayOfWeek->value
-                        ));
-                    }
-
-                    $dto = new AvailabilityDTO(
-                        availabilityType: AvailabilityType::STANDARD_CONTRACTUAL,
-                        validFrom: $validFrom,
-                        validUntil: $validUntil,
-                        dayOfWeek: $dayOfWeek,
-                        startTime: $startTime,
-                        endTime: $endTime,
-                        note: null,
-                    );
-
-                    $createAvailabilityHandler->handle($dto, $profile, false);
-                    $savedCount++;
+            $entries = [];
+            foreach (self::DAYS as $i => $day) {
+                $data = $raw[$i] ?? [];
+                if (!is_array($data) || empty($data['enabled'])) {
+                    continue;
                 }
-
-                if ($savedCount === 0) {
-                    $this->addFlash('error', 'Selecteer minimaal één dag met geldige tijden.');
+                $start = (string) ($data['start'] ?? '');
+                $end = (string) ($data['end'] ?? '');
+                if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $start)
+                    || !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $end)
+                    || $start >= $end) {
+                    $this->addFlash('error', 'Ongeldige begin- of eindtijd.');
                     return $this->redirectToRoute('account.availability');
                 }
-
-                $entityManager->flush();
-                $this->addFlash('success', 'Beschikbaarheid succesvol opgeslagen!');
-            } catch (\Throwable $e) {
-                $this->addFlash('error', 'Fout bij opslaan: ' . $e->getMessage());
+                $entries[] = (new Availability())
+                    ->setProfile($profile)
+                    ->setAvailabilityType(AvailabilityType::AVAILABLE)
+                    ->setDayOfWeek($day)
+                    ->setValidFrom($from)
+                    ->setValidUntil($until)
+                    ->setStartTime(new \DateTimeImmutable($start))
+                    ->setEndTime(new \DateTimeImmutable($end));
             }
-
+            if ($entries === []) {
+                $this->addFlash('error', 'Selecteer minstens één dag.');
+                return $this->redirectToRoute('account.availability');
+            }
+            foreach ($entries as $entry) {
+                $em->persist($entry);
+            }
+            $em->flush();
+            $this->addFlash('success', 'Beschikbaarheid opgeslagen.');
             return $this->redirectToRoute('account.availability');
         }
 
-        $availabilities = $availabilityRepository->findActiveForProfile($profile);
-
+        $records = $em->getRepository(Availability::class)->findBy(
+            ['profile' => $profile, 'deletedAt' => null], ['validFrom' => 'DESC']
+        );
+        $names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        $short = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+        $default = [];
+        foreach ($names as $i => $name) {
+            $default[$i] = ['name' => $name, 'enabled' => $i < 5, 'start' => '08:00', 'end' => '17:00'];
+        }
+        // Each entity is a single weekday/time interval in the current schema.
+        $items = [];
+        foreach ($records as $record) {
+            $day = array_search($record->getDayOfWeek(), self::DAYS, true);
+            $items[] = (object) [
+                'id' => $record->getId()->toString(),
+                'baseType' => $record->getAvailabilityType()?->value,
+                'daysSummary' => $day === false ? '' : '(' . $short[$day] . ')',
+                'startDate' => $record->getValidFrom(),
+                'endDate' => $record->getValidUntil(),
+                'startTime' => $record->getStartTime(),
+                'endTime' => $record->getEndTime(),
+            ];
+        }
         return $this->render('pages/account-centre/availability.html.twig', [
-            'profile' => $profile,
-            'availabilities' => $availabilities,
+            'profile' => $profile, 'availabilities' => $items, 'defaultSchedule' => $default,
         ]);
     }
 
     #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
-    public function deleteAvailability(
-        string $id,
-        Request $request,
-        EntityManagerInterface $entityManager,
-        AvailabilityRepository $availabilityRepository,
-    ): Response {
-        $session = $request->getSession();
-        $accountId = $session->get('account_id');
-
-        if (!$accountId) {
-            $this->addFlash('error', 'Je moet ingelogd zijn.');
-            return $this->redirectToRoute('auth.login');
+    public function deleteAvailability(string $id, Request $request, EntityManagerInterface $em): Response
+    {
+        $item = $em->getRepository(Availability::class)->find($id);
+        if (!$item || $item->getDeletedAt() !== null) {
+            throw $this->createNotFoundException();
         }
-
-        $csrfToken = (string) $request->request->get('_token');
-
-        if (!$this->isCsrfTokenValid('delete_availability' . $id, $csrfToken)) {
-            $this->addFlash('error', 'Ongeldig veiligheidstoken.');
-            return $this->redirectToRoute('account.availability');
+        if ($item->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
+            throw $this->createAccessDeniedException();
         }
-
-        $availability = $availabilityRepository->find($id);
-
-        if (!$availability) {
-            $this->addFlash('error', 'Beschikbaarheid niet gevonden.');
-            return $this->redirectToRoute('account.availability');
-        }
-
-        $account = $entityManager->getRepository(Account::class)->find($accountId);
-        $profile = $account
-            ? $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account])
-            : null;
-
-        if (!$profile || $availability->getProfile() !== $profile) {
-            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze beschikbaarheid.');
-        }
-
-        try {
-            $availability->softDelete();
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Beschikbaarheid succesvol verwijderd.');
-        } catch (\Throwable $e) {
-            $this->addFlash('error', 'Fout bij verwijderen: ' . $e->getMessage());
-        }
-
+        $this->csrf($request, 'delete_availability' . $id);
+        $item->softDelete();
+        $em->flush();
         return $this->redirectToRoute('account.availability');
     }
 
     #[Route('/experience', name: 'experience', methods: ['GET', 'POST'])]
-    public function experience(Request $request, EntityManagerInterface $entityManager): Response
+    public function experience(Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
-
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-        if (!$profile) {
-            $this->addFlash('error', 'Profiel niet gevonden.');
-            return $this->redirectToRoute('account.home');
-        }
-
+        $profile = $this->profile($em);
         if ($request->isMethod('POST')) {
-            $jobTitle = trim((string)$request->request->get('job_title'));
-            $organisationName = trim((string)$request->request->get('organisation_name'));
-            $startDateStr = trim((string)$request->request->get('start_date'));
-            $endDateStr = trim((string)$request->request->get('end_date'));
-            $isCurrent = (bool)$request->request->get('is_current', false);
-            $description = trim((string)$request->request->get('description'));
+            $this->csrf($request, 'account_experience');
+            $title = trim((string) $request->request->get('job_title', ''));
+            $organisation = trim((string) $request->request->get('organisation_name', ''));
+            $from = $this->date((string) $request->request->get('start_date', ''));
+            $current = $request->request->has('is_current');
 
-            if (empty($jobTitle) || empty($organisationName) || empty($startDateStr)) {
-                $this->addFlash('error', 'Vul alstublieft alle verplichte velden in.');
+            $endDateInput = trim(
+                $request->request->getString('end_date')
+            );
+
+            $until = $current || $endDateInput === ''
+                ? null
+                : $this->date($endDateInput);
+
+            if (
+                $title === ''
+                || $organisation === ''
+                || !$from
+                || (!$current && $endDateInput !== '' && !$until)
+                || ($until && $until < $from)
+            ) {
+                $this->addFlash('error', 'Controleer de verplichte velden en datums.');
             } else {
-                try {
-                    $experience = new ProfileExperience();
-
-                    if (method_exists($experience, 'setId')) {
-                        $experience->setId(Uuid::v4());
-                    }
-
-                    $experience->setJobTitle($jobTitle);
-                    $experience->setOrganisationName($organisationName);
-                    $experience->setStartDate(new \DateTimeImmutable($startDateStr));
-                    $experience->setIsCurrent($isCurrent);
-
-                    if ($isCurrent) {
-                        $experience->setEndDate(null);
-                    } else {
-                        $experience->setEndDate(!empty($endDateStr) ? new \DateTimeImmutable($endDateStr) : null);
-                    }
-
-                    $experience->setDescription(!empty($description) ? $description : null);
-                    $experience->setProfile($profile);
-
-                    if (method_exists($experience, 'setCreatedAt')) {
-                        $experience->setCreatedAt(new \DateTimeImmutable());
-                    }
-                    if (method_exists($experience, 'setLastModified')) {
-                        $experience->setLastModified(new \DateTimeImmutable());
-                    }
-
-                    $entityManager->persist($experience);
-                    $entityManager->flush();
-
-                    $this->addFlash('success', 'Je werkervaring is succesvol toegevoegd!');
-                } catch (\Exception $e) {
-                    $this->addFlash('error', 'Fout bij het verwerken van de gegevens: ' . $e->getMessage());
-                }
+                $experience = (new ProfileExperience())
+                    ->setProfile($profile)
+                    ->setJobTitle($title)
+                    ->setExternalOrganisationName($organisation)
+                    ->setStartDate($from)
+                    ->setEndDate($until)
+                    ->setIsCurrent($current)
+                    ->setDescription(trim((string) $request->request->get('description', '')) ?: null);
+                $em->persist($experience);
+                $em->flush();
+                $this->addFlash('success', 'Werkervaring toegevoegd.');
             }
-
             return $this->redirectToRoute('account.experience');
         }
-
-        $experiences = $entityManager->getRepository(ProfileExperience::class)->findBy(
-            ['profile' => $profile, 'deletedAt' => null],
-            ['startDate' => 'DESC']
-        );
-
         return $this->render('pages/account-centre/experience.html.twig', [
-            'experiences' => $experiences,
+            'experiences' => $em->getRepository(ProfileExperience::class)->findBy(
+                ['profile' => $profile, 'deletedAt' => null], ['startDate' => 'DESC']
+            ),
+        ]);
+    }
+
+    #[Route('/experience/{id}/modify', name: 'modify_experience', methods: ['GET', 'POST'])]
+    public function modifyExperience(
+        string $id,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $experience = $em->getRepository(ProfileExperience::class)->find($id);
+
+        if (!$experience || $experience->getDeletedAt() !== null) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($experience->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->render('pages/account-centre/modify-experience.html.twig', [
+            'experience' => $experience,
         ]);
     }
 
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
-    public function deleteExperience(string $id, Request $request, EntityManagerInterface $entityManager): Response
+    public function deleteExperience(string $id, Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
-
-        $experience = $entityManager->getRepository(ProfileExperience::class)->find($id);
-
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-
-        if (!$profile || $experience->getProfile() !== $profile) {
-            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze ervaring.');
+        $experience = $em->getRepository(ProfileExperience::class)->find($id);
+        if (!$experience || $experience->getDeletedAt() !== null) {
+            throw $this->createNotFoundException();
         }
-
-        $csrfToken = $request->request->get('_token');
-        if ($this->isCsrfTokenValid('delete_experience' . $experience->getId(), $csrfToken)) {
-
-            if (method_exists($experience, 'softDelete')) {
-                $experience->softDelete();
-            } else {
-                $experience->setDeletedAt(new \DateTimeImmutable());
-            }
-
-            $entityManager->flush();
-            $this->addFlash('success', 'Werkervaring succesvol verwijderd.');
-        } else {
-            $this->addFlash('error', 'Ongeldig veiligheidstoken.');
+        if ($experience->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
+            throw $this->createAccessDeniedException();
         }
-
+        $this->csrf($request, 'delete_experience' . $id);
+        $experience->softDelete();
+        $em->flush();
         return $this->redirectToRoute('account.experience');
     }
 
     #[Route('/modify', name: 'modify', methods: ['GET', 'POST'])]
-    public function modify(Request $request, EntityManagerInterface $entityManager): Response
+    public function modify(Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account, 'deletedAt' => null]);
+        $account = $this->account();
+        $profile = $this->profile($em);
+        $settings = $this->settings($em);
         if ($request->isMethod('POST')) {
-            $username = trim((string)$request->request->get('username'));
-            $email = trim((string)$request->request->get('email'));
-            $bio = trim((string)$request->request->get('bio'));
+            $this->csrf($request, 'account_modify');
+            $username = trim((string) $request->request->get('username', ''));
+            $first = trim((string) $request->request->get('first_name', ''));
+            $last = trim((string) $request->request->get('last_name', ''));
+            if ($username === '' || $first === '' || $last === '') {
+                $this->addFlash('error', 'Controleer de verplichte velden.');
+            } else {
+                $existingAccount = $em->getRepository(Account::class)
+                    ->findOneBy(['username' => $username]);
 
-            if (!empty($username)) {
-                $account->setUsername($username);
-            }
-            if (!empty($email)) {
-                $account->setEmail($email);
-            }
+                if (
+                    $existingAccount !== null
+                    && $existingAccount->getId() !== $account->getId()
+                ) {
+                    $this->addFlash(
+                        'error',
+                        'Deze gebruikersnaam is al in gebruik.'
+                    );
 
-            if ($profile) {
-                $profile->setFirstName(trim((string) $request->request->get('first_name')));
-                $profile->setLastName(trim((string) $request->request->get('last_name')));
-                $profile->setDisplayName(trim((string) $request->request->get('display_name')) ?: null);
-                $profile->setAvatarUrl(trim((string) $request->request->get('avatar_url')));
-                $profile->setLocation(trim((string) $request->request->get('location')) ?: null);
-                $profile->setDescription(!empty($bio) ? $bio : null);
-
-                if (method_exists($profile, 'setLastModified')) {
-                    $profile->setLastModified(new \DateTimeImmutable());
+                    return $this->redirectToRoute('account.modify');
                 }
+
+                $account->setUsername($username);
+                $profile->setFirstName($first)
+                    ->setLastName($last)
+                    ->setDisplayName(
+                        trim($request->request->getString('display_name')) ?: null
+                    )
+                    ->setAvatarUrl(trim((string) $request->request->get('avatar_url', '')) ?: null)
+                    ->setLocation(trim((string) $request->request->get('location', '')) ?: null)
+                    ->setDescription(trim((string) $request->request->get('bio', '')) ?: null);
+                $em->flush();
+                $this->addFlash('success', 'Wijzigingen opgeslagen.');
             }
-
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
-
             return $this->redirectToRoute('account.modify');
         }
-
-        return $this->render('pages/account-centre/modify.html.twig', [
-            'account' => $account,
-            'profile' => $profile
-        ]);
+        return $this->render('pages/account-centre/modify.html.twig', compact('account', 'profile', 'settings'));
     }
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
-    public function notifications(Request $request, EntityManagerInterface $entityManager): Response
+    public function notifications(Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
-
-        $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
-
-        if (!$settings) {
-            $settings = $this->createAccountSettings($entityManager, $account);
-        }
-
+        $settings = $this->settings($em);
         if ($request->isMethod('POST')) {
-            $notifyProjects = $request->request->has('notify_projects');
-            $notifyNewsletter = $request->request->has('notify_newsletter');
-
-            $settings->setEmailNotificationsEnabled($notifyProjects || $notifyNewsletter);
-
-            if (method_exists($settings, 'setLastModified')) {
-                $settings->setLastModified(new \DateTimeImmutable());
-            }
-
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Je notificatievoorkeuren zijn succesvol bijgewerkt!');
+            $this->csrf($request, 'account_notifications');
+            $settings->setEmailNotificationsEnabled(
+                $request->request->has('notify_projects')
+            );
+            $em->flush();
+            $this->addFlash('success', 'Notificatievoorkeuren opgeslagen.');
             return $this->redirectToRoute('account.notifications');
         }
-
         return $this->render('pages/account-centre/notifications.html.twig', [
-            'settings' => $settings
+            'settings' => $settings,
+            'notifications' => $em->getRepository(Notification::class)->findBy(
+                ['account' => $this->account(), 'deletedAt' => null], ['createdAt' => 'DESC'], 50
+            ),
         ]);
     }
 
-    #[Route('/projects', name: 'projects', methods: ['GET'])]
-    public function projects(ProjectRepository $projectRepository, EntityManagerInterface $entityManager): Response
+    #[Route('/notifications/{id}/read', name: 'notification_read', methods: ['POST'])]
+    public function readNotification(string $id, Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
-        $profile = $entityManager->getRepository(Profile::class)->findOneBy(['account' => $account]);
-        $projects = $projectRepository->findByProfile($profile);
+        $notification = $em->getRepository(Notification::class)->find($id);
+        if (!$notification || $notification->getDeletedAt() !== null) {
+            throw $this->createNotFoundException();
+        }
+        if ($notification->getAccount()?->getId()->toString() !== $this->account()->getId()->toString()) {
+            throw $this->createAccessDeniedException();
+        }
+        $this->csrf($request, 'read_notification' . $id);
+        $notification->markAsRead();
+        $em->flush();
+        return $this->redirectToRoute('account.notifications');
+    }
 
-
-        return $this->render('pages/account-centre/projects.html.twig');
+    #[Route('/projects', name: 'projects', methods: ['GET'])]
+    public function projects(EntityManagerInterface $em): Response
+    {
+        $profile = $this->profile($em);
+        return $this->render('pages/account-centre/projects.html.twig', [
+            'participants' => $em->getRepository(ProjectParticipant::class)->findBy(['profile' => $profile]),
+            'applications' => $em->getRepository(ProjectApplication::class)->findBy(['profile' => $profile, 'deletedAt' => null]),
+        ]);
     }
 
     #[Route('/reputation', name: 'reputation', methods: ['GET'])]
-    public function reputation(): Response
+    public function reputation(EntityManagerInterface $em): Response
     {
-        return $this->render('pages/account-centre/reputation.html.twig');
+        $profile = $this->profile($em);
+        return $this->render('pages/account-centre/reputation.html.twig', [
+            'profile' => $profile,
+            'reviews' => $em->getRepository(Review::class)->findBy(['profile' => $profile, 'deletedAt' => null]),
+        ]);
     }
 
     #[Route('/reviews', name: 'reviews', methods: ['GET'])]
-    public function reviews(): Response
+    public function reviews(EntityManagerInterface $em): Response
     {
-        return $this->render('pages/account-centre/reviews.html.twig');
+        return $this->render('pages/account-centre/reviews.html.twig', [
+            'reviews' => $em->getRepository(Review::class)->findBy(
+                ['profile' => $this->profile($em), 'deletedAt' => null], ['createdAt' => 'DESC']
+            ),
+        ]);
     }
 
-    #[Route('/settings', name: 'settings', methods: ['GET','POST'])]
-    public function settings(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $account = $this->getAndCheckAccount();
-        $settings = $entityManager->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
-
-        if (!$settings) {
-            $settings = $this->createAccountSettings($entityManager, $account);
-        }
+    #[Route('/settings', name: 'settings', methods: ['GET', 'POST'])]
+    public function settingsPage(
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $settings = $this->settings($em);
 
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('account_settings', $request->request->get('_token'))) {
-                throw $this->createAccessDeniedException('Ongeldige CSRF token');
-            }
-            if ($settings) {
-                $settings->setLanguage(trim((string)$request->request->get('language', 'nl')));
-                $settings->setTheme(trim((string)$request->request->get('theme', 'dark')));
-                $settings->setProfileVisibility(trim((string)$request->request->get('profile_visibility', 'public')));
-                $settings->setEmailNotificationsEnabled((bool)$request->request->get('email_notifications_enabled', false));
+            $this->csrf($request, 'account_settings');
 
-                $entityManager->flush();
-                $this->addFlash('success', 'Je instellingen zijn succesvol opgeslagen!');
+            $language = trim($request->request->getString('language', 'nl-NL'));
+            $theme = trim($request->request->getString('theme', 'dark'));
+            $visibility = trim($request->request->getString('profile_visibility', 'private'));
+
+            if ($language === 'nl') {
+                $language = 'nl-NL';
+            }
+
+            if (
+                !in_array($language, ['nl-NL', 'en'], true)
+                || !in_array($theme, ['light', 'dark'], true)
+                || !in_array($visibility, ['public', 'private'], true)
+            ) {
+                $this->addFlash('error', 'Ongeldige accountinstellingen.');
+
                 return $this->redirectToRoute('account.settings');
             }
+
+            $settings
+                ->setLanguage($language)
+                ->setTheme($theme)
+                ->setProfileVisibility($visibility)
+                ->setEmailNotificationsEnabled(
+                    $request->request->getBoolean('email_notifications_enabled')
+                );
+
+            $em->flush();
+
+            $this->addFlash('success', 'Accountinstellingen opgeslagen.');
+
+            return $this->redirectToRoute('account.settings');
         }
 
         return $this->render('pages/account-centre/settings.html.twig', [
-            'account' => $account,
-            'settings' => $settings
+            'settings' => $settings,
         ]);
     }
 
@@ -496,39 +473,74 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/skills', name: 'skills', methods: ['GET'])]
-    public function skills(): Response
+    public function skills(EntityManagerInterface $em): Response
     {
-        return $this->render('pages/account-centre/skills.html.twig');
+        $profile = $this->profile($em);
+        return $this->render('pages/account-centre/skills.html.twig', [
+            'skills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
+            'availableSkills' => $em->getRepository(Skill::class)->findBy(['active' => true], ['name' => 'ASC']),
+        ]);
     }
 
-    private function getAndCheckAccount(): Account
+    #[Route('/skills', name: 'skills_save', methods: ['POST'])]
+    public function saveSkill(Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getUser();
+        $this->csrf($request, 'account_skills');
+        $profile = $this->profile($em);
+        $skill = $em->getRepository(Skill::class)->find((string) $request->request->get('skill_id', ''));
+        $level = SkillProficiencyLevel::tryFrom((string) $request->request->get('level', 'beginner'));
+        if (!$skill || !$skill->isActive() || !$level) {
+            throw $this->createNotFoundException('Skill of niveau niet gevonden.');
+        }
+        $entry = $em->getRepository(ProfileSkill::class)->findOneBy(['profile' => $profile, 'skill' => $skill]);
+        if (!$entry) {
+            $entry = (new ProfileSkill())->setProfile($profile)->setSkill($skill);
+            $em->persist($entry);
+        }
+        $entry->setProficiencyLevel($level);
+        $em->flush();
+        return $this->redirectToRoute('account.skills');
+    }
 
-        if (!$account instanceof Account) {
+    #[Route('/skills/{id}/delete', name: 'skills_delete', methods: ['POST'])]
+    public function deleteSkill(string $id, Request $request, EntityManagerInterface $em): Response
+    {
+        $entry = $em->getRepository(ProfileSkill::class)->find($id);
+        if (!$entry) {
+            throw $this->createNotFoundException();
+        }
+        if ($entry->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
             throw $this->createAccessDeniedException();
         }
-        return $account;
+        $this->csrf($request, 'delete_skill' . $id);
+        $em->remove($entry);
+        $em->flush();
+        return $this->redirectToRoute('account.skills');
     }
 
-    private function createAccountSettings($entityManager, $account): AccountSetting
+    #[Route('/saved-items', name: 'saved_items', methods: ['GET'])]
+    public function savedItems(EntityManagerInterface $em): Response
     {
-        $settings = new AccountSetting();
-        $settings->setAccount($account);
-        $settings->setLanguage('nl');
-        $settings->setTheme('dark');
-        $settings->setProfileVisibility('public');
-        $settings->setEmailNotificationsEnabled(true);
+        return $this->render('pages/account-centre/saved-items.html.twig', [
+            'items' => $em->getRepository(SavedItem::class)->findBy(
+                ['account' => $this->account()], ['createdAt' => 'DESC']
+            ),
+        ]);
+    }
 
-        if (method_exists($settings, 'setId') && method_exists(\Symfony\Component\Uid\Uuid::class, 'v4')) {
-            $settings->setId(\Symfony\Component\Uid\Uuid::v4());
+    #[Route('/saved-items/{id}/delete', name: 'saved_items_delete', methods: ['POST'])]
+    public function deleteSavedItem(string $id, Request $request, EntityManagerInterface $em): Response
+    {
+        $item = $em->getRepository(SavedItem::class)->find($id);
+        if (!$item) {
+            throw $this->createNotFoundException();
         }
-        if (method_exists($settings, 'setCreatedAt')) {
-            $settings->setCreatedAt(new \DateTimeImmutable());
+        if ($item->getAccount()?->getId()->toString() !== $this->account()->getId()->toString()) {
+            throw $this->createAccessDeniedException();
         }
-
-        $entityManager->persist($settings);
-
-        return $settings;
+        $this->csrf($request, 'delete_saved_item' . $id);
+        $em->remove($item);
+        $em->flush();
+        return $this->redirectToRoute('account.saved_items');
     }
 }

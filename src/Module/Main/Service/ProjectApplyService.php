@@ -31,7 +31,11 @@ final readonly class ProjectApplyService
     // geeft een fout terug als dit profiel zich niet mag aanmelden, en null als het wel mag
     public function check(Project $project, Profile $profile): ?ProjectApplyResult
     {
-        if ($project->getVisibility() === 'private') {
+        if (
+            $project->getVisibility() !== 'public'
+            || $project->getPublishedAt() === null
+            || $project->getDeletedAt() !== null
+        ) {
             return new ProjectApplyResult(
                 ProjectApplyStatus::NotOpen,
                 'Dit project neemt geen aanmeldingen aan.',
