@@ -9,11 +9,37 @@
 {% block body %}
     {% set workPackageOverviews = hnnw_work_package_overviews(slug) %}
     {% set currentProfile = hnnw_current_profile() %}
+    {% set selectedWorkPackage = app.request.query.get('workPackage', '') %}
+    {% set selectedStatus = app.request.query.get('status', '') %}
+    {% set mineOnly = app.request.query.get('mine') == '1' %}
+    {% set statuses = {} %}
+    {% set filteredOverviews = [] %}
+
+    {% for overview in workPackageOverviews %}
+        {% for packageTask in overview.packageTasks %}
+            {% if packageTask.status %}
+                {% set statusId = packageTask.status.id.toRfc4122() %}
+                {% set statuses = statuses|merge({ (statusId): packageTask.status }) %}
+            {% endif %}
+        {% endfor %}
+
+        {% set visibleTasks = overview.packageTasks|filter(packageTask =>
+            (selectedStatus == '' or (packageTask.status and packageTask.status.id.toRfc4122() == selectedStatus))
+            and (not mineOnly or (currentProfile and packageTask.assignedProfile and packageTask.assignedProfile.id == currentProfile.id))
+        ) %}
+
+        {% if (selectedWorkPackage == '' or overview.workPackage.id.toRfc4122() == selectedWorkPackage) and visibleTasks is not empty %}
+            {% set filteredOverviews = filteredOverviews|merge([{
+                workPackage: overview.workPackage,
+                packageTasks: visibleTasks
+            }]) %}
+        {% endif %}
+    {% endfor %}
 
     <section class="project-tasks">
         <header>
             <h2>Taken</h2>
-            <p>Bekijk de beschikbare taken en schrijf jezelf in.</p>
+            <p>Bekijk taken en claim een beschikbare taak.</p>
         </header>
 
         {% for flashType, flashMessages in app.flashes %}
@@ -25,56 +51,111 @@
         {% endfor %}
 
         {% if currentProfile is null %}
-            <p>Log in met een profiel om jezelf in te schrijven op taken.</p>
+            <p>Log in met een profiel om taken te claimen en je taken te filteren.</p>
         {% endif %}
 
-        {% for overview in workPackageOverviews %}
+        <form method="get" action="{{ path('main.projects.tasks', { slug: slug }) }}" class="project-tasks__filters">
+            <label>
+                Werkpakket
+                <select name="workPackage">
+                    <option value="">Alle werkpakketten</option>
+                    {% for overview in workPackageOverviews %}
+                        {% set workPackage = overview.workPackage %}
+                        <option value="{{ workPackage.id.toRfc4122() }}"{% if selectedWorkPackage == workPackage.id.toRfc4122() %} selected{% endif %}>
+                            {{ workPackage.title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Status
+                <select name="status">
+                    <option value="">Alle statussen</option>
+                    {% for statusId, status in statuses %}
+                        <option value="{{ statusId }}"{% if selectedStatus == statusId %} selected{% endif %}>
+                            {{ status.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                <input type="checkbox" name="mine" value="1"{% if mineOnly %} checked{% endif %}>
+                Mijn taken
+            </label>
+
+            <button type="submit">Filteren</button>
+            <a href="{{ path('main.projects.tasks', { slug: slug }) }}">Filters wissen</a>
+        </form>
+
+        {% for overview in filteredOverviews %}
             {% set workPackage = overview.workPackage %}
             {% set packageTasks = overview.packageTasks %}
 
             {% if packageTasks is not empty %}
-                <h3>{{ workPackage.title }}</h3>
+                <section class="project-tasks__work-package">
+                    <h3>{{ workPackage.title }}</h3>
+                    {% if workPackage.dueDate %}
+                        <p>Deadline werkpakket: {{ workPackage.dueDate|date('d-m-Y') }}</p>
+                    {% endif %}
 
-                {% for packageTask in packageTasks %}
-                    {% set assignedProfile = packageTask.assignedProfile %}
-                    {% set isMine = currentProfile and assignedProfile and assignedProfile.id == currentProfile.id %}
+                    {% for packageTask in packageTasks %}
+                        {% set assignedProfile = packageTask.assignedProfile %}
+                        {% set isMine = currentProfile and assignedProfile and assignedProfile.id == currentProfile.id %}
 
-                    <article>
-                        <h4>{{ packageTask.title }}</h4>
+                        <article class="project-tasks__task">
+                            <h4>{{ packageTask.title }}</h4>
 
-                        {% if packageTask.description %}
-                            <p>{{ packageTask.description }}</p>
-                        {% endif %}
-
-                        <p>Prioriteit: {{ packageTask.priority|capitalize }}</p>
-
-                        {% if assignedProfile %}
-                            {% if isMine %}
-                                <p>Jij bent ingeschreven op deze taak.</p>
-                            {% else %}
-                                <p>Deze taak is al toegewezen.</p>
+                            {% if packageTask.description %}
+                                <p>{{ packageTask.description }}</p>
                             {% endif %}
-                        {% elseif currentProfile %}
-                            <form method="post"
-                                  action="{{ path('main.projects.tasks.enroll', {
-                                      slug: slug,
-                                      taskId: packageTask.id.toRfc4122()
-                                  }) }}">
 
-                                <input type="hidden"
-                                       name="_token"
-                                       value="{{ csrf_token('enroll-package-task-' ~ packageTask.id.toRfc4122()) }}">
+                            <dl>
+                                <dt>Werkpakket</dt>
+                                <dd>{{ workPackage.title }}</dd>
+                                <dt>Taak-DoD</dt>
+                                <dd>Niet vastgelegd</dd>
+                                <dt>Status</dt>
+                                <dd>{{ packageTask.status ? packageTask.status.name : 'Onbekend' }}</dd>
+                                <dt>Uitvoerder</dt>
+                                <dd>{{ assignedProfile ? assignedProfile.displayName|default('Onbekend') : 'Niet toegewezen' }}</dd>
+                                {% if packageTask.dueDate %}
+                                    <dt>Deadline</dt>
+                                    <dd>{{ packageTask.dueDate|date('d-m-Y') }}</dd>
+                                {% endif %}
+                            </dl>
 
-                                <button type="submit">Inschrijven</button>
-                            </form>
-                        {% else %}
-                            <p>Beschikbaar</p>
-                        {% endif %}
-                    </article>
-                {% endfor %}
+                            <p>Prioriteit: {{ packageTask.priority|capitalize }}</p>
+
+                            {% if assignedProfile %}
+                                {% if isMine %}
+                                    <p>Jij bent uitvoerder van deze taak.</p>
+                                {% else %}
+                                    <p>Toegewezen aan {{ assignedProfile.displayName|default('een deelnemer') }}.</p>
+                                {% endif %}
+                            {% elseif currentProfile %}
+                                <form method="post"
+                                      action="{{ path('main.projects.workPackages.enrollTask', {
+                                          slug: slug,
+                                          taskId: packageTask.id.toRfc4122()
+                                      }) }}">
+
+                                    <input type="hidden"
+                                           name="_token"
+                                           value="{{ csrf_token('enroll-package-task-' ~ packageTask.id.toRfc4122()) }}">
+
+                                    <button type="submit">Claim taak</button>
+                                </form>
+                            {% else %}
+                                <p>Beschikbaar</p>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </section>
             {% endif %}
         {% else %}
-            <p>Er zijn geen taken beschikbaar.</p>
+            <p>Geen taken gevonden voor deze filters.</p>
         {% endfor %}
     </section>
 {% endblock %}
