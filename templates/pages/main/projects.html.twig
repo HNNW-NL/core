@@ -1,104 +1,90 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{% block title %}{{ project is defined ? project.title : 'Projecten' }}{% endblock %}
+{# Page title meta tag #}
+{% block title %}Projecten{% endblock %}
 
-{% block seoDescription %}{{ project is defined ? project.summary : '' }}{% endblock %}
+{# SEO #}
+{% block seoKeywords %}{% endblock %}
+{% block seoDescription %}{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
+{# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('assets/main/css/projects.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/main/css/index.css') }}">
 {% endblock %}
 
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
 {% block body %}
-    {% if project is defined %}
-        <div class="project-detail">
-            <div class="project-detail__container">
-                <a class="project-detail__back" href="{{ path('main.projects.home') }}">← Terug naar projecten</a>
-
-                {% if previewMode %}
-                    <p class="project-detail__preview-notice" role="status">Beheerderpreview: dit project is niet gepubliceerd en is alleen zichtbaar voor beheerders.</p>
-                {% endif %}
-
-                {% for type, messages in app.flashes %}
-                    {% for message in messages %}
-                        <p class="project-detail__notice project-detail__notice--{{ type }}" role="status">{{ message }}</p>
-                    {% endfor %}
-                {% endfor %}
-
-                <article>
-                    <header class="project-detail__hero">
-                        <div class="project-detail__eyebrow">
-                            {{ project.ownerOrganisation.name|default('Organisatie') }}
-                        </div>
-                        <div class="project-detail__title-row">
-                            <h1>{{ project.title }}</h1>
-                            <span class="project-detail__status">{{ project.status.name|default('Status onbekend') }}</span>
-                        </div>
-                        {% if project.summary %}
-                            <p class="project-detail__summary">{{ project.summary }}</p>
-                        {% endif %}
-                    </header>
-
-                    <div class="project-detail__layout">
-                        <section class="project-detail__content" aria-labelledby="project-description-heading">
-                            <h2 id="project-description-heading">Over dit project</h2>
-                            {% if project.description %}
-                                <div class="project-detail__description">{{ project.description }}</div>
-                            {% else %}
-                                <p>Er is nog geen uitgebreide beschrijving toegevoegd.</p>
-                            {% endif %}
-
-                            <h2>Gezochte vaardigheden</h2>
-                            <p>Vaardigheden zijn niet opgegeven voor dit project.</p>
-                        </section>
-
-                        <aside class="project-detail__sidebar" aria-label="Projectgegevens">
-                            <h2>Projectgegevens</h2>
-                            <dl>
-                                <div>
-                                    <dt>Organisatie</dt>
-                                    <dd>{{ project.ownerOrganisation.name|default('Niet opgegeven') }}</dd>
-                                </div>
-                                <div>
-                                    <dt>Projectleider</dt>
-                                    <dd>{{ projectLeaderName is not empty ? projectLeaderName : 'Niet vermeld' }}</dd>
-                                </div>
-                                <div>
-                                    <dt>Locatie</dt>
-                                    <dd>
-                                        {{ project.ownerOrganisation.location|default('Niet opgegeven') }}
-                                        {% if project.remotePossible %}<span class="project-detail__tag">Remote mogelijk</span>{% endif %}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt>Startdatum</dt>
-                                    <dd>{{ project.startDate|date('d-m-Y') }}</dd>
-                                </div>
-                                {% if project.endDate %}
-                                    <div>
-                                        <dt>Einddatum</dt>
-                                        <dd>{{ project.endDate|date('d-m-Y') }}</dd>
-                                    </div>
-                                {% endif %}
-                            </dl>
-
-                            {% if application %}
-                                <p class="project-detail__application-status">
-                                    Je aanvraagstatus: <strong>{{ application.status.name|default('In behandeling') }}</strong>
-                                </p>
-                                <a class="project-detail__button project-detail__button--secondary" href="{{ path('account.applications') }}">Bekijk mijn aanmeldingen</a>
-                            {% elseif isOpen %}
-                                <a class="project-detail__button" href="{{ path('main.projects.apply', {slug: project.slug}) }}">Meld je aan</a>
-                            {% else %}
-                                <p class="project-detail__closed">Dit project is momenteel niet open voor aanmeldingen.</p>
-                            {% endif %}
-                        </aside>
-                    </div>
-                </article>
+<div class="home-page projects-page">
+    <section class="open-projects container" aria-labelledby="projects-title">
+        <div class="open-projects-heading">
+            <div>
+                <p class="hnnw-eyebrow">Doe mee</p>
+                <h1 id="projects-title">Openbare projecten</h1>
             </div>
         </div>
-    {% else %}
-        <h2>Projecten</h2>
-        <p>Bekijk de beschikbare projecten.</p>
-    {% endif %}
+
+        <form class="project-filters" method="get" action="{{ path('main.projects.home') }}">
+            <label for="project-search">Zoek op titel of samenvatting</label>
+            <input id="project-search" type="search" name="q" value="{{ search }}">
+            <label class="project-open-filter">
+                <input type="checkbox" name="open" value="1" {% if onlyAcceptingApplications %}checked{% endif %}>
+                Alleen projecten waarop je je kunt aanmelden
+            </label>
+            <button type="submit">Zoeken</button>
+        </form>
+
+        <p class="project-results-count">
+            {{ totalProjects }} {{ totalProjects == 1 ? 'project' : 'projecten' }} gevonden
+        </p>
+
+        {% if publicProjects is not empty %}
+            <div class="open-projects-grid">
+                {% for project in publicProjects %}
+                    <article class="open-project-card">
+                        <h2><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h2>
+                        <p class="open-project-organisation">{{ project.organisationName }}</p>
+                        <p class="open-project-summary">{{ project.summary }}</p>
+                        {% if project.skills is not empty %}
+                            <p class="project-skills">Vaardigheden: {{ project.skills|join(', ') }}</p>
+                        {% endif %}
+                        <p class="project-location">
+                            {% if project.location %}
+                                {{ project.location }}
+                            {% elseif project.remotePossible %}
+                                Op afstand mogelijk
+                            {% else %}
+                                Locatie niet opgegeven
+                            {% endif %}
+                        </p>
+                        <p class="project-status">Status: {{ project.projectStatus == 'published' ? 'Gepubliceerd' : project.projectStatus }}</p>
+                        {% if project.canApply %}
+                            <a class="open-project-link" href="{{ path('main.projects.apply', { slug: project.slug }) }}">Aanmelden mogelijk</a>
+                        {% else %}
+                            <p class="project-application-closed">Aanmelden niet mogelijk</p>
+                        {% endif %}
+                        <a class="open-project-link" href="{{ path('main.projects.detail', { slug: project.slug }) }}">Bekijk project</a>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="open-projects-empty">Er zijn op dit moment geen openbare projecten beschikbaar.</p>
+        {% endif %}
+
+        {% if totalPages > 1 %}
+            <nav class="project-pagination" aria-label="Paginering">
+                {% if currentPage > 1 %}
+                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, page: currentPage - 1 }) }}">Vorige</a>
+                {% endif %}
+                <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
+                {% if currentPage < totalPages %}
+                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, page: currentPage + 1 }) }}">Volgende</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    </section>
+</div>
 {% endblock %}

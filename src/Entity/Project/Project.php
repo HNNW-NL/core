@@ -3,6 +3,7 @@ namespace App\Entity\Project;
 
 use App\Entity\Account\Account;
 use App\Entity\Account\Review;
+use App\Entity\Account\Skill;
 use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
 use Doctrine\ORM\Mapping as ORM;
@@ -94,6 +95,14 @@ class Project
     #[ORM\OneToMany(targetEntity: WorkPackage::class, mappedBy: 'project')]
     private Collection $workPackages;
 
+    #[ORM\ManyToMany(targetEntity: Skill::class)]
+    #[ORM\JoinTable(
+        name: 'project_skills',
+        joinColumns: [new ORM\JoinColumn(name: 'project_id', referencedColumnName: 'id', onDelete: 'CASCADE')],
+        inverseJoinColumns: [new ORM\JoinColumn(name: 'skill_id', referencedColumnName: 'id', onDelete: 'CASCADE')],
+    )]
+    private Collection $skills;
+
 
     // Functions
 
@@ -107,6 +116,7 @@ class Project
         $this->participants = new ArrayCollection();
         $this->updates = new ArrayCollection();
         $this->workPackages = new ArrayCollection();
+        $this->skills = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -358,5 +368,27 @@ class Project
     public function getWorkPackages(): Collection
     {
         return $this->workPackages;
+    }
+
+    /** @return Collection<int, Skill> */
+    public function getSkills(): Collection
+    {
+        return $this->skills;
+    }
+
+    public function addSkill(Skill $skill): static
+    {
+        if (!$this->skills->contains($skill)) {
+            $this->skills->add($skill);
+        }
+
+        return $this;
+    }
+
+    public function removeSkill(Skill $skill): static
+    {
+        $this->skills->removeElement($skill);
+
+        return $this;
     }
 }

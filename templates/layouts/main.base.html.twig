@@ -2,7 +2,7 @@
 <html lang="nl-NL">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <title>{% block title %}{% endblock %} | HNNW</title>
@@ -32,10 +32,11 @@
     {% endif %}
 </head>
 <body data-theme="dark">
+<a class="skip-link" href="#main-content">Direct naar de inhoud</a>
 
 {% include "/core/main/_header.html.twig" %}
 
-<main>
+<main id="main-content">
     {% block body %}{% endblock %}
 </main>
 

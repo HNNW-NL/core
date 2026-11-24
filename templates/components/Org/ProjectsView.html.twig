@@ -1,0 +1,76 @@
+<div {{ attributes }}>
+    <div class="search-bar-projects">
+        <input
+            type="text"
+            id="search-text"
+            placeholder="Search projects..."
+            name="search-text"
+            data-model="debounce(300)|query"
+            value="{{ this.query }}"
+        >
+        <label for="input-max-result">Results per Page</label>
+        <input
+            type="number"
+            id="input-max-result"
+            name="input-max-result"
+            data-model="debounce(300)|maxResultsPerPage"
+            value="{{ this.maxResultsPerPage }}"
+            min="1"
+            max="100"
+        >
+        <button id="reset-button" type="button" class="reset-button" data-action="click->live#action" data-live-action-param="reset">Reset</button>
+
+        <label for="card-size-select" class="card-size-label">Size</label>
+        <div class="card-size-wrapper">
+            <select id="card-size-select" aria-label="Card size" class="card-size-select" data-model="cardSize">
+                <option value="small" {{ this.cardSize == 'small' ? 'selected' : '' }}>Small</option>
+                <option value="medium" {{ this.cardSize == 'medium' ? 'selected' : '' }}>Medium</option>
+                <option value="large" {{ this.cardSize == 'large' ? 'selected' : '' }}>Large</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="projects-container size-{{ this.cardSize }}">
+        {% if this.projects is empty %}
+            <p>No projects found</p>
+        {% endif %}
+        {% for project in this.projects %}
+            <div class="project-card">
+                <h3 class="project-title">{{ project.title }}</h3>
+                <p class="project-summary">{{ project.summary }}</p>
+                <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Public page: {{ project.slug }}</a>
+                <a href="{{ path('org.modifyProject', {'id': project.id}) }}" class="project-slug">Edit page: {{ project.slug }}</a>
+            </div>
+        {% endfor %}
+    </div>
+    {% if this.projects is not empty %}
+        <div class="projects-count" id="projects-count">
+            Showing {{ this.projectAmount == 0 ? 0 : (this.safePage - 1) * this.safeMaxResultsPerPage + 1 }}
+            –
+            {{ min(this.safePage * this.safeMaxResultsPerPage, this.projectAmount) }}
+            of
+            {{ this.projectAmount }} projects
+        </div>
+
+        <div class="projects-pagination">
+            <div>
+                Page
+                <span id="current-page">
+                    {{ this.safePage }}
+                </span>
+                of
+                <span id="total-pages">
+                    {{ this.pageCount }}
+                </span>
+            </div>
+            <div class="projects-pagination-controls" id="pagination-controls">
+                <button data-action="live#action" data-live-action-param="previousPage" {% if this.safePage <= 1 %} disabled {% endif %}>
+                    Previous Page
+                </button>
+                <button data-action="live#action" data-live-action-param="nextPage" {% if this.safePage >= this.pageCount %} disabled {% endif %}>
+                    Next Page
+                </button>
+            </div>
+        </div>
+    {% endif %}
+</div>
