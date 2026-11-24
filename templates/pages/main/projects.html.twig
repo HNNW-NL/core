@@ -9,7 +9,9 @@
 {% block seoAuthor %}HNNW{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/projects.css') }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
@@ -17,33 +19,42 @@
 {# Page content #}
 {% block body %}
     <section class="projects-page" aria-labelledby="projects-title">
-        <h1 id="projects-title">Projecten</h1>
+        <header class="projects-heading">
+            <p class="projects-eyebrow">Ontdek samenwerking</p>
+            <h1 id="projects-title">Projecten</h1>
+            <p>Vind projecten en publieke opgaven waar je aan kunt bijdragen.</p>
+        </header>
 
-        <form method="get" action="{{ path('main.projects.home') }}">
-            <label for="project-search">Zoek projecten</label>
-            <input
-                id="project-search"
-                name="q"
-                type="search"
-                value="{{ search }}"
-                maxlength="100"
-            >
+        <form class="projects-filters" method="get" action="{{ path('main.projects.home') }}">
+            <div class="projects-field">
+                <label for="project-search">Zoek projecten</label>
+                <input
+                    id="project-search"
+                    name="q"
+                    type="search"
+                    value="{{ search }}"
+                    maxlength="100"
+                    placeholder="Zoek op titel of samenvatting"
+                >
+            </div>
 
-            <label for="project-remote-filter">Werken op afstand</label>
-            <select id="project-remote-filter" name="remote">
-                <option value="" {{ remoteFilter == '' ? 'selected' : '' }}>Alle projecten</option>
-                <option value="yes" {{ remoteFilter == 'yes' ? 'selected' : '' }}>Op afstand mogelijk</option>
-                <option value="no" {{ remoteFilter == 'no' ? 'selected' : '' }}>Op locatie</option>
-            </select>
+            <div class="projects-field">
+                <label for="project-remote-filter">Werken op afstand</label>
+                <select id="project-remote-filter" name="remote">
+                    <option value="" {{ remoteFilter == '' ? 'selected' : '' }}>Alle projecten</option>
+                    <option value="yes" {{ remoteFilter == 'yes' ? 'selected' : '' }}>Op afstand mogelijk</option>
+                    <option value="no" {{ remoteFilter == 'no' ? 'selected' : '' }}>Op locatie</option>
+                </select>
+            </div>
 
-            <button type="submit">Zoeken</button>
+            <button class="projects-submit" type="submit">Zoeken</button>
             {% if hasFilters %}
-                <a href="{{ path('main.projects.home') }}">Wis filters</a>
+                <a class="projects-clear" href="{{ path('main.projects.home') }}">Wis filters</a>
             {% endif %}
         </form>
 
         {% if filterErrors is not empty %}
-            <div role="alert">
+            <div class="projects-alert" role="alert">
                 {% for error in filterErrors %}
                     <p>{{ error }}</p>
                 {% endfor %}
@@ -52,26 +63,27 @@
 
         {% if projects is empty %}
             <div class="projects-empty-state" role="status">
+                <span class="projects-empty-mark" aria-hidden="true">⌕</span>
                 <h2>Geen projecten gevonden</h2>
                 <p>Pas je zoekterm of filter aan en probeer het opnieuw.</p>
                 {% if hasFilters %}
-                    <a href="{{ path('main.projects.home') }}">Toon alle projecten</a>
+                    <a class="projects-empty-link" href="{{ path('main.projects.home') }}">Toon alle projecten</a>
                 {% endif %}
             </div>
         {% else %}
-            <p>{{ total }} project{{ total == 1 ? '' : 'en' }} gevonden</p>
+            <p class="projects-count">{{ total }} project{{ total == 1 ? '' : 'en' }} gevonden</p>
             <ul class="projects-list">
                 {% for project in projects %}
                     <li>
-                        <article>
+                        <article class="project-card">
                             <h2>
-                                <a href="{{ path('main.projects.detail', {slug: project.slug}) }}">
+                                <a class="project-card-link" href="{{ path('main.projects.detail', {slug: project.slug}) }}">
                                     {{ project.title }}
                                 </a>
                             </h2>
                             <p>{{ project.summary }}</p>
                             {% if project.remotePossible %}
-                                <p>Op afstand mogelijk</p>
+                                <p class="project-remote">Op afstand mogelijk</p>
                             {% endif %}
                         </article>
                     </li>
@@ -79,15 +91,15 @@
             </ul>
 
             {% if pages > 1 %}
-                <nav aria-label="Projectpagina's">
+                <nav class="projects-pagination" aria-label="Projectpagina's">
                     {% if page > 1 %}
-                        <a href="{{ path('main.projects.home', {q: search, remote: remoteFilter, page: page - 1}) }}">
+                        <a class="projects-page-link" href="{{ path('main.projects.home', {q: search, remote: remoteFilter, page: page - 1}) }}">
                             Vorige
                         </a>
                     {% endif %}
-                    <span>Pagina {{ page }} van {{ pages }}</span>
+                    <span class="projects-page-number">Pagina {{ page }} van {{ pages }}</span>
                     {% if page < pages %}
-                        <a href="{{ path('main.projects.home', {q: search, remote: remoteFilter, page: page + 1}) }}">
+                        <a class="projects-page-link" href="{{ path('main.projects.home', {q: search, remote: remoteFilter, page: page + 1}) }}">
                             Volgende
                         </a>
                     {% endif %}

@@ -1,210 +1,221 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{% block title %}
-	Profiel
-{% endblock %}
+{% block title %}Profiel{% endblock %}
 
 {% block stylesheets %}
-	<link rel="stylesheet" href="{{ asset('assets/main/css/home.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/main/css/profile.css') }}">
 {% endblock %}
 
 {% block body %}
-<div class="page">
+    {% set currentProfile = profile|default(null) %}
+    <div class="profile-page">
+        <header class="profile-header">
+            <div class="profile-avatar">
+                {% if currentProfile and currentProfile.avatarUrl %}
+                    <img id="preview" src="{{ currentProfile.avatarUrl }}" alt="Profielfoto">
+                    <span class="profile-avatar-placeholder" id="avatar-placeholder" aria-hidden="true" hidden>H</span>
+                {% else %}
+                    <img id="preview" alt="Profielfoto" hidden>
+                    <span class="profile-avatar-placeholder" id="avatar-placeholder" aria-hidden="true">H</span>
+                {% endif %}
 
-        <div class="header">
-
-                  <!-- Profile Picture -->
-                 <div class="profile-avatar">
-                 <img id="preview" src="default-profile.png" alt="Profile Picture">
-                 </div>
-
-                 <input type="file" id="upload" style="display: none;">
-
-                 <!-- eigen knop -->
-                 <label for="upload" class="upload-btn">
-                   Kies profielfoto
-                 </label>
-
-
-                 <script>
-                const upload = document.getElementById("upload");
-                const preview = document.getElementById("preview");
-
-                upload.addEventListener("change", function () {
-                const file = this.files[0];
-
-                if (file) {
-                const reader = new FileReader();
-
-                reader.onload = function () {
-                preview.src = reader.result;
-                };
-
-                 reader.readAsDataURL(file);
-                }
-                });
-                </script>
-                 </div>
-
-
-
-
-
-
-
-                <div class="profile-text">
-                    <h1>Naam</h1>
-                    <p>@username</p>
-                    {# <p>Locatie</p> #}
-                     <p onclick="openLocationPopup()" style="cursor: pointer;">
-                   Locatie: <span id="current-location">{{ profile.location ?? 'Niet ingesteld' }}</span>
-                    <span style="font-size: 12px;">✏️</span>
-                      </p>
-
-                    {% if app and app.user %}
-
-                        <p>Status:
-                            {% if app.user.status and app.user.status.id == 1 %}
-                                Online
-                            {% elseif app.user.status and app.user.status.id == 2 %}
-                                Afwezig
-                            {% else %}
-                                Offline
-                            {% endif %}
-                        </p>
-
-
-                        <p>
-                            {% if app.user.lastLoginAt %}
-
-                                Laatst actief: {{ app.user.lastLoginAt|date('d-m-Y H:i')|default('Zojuist') }}
-                            {% else %}
-                                Laatst actief: Onbekend
-                            {% endif %}
-                        </p>
-                    {% else %}
-
-                        <p>Occupation / Status</p>
-                        <p>Laatst actief: Onbekend</p>
-                    {% endif %}
-                </div>
-                <div id="location-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 1000;">
-    <h3>Locatie aanpassen</h3>
-    <select id="new-location">
-        <option value="">-- Kies een stad --</option>
-        <option value="Den Haag">Den Haag</option>
-        <option value="Amsterdam">Amsterdam</option>
-        <option value="Rotterdam">Rotterdam</option>
-        <option value="Utrecht">Utrecht</option>
-        <option value="Eindhoven">Eindhoven</option>
-        <option value="Groningen">Groningen</option>
-        <option value="Maastricht">Maastricht</option>
-    </select>
-    <button onclick="saveLocation()">Opslaan</button>
-    <button onclick="closePopup()">Annuleren</button>
-</div>
-
-			<div id="popup-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999;" onclick="closePopup()"></div>
-		</div>
-	</div>
-
-	<div class="main-grid">
-
-		<div class="card-about-me">
-			<h2 class="about-me">Over mij</h2>
-			<p class="text-muted">This is an example text.</p>
-
-			<h2 class="expertise" style="margin-top: 40px;">Expertise</h2>
-			<div class="expertise-container">
-				<div class="bubble">Expertise 1</div>
-				<div class="bubble">Expertise 2</div>
-				<div class="bubble">Expertise 3</div>
-			</div>
-		</div>
-
-		<div class="card">
-			<div class="action-buttons">
-				<a href="#" class="btn-outline">Edit Profile</a>
-				<a href="#" class="btn-outline">Projects</a>
-                    <a href="#" class="socials">Socials
-                    <div class="socials-icons">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/instagram.svg" alt="Instagram Icon" width="50" height="50">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/youtube.svg" alt="YouTube Icon" width="50" height="50">
-                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/tiktok.svg" alt="TikTok Icon" width="50" height="50">
+                <input
+                    class="profile-upload-input"
+                    id="upload"
+                    type="file"
+                    accept="image/*"
+                    aria-describedby="upload-feedback"
+                >
+                <label for="upload" class="upload-btn">Kies profielfoto</label>
+                <p class="profile-feedback" id="upload-feedback" role="status" aria-live="polite">
+                    Kies een afbeeldingsbestand.
+                </p>
             </div>
-</a>
-                    </a>
-			</div>
-		</div>
 
-		<div class="tech-stack">
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JS">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL">
-			</div>
-			<div class="tech-icon">
-				<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP">
-			</div>
-		</div>
+            <div class="profile-text" id="profile-text">
+                <h1>Naam</h1>
+                <p>@username</p>
+                <p>
+                    <button
+                        class="location-trigger"
+                        id="location-trigger"
+                        type="button"
+                        aria-haspopup="dialog"
+                        aria-controls="location-dialog"
+                    >
+                        Locatie: <span id="current-location">{{ currentProfile.location|default('Niet ingesteld') }}</span>
+                        <span>(wijzigen)</span>
+                    </button>
+                </p>
+                {% if app and app.user %}
+                    <p>Status:
+                        {% if app.user.status and app.user.status.id == 1 %}
+                            Online
+                        {% elseif app.user.status and app.user.status.id == 2 %}
+                            Afwezig
+                        {% else %}
+                            Offline
+                        {% endif %}
+                    </p>
+                    <p>
+                        Laatst actief:
+                        {{ app.user.lastLoginAt ? app.user.lastLoginAt|date('d-m-Y H:i') : 'Onbekend' }}
+                    </p>
+                {% else %}
+                    <p>Occupation / Status</p>
+                    <p>Laatst actief: Onbekend</p>
+                {% endif %}
+            </div>
+        </header>
 
-		<div class="achievements-bar">
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-			<div class="circle"></div>
-		</div>
+        <dialog class="location-dialog" id="location-dialog" aria-labelledby="location-dialog-title">
+            <form id="location-form">
+                <h2 id="location-dialog-title">Locatie aanpassen</h2>
+                <label for="new-location">Nieuwe locatie</label>
+                <select id="new-location" name="location" required>
+                    <option value="">-- Kies een stad --</option>
+                    <option value="Den Haag">Den Haag</option>
+                    <option value="Amsterdam">Amsterdam</option>
+                    <option value="Rotterdam">Rotterdam</option>
+                    <option value="Utrecht">Utrecht</option>
+                    <option value="Eindhoven">Eindhoven</option>
+                    <option value="Groningen">Groningen</option>
+                    <option value="Maastricht">Maastricht</option>
+                </select>
+                <p class="profile-feedback" id="location-feedback" role="status" aria-live="polite"></p>
+                <div class="dialog-actions">
+                    <button type="submit">Opslaan</button>
+                    <button type="button" id="location-cancel">Annuleren</button>
+                </div>
+            </form>
+        </dialog>
 
-	</div>
+        <div class="profile-grid">
+            <section class="profile-card card-about-me" aria-labelledby="about-title">
+                <h2 id="about-title">Over mij</h2>
+                <p class="text-muted">This is an example text.</p>
 
-</div>
+                <h2>Expertise</h2>
+                <div class="expertise-container" aria-label="Expertise">
+                    <span class="bubble">Expertise 1</span>
+                    <span class="bubble">Expertise 2</span>
+                    <span class="bubble">Expertise 3</span>
+                </div>
+            </section>
 
- <script>
-        function openLocationPopup() {
-            document.getElementById('location-popup').style.display = 'block';
-            document.getElementById('popup-overlay').style.display = 'block';
-        }
+            <section class="profile-card profile-actions" aria-labelledby="profile-actions-title">
+                <h2 id="profile-actions-title">Profielacties</h2>
+                <div class="action-buttons">
+                    <a href="#" class="btn-outline">Edit Profile</a>
+                    <a href="#" class="btn-outline">Projects</a>
+                </div>
+                <div class="profile-socials">
+                    <h3>Socials</h3>
+                    <div class="socials-icons" aria-hidden="true">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/instagram.svg" alt="">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/youtube.svg" alt="">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/tiktok.svg" alt="">
+                    </div>
+                </div>
+            </section>
 
-		function closePopup() {
-			document.getElementById('location-popup').style.display = 'none';
-			document.getElementById('popup-overlay').style.display = 'none';
-		}
+            <section class="profile-card profile-tech" aria-labelledby="tech-title">
+                <h2 id="tech-title">Technologieën</h2>
+                <div class="tech-stack">
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript"></div>
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5"></div>
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3"></div>
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL"></div>
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP"></div>
+                </div>
+            </section>
 
-		function saveLocation() {
-			const newLocation = document.getElementById('new-location').value;
+            <section class="profile-card profile-achievements" aria-labelledby="achievements-title">
+                <h2 id="achievements-title">Prestaties</h2>
+                <div class="achievements-bar" aria-hidden="true">
+                    <span class="circle"></span>
+                    <span class="circle"></span>
+                    <span class="circle"></span>
+                    <span class="circle"></span>
+                    <span class="circle"></span>
+                </div>
+            </section>
+        </div>
+    </div>
 
-			if (!newLocation) {
-				alert('Kies eerst een stad alstublieft.');
-				return;
-			}
+    <script>
+        const uploadInput = document.getElementById('upload');
+        const profilePreview = document.getElementById('preview');
+        const avatarPlaceholder = document.getElementById('avatar-placeholder');
+        const uploadFeedback = document.getElementById('upload-feedback');
+        const locationDialog = document.getElementById('location-dialog');
+        const locationTrigger = document.getElementById('location-trigger');
+        const locationForm = document.getElementById('location-form');
+        const locationSelect = document.getElementById('new-location');
+        const locationFeedback = document.getElementById('location-feedback');
 
-			fetch('/profile/location', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ location: newLocation })
-			})
-			.then(response => response.json())
-			.then(data => {
-				if (data.success) {
-					document.getElementById('current-location').textContent = data.location;
-					closePopup();
-				} else {
-					alert('Error: ' + data.message);
-				}
-			})
-			.catch(error => {
-				console.error('Fetch error:', error);
-			});
-		}
-	   </script>
+        uploadInput.addEventListener('change', () => {
+            const file = uploadInput.files[0];
+            if (!file) {
+                return;
+            }
 
-    {% endblock %}
+            if (!file.type.startsWith('image/')) {
+                uploadFeedback.textContent = 'Kies een geldig afbeeldingsbestand.';
+                uploadInput.value = '';
+                return;
+            }
 
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                profilePreview.src = reader.result;
+                profilePreview.hidden = false;
+                avatarPlaceholder.hidden = true;
+                uploadFeedback.textContent = 'Voorbeeld van de profielfoto bijgewerkt.';
+            });
+            reader.addEventListener('error', () => {
+                uploadFeedback.textContent = 'De afbeelding kon niet worden geladen.';
+            });
+            reader.readAsDataURL(file);
+        });
+
+        locationTrigger.addEventListener('click', () => {
+            locationFeedback.textContent = '';
+            locationDialog.showModal();
+            locationSelect.focus();
+        });
+
+        locationDialog.addEventListener('close', () => locationTrigger.focus());
+
+        document.getElementById('location-cancel').addEventListener('click', () => {
+            locationDialog.close();
+        });
+
+        locationForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!locationSelect.value) {
+                locationFeedback.textContent = 'Kies eerst een stad.';
+                locationSelect.focus();
+                return;
+            }
+
+            try {
+                const response = await fetch('{{ path('profile_update_location') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ location: locationSelect.value })
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'De locatie kon niet worden opgeslagen.');
+                }
+
+                document.getElementById('current-location').textContent = data.location;
+                locationDialog.close();
+            } catch (error) {
+                locationFeedback.textContent = error.message || 'Er ging iets mis. Probeer het opnieuw.';
+            }
+        });
+    </script>
+{% endblock %}
