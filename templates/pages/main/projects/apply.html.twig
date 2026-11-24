@@ -34,6 +34,7 @@
             <p>{{ blocked.message }}</p>
         {% else %}
             {{ form_start(form) }}
+            {{ form_errors(form) }}
                 <div class="form-group">
                     {{ form_label(form.motivation) }}
                     {{ form_widget(form.motivation) }}

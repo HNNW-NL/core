@@ -117,8 +117,11 @@ final class AccountsController extends AbstractController
             throw $this->createAccessDeniedException();
         }
         $this->csrf($request, 'cancel_application' . $id);
-        if ($application->getParticipant() !== null) {
-            $this->addFlash('error', 'Een geaccepteerde aanmelding kan niet op deze manier worden ingetrokken.');
+        if (
+            $application->getParticipant() !== null
+            || $application->getStatus()?->getName() !== 'send'
+        ) {
+            $this->addFlash('error', 'Alleen openstaande aanmeldingen kunnen worden ingetrokken.');
         } else {
             $application->softDelete();
             $em->flush();
