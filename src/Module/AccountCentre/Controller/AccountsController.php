@@ -57,8 +57,7 @@ final class AccountsController extends AbstractController
         $account = $this->account();
         $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
         if (!$settings) {
-            $settings = (new AccountSetting())->setAccount($account);
-            $em->persist($settings);
+            $settings = $this->createAccountSettings($em, $account);
         }
         return $settings;
     }
