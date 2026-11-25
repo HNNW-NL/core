@@ -8,13 +8,14 @@ use App\Entity\Org\OrgRole;
 use App\Security\Permission;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bundle\SecurityBundle\Security;
 
 final class StaffViewService
 {
     public function __construct(
         private ManagerRegistry $doctrine,
         private RequestStack $requestStack,
+        private readonly Security $security,
     ) {
     }
 
@@ -25,17 +26,9 @@ final class StaffViewService
             'organisationId' => null, 'canAdd' => false, 'canChangeRole' => false, 'canRemove' => false,
         ];
         $request = $this->requestStack->getCurrentRequest();
-        $accountId = $request?->hasPreviousSession() ? $request->getSession()->get('account_id') : null;
+        $user = $this->security->getUser();
 
-        if (!is_string($accountId) || !Uuid::isValid($accountId)) {
-            return $empty;
-        }
-
-        $user = $this->doctrine
-            ->getRepository(Account::class)
-            ->find(Uuid::fromString($accountId));
-
-        if (!$user instanceof Account) {
+        if ($request === null || !$user instanceof Account) {
             return $empty;
         }
 
@@ -43,7 +36,7 @@ final class StaffViewService
         $masks = [];
         foreach ($user->getOrgMemberships() as $membership) {
             $organisation = $membership->getOrganisation();
-            if ($organisation === null) {
+            if ($organisation === null || $organisation->getDeletedAt() !== null) {
                 continue;
             }
 
@@ -126,5 +119,23 @@ final class StaffViewService
             'canChangeRole' => $canManageRoles,
             'canRemove' => $canManageMembers,
         ]);
+    }
+
+    public function getStaffMember(string $id): ?array
+    {
+        $data = $this->getStaff();
+
+        foreach ($data['items'] as $member) {
+            if ((string) $member['id'] === $id) {
+                return [
+                    'member' => $member,
+                    'organisationId' => $data['organisationId'],
+                    'organisationName' =>
+                        $data['organisations'][$data['organisationId']] ?? '',
+                ];
+            }
+        }
+
+        return null;
     }
 }
