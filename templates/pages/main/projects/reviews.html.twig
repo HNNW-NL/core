@@ -16,6 +16,27 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Reviews</h2>
-    <p>Main - projects reviews page. For project {{ slug }}.</p>
+    {% set reviews = project.reviews|filter(review => review.isPublic and review.deletedAt is null) %}
+
+    <h2>Reviews</h2>
+    <p>Reviews van project {{ project.title }}.</p>
+
+    {% if reviews is not empty %}
+        <div class="participants-grid">
+            {% for review in reviews %}
+                <article class="participant-card">
+                    <h3>{{ review.title|default('Review') }}</h3>
+                    {% if review.rating is not null %}
+                        <p>Beoordeling {{ review.rating }}/5</p>
+                    {% endif %}
+                    {% if review.message %}
+                        <p>{{ review.message }}</p>
+                    {% endif %}
+                    <small>{{ review.createdAt|date('d-m-Y') }}</small>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty">Nog geen reviews gevonden.</p>
+    {% endif %}
 {% endblock %}

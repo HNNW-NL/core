@@ -16,12 +16,20 @@
 
 {# Page content #}
 {% block body %}
-	<h2>Deelnemers</h2>
-	<p>Deelnemers van project {{ overview.project.title }}.</p>
+	{% set participants = project.participants|filter(participant =>
+		participant.joinedAt is not null
+		and participant.leftAt is null
+		and (participant.status.name|default('')|lower) == 'active'
+		and participant.profile is not null
+		and participant.profile.deletedAt is null
+	) %}
 
-	{% if overview.participants is not empty %}
+	<h2>Deelnemers</h2>
+	<p>Deelnemers van project {{ project.title }}.</p>
+
+	{% if participants is not empty %}
 		<div class="participants-grid">
-			{% for participant in overview.participants %}
+			{% for participant in participants %}
 				<div class="participant-card">
 					{% if participant.profile.avatarUrl %}
 						<img src="{{ participant.profile.avatarUrl }}" alt="{{ participant.profile.displayName|default(participant.profile.firstName) }}" class="participant-avatar">
