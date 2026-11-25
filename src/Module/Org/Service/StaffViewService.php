@@ -111,6 +111,7 @@ final class StaffViewService
             return array_replace($empty, [
                 'items' => $items,
                 'organisationId' => $id,
+                'organisationName' => (string) $organisation->getName(),
             ]);
         }
 
@@ -155,8 +156,7 @@ final class StaffViewService
         return [
             'member' => $member,
             'organisationId' => $data['organisationId'],
-            'organisationName' =>
-                $data['organisations'][$data['organisationId']] ?? '',
+            'organisationName' => $data['organisationName'],
         ];
     }
 }

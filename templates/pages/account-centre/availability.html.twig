@@ -33,9 +33,7 @@
             {% endfor %}
         {% endfor %}
 
-        <form action="{{ path('account.availability_delete', {
-            id: availability.id
-        }) }}" method="POST" data-confirm-delete-availability>
+        <form action="{{ path('account.availability') }}" method="POST" id="availability-schedule-form">
             <input type="hidden" name="_token" value="{{ csrf_token('account_availability') }}">
 
             <div class="form-group">
@@ -172,7 +170,7 @@
                             <td class="text-right">
                                 <form action="{{ path('account.availability_delete', {
                                     id: availability.id
-                                }) }}" method="POST">
+                                }) }}" method="POST" data-confirm-delete-availability>
 
                                     <input type="hidden"
                                            name="_token"

@@ -4,9 +4,7 @@ config.autoAddCss = false;
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    // ==========================================
-    // 1. WERKERVARING TOOGLE (HUIDIGE BAAN)
-    // ==========================================
+    // Current employment
     const currentCheckbox = document.getElementById('exp-is-current');
     const endDateInput = document.getElementById('exp-end-date');
 
@@ -23,9 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ==========================================
-    // 2. BESCHIKBAARHEID GEBLOKKEERDE DATUMS BEHEREN
-    // ==========================================
+    // Blocked dates
     const picker = document.getElementById('picker_blocked_date');
     const addBtn = document.getElementById('btn_add_blocked');
     const dummyZone = document.getElementById('dummy_add_zone');
