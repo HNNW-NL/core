@@ -1,21 +1,74 @@
-{% extends 'layouts/org.base.html.twig' %}
+{% extends 'layouts/main.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}Modify project {{ id }} tasks{% endblock %}
-
-{# CSS #}
-{% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset("assets/org/css/modify-tasks.css") }}">
-{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
+{% block title %}Project Taken Beheren{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Modify Tasks</h2>
-    <p>Organization panel - modify project ({{ id }}) tasks page.</p>
-    {{ component("Org:ModifyTasksComponent",{
-        projectId: id
-    }) }}
+    <section class="org-project-tasks">
+        <header class="org-project-tasks__header">
+            <h2>Taken beheren voor project: {{ project.title }}</h2>
+            <p>Maak of wijzig taken, stel de verplichte Definition of Done (DoD) in en wijs een actieve participant toe.</p>
+        </header>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <form method="post" class="task-form">
+            <input type="hidden" name="_token" value="{{ csrf_token('org_project_tasks_' . id) }}">
+            <input type="hidden" name="task_id" value="">
+
+            <div class="form-group">
+                <label for="title">Taaktitel *</label>
+                <input type="text" id="title" name="title" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Beschrijving</label>
+                <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="definition_of_done">Definition of Done (DoD) *</label>
+                <textarea id="definition_of_done" name="definition_of_done" required class="form-control" rows="3" placeholder="Beschrijf wanneer deze taak concreet afgerond is..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="work_package_id">Werkpakket *</label>
+                <select id="work_package_id" name="work_package_id" required class="form-control">
+                    <option value="">-- Selecteer een werkpakket --</option>
+                    {% for wp in project.workPackages %}
+                        <option value="{{ wp.id }}">{{ wp.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="due_date">Optionele deadline</label>
+                <input type="date" id="due_date" name="due_date" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="assignee_id">Uitvoerder (Optioneel)</label>
+                <select id="assignee_id" name="assignee_id" class="form-control">
+                    <option value="">-- Geen uitvoerder / Beschikbaar --</option>
+                    {% for participant in project.participants %}
+                        {% if participant.profile %}
+                            {# Controleer of participant actief is indien de methode bestaat #}
+                            <option value="{{ participant.profile.id }}">
+                                {{ participant.profile.name }} 
+                                {% if method_exists(participant, 'isActive') and not participant.isActive() %}(Inactief){% endif %}
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Taak Opslaan</button>
+        </form>
+    </section>
 {% endblock %}
