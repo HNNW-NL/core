@@ -213,6 +213,38 @@ final class OrganisationProjectsController extends AbstractController
         return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id]);
     }
 
+    // OR06-C: deelname beëindigen via een beveiligde POST-route.
+    #[Route(
+        '/projects/modify/{id}/participants/{participantId}/terminate',
+        name: 'modifyProject.participants.terminate',
+        methods: ['POST'],
+    )]
+    public function terminateParticipation(
+        string $id,
+        string $participantId,
+        Request $request,
+        ProjectRepository $projectRepository,
+        ProjectParticipantUpdateRoleHandler $participantHandler,
+        CurrentProfileProvider $currentProfileProvider,
+    ): RedirectResponse {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+
+        if ($currentProfileProvider->getProfile() === null) {
+            throw $this->createAccessDeniedException('Geen profiel gevonden voor de ingelogde gebruiker.');
+        }
+
+        if (!$this->isCsrfTokenValid('org_terminate_participant_' . $participantId, $request->request->getString('_token'))) {
+            $this->addFlash('error', 'Ongeldig veiligheidstoken. Probeer het opnieuw.');
+
+            return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id], Response::HTTP_SEE_OTHER);
+        }
+
+        $result = $participantHandler->terminateParticipation($project, $participantId);
+        $this->addFlash($result['success'] ? 'success' : 'error', $result['message']);
+
+        return $this->redirectToRoute('org.modifyProject.participants', ['id' => $id], Response::HTTP_SEE_OTHER);
+    }
+
     #[Route('/projects/modify/{id}/work-packages/{workPackageId}/status', name: 'modifyProject.workPackages.status', methods: ['POST'])]
     public function changeWorkPackageStatus(
         string $id,

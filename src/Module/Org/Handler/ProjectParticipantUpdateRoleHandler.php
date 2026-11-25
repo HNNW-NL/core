@@ -9,11 +9,13 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
 use App\Repository\Common\StatusRepository;
+use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRoleRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Ulid;
 
 class ProjectParticipantUpdateRoleHandler
 {
@@ -34,6 +36,7 @@ class ProjectParticipantUpdateRoleHandler
         private ProjectRoleRepository $roleRepo,
         private EntityManagerInterface $em,
         private StatusRepository $statusRepo,
+        private PackageTaskRepository $packageTaskRepo,
     ) {}
 
     /**
@@ -258,6 +261,46 @@ class ProjectParticipantUpdateRoleHandler
             'success' => true,
             'message' => sprintf('Aanvraag van %s is afgewezen.', $this->applicantName($application)),
         ];
+    }
+
+    // OR06-C: deelname beëindigen zonder historische relaties te verwijderen.
+    /** @return array{success: bool, message: string} */
+    public function terminateParticipation(Project $project, string $participantId): array
+    {
+        if (!Ulid::isValid($participantId)) {
+            return $this->failure('Ongeldige deelnemer.');
+        }
+
+        return $this->em->wrapInTransaction(function () use ($project, $participantId): array {
+            $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
+
+            $participant = $this->participantRepo->find(Ulid::fromString($participantId));
+            if ($participant === null || $participant->getProject() !== $project) {
+                return $this->failure('Deelnemer niet gevonden.');
+            }
+
+            $this->em->refresh($participant, LockMode::PESSIMISTIC_WRITE);
+
+            if ($participant->getJoinedAt() === null || $participant->getLeftAt() !== null) {
+                return $this->failure('Deze deelnemer is niet actief.');
+            }
+
+            $profile = $participant->getProfile();
+            if ($profile === null) {
+                return $this->failure('Het profiel van de deelnemer ontbreekt.');
+            }
+
+            if ($this->packageTaskRepo->hasOpenAssignedTasks($project, $profile)) {
+                return $this->failure('De deelname kan niet worden beëindigd. Verdeel eerst de openstaande taken opnieuw.');
+            }
+
+            $participant->leave();
+
+            return [
+                'success' => true,
+                'message' => 'De deelname is succesvol beëindigd.',
+            ];
+        });
     }
 
     /** @return array{success: bool, message: string} */

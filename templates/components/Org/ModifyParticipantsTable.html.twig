@@ -24,6 +24,7 @@
             <td draggable="true">Date joined</td>
             <td draggable="true">Status</td>
             <td draggable="true">Role</td>
+            <td>Acties</td>
         </tr>
         </thead>
         <tbody>
@@ -31,7 +32,13 @@
             <tr>
                 <td>{{ participant.profile.displayName }}</td> <!-- link to profile page-->
                 <td>{{ participant.joinedAt ? participant.joinedAt|date('d/m/Y') : '-' }}</td>
-                <td>{{ participant.status.name }}</td>
+                <td>
+                    {% if participant.leftAt %}
+                        Beëindigd ({{ participant.leftAt|date('d/m/Y') }})
+                    {% else %}
+                        {{ participant.status.name }}
+                    {% endif %}
+                </td>
                 <td>
                     <select
                         class="select-role"
@@ -44,6 +51,19 @@
                             </option>
                         {% endfor %}
                     </select>
+                </td>
+                <td>
+                    {% if participant.joinedAt and not participant.leftAt %}
+                        {% set participantId = participant.id.toBase32 %}
+                        <form method="post"
+                              action="{{ path('org.modifyProject.participants.terminate', {id: this.projectId, participantId: participantId}) }}"
+                              onsubmit="return confirm('Weet je zeker dat je deze deelname wilt beëindigen?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('org_terminate_participant_' ~ participantId) }}">
+                            <button type="submit" class="btn btn--reject">Deelname beëindigen</button>
+                        </form>
+                    {% else %}
+                        —
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
