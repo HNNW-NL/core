@@ -4,7 +4,6 @@ namespace App\Module\Main\DTO;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-// dit vult het aanmeld formulier in, de regels staan hier zodat het formulier ze zelf checkt
 final class ProjectApplyDto
 {
     #[Assert\NotBlank(message: 'Vul een motivatie in.')]

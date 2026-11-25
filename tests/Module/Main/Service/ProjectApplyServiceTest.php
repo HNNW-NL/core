@@ -12,7 +12,7 @@ use App\Module\Main\Service\ProjectApplyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-// deze tests gebruiken de fixtures: TestUser doet al mee aan Test-Project, AdminUser nog niet
+// Fixtures: TestUser is an existing project participant; AdminUser is not.
 class ProjectApplyServiceTest extends KernelTestCase
 {
     private EntityManagerInterface $entityManager;

@@ -15,7 +15,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class ProjectApplyService
 {
-    // zo heet de status in StatusFixtures, als het goed is is dit de status van een nieuwe aanmelding
     private const string SEND_STATUS_SCOPE = 'ProjectApplication';
     private const string SEND_STATUS_NAME = 'send';
 
@@ -26,7 +25,6 @@ final readonly class ProjectApplyService
     ) {
     }
 
-    // geeft een fout terug als dit profiel zich niet mag aanmelden, en null als het wel mag
     public function check(Project $project, Profile $profile): ?ProjectApplyResult
     {
         if (

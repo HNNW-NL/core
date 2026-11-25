@@ -29,11 +29,17 @@
                         <div class="account-card">
                             <div class="account-card-content">
                                 <h3>{{ application.project.title|default('Naamloze aanmelding') }}</h3>
-                                <p>Status: <strong>{{ application.status.name|default('In behandeling') }}</strong></p>
+                                {% set statusLabels = {
+                                    'send': 'In behandeling',
+                                    'accepted': 'Geaccepteerd',
+                                    'rejected': 'Afgewezen'
+                                } %}
+
+                                <p>Status: <strong>{{ statusLabels[application.status.name]|default('Onbekend') }}</strong></p>
                             </div>
 
                             {% if application.status.name == 'send' %}
-                                <form action="{{ path('account.applications_cancel', {'id': application.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze aanmelding wilt annuleren?');">
+                                <form action="{{ path('account.applications_cancel', {'id': application.id}) }}" method="POST" data-confirm-cancel-application>
                                     <input type="hidden" name="_token" value="{{ csrf_token('cancel_application' ~ application.id) }}">
                                     <button type="submit" class="btn-card-cancel">Aanmelding annuleren</button>
                                 </form>

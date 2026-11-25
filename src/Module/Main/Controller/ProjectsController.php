@@ -122,7 +122,7 @@ final class ProjectsController extends AbstractController
         return $this->render('pages/main/projects/apply.html.twig', [
             'slug' => $slug,
             'project' => $project,
-            'form' => $form->createView(),
+            'form' => $form,
             'blocked' => $projectApplyHandler->check($project, $profile),
         ]);
     }
