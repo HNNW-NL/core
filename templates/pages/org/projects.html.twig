@@ -43,8 +43,8 @@
         </div>
 
         {% set q = app.request.query.get('q')|default('') %}
-        {% set data = org_projects(q) %}
-        
+        {% set data = org_projects(organisationId, q) %}
+
         <div id="projects-app" data-projects="{{ data.items|json_encode|escape('html_attr') }}" data-search="{{ q|escape('html_attr') }}">
             <div class="projects-container">
                 {# JS will populate this #}

@@ -7,7 +7,7 @@ use Twig\TwigFunction;
 
 /**
  * ProjectsExtension
- * 
+ *
  * Twig extension that exposes the org_projects() function for templates.
  * Allows templates to fetch and display projects with optional search filtering.
  */
@@ -22,7 +22,7 @@ final class ProjectsExtension extends AbstractExtension
 
     /**
      * Register Twig functions provided by this extension
-     * 
+     *
      * @return TwigFunction[]
      */
     public function getFunctions(): array
@@ -34,12 +34,13 @@ final class ProjectsExtension extends AbstractExtension
 
     /**
      * Twig function: org_projects(q)
-     * 
+     *
      * @param string $q Optional search query
      * @return array Project data array from service
      */
-    public function getProjects(string $q = ''): array
-    {
-        return $this->service->getProjects($q);
-    }
+    public function getProjects(string $organisationId, string $q = ''): array
+{
+    return $this->service->getProjects($organisationId, $q);
+}
+
 }
