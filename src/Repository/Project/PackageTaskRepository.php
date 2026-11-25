@@ -6,6 +6,7 @@ use App\Entity\Account\Profile;
 use App\Entity\Project\PackageTask;
 use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Uid\Ulid;
 
@@ -33,17 +34,26 @@ class PackageTaskRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findOneForProject(Ulid|string $taskId, Project $project): ?PackageTask
-    {
-        return $this->createQueryBuilder('packageTask')
+    public function findOneForProject(
+        Ulid|string $taskId,
+        Project $project,
+        bool $lockForUpdate = false,
+    ): ?PackageTask {
+        $query = $this->createQueryBuilder('packageTask')
             ->innerJoin('packageTask.workPackage', 'workPackage')
             ->andWhere('packageTask.id = :taskId')
             ->andWhere('workPackage.project = :project')
             ->andWhere('packageTask.deletedAt IS NULL')
+            ->andWhere('workPackage.deletedAt IS NULL')
             ->setParameter('taskId', $taskId)
             ->setParameter('project', $project)
-            ->getQuery()
-            ->getOneOrNullResult();
+            ->getQuery();
+
+        if ($lockForUpdate) {
+            $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
+        }
+
+        return $query->getOneOrNullResult();
     }
 
     /**

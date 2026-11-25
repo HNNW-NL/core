@@ -151,7 +151,7 @@ final class ProjectsController extends AbstractController
             );
 
             return $this->redirectToRoute(
-                'main.projects.workPackages',
+                'main.projects.tasks',
                 ['slug' => $slug],
                 Response::HTTP_SEE_OTHER
             );
@@ -183,7 +183,7 @@ final class ProjectsController extends AbstractController
             );
 
             return $this->redirectToRoute(
-                'main.projects.workPackages',
+                'main.projects.tasks',
                 ['slug' => $slug],
                 Response::HTTP_SEE_OTHER
             );
@@ -201,7 +201,7 @@ final class ProjectsController extends AbstractController
         );
 
         return $this->redirectToRoute(
-            'main.projects.workPackages',
+            'main.projects.tasks',
             ['slug' => $slug],
             Response::HTTP_SEE_OTHER
         );

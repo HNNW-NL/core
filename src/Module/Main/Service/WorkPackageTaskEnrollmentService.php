@@ -9,6 +9,7 @@ use App\Module\Main\DTO\WorkPackageTaskEnrollmentStatus;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectParticipantRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Ulid;
 
 final readonly class WorkPackageTaskEnrollmentService
@@ -28,59 +29,80 @@ final readonly class WorkPackageTaskEnrollmentService
         private PackageTaskRepository $packageTaskRepository,
         private ProjectParticipantRepository $projectParticipantRepository,
         private StatusRepository $statusRepository,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
     public function enroll(Project $project, Ulid|string $taskId, Profile $profile): WorkPackageTaskEnrollmentResult
     {
-        if (!$this->projectParticipantRepository->isActiveParticipant($project, $profile)) {
-            return new WorkPackageTaskEnrollmentResult(
-                WorkPackageTaskEnrollmentStatus::NotParticipant,
-                'Alleen projectdeelnemers kunnen zich inschrijven op taken binnen dit project.',
-            );
-        }
+        return $this->entityManager->getConnection()->transactional(
+            function () use ($project, $taskId, $profile): WorkPackageTaskEnrollmentResult {
+                if (!$this->projectParticipantRepository->isActiveParticipant($project, $profile)) {
+                    return new WorkPackageTaskEnrollmentResult(
+                        WorkPackageTaskEnrollmentStatus::NotParticipant,
+                        'Alleen actieve projectdeelnemers kunnen taken claimen.',
+                    );
+                }
 
-        $packageTask = $this->packageTaskRepository->findOneForProject($taskId, $project);
+                $packageTask = $this->packageTaskRepository->findOneForProject(
+                    $taskId,
+                    $project,
+                    true,
+                );
 
-        if ($packageTask === null) {
-            return new WorkPackageTaskEnrollmentResult(
-                WorkPackageTaskEnrollmentStatus::TaskNotFound,
-                'De taak is niet gevonden binnen dit project.',
-            );
-        }
+                if ($packageTask === null) {
+                    return new WorkPackageTaskEnrollmentResult(
+                        WorkPackageTaskEnrollmentStatus::TaskNotFound,
+                        'De taak bestaat niet binnen dit project of werkpakket.',
+                    );
+                }
 
-        if ($this->packageTaskRepository->isAssignedToProfile($packageTask, $profile)) {
-            return new WorkPackageTaskEnrollmentResult(
-                WorkPackageTaskEnrollmentStatus::AlreadyAssignedToCurrentProfile,
-                'Je bent al ingeschreven op deze taak.',
-                $packageTask,
-            );
-        }
+                if ($this->packageTaskRepository->isAssignedToProfile($packageTask, $profile)) {
+                    return new WorkPackageTaskEnrollmentResult(
+                        WorkPackageTaskEnrollmentStatus::AlreadyAssignedToCurrentProfile,
+                        'Deze taak is al aan jou toegewezen.',
+                        $packageTask,
+                    );
+                }
 
-        if ($packageTask->getAssignedProfile() !== null) {
-            return new WorkPackageTaskEnrollmentResult(
-                WorkPackageTaskEnrollmentStatus::AlreadyAssignedToOtherProfile,
-                'Deze taak is al toegewezen aan een andere deelnemer.',
-                $packageTask,
-            );
-        }
-        $packageTask->setAssignedProfile($profile);
+                if ($packageTask->getAssignedProfile() !== null) {
+                    return new WorkPackageTaskEnrollmentResult(
+                        WorkPackageTaskEnrollmentStatus::AlreadyAssignedToOtherProfile,
+                        'Deze taak is zojuist geclaimd door een andere deelnemer.',
+                        $packageTask,
+                    );
+                }
 
-        $assignedStatus = $this->statusRepository->findFirstByScopeAndNames(
-            self::ASSIGNED_STATUS_SCOPE,
-            self::ASSIGNED_STATUS_NAMES,
-        );
+                $currentStatus = $packageTask->getStatus();
+                $currentStatusName = strtolower((string) $currentStatus?->getName());
 
-        if ($assignedStatus !== null) {
-            $packageTask->setStatus($assignedStatus);
-        }
+                if (!in_array($currentStatusName, ['open', 'beschikbaar', 'active', 'actief', ''], true)) {
+                    return new WorkPackageTaskEnrollmentResult(
+                        WorkPackageTaskEnrollmentStatus::AlreadyAssignedToOtherProfile,
+                        'Deze taak kan niet worden geclaimd omdat de status niet open is.',
+                        $packageTask,
+                    );
+                }
 
-        $this->packageTaskRepository->save($packageTask);
+                $assignedStatus = $this->statusRepository->findFirstByScopeAndNames(
+                    self::ASSIGNED_STATUS_SCOPE,
+                    self::ASSIGNED_STATUS_NAMES,
+                );
 
-        return new WorkPackageTaskEnrollmentResult(
-            WorkPackageTaskEnrollmentStatus::Success,
-            'Je bent succesvol ingeschreven op deze taak.',
-            $packageTask,
+                $packageTask->setAssignedProfile($profile);
+
+                if ($assignedStatus !== null) {
+                    $packageTask->setStatus($assignedStatus);
+                }
+
+                $this->packageTaskRepository->save($packageTask);
+
+                return new WorkPackageTaskEnrollmentResult(
+                    WorkPackageTaskEnrollmentStatus::Success,
+                    'Je hebt de taak succesvol geclaimd.',
+                    $packageTask,
+                );
+            },
         );
     }
 }
