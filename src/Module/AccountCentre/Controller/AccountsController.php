@@ -396,6 +396,10 @@ final class AccountsController extends AbstractController
                 }
             }
 
+            if ($location !== null && mb_strlen($location) > 50) {
+                $errors['location'] = 'Location mag maximaal 50 tekens bevatten.';
+            }
+
             if ($bio !== null && mb_strlen($bio) > 250) {
                 $errors['bio'] = 'Bio mag maximaal 250 tekens bevatten.';
             }
