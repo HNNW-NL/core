@@ -17,6 +17,9 @@ use App\Entity\Account\Profile;
 use App\Entity\Auth\ResetPasswordToken;
 use App\Entity\Auth\VerifyEmailToken;
 use App\Entity\Common\Status;
+use App\Module\Auth\Service\PasswordResetRequestLimiter;
+use App\Module\Auth\Service\PasswordResetService;
+use Psr\Log\LoggerInterface;
 
 #[Route('/auth', name: 'auth.')]
 final class AuthController extends AbstractController
@@ -170,50 +173,63 @@ final class AuthController extends AbstractController
     }
 
     #[Route('/forgot-password', name: 'forgotPassword', methods: ['GET','POST'])]
-    public function forgotPassword(Request $request, EntityManagerInterface $em, MailerInterface $mailer, UrlGeneratorInterface $router): Response
+    public function forgotPassword(
+        Request $request,
+        PasswordResetService $passwordReset,
+        PasswordResetRequestLimiter $requestLimiter,
+        LoggerInterface $logger,
+    ): Response
     {
+        $email = '';
+        $errors = [];
+        $status = Response::HTTP_OK;
+        $headers = ['Cache-Control' => 'no-store'];
+
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('auth_forgot_password', (string) $request->request->get('_token', ''))) {
-                throw $this->createAccessDeniedException('Ongeldig formulier-token.');
+            $request->getSession()->getFlashBag()->get('success');
+            $input = $request->request->all();
+            $email = is_string($input['email'] ?? null) ? trim($input['email']) : '';
+            $csrfToken = is_string($input['_token'] ?? null) ? $input['_token'] : '';
+            $status = Response::HTTP_UNPROCESSABLE_ENTITY;
+
+            if (!$this->isCsrfTokenValid('auth_forgot_password', $csrfToken)) {
+                $errors['general'] = 'Het formulier is verlopen. Probeer het opnieuw.';
             }
-            $email = trim((string)$request->request->get('email', ''));
-
-            $this->addFlash('success', 'Als dat e-mailadres bestaat, is er een e-mail verzonden met instructies.');
-
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $this->redirectToRoute('auth.forgotPassword');
-            }
-
-            $repo = $em->getRepository(Account::class);
-            $account = $repo->findOneBy(['email' => $email]);
-
-            if (!$account) {
-                return $this->redirectToRoute('auth.forgotPassword');
+            if (strlen($email) > 254 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors['email'] = 'Voer een geldig e-mailadres in.';
             }
 
-            $plainToken = bin2hex(random_bytes(32));
-            $tokenHash = password_hash($plainToken, PASSWORD_DEFAULT);
+            if ($errors === []) {
+                try {
+                    $limit = $requestLimiter->consume($request->getClientIp(), $email);
+                    if ($limit->isAccepted()) {
+                        try {
+                            $passwordReset->sendResetLink($email);
+                        } catch (\Throwable $exception) {
+                            // Exception messages may contain SMTP credentials or the recovery URL.
+                            $logger->error('Password reset request could not be completed.', ['exception_class' => $exception::class]);
+                        }
 
-            $token = new ResetPasswordToken();
-            $token->setAccount($account);
-            $token->setTokenHash($tokenHash);
-            $em->persist($token);
-            $em->flush();
+                        $this->addFlash('success', 'Als er een account met dit e-mailadres bestaat, ontvang je een e-mail met een herstellink.');
 
-            $resetLink = $router->generate('auth.resetPassword', ['token' => $plainToken, 'email' => $account->getEmail()], UrlGeneratorInterface::ABSOLUTE_URL);
+                        return $this->redirectToRoute('auth.forgotPassword', status: Response::HTTP_SEE_OTHER);
+                    }
 
-            $emailMessage = (new Email())
-                ->from('no-reply@example.com')
-                ->to($account->getEmail())
-                ->subject('Wachtwoord resetten')
-                ->text("Klik op deze link om je wachtwoord te resetten:\n\n".$resetLink."\n\nDeze link is tijdelijk geldig.");
-
-            $mailer->send($emailMessage);
-
-            return $this->redirectToRoute('auth.forgotPassword');
+                    $status = Response::HTTP_TOO_MANY_REQUESTS;
+                    $headers['Retry-After'] = (string) max(1, $limit->getRetryAfter()->getTimestamp() - time());
+                    $errors['general'] = 'Je hebt te vaak een herstellink aangevraagd. Wacht 15 minuten en probeer het opnieuw.';
+                } catch (\Throwable $exception) {
+                    $logger->error('Password reset request limiter is unavailable.', ['exception_class' => $exception::class]);
+                    $status = Response::HTTP_SERVICE_UNAVAILABLE;
+                    $errors['general'] = 'Een herstellink aanvragen is tijdelijk niet mogelijk. Probeer het later opnieuw.';
+                }
+            }
         }
 
-        return $this->render('pages/auth/forgot-password.html.twig');
+        return $this->render('pages/auth/forgot-password.html.twig', [
+            'email' => $email,
+            'errors' => $errors,
+        ], new Response(status: $status, headers: $headers));
     }
 
     #[Route('/reset-password/{token}/{email}', name: 'resetPassword', methods: ['GET', 'POST'])]
