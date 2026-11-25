@@ -1,16 +1,50 @@
 {% extends 'layouts/org.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}View staff{% endblock %}
+{% block title %}Medewerker bekijken{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/org/css/staff-view.css') }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <h2>Organization Staff - View</h2>
-    <p>Organization panel - organization staff view ({{ id }}) page.</p>
+    <div class="staff-header">
+        <h2>Medewerker bekijken</h2>
+        <p>{{ organisationName }}</p>
+    </div>
+
+    <div class="staff-container">
+        <div class="staff-card">
+            <h3 class="staff-name">
+                {{ member.displayName ?: (
+                member.firstName ~ ' ' ~ member.lastName
+                ) }}
+            </h3>
+
+            <p class="staff-email">
+                E-mailadres: {{ member.email }}
+            </p>
+
+            <p class="staff-role">
+                Organisatierol:
+                {{ member.role|default('Geen rol') }}
+            </p>
+
+            <p>
+                Medewerker-ID: {{ member.id }}
+            </p>
+
+            <a class="staff-view-link"
+               href="{{ path('org.staff', {
+                   organisation_id: organisationId
+               }) }}">
+                Terug naar medewerkers
+            </a>
+        </div>
+    </div>
 {% endblock %}
