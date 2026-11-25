@@ -376,12 +376,24 @@ final class AccountsController extends AbstractController
                 $errors['display_name'] = 'Display name mag maximaal 50 tekens bevatten.';
             }
 
-            if (
-                empty($avatarUrl) ||
-                mb_strlen($avatarUrl) > 255 ||
-                !filter_var($avatarUrl, FILTER_VALIDATE_URL)
-            ) {
-                $errors['avatar_url'] = 'Voer een geldige avatar-URL in van maximaal 255 tekens.';
+            if (empty($avatarUrl)) {
+                $avatarUrl = null;
+            } else {
+                $parsedUrl = parse_url($avatarUrl);
+
+                if (
+                    mb_strlen($avatarUrl) > 255 ||
+                    !filter_var($avatarUrl, FILTER_VALIDATE_URL) ||
+                    !in_array(
+                        strtolower($parsedUrl['scheme'] ?? ''),
+                        ['http', 'https'],
+                        true
+                    ) ||
+                    empty($parsedUrl['host']) ||
+                    !filter_var($parsedUrl['host'], FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
+                ) {
+                    $errors['avatar_url'] = 'Voer een geldige HTTP- of HTTPS-avatar-URL in van maximaal 255 tekens.';
+                }
             }
 
             if ($bio !== null && mb_strlen($bio) > 250) {
