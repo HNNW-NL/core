@@ -20,6 +20,7 @@ use App\Enum\AvailabilityType;
 use App\Enum\DayOfWeek;
 use App\Enum\SkillProficiencyLevel;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\DBAL\LockMode;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -107,26 +108,56 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]
-    public function applicationsCancel(string $id, Request $request, EntityManagerInterface $em): Response
-    {
+    public function applicationsCancel(
+        string $id,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $profile = $this->profile($em);
+
         $application = $em->getRepository(ProjectApplication::class)->find($id);
+
         if (!$application || $application->getDeletedAt() !== null) {
             throw $this->createNotFoundException('Aanmelding niet gevonden.');
         }
-        if ($application->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
+
+        if ($application->getProfile()?->getId()->toString() !== $profile->getId()->toString()) {
             throw $this->createAccessDeniedException();
         }
+
         $this->csrf($request, 'cancel_application' . $id);
-        if (
-            $application->getParticipant() !== null
-            || $application->getStatus()?->getName() !== 'send'
-        ) {
-            $this->addFlash('error', 'Alleen openstaande aanmeldingen kunnen worden ingetrokken.');
-        } else {
-            $application->softDelete();
-            $em->flush();
+
+        $cancelled = $em->wrapInTransaction(
+            function () use ($em, $application, $profile): bool {
+                $project = $application->getProject();
+
+                $em->lock($project, LockMode::PESSIMISTIC_WRITE);
+                $em->refresh($application, LockMode::PESSIMISTIC_WRITE);
+
+                if (
+                    $application->getDeletedAt() !== null
+                    || $application->getProfile()?->getId()->toString() !== $profile->getId()->toString()
+                    || $application->getParticipant() !== null
+                    || $application->getStatus()?->getName() !== 'send'
+                ) {
+                    return false;
+                }
+
+                $application->softDelete();
+
+                return true;
+            }
+        );
+
+        if ($cancelled) {
             $this->addFlash('success', 'Aanmelding ingetrokken.');
+        } else {
+            $this->addFlash(
+                'error',
+                'Alleen openstaande aanmeldingen kunnen worden ingetrokken.'
+            );
         }
+
         return $this->redirectToRoute('account.applications');
     }
 
