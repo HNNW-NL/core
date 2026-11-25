@@ -77,4 +77,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update het verborgen CSV inputveld voor Symfony
         csvHidden.value = blockedDates.join(',');
     }
+
+    document.addEventListener('submit', (event) => {
+        if (
+            event.target instanceof HTMLFormElement &&
+            event.target.matches('[data-confirm-delete-availability]')
+        ) {
+            if (!window.confirm('Weet je zeker dat je deze beschikbaarheid wilt verwijderen?')) {
+                event.preventDefault();
+            }
+        }
+    });
 });

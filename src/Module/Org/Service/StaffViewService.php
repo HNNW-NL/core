@@ -21,6 +21,11 @@ final class StaffViewService
 
     public function getStaff(): array
     {
+        return $this->buildStaff();
+    }
+
+    private function buildStaff(?string $memberId = null): array
+    {
         $empty = [
             'items' => [], 'roles' => [], 'assignableRoles' => [], 'organisations' => [],
             'organisationId' => null, 'canAdd' => false, 'canChangeRole' => false, 'canRemove' => false,
@@ -66,9 +71,19 @@ final class StaffViewService
         $canManageMembers = Permission::ORG_MANAGE_MEMBERS->in($masks[$id]);
         $canManageRoles = Permission::ORG_MANAGE_ROLES->in($masks[$id]);
 
+        $criteria = ['organisation' => $organisation];
+
+        if ($memberId !== null) {
+            if (!\Symfony\Component\Uid\Ulid::isValid($memberId)) {
+                return $empty;
+            }
+
+            $criteria['id'] = \Symfony\Component\Uid\Ulid::fromString($memberId);
+        }
+
         $members = $this->doctrine
             ->getRepository(OrgMember::class)
-            ->findBy(['organisation' => $organisation]);
+            ->findBy($criteria);
 
         $items = [];
 
@@ -90,6 +105,13 @@ final class StaffViewService
                 'role' => $role?->getName(),
                 'roleId' => (string) $role?->getId(),
             ];
+        }
+
+        if ($memberId !== null) {
+            return array_replace($empty, [
+                'items' => $items,
+                'organisationId' => $id,
+            ]);
         }
 
         $orgRoles = $this->doctrine
@@ -123,19 +145,18 @@ final class StaffViewService
 
     public function getStaffMember(string $id): ?array
     {
-        $data = $this->getStaff();
+        $data = $this->buildStaff($id);
+        $member = $data['items'][0] ?? null;
 
-        foreach ($data['items'] as $member) {
-            if ((string) $member['id'] === $id) {
-                return [
-                    'member' => $member,
-                    'organisationId' => $data['organisationId'],
-                    'organisationName' =>
-                        $data['organisations'][$data['organisationId']] ?? '',
-                ];
-            }
+        if ($member === null) {
+            return null;
         }
 
-        return null;
+        return [
+            'member' => $member,
+            'organisationId' => $data['organisationId'],
+            'organisationName' =>
+                $data['organisations'][$data['organisationId']] ?? '',
+        ];
     }
 }

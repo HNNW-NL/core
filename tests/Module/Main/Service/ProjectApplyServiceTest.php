@@ -120,12 +120,29 @@ class ProjectApplyServiceTest extends KernelTestCase
     public function testWhenProjectIsPrivateShouldGiveError(): void
     {
         $project = $this->getProject();
-        $project->setVisibility('private');
+        $originalVisibility = $project->getVisibility();
 
-        $result = $this->service->apply($project, $this->getProfile('AdminUser'), $this->makeDto('ik wil graag meedoen aan dit project'));
+        try {
+            $project->setVisibility('private');
+            $this->entityManager->flush();
 
-        $this->assertSame(ProjectApplyStatus::NotOpen, $result->status);
-        $this->assertNull($this->findApplication($project, $this->getProfile('AdminUser')));
+            $result = $this->service->apply(
+                $project,
+                $this->getProfile('AdminUser'),
+                $this->makeDto('ik wil graag meedoen aan dit project')
+            );
+
+            $this->assertSame(ProjectApplyStatus::NotOpen, $result->status);
+            $this->assertNull(
+                $this->findApplication(
+                    $project,
+                    $this->getProfile('AdminUser')
+                )
+            );
+        } finally {
+            $project->setVisibility($originalVisibility);
+            $this->entityManager->flush();
+        }
     }
 
     // check

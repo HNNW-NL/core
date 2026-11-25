@@ -98,7 +98,7 @@ final class AccountsController extends AbstractController
 
         $applications = $em->getRepository(ProjectApplication::class)->findBy(
             ['profile' => $profile, 'deletedAt' => null],
-            ['id' => 'DESC']
+            ['lastModified' => 'DESC', 'id' => 'DESC']
         );
 
         return $this->render('pages/account-centre/applications.html.twig', [

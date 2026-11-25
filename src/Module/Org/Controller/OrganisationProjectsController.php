@@ -81,7 +81,7 @@ final class OrganisationProjectsController extends AbstractController
 
         foreach ($applications as $application) {
             if ($applicationHandler->isPending($application)) {
-                $pendingApplicationIds[] = $application->getId()->toRfc4122();
+                $pendingApplicationIds[] = $application->getId()->toBase32();
             }
         }
 

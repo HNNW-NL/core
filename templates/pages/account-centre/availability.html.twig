@@ -33,7 +33,9 @@
             {% endfor %}
         {% endfor %}
 
-        <form action="{{ path('account.availability') }}" method="POST" id="availability-schedule-form">
+        <form action="{{ path('account.availability_delete', {
+            id: availability.id
+        }) }}" method="POST" data-confirm-delete-availability>
             <input type="hidden" name="_token" value="{{ csrf_token('account_availability') }}">
 
             <div class="form-group">
@@ -113,7 +115,8 @@
                     <thead>
                     <tr>
                         <th>Dag</th>
-                        <th>Beschikbare uren</th>
+                        <th>Type</th>
+                        <th>Uren</th>
                         <th>Geldig vanaf</th>
                         <th>Geldig tot</th>
                         <th>Aangemaakt op</th>
@@ -131,9 +134,25 @@
                             </td>
 
                             <td class="text-light">
-                                {{ availability.startTime|date('H:i') }}
+                                {% if availability.baseType == 'available' %}
+                                    Beschikbaar
+                                {% elseif availability.baseType == 'unavailable' %}
+                                    Niet beschikbaar
+                                {% elseif availability.baseType == 'preferred' %}
+                                    Voorkeursuren
+                                {% else %}
+                                    Onbekend
+                                {% endif %}
+                            </td>
+
+                            <td class="text-light">
+                                {{ availability.startTime is not null
+                                ? availability.startTime|date('H:i')
+                                : '—' }}
                                 -
-                                {{ availability.endTime|date('H:i') }}
+                                {{ availability.endTime is not null
+                                ? availability.endTime|date('H:i')
+                                : '—' }}
                             </td>
 
                             <td class="text-light">
@@ -170,7 +189,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="6"
+                            <td colspan="7"
                                 class="text-center text-muted-dark">
                                 Nog geen beschikbaarheid opgeslagen.
                             </td>
