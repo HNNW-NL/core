@@ -16,6 +16,28 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Participants</h2>
-    <p>Main - projects participants page. For project {{ slug }}.</p>
+	<h2>Deelnemers</h2>
+	<p>Deelnemers van project {{ overview.project.title }}.</p>
+
+	{% if overview.participants is not empty %}
+		<div class="participants-grid">
+			{% for participant in overview.participants %}
+				<div class="participant-card">
+					{% if participant.profile.avatarUrl %}
+						<img src="{{ participant.profile.avatarUrl }}" alt="{{ participant.profile.displayName|default(participant.profile.firstName) }}" class="participant-avatar">
+					{% endif %}
+					<h3>{{ participant.profile.displayName|default(participant.profile.firstName ~ ' ' ~ participant.profile.lastName) }}</h3>
+					{% if participant.role %}
+						<p class="participant-role">{{ participant.role.name }}</p>
+					{% endif %}
+					<p class="participant-status">{{ participant.status.name }}</p>
+					{% if participant.joinedAt %}
+						<small>Lid sinds {{ participant.joinedAt|date('d-m-Y') }}</small>
+					{% endif %}
+				</div>
+			{% endfor %}
+		</div>
+	{% else %}
+		<p class="empty">Nog geen deelnemers gevonden.</p>
+	{% endif %}
 {% endblock %}

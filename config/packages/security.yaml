@@ -7,6 +7,15 @@ security:
     providers:
         account_provider: { id: App\Security\AccountUserProvider }
 
+        users_by_username:
+            entity:
+                class: App\Entity\Account\Account
+                property: username
+
+        app_user_provider:
+            chain:
+                providers: ['account_provider', 'users_by_username']
+
     firewalls:
         dev:
             # Ensure dev tools and static assets are always allowed

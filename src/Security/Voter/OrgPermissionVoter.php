@@ -22,6 +22,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  */
 final class OrgPermissionVoter extends Voter
 {
+
+    public const string CREATE_PROJECT = 'ORG_CREATE_PROJECT';
+    public const string ORG_MANAGE_PROJECTS = 'ORG_MANAGE_PROJECTS';
+    public const string VIEW = 'ORG_VIEW';
+    public const string EDIT = 'ORG_EDIT';
+    public const string DELETE = 'ORG_DELETE';
+
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -31,7 +38,14 @@ final class OrgPermissionVoter extends Voter
     {
         return str_starts_with($attribute, 'ORG_')
             && $subject instanceof Organisation
-            && Permission::fromName($attribute) !== null;
+            && Permission::fromName($attribute) !== null
+            && in_array($attribute, [
+                self::CREATE_PROJECT,
+                self::ORG_MANAGE_PROJECTS,
+                self::VIEW,
+                self::EDIT,
+                self::DELETE,
+            ], True);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
