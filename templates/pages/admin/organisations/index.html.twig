@@ -1,0 +1,32 @@
+{% extends 'layouts/admin.base.html.twig' %}
+
+{# Page title meta tag #}
+{% block title %}Organizations{% endblock %}
+
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
+{% block body %}
+    <h2>Organisaties</h2>
+    {% if organizations is empty %}
+        <p>Geen organisaties gevonden.</p>
+    {% else %}
+        <table>
+            <thead><tr><th>Naam</th><th>Locatie</th><th>Status</th><th>Actie</th></tr></thead>
+            <tbody>
+            {% for organisation in organizations %}
+                <tr>
+                    <td>{{ organisation.name }}</td>
+                    <td>{{ organisation.location }}</td>
+                    <td>{{ organisation.status ? organisation.status.name : 'Onbekend' }}</td>
+                    <td><a href="{{ path('admin.organisations.modify', {id: organisation.id}) }}">Bekijken</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

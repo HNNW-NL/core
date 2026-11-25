@@ -447,15 +447,32 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.experience');
         }
 
-
-        $experiences = $entityManager->getRepository(ProfileExperience::class)->findBy(
-            ['profile' => $profile, 'deletedAt' => null],
-            ['startDate' => 'DESC']
-        );
-
         return $this->render('pages/account-centre/experience.html.twig', [
-            'experiences' => $experiences,
             'editingExperience' => $editingExperience,
+            'experiences' => $entityManager->getRepository(ProfileExperience::class)->findBy(
+                ['profile' => $profile, 'deletedAt' => null], ['startDate' => 'DESC']
+            ),
+        ]);
+    }
+
+    #[Route('/experience/{id}/modify', name: 'modify_experience', methods: ['GET', 'POST'])]
+    public function modifyExperience(
+        string $id,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $experience = $em->getRepository(ProfileExperience::class)->find($id);
+
+        if (!$experience || $experience->getDeletedAt() !== null) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($experience->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->render('pages/account-centre/modify-experience.html.twig', [
+            'experience' => $experience,
         ]);
     }
 

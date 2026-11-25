@@ -1,26 +1,37 @@
 <?php
+
 namespace App\Entity\Project;
 
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'project_roles', uniqueConstraints: [
-    new ORM\UniqueConstraint(name: "uniq_project_role_name", columns: ["project_id", "name"])
+    new ORM\UniqueConstraint(
+        name: 'uniq_project_role_name',
+        columns: ['project_id', 'name']
+    )
 ])]
 #[ORM\HasLifecycleCallbacks]
 class ProjectRole
 {
+    // Permissions
+
+    public const PERMISSION_VIEW = 1;   // 001
+    public const PERMISSION_EDIT = 2;   // 010
+    public const PERMISSION_DELETE = 4; // 100
+
+
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
-    #[ORM\ManyToOne(inversedBy: "roles")]
+    #[ORM\ManyToOne(inversedBy: 'roles')]
     #[ORM\JoinColumn(name: 'project_id', nullable: false)]
     private ?Project $project = null;
 
@@ -30,11 +41,8 @@ class ProjectRole
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(name: 'permissions_mask', type: "bigint", nullable: true)]
+    #[ORM\Column(name: 'permissions_mask', type: 'bigint', nullable: true)]
     private ?int $permissionsMask = null;
-
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -42,7 +50,10 @@ class ProjectRole
 
     // Reverse FKs
 
-    #[ORM\OneToMany(targetEntity: ProjectParticipant::class, mappedBy: 'role')]
+    #[ORM\OneToMany(
+        targetEntity: ProjectParticipant::class,
+        mappedBy: 'role'
+    )]
     private Collection $participants;
 
 
@@ -50,12 +61,11 @@ class ProjectRole
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
-
+        $this->id = new Ulid();
         $this->participants = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -63,10 +73,7 @@ class ProjectRole
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -76,7 +83,31 @@ class ProjectRole
     }
 
 
-/// Getters & Setters Functions
+    // Permission Functions
+
+    public function hasPermission(int $permission): bool
+    {
+        $mask = $this->permissionsMask ?? 0;
+
+        return ($mask & $permission) === $permission;
+    }
+
+    public function addPermission(int $permission): static
+    {
+        $this->permissionsMask = ($this->permissionsMask ?? 0) | $permission;
+
+        return $this;
+    }
+
+    public function removePermission(int $permission): static
+    {
+        $this->permissionsMask = ($this->permissionsMask ?? 0) & ~$permission;
+
+        return $this;
+    }
+
+
+    // Getters & Setters Functions
 
     public function getProject(): ?Project
     {
@@ -128,7 +159,7 @@ class ProjectRole
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

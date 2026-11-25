@@ -1,6 +1,6 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
-{% block title %}Jouw Werkervaring{% endblock %}
+{% block title %}Mijn Werkervaring{% endblock %}
 
 {% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/account-centre/css/account-experience.css') }}">{% endblock %}
 
@@ -11,7 +11,7 @@
 
 
         <div class="dashboard-header">
-            <h1>Jouw Ervaring</h1>
+            <h1>Mijn Werkervaring</h1>
             <p>Beheer hier jouw professionele loopbaan, rollen en werkgeschiedenis.</p>
         </div>
 
@@ -38,8 +38,8 @@
                         <div class="account-card-content">
                             <h3>{{ experience.jobTitle }}</h3>
                             <p class="account-card-meta">
-                                <strong>Bedrijf:</strong> {{ experience.organisationName }} |
-                                <strong>Type:</strong> {{ experience.employmentType|default('Onbekend') }} |
+                                <strong>Bedrijf:</strong> {{ experience.displayOrganisationName }} |
+                                <strong>Type:</strong> {{ 'Werkervaring' }} |
                                 <strong>Periode:</strong>
                                 {{ experience.startDate|date('M Y') }} -
                                 {% if experience.isCurrent %}

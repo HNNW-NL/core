@@ -3,9 +3,9 @@
 namespace App\Module\Main\Controller;
 
 use App\Entity\Account\Account;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Module\Main\DTO\UpdateLocationDto;
 use App\Module\Main\Service\LocationService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,51 +15,74 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ProfileController extends AbstractController
 {
-    private const DEV_ACCOUNT_ID = '018f4a2b-3c4d-7e6f-8a9b-0c1d2e3f4a5b';
-
-    #[Route('/dev/set-user', name: 'dev_set_user')]
-    public function devSetUser(SessionInterface $session): Response
+    private function getAccount(): ?Account
     {
-        $session->set('dev_account_id', self::DEV_ACCOUNT_ID);
-        return new Response('✅ Dev user set! <a href="/profile">Go to profile</a>');
+        $user = $this->getUser();
+
+        return $user instanceof Account ? $user : null;
     }
 
-    private function getAccount(SessionInterface $session, EntityManagerInterface $em): ?Account
+    #[Route('/profile', name: 'app_profile', methods: ['GET'])]
+    public function index(): Response
     {
-        $account = $this->getUser();
-
-        if (!$account && $session->get('dev_account_id')) {
-            $account = $em->getRepository(Account::class)
-                ->find($session->get('dev_account_id'));
-        }
-
-        return $account;
-    }
-
-    #[Route('/profile', name: 'app_profile')]
-    public function index(SessionInterface $session, EntityManagerInterface $em): Response
-    {
-        $account = $this->getAccount($session, $em);
+        $account = $this->getAccount();
         $profile = $account?->getProfile();
-        $location = $profile?->getLocation();
 
         return $this->render('pages/main/profile.html.twig', [
+            'slug' => $account?->getUsername() ?? 'profiel',
             'profile' => $profile,
-            'guest_location' => $location,
+            'guest_location' => $profile?->getLocation(),
         ]);
     }
+
+    #[Route('/profile/{slug}', name: 'main.profile', methods: ['GET'])]
+    public function viewProfile(string $slug): Response
+    {
+        /*
+         * TODO: Databasekoppeling activeren zodra er accounts bestaan.
+         *
+         * De publieke profielslug is altijd de username van het account.
+         *
+         * $account = $entityManager->getRepository(Account::class)->findOneBy([
+         *     'username' => $slug,
+         * ]);
+         *
+         * if ($account === null) {
+         *     throw $this->createNotFoundException('Gebruiker niet gevonden.');
+         * }
+         *
+         * $profile = $account->getProfile();
+         *
+         * if ($profile === null) {
+         *     throw $this->createNotFoundException('Profiel niet gevonden.');
+         * }
+         *
+         * return $this->render('pages/main/profile.html.twig', [
+         *     'slug' => $account->getUsername(),
+         *     'profile' => $profile,
+         *     'guest_location' => $profile->getLocation(),
+         * ]);
+         */
+
+        // Tijdelijke weergave zonder databasegegevens.
+        return $this->render('pages/main/profile.html.twig', [
+            'slug' => $slug,
+            'profile' => null,
+            'guest_location' => null,
+        ]);
+    }
+
 
     #[Route('/profile/location', name: 'profile_update_location', methods: ['POST'])]
     public function updateLocation(
         Request $request,
         SessionInterface $session,
-        EntityManagerInterface $em,
         LocationService $locationService
     ): JsonResponse {
         try {
             $data = json_decode($request->getContent(), true) ?? [];
             $dto = UpdateLocationDto::fromArray($data);
-            $account = $this->getAccount($session, $em);
+            $account = $this->getAccount();
 
             $result = $locationService->updateLocation($account, $dto, $session);
 

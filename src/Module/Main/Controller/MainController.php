@@ -2,6 +2,8 @@
 
 namespace App\Module\Main\Controller;
 
+use App\Entity\Common\Event;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -27,11 +29,32 @@ final class MainController extends AbstractController
         return $this->render('pages/main/contact.html.twig');
     }
 
-    #[Route('/profile/{slug}', name: 'profile', methods: ['GET'])]
-    public function viewProfile(string $slug): Response
+    #[Route('/events', name: 'events', methods: ['GET'])]
+    public function events(EntityManagerInterface $em): Response
     {
-        return $this->render('pages/main/profile.html.twig', [
-            "slug" => $slug,
+        $events = $em->getRepository(Event::class)->findBy(
+            ['deletedAt' => null],
+            ['startDatetime' => 'ASC']
+        );
+
+        return $this->render('pages/main/events/index.html.twig', ['events' => $events]);
+    }
+
+    #[Route('/events/{slug}', name: 'event', methods: ['GET'])]
+    public function viewEvent(string $slug, EntityManagerInterface $em): Response
+    {
+        $event = $em->getRepository(Event::class)->findOneBy([
+            'slug' => $slug,
+            'deletedAt' => null,
+        ]);
+
+        if ($event === null) {
+            throw $this->createNotFoundException('Evenement niet gevonden.');
+        }
+
+        return $this->render('pages/main/events/detail.html.twig', [
+            'slug' => $slug,
+            'event' => $event,
         ]);
     }
 }

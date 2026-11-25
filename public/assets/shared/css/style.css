@@ -1,8 +1,10 @@
 :root {
     --background: #020617;
-    --header-background: #0f172ab3;
+    --header-background: #0f172AB3;
+    --card-background: #141B2E;
 
     --paragraph: #FFFFFF;
+    --paragraph-grey: #AAB3C5;
 
     --hnnw-yellow-300: #ffe36f;
     --hnnw-yellow-400: #ffd736;
@@ -40,13 +42,34 @@
 
 body {
     background-color: var(--background);
+    min-height: 100svh;
+    font-family: 'Lato', sans-serif;
 
-    h1, h2, h3 {
-        font-family: inter;
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Inter', sans-serif;
+    }
+
+    h1 {
+        font-size: 2.2em;
+        font-weight: 1000;
+    }
+
+    h2 {
+        font-size: 1.8em;
+        font-weight: 800;
+    }
+
+    h3 {
+        font-size: 1.4em;
+        font-weight: 600;
     }
 
     p {
-        font-family: lato;
+        line-height: 1.5em;
+    }
+
+    button, input, textarea, select {
+        font: inherit;
     }
 }
 
