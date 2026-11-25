@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ==========================================
-    // 2. TIDYCAL GEBLOKKEERDE DATUMS BEHEREN
+    // 2. BESCHIKBAARHEID GEBLOKKEERDE DATUMS BEHEREN
     // ==========================================
     const picker = document.getElementById('picker_blocked_date');
     const addBtn = document.getElementById('btn_add_blocked');

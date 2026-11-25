@@ -162,32 +162,65 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
-    public function availability(Request $request, EntityManagerInterface $em): Response
-    {
+    public function availability(
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
         $profile = $this->profile($em);
+
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_availability');
-            $from = $this->date((string) $request->request->get('start_date', ''));
-            $until = $this->date((string) $request->request->get('end_date', ''));
-            $raw = $request->request->all('days_config');
-            if (!$from || ($until && $until < $from)) {
+
+            $from = $this->date(
+                $request->request->getString('start_date')
+            );
+
+            $untilInput = trim(
+                $request->request->getString('end_date')
+            );
+
+            $until = $untilInput === ''
+                ? null
+                : $this->date($untilInput);
+
+            if (
+                !$from
+                || ($untilInput !== '' && !$until)
+                || ($until && $until < $from)
+            ) {
                 $this->addFlash('error', 'Ongeldige periode.');
+
                 return $this->redirectToRoute('account.availability');
             }
+
+            $raw = $request->request->all('days_config');
             $entries = [];
+
             foreach (self::DAYS as $i => $day) {
                 $data = $raw[$i] ?? [];
+
                 if (!is_array($data) || empty($data['enabled'])) {
                     continue;
                 }
-                $start = (string) ($data['start'] ?? '');
-                $end = (string) ($data['end'] ?? '');
-                if (!preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $start)
+
+                $start = $data['start'] ?? '';
+                $end = $data['end'] ?? '';
+
+                if (
+                    !is_string($start)
+                    || !is_string($end)
+                    || !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $start)
                     || !preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $end)
-                    || $start >= $end) {
-                    $this->addFlash('error', 'Ongeldige begin- of eindtijd.');
+                    || $start >= $end
+                ) {
+                    $this->addFlash(
+                        'error',
+                        'Ongeldige begin- of eindtijd.'
+                    );
+
                     return $this->redirectToRoute('account.availability');
                 }
+
                 $entries[] = (new Availability())
                     ->setProfile($profile)
                     ->setAvailabilityType(AvailabilityType::AVAILABLE)
@@ -197,44 +230,91 @@ final class AccountsController extends AbstractController
                     ->setStartTime(new \DateTimeImmutable($start))
                     ->setEndTime(new \DateTimeImmutable($end));
             }
+
             if ($entries === []) {
                 $this->addFlash('error', 'Selecteer minstens één dag.');
+
                 return $this->redirectToRoute('account.availability');
             }
+
             foreach ($entries as $entry) {
                 $em->persist($entry);
             }
+
             $em->flush();
+
             $this->addFlash('success', 'Beschikbaarheid opgeslagen.');
-            return $this->redirectToRoute('account.availability');
+
+            return $this->redirectToRoute(
+                'account.availability',
+                [],
+                Response::HTTP_SEE_OTHER
+            );
         }
 
         $records = $em->getRepository(Availability::class)->findBy(
-            ['profile' => $profile, 'deletedAt' => null], ['validFrom' => 'DESC']
+            [
+                'profile' => $profile,
+                'deletedAt' => null,
+            ],
+            [
+                'validFrom' => 'DESC',
+                'id' => 'DESC',
+            ]
         );
-        $names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        $names = [
+            'Monday',
+            'Tuesday',
+            'Wednesday',
+            'Thursday',
+            'Friday',
+            'Saturday',
+            'Sunday',
+        ];
+
         $short = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+
         $default = [];
+
         foreach ($names as $i => $name) {
-            $default[$i] = ['name' => $name, 'enabled' => $i < 5, 'start' => '08:00', 'end' => '17:00'];
+            $default[$i] = [
+                'name' => $name,
+                'enabled' => $i < 5,
+                'start' => '08:00',
+                'end' => '17:00',
+            ];
         }
-        // Each entity is a single weekday/time interval in the current schema.
+
         $items = [];
+
         foreach ($records as $record) {
-            $day = array_search($record->getDayOfWeek(), self::DAYS, true);
-            $items[] = (object) [
+            $day = array_search(
+                $record->getDayOfWeek(),
+                self::DAYS,
+                true
+            );
+
+            $items[] = [
                 'id' => $record->getId()->toString(),
                 'baseType' => $record->getAvailabilityType()?->value,
-                'daysSummary' => $day === false ? '' : '(' . $short[$day] . ')',
+                'daysSummary' => $day === false ? '' : $short[$day],
                 'startDate' => $record->getValidFrom(),
                 'endDate' => $record->getValidUntil(),
                 'startTime' => $record->getStartTime(),
                 'endTime' => $record->getEndTime(),
+                'createdAt' => $record->getCreatedAt(),
             ];
         }
-        return $this->render('pages/account-centre/availability.html.twig', [
-            'profile' => $profile, 'availabilities' => $items, 'defaultSchedule' => $default,
-        ]);
+
+        return $this->render(
+            'pages/account-centre/availability.html.twig',
+            [
+                'profile' => $profile,
+                'availabilities' => $items,
+                'defaultSchedule' => $default,
+            ]
+        );
     }
 
     #[Route('/availability/{id}/delete', name: 'availability_delete', methods: ['POST'])]
