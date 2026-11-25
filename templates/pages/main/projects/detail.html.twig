@@ -16,6 +16,18 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Detail</h2>
-    <p>Main - projects detail page. For project {{ slug }}.</p>
+    <h2>{{ project.title }}</h2>
+
+    {% if project.summary %}
+        <p>{{ project.summary }}</p>
+    {% endif %}
+
+    {% if project.visibility == 'public'
+        and project.publishedAt is not null
+        and project.deletedAt is null %}
+        <a href="{{ path('main.projects.apply', {slug: slug}) }}"
+           class="btn-primary">
+            Aanmelden voor dit project
+        </a>
+    {% endif %}
 {% endblock %}
