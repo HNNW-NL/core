@@ -4,7 +4,9 @@
 {% block title %}Mijn vaardigheden{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset("assets/account-centre/css/skills.css") }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
@@ -37,31 +39,19 @@
                 <p>Voeg je belangrijkste vaardigheden toe om beter gevonden te worden.</p>
             </div>
 
-            <form method="post" action="{{ path('account.skills_save') }}">
-                <input type="hidden" name="_token" value="{{ csrf_token('account_skill_save') }}">
+            {{ form_start(form) }}
+                {{ form_label(form.skill) }}
+                {{ form_widget(form.skill) }}
+                {{ form_errors(form.skill) }}
 
-                <div class="form-group">
-                    <label for="skill_id">Vaardigheid</label>
-                    <select name="skill_id" id="skill_id" required>
-                        <option value="">Selecteer een vaardigheid</option>
-                        {% for skill in availableSkills %}
-                            <option value="{{ skill.id }}">{{ skill.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                {{ form_label(form.proficiencyLevel) }}
+                {{ form_widget(form.proficiencyLevel) }}
+                {{ form_errors(form.proficiencyLevel) }}
 
-                <div class="form-group">
-                    <label for="level">Niveau</label>
-                    <select name="level" id="level" required>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Zelfstandig</option>
-                        <option value="advanced">Gevorderd</option>
-                        <option value="expert">Expert</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn-primary">Vaardigheid toevoegen</button>
-            </form>
+                <button type="submit" class="btn btn-primary">
+                    Vaardigheid opslaan
+                </button>
+            {{ form_end(form) }}
         </section>
 
         <section class="account-form-container" aria-labelledby="skills-list-heading">
@@ -70,9 +60,9 @@
                 <p>Bekijk en beheer de vaardigheden op je profiel.</p>
             </div>
 
-            {% if skills is not empty %}
+            {% if ProfileSkills is not empty %}
                 <div class="account-card-list">
-                    {% for item in skills %}
+                    {% for item in ProfileSkills %}
                         <article class="account-card">
                             <div class="account-card-content">
                                 <h3>{{ item.skill.name }}</h3>
@@ -80,7 +70,7 @@
                             </div>
 
                             <form method="post" action="{{ path('account.skills_delete', {'id': item.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('account_skill_delete_' ~ item.id) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_account_skill' ~ item.id) }}">
                                 <button type="submit" class="btn-danger">Verwijderen</button>
                             </form>
                         </article>

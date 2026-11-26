@@ -1,0 +1,119 @@
+
+/* ==========================================
+   TOM SELECT AUTOCOMPLETE STYLING
+   ========================================== */
+
+#account-centre-container .ts-wrapper {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+#account-centre-container .ts-control {
+    min-height: 48px;
+    padding: 0.85rem 1rem;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #0f172a;
+    box-shadow: none;
+}
+
+#account-centre-container .ts-control input {
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: inherit;
+}
+
+#account-centre-container .ts-control input::placeholder {
+    color: #94a3b8;
+}
+
+#account-centre-container .ts-wrapper.focus .ts-control {
+    border-color: #94a3b8;
+    box-shadow: none;
+}
+
+#account-centre-container .ts-dropdown {
+    margin-top: 4px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+#account-centre-container .ts-dropdown .option {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+}
+
+#account-centre-container .ts-dropdown .option.active {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+#account-centre-container .ts-dropdown .option.selected {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+#account-centre-container .ts-control .item {
+    color: #0f172a;
+}
+
+#account-centre-container .ts-control .clear-button {
+    color: #64748b;
+    cursor: pointer;
+}
+
+/* ==========================================
+   DARK THEME
+   ========================================== */
+
+body[data-theme="dark"] #account-centre-container .ts-control {
+    background: #000000 !important;
+    border: 1px solid #222c3e !important;
+    color: #ffffff !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-control input {
+    color: #ffffff !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-control input::placeholder {
+    color: #64748b !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-wrapper.focus .ts-control {
+    border-color: #475569 !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-dropdown {
+    background: #000000 !important;
+    border: 1px solid #222c3e !important;
+    color: #ffffff !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-dropdown .option {
+    color: #ffffff !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-dropdown .option.active {
+    background: #1e293b !important;
+    color: #ffffff !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-dropdown .option.selected {
+    background: #334155 !important;
+    color: #ffffff !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-control .item {
+    color: #ffffff !important;
+}
+
+body[data-theme="dark"] #account-centre-container .ts-control .clear-button {
+    color: #94a3b8 !important;
+}

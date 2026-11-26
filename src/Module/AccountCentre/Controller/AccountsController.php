@@ -26,6 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Symfony\Component\Form\FormError;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -96,7 +97,7 @@ final class AccountsController extends AbstractController
     {
         $account = $this->getAndCheckAccount();
 
-        $profile = $this->profile($em);
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         $applications = $em->getRepository(ProjectApplication::class)->findBy(
             ['profile' => $profile, 'deletedAt' => null],
@@ -448,7 +449,6 @@ final class AccountsController extends AbstractController
 
         $formData = [
             'username' => $account->getUsername(),
-            'email' => $account->getEmail(),
             'first_name' => $profile?->getFirstName() ?? '',
             'last_name' => $profile?->getLastName() ?? '',
             'display_name' => $profile?->getDisplayName() ?? '',
@@ -547,18 +547,7 @@ final class AccountsController extends AbstractController
                     $profile->setLastModified(new \DateTimeImmutable());
                 }
 
-                try {
-                    $em->flush();
-                } catch (UniqueConstraintViolationException $e) {
-                    $errors['username'] = 'Deze username is al in gebruik.';
-
-                    return $this->render('pages/account-centre/modify.html.twig', [
-                        'account' => $account,
-                        'profile' => $profile,
-                        'formData' => $formData,
-                        'errors' => $errors,
-                    ]);
-                }
+                $em->flush();
 
                 $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
 
@@ -577,9 +566,12 @@ final class AccountsController extends AbstractController
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
     public function notifications(Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
-        $settings = $this->settings($em);
+        $account = $this->account();
+        $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
+        if (!$settings) {
+            $settings = $this->createAccountSettings($em, $account);
+        }
 
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_notifications');
@@ -784,6 +776,11 @@ final class AccountsController extends AbstractController
     {
         $settings = new AccountSetting();
         $settings->setAccount($account);
+        $settings->setLanguage('nl');
+        $settings->setTheme('dark');
+        $settings->setProfileVisibility('public');
+        $settings->setEmailNotificationsEnabled(true);
+
         $entityManager->persist($settings);
 
         return $settings;
