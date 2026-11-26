@@ -4,9 +4,7 @@ config.autoAddCss = false;
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    // ==========================================
-    // 1. WERKERVARING TOOGLE (HUIDIGE BAAN)
-    // ==========================================
+    // Current employment
     const currentCheckbox = document.getElementById('exp-is-current');
     const endDateInput = document.getElementById('exp-end-date');
 
@@ -23,9 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ==========================================
-    // 2. TIDYCAL GEBLOKKEERDE DATUMS BEHEREN
-    // ==========================================
+    // Blocked dates
     const picker = document.getElementById('picker_blocked_date');
     const addBtn = document.getElementById('btn_add_blocked');
     const dummyZone = document.getElementById('dummy_add_zone');
@@ -77,4 +73,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update het verborgen CSV inputveld voor Symfony
         csvHidden.value = blockedDates.join(',');
     }
+
+    document.addEventListener('submit', (event) => {
+        const form = event.target;
+
+        if (!(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        if (form.matches('[data-confirm-delete-availability]')) {
+            if (!window.confirm('Weet je zeker dat je deze beschikbaarheid wilt verwijderen?')) {
+                event.preventDefault();
+            }
+        }
+
+        if (form.matches('[data-confirm-cancel-application]')) {
+            if (!window.confirm('Weet je zeker dat je deze aanmelding wilt annuleren?')) {
+                event.preventDefault();
+            }
+        }
+    });
 });
