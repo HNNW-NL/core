@@ -58,8 +58,7 @@ final class AccountsController extends AbstractController
         $account = $this->account();
         $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
         if (!$settings) {
-            $settings = (new AccountSetting())->setAccount($account);
-            $em->persist($settings);
+            $settings = $this->createAccountSettings($em, $account);
         }
         return $settings;
     }
@@ -94,7 +93,9 @@ final class AccountsController extends AbstractController
     #[Route('/applications', name: 'applications', methods: ['GET'])]
     public function applications(EntityManagerInterface $em): Response
     {
-        $profile = $this->profile($em);
+        $account = $this->getAndCheckAccount();
+
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         $applications = $em->getRepository(ProjectApplication::class)->findBy(
             ['profile' => $profile, 'deletedAt' => null],
@@ -116,6 +117,8 @@ final class AccountsController extends AbstractController
         $profile = $this->profile($em);
 
         $application = $em->getRepository(ProjectApplication::class)->find($id);
+        $account = $this->getAndCheckAccount();
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         if (!$application || $application->getDeletedAt() !== null) {
             throw $this->createNotFoundException('Aanmelding niet gevonden.');
@@ -123,6 +126,9 @@ final class AccountsController extends AbstractController
 
         if ($application->getProfile()?->getId()->toString() !== $profile->getId()->toString()) {
             throw $this->createAccessDeniedException();
+        }
+        if (!$profile || $application->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze aanmelding.');
         }
 
         $this->csrf($request, 'cancel_application' . $id);
@@ -157,17 +163,20 @@ final class AccountsController extends AbstractController
                 'Alleen openstaande aanmeldingen kunnen worden ingetrokken.'
             );
         }
-
         return $this->redirectToRoute('account.applications');
     }
 
     #[Route('/availability', name: 'availability', methods: ['GET', 'POST'])]
-    public function availability(
-        Request $request,
-        EntityManagerInterface $em
-    ): Response {
-        $profile = $this->profile($em);
+    public function availability(Request $request, EntityManagerInterface $em): Response
+    {
 
+        $profile = $this->profile($em);
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
+        // POST: Schema opslaan in de `availabilities` tabel
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_availability');
 
@@ -189,7 +198,6 @@ final class AccountsController extends AbstractController
                 || ($until && $until < $from)
             ) {
                 $this->addFlash('error', 'Ongeldige periode.');
-
                 return $this->redirectToRoute('account.availability');
             }
 
@@ -220,7 +228,6 @@ final class AccountsController extends AbstractController
 
                     return $this->redirectToRoute('account.availability');
                 }
-
                 $entries[] = (new Availability())
                     ->setProfile($profile)
                     ->setAvailabilityType(AvailabilityType::AVAILABLE)
@@ -230,10 +237,8 @@ final class AccountsController extends AbstractController
                     ->setStartTime(new \DateTimeImmutable($start))
                     ->setEndTime(new \DateTimeImmutable($end));
             }
-
             if ($entries === []) {
                 $this->addFlash('error', 'Selecteer minstens één dag.');
-
                 return $this->redirectToRoute('account.availability');
             }
 
@@ -337,6 +342,11 @@ final class AccountsController extends AbstractController
     public function experience(Request $request, EntityManagerInterface $em): Response
     {
         $profile = $this->profile($em);
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_experience');
             $title = trim((string) $request->request->get('job_title', ''));
@@ -406,6 +416,8 @@ final class AccountsController extends AbstractController
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $em): Response
     {
+        $account = $this->getAndCheckAccount();
+
         $experience = $em->getRepository(ProfileExperience::class)->find($id);
         if (!$experience || $experience->getDeletedAt() !== null) {
             throw $this->createNotFoundException();
@@ -413,9 +425,17 @@ final class AccountsController extends AbstractController
         if ($experience->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
             throw $this->createAccessDeniedException();
         }
+
+        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
+        if (!$profile || $experience->getProfile() !== $profile) {
+            throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze ervaring.');
+        }
+
         $this->csrf($request, 'delete_experience' . $id);
         $experience->softDelete();
         $em->flush();
+
         return $this->redirectToRoute('account.experience');
     }
 
@@ -424,51 +444,133 @@ final class AccountsController extends AbstractController
     {
         $account = $this->account();
         $profile = $this->profile($em);
-        $settings = $this->settings($em);
+
+        $formData = [
+            'username' => $account->getUsername(),
+            'first_name' => $profile?->getFirstName() ?? '',
+            'last_name' => $profile?->getLastName() ?? '',
+            'display_name' => $profile?->getDisplayName() ?? '',
+            'avatar_url' => $profile?->getAvatarUrl() ?? '',
+            'location' => $profile?->getLocation() ?? '',
+            'bio' => $profile?->getDescription() ?? '',
+        ];
+
+        $errors = [];
+
         if ($request->isMethod('POST')) {
+            if (!$profile) {
+                $this->addFlash('error', 'Profiel niet gevonden.');
+
+                return $this->redirectToRoute('account.modify');
+            }
+
             $this->csrf($request, 'account_modify');
-            $username = trim((string) $request->request->get('username', ''));
-            $first = trim((string) $request->request->get('first_name', ''));
-            $last = trim((string) $request->request->get('last_name', ''));
-            if ($username === '' || $first === '' || $last === '') {
-                $this->addFlash('error', 'Controleer de verplichte velden.');
-            } else {
+
+            foreach ($formData as $field => $default) {
+                $formData[$field] = trim((string) $request->request->get($field, ''));
+            }
+
+            $username = $formData['username'];
+            $firstName = $formData['first_name'];
+            $lastName = $formData['last_name'];
+            $displayName = $this->nullableTrim($formData['display_name']);
+            $avatarUrl = $formData['avatar_url'];
+            $location = $this->nullableTrim($formData['location']);
+            $bio = $this->nullableTrim($formData['bio']);
+
+            if (empty($username) || mb_strlen($username) > 12) {
+                $errors['username'] = 'Username moet ingevuld zijn en mag maximaal 12 tekens bevatten.';
+            } elseif ($username !== $account->getUsername()) {
                 $existingAccount = $em->getRepository(Account::class)
                     ->findOneBy(['username' => $username]);
 
-                if (
-                    $existingAccount !== null
-                    && $existingAccount->getId() !== $account->getId()
-                ) {
-                    $this->addFlash(
-                        'error',
-                        'Deze gebruikersnaam is al in gebruik.'
-                    );
+                if ($existingAccount) {
+                    $errors['username'] = 'Deze username is al in gebruik.';
+                }
+            }
 
-                    return $this->redirectToRoute('account.modify');
+            if (empty($firstName) || mb_strlen($firstName) > 50) {
+                $errors['first_name'] = 'Voornaam moet ingevuld zijn en mag maximaal 50 tekens bevatten.';
+            }
+
+            if (empty($lastName) || mb_strlen($lastName) > 50) {
+                $errors['last_name'] = 'Achternaam moet ingevuld zijn en mag maximaal 50 tekens bevatten.';
+            }
+
+            if ($displayName !== null && mb_strlen($displayName) > 50) {
+                $errors['display_name'] = 'Display name mag maximaal 50 tekens bevatten.';
+            }
+
+            if (empty($avatarUrl)) {
+                $avatarUrl = null;
+            } else {
+                $parsedUrl = parse_url($avatarUrl);
+
+                if (
+                    mb_strlen($avatarUrl) > 255 ||
+                    !filter_var($avatarUrl, FILTER_VALIDATE_URL) ||
+                    !in_array(
+                        strtolower($parsedUrl['scheme'] ?? ''),
+                        ['http', 'https'],
+                        true
+                    ) ||
+                    empty($parsedUrl['host']) ||
+                    !filter_var($parsedUrl['host'], FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)
+                ) {
+                    $errors['avatar_url'] = 'Voer een geldige HTTP- of HTTPS-avatar-URL in van maximaal 255 tekens.';
+                }
+            }
+
+            if ($location !== null && mb_strlen($location) > 50) {
+                $errors['location'] = 'Location mag maximaal 50 tekens bevatten.';
+            }
+
+            if ($bio !== null && mb_strlen($bio) > 250) {
+                $errors['bio'] = 'Bio mag maximaal 250 tekens bevatten.';
+            }
+
+            if (empty($errors)) {
+                if ($username !== $account->getUsername()) {
+                    $account->setUsername($username);
                 }
 
-                $account->setUsername($username);
-                $profile->setFirstName($first)
-                    ->setLastName($last)
-                    ->setDisplayName(
-                        trim($request->request->getString('display_name')) ?: null
-                    )
-                    ->setAvatarUrl(trim((string) $request->request->get('avatar_url', '')) ?: null)
-                    ->setLocation(trim((string) $request->request->get('location', '')) ?: null)
-                    ->setDescription(trim((string) $request->request->get('bio', '')) ?: null);
+                $profile->setFirstName($firstName);
+                $profile->setLastName($lastName);
+                $profile->setDisplayName($displayName);
+                $profile->setDescription($bio);
+                $profile->setAvatarUrl($avatarUrl);
+                $profile->setLocation($location);
+
+                if (method_exists($profile, 'setLastModified')) {
+                    $profile->setLastModified(new \DateTimeImmutable());
+                }
+
                 $em->flush();
-                $this->addFlash('success', 'Wijzigingen opgeslagen.');
+
+                $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
+
+                return $this->redirectToRoute('account.modify');
             }
-            return $this->redirectToRoute('account.modify');
         }
-        return $this->render('pages/account-centre/modify.html.twig', compact('account', 'profile', 'settings'));
+
+        return $this->render('pages/account-centre/modify.html.twig', [
+            'account' => $account,
+            'profile' => $profile,
+            'formData' => $formData,
+            'errors' => $errors,
+        ]);
     }
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
     public function notifications(Request $request, EntityManagerInterface $em): Response
     {
-        $settings = $this->settings($em);
+        $account = $this->getAndCheckAccount();
+        $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
+
+        if (!$settings) {
+            $settings = $this->createAccountSettings($em, $account);
+        }
+
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_notifications');
             $settings->setEmailNotificationsEnabled(
@@ -656,5 +758,36 @@ final class AccountsController extends AbstractController
         $em->remove($item);
         $em->flush();
         return $this->redirectToRoute('account.saved_items');
+    }
+
+    private function getAndCheckAccount(): Account
+    {
+        $account = $this->getUser();
+
+        if (!$account instanceof Account) {
+            throw $this->createAccessDeniedException();
+        }
+        return $account;
+    }
+
+    private function createAccountSettings($entityManager, $account): AccountSetting
+    {
+        $settings = new AccountSetting();
+        $settings->setAccount($account);
+        $settings->setLanguage('nl');
+        $settings->setTheme('dark');
+        $settings->setProfileVisibility('public');
+        $settings->setEmailNotificationsEnabled(true);
+
+        $entityManager->persist($settings);
+
+        return $settings;
+    }
+
+    private function nullableTrim(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value !== '' ? $value : null;
     }
 }

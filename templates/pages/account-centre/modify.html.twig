@@ -29,12 +29,6 @@
             </div>
         {% endfor %}
 
-        {% for message in app.flashes('error') %}
-            <div class="account-flash" role="alert">
-                {{ message }}
-            </div>
-        {% endfor %}
-
         <div class="account-form-container">
             <div class="form-internal-header">
                 <h2>Wijzig je profielgegevens</h2>
@@ -44,44 +38,70 @@
             <form action="{{ path('account.modify') }}" method="POST">
                 <input type="hidden" name="_token" value="{{ csrf_token('account_modify') }}">
                 <div class="form-group">
-                    <label for="username">Gebruikersnaam</label>
+                    {% if errors.username is defined %}
+                        <small class="account-flash" role="alert">{{ errors.username }}</small>
+                    {% endif %}
+                    <label for="username">Gebruikersnaam (Max 12 characters)</label>
                     <input type="text" id="username" name="username" placeholder="Kies een gebruikersnaam" value="{{ account.username|default('') }}" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="first_name">Voornaam</label>
-                    <input type="text" id="first_name" name="first_name" placeholder="Voornaam" value="{{ profile.firstName|default('') }}" required>
+                    <label for="email">Email</label>
+                    <input type="text" id="email" name="email" placeholder="email" value="{{ account.email|default('') }}" disabled>
                 </div>
 
                 <div class="form-group">
-                    <label for="last_name">Achternaam</label>
-                    <input type="text" id="last_name" name="last_name" placeholder="Achternaam" value="{{ profile.lastName|default('') }}" required>
+                    {% if errors.first_name is defined %}
+                        <small class="account-flash" role="alert">{{ errors.first_name }}</small>
+                    {% endif %}
+                    <label for="first_name">Voornaam (Max 50 characters)</label>
+                    <input type="text" id="first_name" name="first_name" placeholder="Voornaam" value="{{ formData.first_name|default('') }}" required>
                 </div>
 
                 <div class="form-group">
+                    {% if errors.last_name is defined %}
+                        <small class="account-flash" role="alert">{{ errors.last_name }}</small>
+                    {% endif %}
+                    <label for="last_name">Achternaam (Max 50 characters)</label>
+                    <input type="text" id="last_name" name="last_name" placeholder="Achternaam" value="{{ formData.last_name|default('') }}" required>
+                </div>
+
+                <div class="form-group">
+                    {% if errors.display_name is defined %}
+                        <small class="account-flash" role="alert">{{ errors.display_name }}</small>
+                    {% endif %}
                     <label for="display_name">Weergavenaam</label>
                     <input
                         type="text"
                         id="display_name"
                         name="display_name"
-                        value="{{ profile.displayName|default('') }}"
+                        value="{{ formData.display_name|default('') }}"
                         placeholder="Hoe wil je zichtbaar zijn?"
                     >
                 </div>
 
                 <div class="form-group">
+                    {% if errors.avatar_url is defined %}
+                        <small class="account-flash" role="alert">{{ errors.avatar_url }}</small>
+                    {% endif %}
                     <label for="avatar_url">Avatar URL</label>
-                    <input type="text" id="avatar_url" name="avatar_url" placeholder="https://example.com/avatar.png" value="{{ profile.avatarUrl|default('') }}">
+                    <input type="url" id="avatar_url" name="avatar_url" placeholder="https://example.com/avatar.png" value="{{ formData.avatar_url|default('') }}">
                 </div>
 
                 <div class="form-group">
+                    {% if errors.location is defined %}
+                        <small class="account-flash" role="alert">{{ errors.location }}</small>
+                    {% endif %}
                     <label for="location">Locatie</label>
-                    <input type="text" id="location" name="location" placeholder="Bijv. Amsterdam, Nederland" value="{{ profile.location|default('') }}">
+                    <input type="text" id="location" name="location" placeholder="Bijv. Amsterdam, Nederland" value="{{ formData.location|default('') }}">
                 </div>
 
                 <div class="form-group">
-                    <label for="bio">Over jezelf</label>
-                    <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf...">{{ profile.description|default('') }}</textarea>
+                    {% if errors.bio is defined %}
+                        <small class="account-flash" role="alert">{{ errors.bio }}</small>
+                    {% endif %}
+                    <label for="bio">Over jezelf (Max 250 characters)</label>
+                    <textarea id="bio" name="bio" rows="4" placeholder="Vertel iets over jezelf..." maxlength="250">{{ formData.bio|default('') }}</textarea>
                 </div>
 
                 <button type="submit" class="btn-primary">Wijzigingen opslaan</button>
