@@ -77,13 +77,11 @@ final class ProjectsController extends AbstractController
             }
         }
 
-        $statusName = strtolower(trim((string) $project->getStatus()?->getName()));
-
         return $this->render('pages/main/projects/detail.html.twig', [
             'slug' => $slug,
             'project' => $project,
             'projectLeaderName' => trim((string) $project->getOwnerAccount()?->getProfile()?->getDisplayName()),
-            'isOpen' => $statusName === 'open',
+            'isOpen' => $projectRepository->canAcceptApplications($project),
             'application' => $application,
             'previewMode' => false,
         ]);
@@ -130,7 +128,7 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        if (strtolower(trim((string) $project->getStatus()?->getName())) !== 'open') {
+        if (!$projectRepository->canAcceptApplications($project)) {
             $this->addFlash('warning', 'Dit project accepteert op dit moment geen aanmeldingen.');
 
             return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);
@@ -179,7 +177,7 @@ final class ProjectsController extends AbstractController
             return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);
         }
 
-        if (strtolower(trim((string) $project->getStatus()?->getName())) !== 'open') {
+        if (!$projectRepository->canAcceptApplications($project)) {
             $this->addFlash('warning', 'Dit project accepteert op dit moment geen aanmeldingen.');
 
             return $this->redirectToRoute('main.projects.detail', ['slug' => $slug], Response::HTTP_SEE_OTHER);

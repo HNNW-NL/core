@@ -4,6 +4,7 @@ namespace App\Repository\Project;
 
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
+use App\Entity\Project\ProjectParticipant;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -35,6 +36,42 @@ class ProjectRepository extends ServiceEntityRepository
             ->setParameter('visibilities', ['public', 'unlisted'])
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function canAcceptApplications(Project $project): bool
+    {
+        $now = new \DateTimeImmutable();
+        $status = $project->getStatus();
+
+        if (
+            strtolower(trim((string) $status?->getName())) !== 'published'
+            || $status?->getScope() !== 'project'
+            || $project->getPublishedAt() === null
+            || $project->getDeletedAt() !== null
+            || !in_array($project->getVisibility(), ['public', 'unlisted'], true)
+            || $project->getStartDate() > $now
+            || ($project->getEndDate() !== null && $project->getEndDate() < $now)
+        ) {
+            return false;
+        }
+
+        $capacity = $project->getCapacity();
+        if ($capacity === null) {
+            return true;
+        }
+
+        $activeParticipants = (int) $this->getEntityManager()
+            ->createQueryBuilder()
+            ->select('COUNT(participant.id)')
+            ->from(ProjectParticipant::class, 'participant')
+            ->andWhere('participant.project = :project')
+            ->andWhere('participant.joinedAt IS NOT NULL')
+            ->andWhere('participant.leftAt IS NULL')
+            ->setParameter('project', $project)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $activeParticipants < $capacity;
     }
 
     public function findOneUnpublishedBySlug(string $slug): ?Project

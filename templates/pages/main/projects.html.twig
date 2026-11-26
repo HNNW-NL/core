@@ -71,7 +71,12 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p class="open-projects-empty">Er zijn op dit moment geen openbare projecten beschikbaar.</p>
+            {% if search is not empty or onlyAcceptingApplications %}
+                <p class="open-projects-empty">Er zijn geen projecten gevonden die aan je filters voldoen.</p>
+                <a class="open-project-link" href="{{ path('main.projects.home') }}">Wis filters</a>
+            {% else %}
+                <p class="open-projects-empty">Er zijn op dit moment geen openbare projecten beschikbaar.</p>
+            {% endif %}
         {% endif %}
 
         {% if totalPages > 1 %}
