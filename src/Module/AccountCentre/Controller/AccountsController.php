@@ -25,6 +25,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -447,6 +448,7 @@ final class AccountsController extends AbstractController
 
         $formData = [
             'username' => $account->getUsername(),
+            'email' => $account->getEmail(),
             'first_name' => $profile?->getFirstName() ?? '',
             'last_name' => $profile?->getLastName() ?? '',
             'display_name' => $profile?->getDisplayName() ?? '',
@@ -545,7 +547,18 @@ final class AccountsController extends AbstractController
                     $profile->setLastModified(new \DateTimeImmutable());
                 }
 
-                $em->flush();
+                try {
+                    $em->flush();
+                } catch (UniqueConstraintViolationException $e) {
+                    $errors['username'] = 'Deze username is al in gebruik.';
+
+                    return $this->render('pages/account-centre/modify.html.twig', [
+                        'account' => $account,
+                        'profile' => $profile,
+                        'formData' => $formData,
+                        'errors' => $errors,
+                    ]);
+                }
 
                 $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
 
