@@ -16,6 +16,9 @@ use App\Entity\Account\SavedItem;
 use App\Entity\Account\Skill;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
+use App\Module\AccountCentre\Service\AccountDashboardService;
+use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
+use App\Security\AccountUserChecker;
 use App\Enum\AvailabilityType;
 use App\Enum\DayOfWeek;
 use App\Enum\SkillProficiencyLevel;
@@ -28,6 +31,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
 {
+    public function __construct(private readonly AccountUserChecker $userChecker)
+    {
+    }
+
     private const DAYS = [
         DayOfWeek::MONDAY, DayOfWeek::TUESDAY, DayOfWeek::WEDNESDAY,
         DayOfWeek::THURSDAY, DayOfWeek::FRIDAY, DayOfWeek::SATURDAY,
@@ -37,7 +44,7 @@ final class AccountsController extends AbstractController
     private function account(): Account
     {
         $user = $this->getUser();
-        if (!$user instanceof Account) {
+        if (!$user instanceof Account || !$this->userChecker->isEnabled($user)) {
             throw $this->createAccessDeniedException('Je moet ingelogd zijn.');
         }
         return $user;
@@ -80,21 +87,28 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('', name: 'home', methods: ['GET'])]
-    public function index(EntityManagerInterface $em): Response
+    public function index(AccountDashboardService $dashboard): Response
     {
         $account = $this->account();
-        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+
         return $this->render('pages/account-centre/index.html.twig', [
             'account' => $account,
-            'profile' => $profile,
+            'profile' => $dashboard->profile($account),
+            'totals' => $dashboard->totals($account),
         ]);
     }
 
     #[Route('/applications', name: 'applications', methods: ['GET'])]
-    public function applications(EntityManagerInterface $em): Response
+    public function applications(Request $request, AccountDashboardService $dashboard): Response
     {
+        $query = $request->query->all();
+        $pendingOnly = ($query['pending'] ?? null) === '1';
+        $page = is_scalar($query['page'] ?? 1) ? (int) ($query['page'] ?? 1) : 1;
+
         return $this->render('pages/account-centre/applications.html.twig', [
-            'profile' => $this->profile($em),
+            'records' => $dashboard->applications($this->account(), $pendingOnly, $page),
+            'pending_only' => $pendingOnly,
+            'pending_statuses' => ProjectParticipantUpdateRoleHandler::PENDING_NAMES,
         ]);
     }
 
@@ -344,7 +358,7 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
-    public function notifications(Request $request, EntityManagerInterface $em): Response
+    public function notifications(Request $request, EntityManagerInterface $em, AccountDashboardService $dashboard): Response
     {
         $settings = $this->settings($em);
         if ($request->isMethod('POST')) {
@@ -356,11 +370,14 @@ final class AccountsController extends AbstractController
             $this->addFlash('success', 'Notificatievoorkeuren opgeslagen.');
             return $this->redirectToRoute('account.notifications');
         }
+        $query = $request->query->all();
+        $unreadOnly = ($query['unread'] ?? null) === '1';
+        $page = is_scalar($query['page'] ?? 1) ? (int) ($query['page'] ?? 1) : 1;
+
         return $this->render('pages/account-centre/notifications.html.twig', [
             'settings' => $settings,
-            'notifications' => $em->getRepository(Notification::class)->findBy(
-                ['account' => $this->account(), 'deletedAt' => null], ['createdAt' => 'DESC'], 50
-            ),
+            'notification_records' => $dashboard->notifications($this->account(), $unreadOnly, $page),
+            'unread_only' => $unreadOnly,
         ]);
     }
 

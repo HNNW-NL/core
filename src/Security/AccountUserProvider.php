@@ -19,6 +19,7 @@ final class AccountUserProvider implements UserProviderInterface, PasswordUpgrad
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
+        private readonly AccountUserChecker $userChecker,
     ) {
     }
 
@@ -26,11 +27,18 @@ final class AccountUserProvider implements UserProviderInterface, PasswordUpgrad
     {
         $repository = $this->entityManager->getRepository(Account::class);
 
-        $account = $repository->findOneBy(['username' => $identifier])
-            ?? $repository->findOneBy(['email' => $identifier]);
+        $account = $repository->findOneBy(['username' => $identifier]);
+        if (!$account instanceof Account) {
+            $matches = $this->entityManager->createQueryBuilder()
+                ->select('account')->from(Account::class, 'account')
+                ->where('LOWER(account.email) = :email')
+                ->setParameter('email', strtolower(trim($identifier)))
+                ->setMaxResults(2)->getQuery()->getResult();
+            $account = count($matches) === 1 ? $matches[0] : null;
+        }
 
         if (!$account instanceof Account || $account->getDeletedAt() !== null) {
-            throw new UserNotFoundException(sprintf('Geen account gevonden voor "%s".', $identifier));
+            throw new UserNotFoundException('Account niet beschikbaar.');
         }
 
         return $account;
@@ -44,7 +52,7 @@ final class AccountUserProvider implements UserProviderInterface, PasswordUpgrad
 
         $refreshed = $this->entityManager->getRepository(Account::class)->find($user->getId());
 
-        if (!$refreshed instanceof Account || $refreshed->getDeletedAt() !== null) {
+        if (!$refreshed instanceof Account || !$this->userChecker->isEnabled($refreshed)) {
             throw new UserNotFoundException('Account bestaat niet meer.');
         }
 
@@ -56,7 +64,7 @@ final class AccountUserProvider implements UserProviderInterface, PasswordUpgrad
         return Account::class === $class || is_subclass_of($class, Account::class);
     }
 
-        public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
+    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof Account) {
             return;

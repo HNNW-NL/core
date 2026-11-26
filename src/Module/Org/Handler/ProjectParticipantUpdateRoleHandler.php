@@ -24,7 +24,7 @@ class ProjectParticipantUpdateRoleHandler
     private const PARTICIPANT_SCOPE = 'ProjectParticipant';
 
     /** 'send' komt uit de bestaande fixtures; de rest zijn toegestane synoniemen. */
-    private const PENDING_NAMES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
+    public const PENDING_NAMES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
     private const ACCEPTED_NAMES = ['accepted', 'geaccepteerd'];
     private const REJECTED_NAMES = ['rejected', 'afgewezen'];
     private const PARTICIPANT_ACTIVE_NAMES = ['active', 'actief'];

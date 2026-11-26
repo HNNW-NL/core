@@ -16,6 +16,12 @@
 
 {# Page content #}
 {% block body %}
-    <h2>Projects - Apply</h2>
-    <p>Main - projects apply page. For project {{ slug }}.</p>
+    {% if verification_required|default(false) %}
+        <h1>Bevestig eerst je e-mailadres</h1>
+        <p role="alert">Open de bevestigingslink in je e-mail voordat je je aanmeldt voor een project.</p>
+        <p><a href="{{ path('account.home') }}">Terug naar mijn account</a></p>
+    {% else %}
+        <h1>Aanmelden voor {{ project.title }}</h1>
+        <p><a href="{{ path('main.projects.detail', {slug: slug}) }}">Terug naar het project</a></p>
+    {% endif %}
 {% endblock %}

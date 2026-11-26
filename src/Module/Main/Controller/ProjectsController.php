@@ -53,7 +53,13 @@ final class ProjectsController extends AbstractController
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
     public function apply(string $slug, ProjectRepository $projectRepository): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_USER');
         $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository, true);
+        if ($this->getUser()->getEmailVerifiedAt() === null) {
+            return $this->render('pages/main/projects/apply.html.twig', [
+                'slug' => $slug, 'project' => $project, 'verification_required' => true,
+            ], new Response(status: Response::HTTP_FORBIDDEN));
+        }
         return $this->render('pages/main/projects/apply.html.twig', [
             'slug' => $slug,
             'project' => $project,

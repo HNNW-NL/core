@@ -1,3 +1,97 @@
+/* Keep account pages usable at narrow viewports and browser zoom. */
+.account-centre-page main,
+.account-centre-page .site-wrapper {
+    min-width: 0;
+    width: 100%;
+}
+
+.account-centre-page .account-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem 1.5rem;
+    padding: 1rem;
+}
+
+.account-centre-page .account-navigation a,
+.account-centre-page #account-centre-container a:not(.account-card) {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+.account-centre-page .dashboard-header,
+.account-centre-page .account-card {
+    overflow-wrap: anywhere;
+}
+
+.account-centre-page .account-card {
+    flex-wrap: wrap;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.account-centre-page .account-summary .account-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.account-centre-page .account-summary h2 {
+    font-size: 2.5rem;
+}
+
+.account-centre-page #account-empty,
+.account-centre-page nav[aria-label="Je account beheren"],
+.account-centre-page #account-notifications {
+    margin: 2rem 0;
+}
+
+.account-centre-page .hamburger {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .account-centre-page .main-header {
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .account-centre-page .logo-name {
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .account-centre-page .hamburger {
+        display: inline-flex;
+        padding: 0.5rem;
+        background: var(--card-background);
+        border: 1px solid #64748b;
+        border-radius: 0.4rem;
+    }
+
+    .account-centre-page .navbar {
+        display: none;
+        width: 100%;
+    }
+
+    .account-centre-page .navbar.active {
+        display: block;
+    }
+
+    .account-centre-page .nav-links {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        margin: 0;
+    }
+
+    .account-centre-page .account-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.25rem;
+    }
+}
+
 /* ==========================================
    LAYOUT & CONTAINER STYLES
    ========================================== */

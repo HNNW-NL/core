@@ -1,54 +1,33 @@
 {% extends 'layouts/ac.base.html.twig' %}
-
-{# Page title meta tag #}
-{% block title %}Account Dashboard{% endblock %}
-
-{# CSS #}
-{% block stylesheets %}
-<link rel="stylesheet" href="{{ asset("assets/main/css/home.css") }}">
-{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
+{% block title %}Mijn account{% endblock %}
 {% block body %}
 <div id="account-centre-container">
     <div class="dashboard-header">
-        <h1>Welkom bij je Account</h1>
-        <p>Account Centre - home page.</p>
+        <h1>Mijn account</h1>
+        <p>Welkom, <strong id="account-name">{{ profile ? (profile.displayName ?: account.username) : account.username }}</strong>.</p>
+        <p>{{ account.email }} &middot; <strong id="email-status">{{ account.emailVerifiedAt ? 'E-mailadres bevestigd' : 'E-mailadres nog niet bevestigd' }}</strong></p>
+        {% if not account.emailVerifiedAt %}<p>Open de bevestigingslink in je e-mail voordat je je aanmeldt voor een project.</p>{% endif %}
     </div>
-
-    <nav class="account-grid">
-        <a href="{{ path('account.modify') }}" class="account-card">
-            <h3>Profiel Wijzigen</h3>
-            <p>Pas je naam en contactgegevens aan zodat we je altijd kunnen bereiken.</p>
-        </a>
-
-        <a href="{{ path('account.notifications') }}" class="account-card">
-            <h3>Notificaties</h3>
-            <p>Bepaal zelf welke updates en nieuwsbrieven je van ons wilt ontvangen.</p>
-        </a>
-
-        <a href="{{ path('account.applications') }}" class="account-card">
-            <h3>Aanmeldingen</h3>
-            <p>Bekijk de status van je lopende aanmeldingen voor projecten.</p>
-        </a>
-
-        <a href="{{ path('account.availability') }}" class="account-card">
-            <h3>Beschikbaarheid</h3>
-            <p>Laat ons weten wanneer je beschikbaar bent om aan de slag te gaan.</p>
-        </a>
-
-        <a href="{{ path('account.experience') }}" class="account-card">
-            <h3>Ervaring</h3>
-            <p>Houd je skills en werkervaring up-to-date voor de beste matches.</p>
-        </a>
-
-        <a href="{{ path('account.reputation') }}" class="account-card">
-            <h3>Reputatie</h3>
-            <p>Bekijk je reputatie en de feedback van klanten.</p>
-        </a>
+    <nav class="account-grid account-summary" aria-label="Jouw overzicht">
+        <a class="account-card" href="{{ path('account.applications', {pending: 1}) }}"><h2 id="account-total-applications">{{ totals.applications }}</h2><h3>Lopende aanmeldingen</h3><p>Bekijk de status van je aanvragen.</p></a>
+        <a class="account-card" href="{{ path('account.projects') }}"><h2 id="account-total-projects">{{ totals.projects }}</h2><h3>Actieve projecten</h3><p>Bekijk de projecten waaraan je deelneemt.</p></a>
+        <a class="account-card" href="{{ path('account.notifications', {unread: 1}) }}#account-notifications"><h2 id="account-total-notifications">{{ totals.notifications }}</h2><h3>Ongelezen meldingen</h3><p>Bekijk je nieuwe berichten.</p></a>
     </nav>
+    {% if totals.applications == 0 and totals.projects == 0 and totals.notifications == 0 %}
+        <section id="account-empty" class="account-card">
+            <h2>Welkom bij HNNW</h2><p>Je hebt nog geen lopende aanmeldingen, actieve projecten of nieuwe meldingen.</p>
+            <a href="{{ path('account.modify') }}">Profiel invullen</a>
+            <a href="{{ path('main.projects.home') }}">Ontdek projecten</a>
+        </section>
+    {% endif %}
+    <nav class="account-grid" aria-label="Je account beheren">
+        <a class="account-card" href="{{ path('app_profile') }}"><h3>Mijn profiel</h3><p>Bekijk je profielgegevens.</p></a>
+        <a class="account-card" href="{{ path('account.modify') }}"><h3>Profiel wijzigen</h3><p>Werk je gegevens bij.</p></a>
+        <a class="account-card" href="{{ path('account.settings') }}"><h3>Instellingen</h3><p>Beheer je accountvoorkeuren.</p></a>
+    </nav>
+    <form method="post" action="{{ path('auth.logout') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+        <button type="submit" class="btn-primary">Uitloggen</button>
+    </form>
 </div>
 {% endblock %}

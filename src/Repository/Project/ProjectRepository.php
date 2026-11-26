@@ -2,6 +2,7 @@
 
 namespace App\Repository\Project;
 
+use Symfony\Bridge\Doctrine\Types\UlidType;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -34,22 +35,22 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('project')
             ->andWhere('project.id = :id')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('id', $id)
+            ->setParameter('id', $id, UlidType::NAME)
             ->getQuery()
             ->getOneOrNullResult();
     }
 
-    public function countByProfileOnQuery(string $query, Profile $profile): int
+    public function countByProfileOnQuery(string $query, Profile $profile, bool $activeOnly = false): int
     {
-        return (int) $this->createProfileQueryBuilder($query, $profile)
+        return (int) $this->createProfileQueryBuilder($query, $profile, $activeOnly)
             ->select('COUNT(DISTINCT project.id)')
             ->getQuery()
             ->getSingleScalarResult();
     }
 
-    public function findPaginatedByProfileOnQuery(string $query, Profile $profile, int $maxResultsPerPage, int $page): array
+    public function findPaginatedByProfileOnQuery(string $query, Profile $profile, int $maxResultsPerPage, int $page, bool $activeOnly = false): array
     {
-        return $this->createProfileQueryBuilder($query, $profile)
+        return $this->createProfileQueryBuilder($query, $profile, $activeOnly)
             ->orderBy('project.title', 'ASC')
             ->setMaxResults($maxResultsPerPage)
             ->setFirstResult(($page - 1) * $maxResultsPerPage)
@@ -57,14 +58,24 @@ class ProjectRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    private function createProfileQueryBuilder(string $query, Profile $profile): QueryBuilder
+    private function createProfileQueryBuilder(string $query, Profile $profile, bool $activeOnly = false): QueryBuilder
     {
         $qb = $this->createQueryBuilder('project')
             ->distinct()
             ->innerJoin('project.participants', 'participant')
             ->andWhere('participant.profile = :profile')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('profile', $profile);
+            ->setParameter('profile', $profile->getId(), UlidType::NAME);
+
+        if ($activeOnly) {
+            $qb->innerJoin('participant.profile', 'profile')
+                ->innerJoin('participant.status', 'participantStatus')->innerJoin('project.status', 'projectStatus')
+                ->andWhere('profile.deletedAt IS NULL')->andWhere('participant.leftAt IS NULL')
+                ->andWhere('LOWER(participantStatus.scope) = :participantScope')->setParameter('participantScope', 'projectparticipant')
+                ->andWhere('LOWER(projectStatus.scope) = :projectScope')->setParameter('projectScope', 'project')
+                ->andWhere('LOWER(participantStatus.name) IN (:active)')->andWhere('LOWER(projectStatus.name) IN (:active)')
+                ->setParameter('active', ['active', 'actief']);
+        }
 
         $query = trim($query);
 

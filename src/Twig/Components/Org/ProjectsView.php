@@ -12,6 +12,8 @@ use App\Module\Main\Service\CurrentProfileProvider;
 #[AsLiveComponent]
 class ProjectsView
 {
+    #[LiveProp]
+    public bool $activeOnly = false;
     use DefaultActionTrait;
 
     #[LiveProp(writable: true, onUpdated: 'resetPage')]
@@ -62,7 +64,7 @@ class ProjectsView
             return 0;
         }
 
-        return $this->projectRepository->countByProfileOnQuery($this->query, $profile);
+        return $this->projectRepository->countByProfileOnQuery($this->query, $profile, $this->activeOnly);
     }
 
     public function getPageCount(): int
@@ -81,7 +83,7 @@ class ProjectsView
             $this->query,
             $profile,
             $this->getSafeMaxResultsPerPage(),
-            $this->getSafePage());
+            $this->getSafePage(), $this->activeOnly);
     }
 
     #[LiveAction]

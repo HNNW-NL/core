@@ -10,6 +10,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\BadCredentialsException;
+use Symfony\Component\Security\Core\Exception\TooManyLoginAttemptsAuthenticationException;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\CsrfTokenBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
@@ -45,11 +48,15 @@ final class AccountAuthenticator extends AbstractAuthenticator implements Authen
 
     public function authenticate(Request $request): Passport
     {
-        $identifier = trim((string) $request->request->get('username', ''));
-        $password = (string) $request->request->get('password', '');
-        $csrfToken = (string) $request->request->get('_csrf_token', '');
+        $input = $request->request->all();
+        $identifier = is_string($input['username'] ?? null) ? trim($input['username']) : '';
+        $password = is_string($input['password'] ?? null) ? $input['password'] : '';
+        $csrfToken = is_string($input['_csrf_token'] ?? null) ? $input['_csrf_token'] : '';
 
-        $request->getSession()->set('_last_username', $identifier);
+        $request->getSession()->set(SecurityRequestAttributes::LAST_USERNAME, mb_substr($identifier, 0, 255));
+        if ($identifier === '' || strlen($identifier) > 255 || $password === '' || strlen($password) > 4096) {
+            throw new BadCredentialsException();
+        }
 
         return new Passport(
             new UserBadge($identifier),
@@ -68,17 +75,17 @@ final class AccountAuthenticator extends AbstractAuthenticator implements Authen
             $this->entityManager->flush();
         }
 
-        return new RedirectResponse('/');
+        // A fixed internal destination also ignores visitor-supplied return URLs.
+        return new RedirectResponse($this->urlGenerator->generate('account.home'), Response::HTTP_SEE_OTHER);
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        $request->getSession()->getFlashBag()->add('error', 'Ongeldige gebruikersnaam/e-mail of wachtwoord.');
+        $message = $exception instanceof TooManyLoginAttemptsAuthenticationException
+            ? 'Je hebt te vaak geprobeerd in te loggen. Probeer het later opnieuw.'
+            : 'Ongeldige gebruikersnaam/e-mail of wachtwoord.';
+        $request->getSession()->getFlashBag()->set('error', [$message]);
 
-        $lastUsername = (string) $request->getSession()->get('_last_username', '');
-
-        return new RedirectResponse(
-            $this->urlGenerator->generate('auth.login', ['last' => $lastUsername])
-        );
+        return new RedirectResponse($this->urlGenerator->generate('auth.login'), Response::HTTP_SEE_OTHER);
     }
 }

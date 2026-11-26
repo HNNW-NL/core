@@ -1,0 +1,12 @@
+{% extends 'layouts/auth.base.html.twig' %}
+{% block title %}Tijdelijk niet beschikbaar{% endblock %}
+{% block body %}
+<section class="auth-page" aria-labelledby="unavailable-title">
+    <h1 id="unavailable-title">Tijdelijk niet beschikbaar</h1>
+    <div class="auth-form">
+        <p role="alert">Je gegevens konden tijdelijk niet worden verwerkt. Probeer het later opnieuw.</p>
+        <p class="mt-1"><a href="{{ path('auth.login') }}">Terug naar inloggen</a></p>
+        <p class="mt-1"><a href="{{ path('auth.forgotPassword') }}">Een nieuwe herstellink aanvragen</a></p>
+    </div>
+</section>
+{% endblock %}

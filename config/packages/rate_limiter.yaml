@@ -1,0 +1,14 @@
+parameters:
+    auth.password_reset.limit: 5
+    auth.password_reset.interval: '15 minutes'
+
+framework:
+    rate_limiter:
+        password_reset_ip:
+            policy: sliding_window
+            limit: '%auth.password_reset.limit%'
+            interval: '%auth.password_reset.interval%'
+        password_reset_email:
+            policy: sliding_window
+            limit: '%auth.password_reset.limit%'
+            interval: '%auth.password_reset.interval%'

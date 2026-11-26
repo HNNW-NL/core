@@ -1,4 +1,5 @@
 security:
+    session_fixation_strategy: migrate
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         App\Entity\Account\Account: 'auto'
@@ -15,11 +16,16 @@ security:
         main:
             lazy: true
             provider: account_provider
+            user_checker: App\Security\AccountUserChecker
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
             custom_authenticators:
                 - App\Security\AccountAuthenticator
             logout:
                 path: auth.logout
                 target: auth.login
+                enable_csrf: true
 
             # https://symfony.com/doc/current/security/impersonating_user.html
             # switch_user: true
