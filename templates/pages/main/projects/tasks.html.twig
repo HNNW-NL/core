@@ -56,10 +56,10 @@
                             {% endif %}
                         {% elseif currentProfile %}
                             <form method="post"
-                                  action="{{ path('main.projects.tasks.enroll', {
-                                      slug: slug,
-                                      taskId: packageTask.id.toRfc4122()
-                                  }) }}">
+                             action="{{ path('main.projects.workPackages.enrollTask', {
+                              slug: slug,
+                             taskId: packageTask.id.toRfc4122()
+                             }) }}">
 
                                 <input type="hidden"
                                        name="_token"

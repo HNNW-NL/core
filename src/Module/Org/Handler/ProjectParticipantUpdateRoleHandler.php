@@ -40,31 +40,35 @@ class ProjectParticipantUpdateRoleHandler
     ) {}
 
     /**
-     * @param array<int, int> $roleMap [participantId => roleId]
+     * @param array<string, string> $roleMap [participantId => roleId]
      */
     public function handle(array $roleMap, $project): void
     {
-        foreach ($roleMap as $participantId => $roleId) {
+        $this->em->wrapInTransaction(function () use ($roleMap, $project): void {
+            $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
 
-            $participant = $this->participantRepo->find($participantId);
-            $role = $this->roleRepo->find($roleId);
-            if (!$role) {
-                continue;
-            }
-            if (!$participant) {
-                continue;
-            }
-            if ($participant->getProject() !== $project) {
-                continue;
-            }
-            if ($role->getProject() !== $project) {
-                continue;
-            }
+            foreach ($roleMap as $participantId => $roleId) {
+                $participant = $this->participantRepo->find($participantId);
+                $role = $this->roleRepo->find($roleId);
 
-            $participant->setRole($role);
-        }
+                if (!$participant || !$role) {
+                    continue;
+                }
 
-        $this->em->flush();
+                if ($participant->getProject() !== $project || $role->getProject() !== $project) {
+                    continue;
+                }
+
+                $this->em->refresh($participant, LockMode::PESSIMISTIC_WRITE);
+
+                // OR06-C: historische deelnemers mogen geen rolwijziging krijgen.
+                if ($participant->getJoinedAt() === null || $participant->getLeftAt() !== null) {
+                    continue;
+                }
+
+                $participant->setRole($role);
+            }
+        });
     }
 
     // ------------------------------------------------------------------
