@@ -8,34 +8,32 @@ use App\Entity\Org\OrgRole;
 use App\Security\Permission;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bundle\SecurityBundle\Security;
 
 final class StaffViewService
 {
     public function __construct(
         private ManagerRegistry $doctrine,
         private RequestStack $requestStack,
+        private readonly Security $security,
     ) {
     }
 
     public function getStaff(): array
+    {
+        return $this->buildStaff();
+    }
+
+    private function buildStaff(?string $memberId = null): array
     {
         $empty = [
             'items' => [], 'roles' => [], 'assignableRoles' => [], 'organisations' => [],
             'organisationId' => null, 'canAdd' => false, 'canChangeRole' => false, 'canRemove' => false,
         ];
         $request = $this->requestStack->getCurrentRequest();
-        $accountId = $request?->hasPreviousSession() ? $request->getSession()->get('account_id') : null;
+        $user = $this->security->getUser();
 
-        if (!is_string($accountId) || !Uuid::isValid($accountId)) {
-            return $empty;
-        }
-
-        $user = $this->doctrine
-            ->getRepository(Account::class)
-            ->find(Uuid::fromString($accountId));
-
-        if (!$user instanceof Account) {
+        if ($request === null || !$user instanceof Account) {
             return $empty;
         }
 
@@ -43,7 +41,7 @@ final class StaffViewService
         $masks = [];
         foreach ($user->getOrgMemberships() as $membership) {
             $organisation = $membership->getOrganisation();
-            if ($organisation === null) {
+            if ($organisation === null || $organisation->getDeletedAt() !== null) {
                 continue;
             }
 
@@ -73,9 +71,19 @@ final class StaffViewService
         $canManageMembers = Permission::ORG_MANAGE_MEMBERS->in($masks[$id]);
         $canManageRoles = Permission::ORG_MANAGE_ROLES->in($masks[$id]);
 
+        $criteria = ['organisation' => $organisation];
+
+        if ($memberId !== null) {
+            if (!\Symfony\Component\Uid\Ulid::isValid($memberId)) {
+                return $empty;
+            }
+
+            $criteria['id'] = \Symfony\Component\Uid\Ulid::fromString($memberId);
+        }
+
         $members = $this->doctrine
             ->getRepository(OrgMember::class)
-            ->findBy(['organisation' => $organisation]);
+            ->findBy($criteria);
 
         $items = [];
 
@@ -97,6 +105,14 @@ final class StaffViewService
                 'role' => $role?->getName(),
                 'roleId' => (string) $role?->getId(),
             ];
+        }
+
+        if ($memberId !== null) {
+            return array_replace($empty, [
+                'items' => $items,
+                'organisationId' => $id,
+                'organisationName' => (string) $organisation->getName(),
+            ]);
         }
 
         $orgRoles = $this->doctrine
@@ -126,5 +142,21 @@ final class StaffViewService
             'canChangeRole' => $canManageRoles,
             'canRemove' => $canManageMembers,
         ]);
+    }
+
+    public function getStaffMember(string $id): ?array
+    {
+        $data = $this->buildStaff($id);
+        $member = $data['items'][0] ?? null;
+
+        if ($member === null) {
+            return null;
+        }
+
+        return [
+            'member' => $member,
+            'organisationId' => $data['organisationId'],
+            'organisationName' => $data['organisationName'],
+        ];
     }
 }

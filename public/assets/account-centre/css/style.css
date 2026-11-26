@@ -572,8 +572,8 @@ body[data-theme="dark"] .custom-table tbody tr {
     border-bottom-color: rgba(30, 41, 59, 0.4);
 }
 
-/* TidyCal Schema Hoofdcontainers */
-.tidycal-container,
+/* Beschikbaarheid Schema Hoofdcontainers */
+.availability-container,
 .blocked-dates-container {
     max-width: 100% !important;
     margin-bottom: 2rem;
@@ -583,7 +583,7 @@ body[data-theme="dark"] .custom-table tbody tr {
     padding: 2rem;
 }
 
-.tidycal-header {
+.availability-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -592,13 +592,13 @@ body[data-theme="dark"] .custom-table tbody tr {
     margin-bottom: 1.5rem;
 }
 
-.tidycal-title {
+.availability-title {
     font-weight: 700;
     color: #c9d1d9;
     font-size: 1.1rem;
 }
 
-.tidycal-view-badge {
+.availability-view-badge {
     background: #21262d;
     padding: 0.4rem 0.75rem;
     border-radius: 6px;
@@ -611,7 +611,7 @@ body[data-theme="dark"] .custom-table tbody tr {
     border: 1px solid #30363d;
 }
 
-.tidycal-days-list {
+.availability-days-list {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -690,7 +690,7 @@ body[data-theme="dark"] .custom-table tbody tr {
     user-select: none;
 }
 
-/* TidyCal Toggle Switch Slider */
+/* Beschikbaarheid Toggle Switch Slider */
 #account-centre-container .switch {
     position: relative;
     display: inline-block;

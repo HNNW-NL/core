@@ -14,6 +14,11 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Form\Main\ProjectApplyType;
+use App\Module\Main\DTO\ProjectApplyDto;
+use App\Module\Main\DTO\ProjectApplyResult;
+use App\Module\Main\DTO\ProjectApplyStatus;
+use App\Module\Main\Handler\ProjectApplyHandler;
 
 #[Route('/projects', name: 'main.projects.')]
 final class ProjectsController extends AbstractController
@@ -50,13 +55,75 @@ final class ProjectsController extends AbstractController
         ]);
     }
 
-    #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
-    public function apply(string $slug, ProjectRepository $projectRepository): Response
-    {
-        $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository, true);
+    #[Route('/{slug}/apply', name: 'apply', methods: ['GET', 'POST'])]
+    public function apply(
+        string $slug,
+        Request $request,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectApplyHandler $projectApplyHandler,
+    ): Response {
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository,
+            true
+        );
+
+        if ($this->getUser() === null) {
+            $this->addFlash(
+                'error',
+                'Je moet ingelogd zijn om je aan te melden voor een project.'
+            );
+
+            return $this->redirectToRoute(
+                'auth.login',
+                [],
+                Response::HTTP_SEE_OTHER
+            );
+        }
+
+        $profile = $currentProfileProvider->getProfile();
+
+        if ($profile === null) {
+            return $this->render('pages/main/projects/apply.html.twig', [
+                'slug' => $slug,
+                'project' => $project,
+                'form' => null,
+                'blocked' => new ProjectApplyResult(
+                    ProjectApplyStatus::NoProfile,
+                    'Je hebt een profiel nodig om je aan te melden.'
+                ),
+            ]);
+        }
+
+        $dto = new ProjectApplyDto();
+        $form = $this->createForm(ProjectApplyType::class, $dto);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $result = $projectApplyHandler->handle(
+                $project,
+                $profile,
+                $dto
+            );
+
+            $this->addFlash(
+                $result->isSuccessful() ? 'success' : 'warning',
+                $result->message
+            );
+
+            return $this->redirectToRoute(
+                'main.projects.apply',
+                ['slug' => $slug],
+                Response::HTTP_SEE_OTHER
+            );
+        }
+
         return $this->render('pages/main/projects/apply.html.twig', [
             'slug' => $slug,
             'project' => $project,
+            'form' => $form,
+            'blocked' => $projectApplyHandler->check($project, $profile),
         ]);
     }
 
