@@ -714,6 +714,11 @@ final class AccountsController extends AbstractController
         $form = $this->createForm(ProfileSkillType::class, new ProfileSkill());
         $form->handleRequest($request);
 
+        if (!$profile){
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var ProfileSkill $data */
             $data = $form->getData();
