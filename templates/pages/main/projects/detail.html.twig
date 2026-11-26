@@ -16,6 +16,7 @@
 
 {# Page content #}
 {% block body %}
+    <div class="content-panel">
     <h2>{{ project.title }}</h2>
 
     {% if project.summary %}
@@ -30,4 +31,5 @@
             Aanmelden voor dit project
         </a>
     {% endif %}
+    </div>
 {% endblock %}

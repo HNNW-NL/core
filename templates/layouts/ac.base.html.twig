@@ -18,6 +18,7 @@
     {% block stylesheets %}{% endblock %}
 
     <!-- JavaScript -->
+    <script src="{{ asset('assets/shared/js/app.js') }}" defer></script>
     {% block javascripts %}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
@@ -27,7 +28,7 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
     {% endif %}
 </head>
-<body data-theme="dark">
+<body class="hnnw-account" data-theme="dark">
     <div class="site-wrapper">
 
         {% include "/core/main/_header.html.twig" %}
