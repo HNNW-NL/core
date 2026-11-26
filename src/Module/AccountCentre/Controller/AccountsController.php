@@ -95,7 +95,7 @@ final class AccountsController extends AbstractController
     #[Route('/applications', name: 'applications', methods: ['GET'])]
     public function applications(EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
+        $account = $this->account();
 
         $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
@@ -119,7 +119,7 @@ final class AccountsController extends AbstractController
         $profile = $this->profile($em);
 
         $application = $em->getRepository(ProjectApplication::class)->find($id);
-        $account = $this->getAndCheckAccount();
+        $account = $this->account();
         $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         if (!$application || $application->getDeletedAt() !== null) {
@@ -418,7 +418,7 @@ final class AccountsController extends AbstractController
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
+        $account = $this->account();
 
         $experience = $em->getRepository(ProfileExperience::class)->find($id);
         if (!$experience || $experience->getDeletedAt() !== null) {
@@ -566,7 +566,7 @@ final class AccountsController extends AbstractController
     #[Route('/notifications', name: 'notifications', methods: ['GET', 'POST'])]
     public function notifications(Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
+        $account = $this->account();
         $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
 
         if (!$settings) {
@@ -796,16 +796,6 @@ final class AccountsController extends AbstractController
         $em->remove($item);
         $em->flush();
         return $this->redirectToRoute('account.saved_items');
-    }
-
-    private function getAndCheckAccount(): Account
-    {
-        $account = $this->getUser();
-
-        if (!$account instanceof Account) {
-            throw $this->createAccessDeniedException();
-        }
-        return $account;
     }
 
     private function createAccountSettings($entityManager, $account): AccountSetting
