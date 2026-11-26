@@ -13,7 +13,7 @@
         <div class="project-detail__container">
             <a class="project-detail__back" href="{{ path('main.projects.home') }}">← Terug naar projecten</a>
 
-            {% if previewMode %}
+            {% if previewMode|default(false) %}
                 <p class="project-detail__preview-notice" role="status">Beheerderpreview: dit project is niet gepubliceerd en is alleen zichtbaar voor beheerders.</p>
             {% endif %}
 
@@ -37,6 +37,8 @@
                     {% endif %}
                 </header>
 
+                {% include 'core/main/_project_navigation.html.twig' %}
+
                 <div class="project-detail__layout">
                     <section class="project-detail__content" aria-labelledby="project-description-heading">
                         <h2 id="project-description-heading">Over dit project</h2>
@@ -47,7 +49,20 @@
                         {% endif %}
 
                         <h2>Gezochte vaardigheden</h2>
-                        <p>Vaardigheden zijn niet opgegeven voor dit project.</p>
+                        {% if project.skills is not empty %}
+                            <ul>
+                                {% for projectSkill in project.skills %}
+                                    <li>
+                                        {{ projectSkill.skill.name }}
+                                        {% if projectSkill.required %}
+                                            (vereist)
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>Vaardigheden zijn niet opgegeven voor dit project.</p>
+                        {% endif %}
                     </section>
 
                     <aside class="project-detail__sidebar" aria-label="Projectgegevens">
@@ -59,7 +74,7 @@
                             </div>
                             <div>
                                 <dt>Projectleider</dt>
-                                <dd>{{ projectLeaderName is not empty ? projectLeaderName : 'Niet vermeld' }}</dd>
+                                <dd>{{ projectLeaderName|default('') is not empty ? projectLeaderName : 'Niet vermeld' }}</dd>
                             </div>
                             <div>
                                 <dt>Locatie</dt>
@@ -70,7 +85,7 @@
                             </div>
                             <div>
                                 <dt>Startdatum</dt>
-                                <dd>{{ project.startDate|date('d-m-Y') }}</dd>
+                                <dd>{{ project.startDate ? project.startDate|date('d-m-Y') : 'Niet opgegeven' }}</dd>
                             </div>
                             {% if project.endDate %}
                                 <div>
@@ -80,12 +95,14 @@
                             {% endif %}
                         </dl>
 
-                        {% if application %}
+                        {% if application|default(null) %}
                             <p class="project-detail__application-status">
                                 Je aanvraagstatus: <strong>{{ application.status.name|default('In behandeling') }}</strong>
                             </p>
                             <a class="project-detail__button project-detail__button--secondary" href="{{ path('account.applications') }}">Bekijk mijn aanmeldingen</a>
-                        {% elseif isOpen %}
+                        {% elseif blocked|default(null) %}
+                            <p class="project-detail__closed">{{ blocked.message }}</p>
+                        {% elseif isOpen|default(false) %}
                             <a class="project-detail__button" href="{{ path('main.projects.apply', {slug: project.slug}) }}">Meld je aan</a>
                         {% else %}
                             <p class="project-detail__closed">Dit project is momenteel niet open voor aanmeldingen.</p>

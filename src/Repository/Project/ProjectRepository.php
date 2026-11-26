@@ -21,7 +21,12 @@ class ProjectRepository extends ServiceEntityRepository
 
     public function findOneVisibleBySlug(string $slug): ?Project
     {
-        return $this->findOnePublicBySlug($slug);
+        return $this->createQueryBuilder('project')
+            ->andWhere('project.slug = :slug')
+            ->andWhere('project.deletedAt IS NULL')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findOnePublicBySlug(string $slug): ?Project
@@ -173,7 +178,6 @@ class ProjectRepository extends ServiceEntityRepository
         bool $onlyAcceptingApplications = false,
         bool $includeAvailability = true,
     ): QueryBuilder {
-        $now = new \DateTimeImmutable();
         $activeParticipantCount = static fn (string $participantAlias): string =>
             '(SELECT COUNT(' . $participantAlias . '.id)
                 FROM App\Entity\Project\ProjectParticipant ' . $participantAlias . '
@@ -194,17 +198,10 @@ class ProjectRepository extends ServiceEntityRepository
             )
             ->innerJoin('project.status', 'status')
             ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
-            ->andWhere('project.startDate <= :now')
-            ->andWhere('(project.endDate IS NULL OR project.endDate >= :now)')
             ->andWhere('project.publishedAt IS NOT NULL')
             ->andWhere('project.deletedAt IS NULL')
             ->andWhere('project.visibility = :visibility')
-            ->andWhere('status.scope = :statusScope')
-            ->andWhere('status.name = :statusName')
-            ->setParameter('now', $now)
-            ->setParameter('visibility', 'public')
-            ->setParameter('statusScope', 'project')
-            ->setParameter('statusName', 'published');
+            ->setParameter('visibility', 'public');
 
         if ($includeAvailability) {
             $availabilityParticipantCount = $activeParticipantCount(
@@ -247,21 +244,15 @@ class ProjectRepository extends ServiceEntityRepository
         $slugs = array_column($projects, 'slug');
         $skillRows = $this->createQueryBuilder('project')
             ->select('project.slug AS slug', 'skill.name AS skillName')
-            ->innerJoin('project.skills', 'skill')
+            ->innerJoin('project.skills', 'projectSkill')
+            ->innerJoin('projectSkill.skill', 'skill')
             ->innerJoin('project.status', 'status')
             ->andWhere('project.slug IN (:slugs)')
-            ->andWhere('project.startDate <= :now')
-            ->andWhere('(project.endDate IS NULL OR project.endDate >= :now)')
             ->andWhere('project.publishedAt IS NOT NULL')
             ->andWhere('project.deletedAt IS NULL')
             ->andWhere('project.visibility = :visibility')
-            ->andWhere('status.scope = :statusScope')
-            ->andWhere('status.name = :statusName')
             ->setParameter('slugs', $slugs)
-            ->setParameter('now', new \DateTimeImmutable())
             ->setParameter('visibility', 'public')
-            ->setParameter('statusScope', 'project')
-            ->setParameter('statusName', 'published')
             ->orderBy('skill.name', 'ASC')
             ->getQuery()
             ->getScalarResult();

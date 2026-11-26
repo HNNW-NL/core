@@ -1,34 +1,50 @@
 {% extends 'layouts/main.base.html.twig' %}
 
+{# Page title meta tag #}
 {% block title %}Aanmelden voor {{ project.title }}{% endblock %}
+
+{# SEO #}
+{% block seoKeywords %}{% endblock %}
+{% block seoDescription %}{% endblock %}
 {% block seoAuthor %}HNNW{% endblock %}
 
-{% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('assets/main/css/projects.css') }}">
-{% endblock %}
+{# CSS #}
+{% block stylesheets %}{% endblock %}
 
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
 {% block body %}
-    <section class="project-detail project-application">
-        <div class="project-detail__container project-application__container">
-            <a class="project-detail__back" href="{{ path('main.projects.detail', {slug: project.slug}) }}">← Terug naar project</a>
+    <section class="project-apply">
+        <h2>Aanmelden voor {{ project.title }}</h2>
 
-            <div class="project-application__card">
-                <p class="project-detail__eyebrow">Aanmelden voor project</p>
-                <h1>{{ project.title }}</h1>
-                <p>{{ project.summary }}</p>
+        {% if project.summary %}
+            <p>{{ project.summary }}</p>
+        {% endif %}
 
-                {% if app.session.get('account_id') %}
-                    <form method="post" action="{{ path('main.projects.submitApplication', {slug: project.slug}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('project-apply-' ~ project.id.toRfc4122()) }}">
-                        <label for="motivation">Motivatie <span>(optioneel)</span></label>
-                        <textarea id="motivation" name="motivation" rows="6" maxlength="5000" placeholder="Vertel kort waarom je wilt bijdragen."></textarea>
-                        <button class="project-detail__button" type="submit">Verstuur aanmelding</button>
-                    </form>
-                {% else %}
-                    <p>Log in met je account om je voor dit project aan te melden.</p>
-                    <a class="project-detail__button" href="{{ path('auth.login') }}">Inloggen</a>
-                {% endif %}
-            </div>
-        </div>
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ type }}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        {# blocked komt uit de controller, als het goed is staat daar waarom je je niet meer kan aanmelden #}
+        {% if blocked %}
+            <p>{{ blocked.message }}</p>
+        {% else %}
+            {{ form_start(form) }}
+            {{ form_errors(form) }}
+                <div class="form-group">
+                    {{ form_label(form.motivation) }}
+                    {{ form_widget(form.motivation) }}
+                    <div class="form-errors">{{ form_errors(form.motivation) }}</div>
+                </div>
+
+                <button type="submit" class="btn-primary">Aanmelding versturen</button>
+            {{ form_end(form) }}
+        {% endif %}
+
+        <p><a href="{{ path('main.projects.detail', {slug: slug}) }}">Terug naar het project</a></p>
     </section>
 {% endblock %}

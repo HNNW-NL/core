@@ -4,7 +4,6 @@ namespace App\Entity\Project;
 
 use App\Entity\Account\Account;
 use App\Entity\Account\Review;
-use App\Entity\Account\Skill;
 use App\Entity\Org\Organisation;
 use App\Entity\Common\Status;
 use App\Entity\Account\SavedItem;

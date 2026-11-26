@@ -4,6 +4,7 @@ namespace App\Module\Org\Controller;
 
 use App\Entity\Account\Skill;
 use App\Entity\Project\Project;
+use App\Entity\Project\ProjectSkill;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
@@ -11,10 +12,9 @@ use App\Module\Main\Service\CurrentProfileProvider;
 use App\Module\Main\Handler\ChangeWorkPackageStatusHandler;
 use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
 use App\Repository\Project\ProjectRepository;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Security\Voter\ProjectVoter;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -78,11 +78,11 @@ final class OrganisationProjectsController extends AbstractController
 
         $skillIds = [];
         foreach ($submittedIds as $submittedId) {
-            if (!is_string($submittedId) || !Uuid::isValid($submittedId)) {
+            if (!is_string($submittedId) || !Ulid::isValid($submittedId)) {
                 throw new BadRequestHttpException('Invalid skill selected.');
             }
 
-            $skillIds[strtolower($submittedId)] = Uuid::fromString($submittedId);
+            $skillIds[strtoupper($submittedId)] = Ulid::fromString($submittedId);
         }
         $skillIds = array_values($skillIds);
 
@@ -94,9 +94,31 @@ final class OrganisationProjectsController extends AbstractController
             throw new BadRequestHttpException('One or more selected skills do not exist.');
         }
 
-        $project->getSkills()->clear();
+        $selectedSkills = [];
+
         foreach ($skills as $skill) {
-            $project->addSkill($skill);
+            $selectedSkills[(string) $skill->getId()] = $skill;
+        }
+
+        foreach ($project->getSkills()->toArray() as $projectSkill) {
+            $skillId = (string) $projectSkill->getSkill()->getId();
+
+            if (!isset($selectedSkills[$skillId])) {
+                $project->getSkills()->removeElement($projectSkill);
+                $entityManager->remove($projectSkill);
+                continue;
+            }
+
+            unset($selectedSkills[$skillId]);
+        }
+
+        foreach ($selectedSkills as $skill) {
+            $projectSkill = new ProjectSkill();
+            $projectSkill->setProject($project);
+            $projectSkill->setSkill($skill);
+
+            $project->getSkills()->add($projectSkill);
+            $entityManager->persist($projectSkill);
         }
 
         $entityManager->flush();
@@ -122,13 +144,36 @@ final class OrganisationProjectsController extends AbstractController
     public function modifyProjectParticipants(
         string $id,
         ProjectRepository $projectRepository,
+        ProjectParticipantRepository $participantRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
     ): Response {
-        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+        $project = $this->getProjectAndCheckEditAccess(
+            $id,
+            $projectRepository
+        );
 
-        return $this->render('pages/org/projects/modify-participants.html.twig', [
-            'id' => $id,
-            'project' => $project,
-        ]);
+        $applications = $participantRepository
+            ->findApplicationsForProject($project);
+
+        $pendingApplicationIds = [];
+
+        foreach ($applications as $application) {
+            if ($applicationHandler->isPending($application)) {
+                $pendingApplicationIds[] = $application->getId()->toBase32();
+            }
+        }
+
+        return $this->render(
+            'pages/org/projects/modify-participants.html.twig',
+            [
+                'id' => $id,
+                'project' => $project,
+                'applications' => $applications,
+                'pending_application_ids' => $pendingApplicationIds,
+                'reject_reason_max_length' =>
+                    ProjectParticipantUpdateRoleHandler::REJECT_REASON_MAX_LENGTH,
+            ]
+        );
     }
 
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]

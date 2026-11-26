@@ -10,14 +10,16 @@ use App\Security\Permission;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 final class StaffManagementService
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly RequestStack $requestStack,
+        private readonly Security $security,
     ) {
     }
 
@@ -150,9 +152,14 @@ final class StaffManagementService
 
         try {
             return $this->entityManager->wrapInTransaction(function () use ($account, $request, $organisationId, $requiredPermissions, $operation): mixed {
-                $organisation = $this->entityManager->find(Organisation::class, Uuid::fromString($organisationId), LockMode::PESSIMISTIC_WRITE);
-                if (!$organisation instanceof Organisation) {
-                    throw new \RuntimeException('Geen toegang tot deze organisatie.');
+                $organisation = $this->entityManager->find(Organisation::class, Ulid::fromString($organisationId), LockMode::PESSIMISTIC_WRITE);
+                if (
+                    !$organisation instanceof Organisation
+                    || $organisation->getDeletedAt() !== null
+                ) {
+                    throw new \RuntimeException(
+                        'Geen toegang tot deze organisatie.'
+                    );
                 }
 
                 $mask = $this->getAccountMask($account, $organisation);
@@ -228,30 +235,11 @@ final class StaffManagementService
 
     private function getCurrentAccount(): Account
     {
-        $request = $this->requestStack->getCurrentRequest();
-
-        if ($request === null || !$request->hasPreviousSession()) {
-            throw new \RuntimeException(
-                'Je moet ingelogd zijn om staff te beheren.'
-            );
-        }
-
-        $accountId = $request->getSession()->get('account_id');
-
-        if (!is_string($accountId) || !Uuid::isValid($accountId)) {
-            throw new \RuntimeException(
-                'Je moet ingelogd zijn om staff te beheren.'
-            );
-        }
-
-        $account = $this->entityManager->find(
-            Account::class,
-            Uuid::fromString($accountId)
-        );
+        $account = $this->security->getUser();
 
         if (!$account instanceof Account) {
             throw new \RuntimeException(
-                'Het ingelogde account bestaat niet meer.'
+                'Je moet ingelogd zijn om staff te beheren.'
             );
         }
 
@@ -262,7 +250,7 @@ final class StaffManagementService
         string $roleId,
         Organisation $organisation
     ): OrgRole {
-        if (!Uuid::isValid($roleId)) {
+        if (!Ulid::isValid($roleId)) {
             throw new \InvalidArgumentException(
                 'Ongeldige rol-ID.'
             );
@@ -270,7 +258,7 @@ final class StaffManagementService
 
         $role = $this->entityManager->find(
             OrgRole::class,
-            Uuid::fromString($roleId)
+            Ulid::fromString($roleId)
         );
 
         if (
@@ -290,7 +278,7 @@ final class StaffManagementService
         string $memberId,
         Organisation $organisation
     ): OrgMember {
-        if (!Uuid::isValid($memberId)) {
+        if (!Ulid::isValid($memberId)) {
             throw new \InvalidArgumentException(
                 'Ongeldige medewerker-ID.'
             );
@@ -298,7 +286,7 @@ final class StaffManagementService
 
         $member = $this->entityManager->find(
             OrgMember::class,
-            Uuid::fromString($memberId)
+            Ulid::fromString($memberId)
         );
 
         if (

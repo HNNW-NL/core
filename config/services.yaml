@@ -21,3 +21,21 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+when@dev:
+    services:
+        App\Asset\TimestampAssetPackage:
+            decorates: 'assets._default_package'
+            decoration_priority: -100
+            arguments:
+                $inner: '@App\Asset\TimestampAssetPackage.inner'
+
+when@prod:
+    services:
+        App\Asset\TimestampAssetPackage:
+            abstract: true
+
+when@test:
+    services:
+        App\Asset\TimestampAssetPackage:
+            abstract: true
