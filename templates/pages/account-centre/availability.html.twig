@@ -170,7 +170,7 @@
                             <td class="text-right">
                                 <form action="{{ path('account.availability_delete', {
                                     id: availability.id
-                                }) }}" method="POST" data-confirm-delete-availability>
+                                }) }}" method="POST" data-controller="confirm" data-action="submit->confirm#submit" data-confirm-message-value="Weet je zeker dat je deze beschikbaarheid wilt verwijderen?">
 
                                     <input type="hidden"
                                            name="_token"
