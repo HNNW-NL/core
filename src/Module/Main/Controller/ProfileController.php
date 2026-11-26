@@ -43,10 +43,16 @@ final class ProfileController extends AbstractController
         $profile = $account?->getProfile();
         $location = $profile?->getLocation();
 
-        return $this->render('pages/main/profile.html.twig', [
+        $response = $this->render('pages/main/profile.html.twig', [
             'profile' => $profile,
             'guest_location' => $location,
         ]);
+        $response->setPrivate();
+        $response->setMaxAge(0);
+        $response->headers->set('Cache-Control', 'no-store, private, max-age=0, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+
+        return $response;
     }
 
     #[Route('/profile/location', name: 'profile_update_location', methods: ['POST'])]

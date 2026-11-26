@@ -12,6 +12,8 @@ class ProfileResponsiveTest extends WebTestCase
         $crawler = $client->request('GET', '/profile');
 
         $this->assertResponseIsSuccessful();
+        $this->assertStringContainsString('no-store', (string) $client->getResponse()->headers->get('Cache-Control'));
+        $this->assertResponseHeaderSame('Pragma', 'no-cache');
         $this->assertSelectorExists('meta[name="viewport"][content="width=device-width, initial-scale=1.0"]');
         $this->assertSelectorExists('link[href="/assets/main/css/profile.css"]');
         $this->assertSelectorExists('label[for="upload"]');
