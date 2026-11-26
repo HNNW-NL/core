@@ -9,31 +9,112 @@
 {% block seoAuthor %}HNNW{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/jobs.css') }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
+{% macro icon(name) %}
+    <svg class="jobs-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        {% if name == 'building' %}
+            <path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M14 9h5a1 1 0 0 1 1 1v11M2 21h20M8 8h2M8 12h2M8 16h2"/>
+        {% elseif name == 'pin' %}
+            <path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>
+        {% elseif name == 'briefcase' %}
+            <rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/>
+        {% elseif name == 'euro' %}
+            <path d="M18 6.5A7 7 0 1 0 18 17.5M4 10h9M4 14h9"/>
+        {% elseif name == 'clock' %}
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+        {% elseif name == 'home' %}
+            <path d="M3 11l9-8 9 8M5 10v10h14V10"/>
+        {% endif %}
+    </svg>
+{% endmacro %}
+
 {# Page content #}
 {% block body %}
-    <section>
-        <h1>Vacatures</h1>
-        {% for job in jobs %}
-            <article>
-                <h2>
-                    <a href="{{ path('main.jobs.detail', {slug: job.slug}) }}">
-                        {{ job.title }}
-                    </a>
-                </h2>
-                {% if job.organisation %}<p>{{ job.organisation.name }}</p>{% endif %}
-                {% if job.location %}<p>{{ job.location }}</p>{% endif %}
-                {% if job.description %}<p>{{ job.description|striptags|slice(0, 250) }}</p>{% endif %}
-                {% if job.applicationUrl %}
-                    <a href="{{ job.applicationUrl }}" target="_blank" rel="noopener noreferrer">Solliciteren via externe website</a>
+    {% import _self as ui %}
+
+    <section class="jobs">
+        <header class="jobs-header">
+            <h1>Vacatures</h1>
+            <p class="jobs-intro">
+                Bekijk de beschikbare vacatures en klik door voor alle details.
+                {% if jobs|length > 0 %}
+                    <strong>{{ jobs|length }}</strong> {{ jobs|length == 1 ? 'vacature' : 'vacatures' }} beschikbaar.
                 {% endif %}
-            </article>
-        {% else %}
-            <p>Er zijn momenteel geen gepubliceerde vacatures beschikbaar.</p>
-        {% endfor %}
+            </p>
+        </header>
+
+        <div class="jobs-list">
+            {% for job in jobs %}
+                {% set description = job.description ? job.description|striptags|trim : '' %}
+                <article class="job-card">
+                    <h2 class="job-card__title">
+                        <a class="job-card__link" href="{{ path('main.jobs.detail', {slug: job.slug}) }}">
+                            {{ job.title }}
+                        </a>
+                    </h2>
+
+                    {% if job.organisation %}
+                        <p class="job-card__org">{{ ui.icon('building') }} {{ job.organisation.name }}</p>
+                    {% endif %}
+
+                    <ul class="job-card__meta">
+                        {% if job.location %}
+                            <li>{{ ui.icon('pin') }} {{ job.location }}</li>
+                        {% endif %}
+                        {% if job.employmentType %}
+                            <li>{{ ui.icon('briefcase') }} {{ job.employmentType.value|replace({'_': ' ', '-': ' '})|capitalize }}</li>
+                        {% endif %}
+                        {% if job.workMode %}
+                            <li>{{ ui.icon('home') }} {{ job.workMode.value|replace({'_': ' ', '-': ' '})|capitalize }}</li>
+                        {% endif %}
+                        {% if job.salaryMin or job.salaryMax %}
+                            <li>
+                                {{ ui.icon('euro') }}
+                                {% if job.salaryMin and job.salaryMax %}
+                                    {{ job.salaryMin|number_format(0, ',', '.') }} – {{ job.salaryMax|number_format(0, ',', '.') }}
+                                {% elseif job.salaryMin %}
+                                    Vanaf {{ job.salaryMin|number_format(0, ',', '.') }}
+                                {% else %}
+                                    Tot {{ job.salaryMax|number_format(0, ',', '.') }}
+                                {% endif %}
+                                {% if job.salaryCurrency %}{{ job.salaryCurrency }}{% endif %}
+                            </li>
+                        {% endif %}
+                        {% if job.hoursPerWeekMin or job.hoursPerWeekMax %}
+                            <li>
+                                {{ ui.icon('clock') }}
+                                {% if job.hoursPerWeekMin and job.hoursPerWeekMax and job.hoursPerWeekMin != job.hoursPerWeekMax %}
+                                    {{ job.hoursPerWeekMin }} – {{ job.hoursPerWeekMax }} uur per week
+                                {% else %}
+                                    {{ job.hoursPerWeekMin ?: job.hoursPerWeekMax }} uur per week
+                                {% endif %}
+                            </li>
+                        {% endif %}
+                    </ul>
+
+                    {% if description %}
+                        <p class="job-card__description">{{ description|length > 250 ? description|slice(0, 250) ~ '…' : description }}</p>
+                    {% endif %}
+
+                    <div class="job-card__actions">
+                        <span class="job-card__more">Bekijk vacature →</span>
+                        {% if job.applicationUrl %}
+                            <a class="job-card__apply" href="{{ job.applicationUrl }}" target="_blank" rel="noopener noreferrer">Solliciteren via externe website</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% else %}
+                <div class="jobs-empty">
+                    <h2>Geen vacatures beschikbaar</h2>
+                    <p>Er zijn momenteel geen gepubliceerde vacatures beschikbaar. Kom later nog eens terug.</p>
+                </div>
+            {% endfor %}
+        </div>
     </section>
 {% endblock %}
