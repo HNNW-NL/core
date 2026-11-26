@@ -96,7 +96,7 @@ final class AccountsController extends AbstractController
     {
         $account = $this->getAndCheckAccount();
 
-        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        $profile = $this->profile($em);
 
         $applications = $em->getRepository(ProjectApplication::class)->findBy(
             ['profile' => $profile, 'deletedAt' => null],
@@ -578,11 +578,8 @@ final class AccountsController extends AbstractController
     public function notifications(Request $request, EntityManagerInterface $em): Response
     {
         $account = $this->getAndCheckAccount();
-        $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
+        $settings = $this->settings($em);
 
-        if (!$settings) {
-            $settings = $this->createAccountSettings($em, $account);
-        }
 
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_notifications');
@@ -787,11 +784,6 @@ final class AccountsController extends AbstractController
     {
         $settings = new AccountSetting();
         $settings->setAccount($account);
-        $settings->setLanguage('nl');
-        $settings->setTheme('dark');
-        $settings->setProfileVisibility('public');
-        $settings->setEmailNotificationsEnabled(true);
-
         $entityManager->persist($settings);
 
         return $settings;
