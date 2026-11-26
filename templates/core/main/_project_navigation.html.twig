@@ -1,0 +1,6 @@
+{% set projectRoute = app.request.attributes.get('_route') %}
+<nav class="project-navigation" aria-label="Projectnavigatie">
+    {% for route, label in {'main.projects.detail': 'Overzicht', 'main.projects.workPackages': 'Werkpakketten', 'main.projects.tasks': 'Taken', 'main.projects.updates': 'Updates'} %}
+        <a href="{{ path(route, {slug: slug}) }}" {% if projectRoute == route %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+</nav>

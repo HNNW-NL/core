@@ -35,3 +35,22 @@
         &:hover { background: var(--hnnw-yellow-400); }
     }
 }
+
+.project-navigation {
+    max-width: 960px;
+    margin: 0 auto 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+    padding: .5rem;
+    background: var(--header-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    a {
+        padding: .65rem .85rem;
+        border-radius: var(--border-radius-sm);
+        color: var(--paragraph-grey);
+        &:hover { background: var(--background); }
+        &[aria-current="page"] { color: var(--accent-text); background: var(--background); }
+    }
+}
