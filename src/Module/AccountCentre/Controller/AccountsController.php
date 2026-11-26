@@ -19,6 +19,8 @@ use App\Entity\Project\ProjectParticipant;
 use App\Enum\AvailabilityType;
 use App\Enum\DayOfWeek;
 use App\Enum\SkillProficiencyLevel;
+use App\Form\ProfileSkillType;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\DBAL\LockMode;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -692,29 +694,65 @@ final class AccountsController extends AbstractController
     public function skills(EntityManagerInterface $em): Response
     {
         $profile = $this->profile($em);
+
+        $form = $this->createForm(ProfileSkillType::class, new ProfileSkill(),[
+            'action' => $this->generateUrl('account.skills_save'),
+            'method' => 'POST',
+        ]);
         return $this->render('pages/account-centre/skills.html.twig', [
-            'skills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
+            'ProfileSkills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
             'availableSkills' => $em->getRepository(Skill::class)->findBy(['active' => true], ['name' => 'ASC']),
+            'levels' => SkillProficiencyLevel::cases(),
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/skills', name: 'skills_save', methods: ['POST'])]
     public function saveSkill(Request $request, EntityManagerInterface $em): Response
     {
-        $this->csrf($request, 'account_skills');
         $profile = $this->profile($em);
-        $skill = $em->getRepository(Skill::class)->find((string) $request->request->get('skill_id', ''));
-        $level = SkillProficiencyLevel::tryFrom((string) $request->request->get('level', 'beginner'));
-        if (!$skill || !$skill->isActive() || !$level) {
-            throw $this->createNotFoundException('Skill of niveau niet gevonden.');
+        $form = $this->createForm(ProfileSkillType::class, new ProfileSkill());
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var ProfileSkill $data */
+            $data = $form->getData();
+
+            $skill = $data->getSkill();
+            $level = $data->getProficiencyLevel();
+
+            if (!$skill || !$skill->isActive()) {
+                throw $this->createNotFoundException('Skill niet gevonden.');
+            }
+
+            $entry = $em->getRepository(ProfileSkill::class)->findOneBy([
+                'profile' => $profile,
+                'skill' => $skill,
+            ]);
+
+            if (!$entry) {
+                $entry = new ProfileSkill();
+                $entry->setProfile($profile);
+                $entry->setSkill($skill);
+
+                $em->persist($entry);
+                $this->addFlash('info', 'Vaardigheid is toegevoegd.');
+            } else {
+                $this->addFlash('info', 'Vaardigheid is aangepast.');
+            }
+
+            $entry->setProficiencyLevel($level);
+            try {
+                $em->flush();
+                $this->addFlash('success', 'Vaardigheid is opgeslagen.');
+            } catch (UniqueConstraintViolationException $e) {
+                $this->addFlash('error', 'Deze vaardigheid is al toegevoegd.');
+            }
+
+            return $this->redirectToRoute('account.skills');
         }
-        $entry = $em->getRepository(ProfileSkill::class)->findOneBy(['profile' => $profile, 'skill' => $skill]);
-        if (!$entry) {
-            $entry = (new ProfileSkill())->setProfile($profile)->setSkill($skill);
-            $em->persist($entry);
-        }
-        $entry->setProficiencyLevel($level);
-        $em->flush();
+
+        $this->addFlash('error', 'Controleer de ingevoerde gegevens.');
         return $this->redirectToRoute('account.skills');
     }
 
@@ -728,7 +766,7 @@ final class AccountsController extends AbstractController
         if ($entry->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
             throw $this->createAccessDeniedException();
         }
-        $this->csrf($request, 'delete_skill' . $id);
+        $this->csrf($request, 'delete_account_skill' . $id);
         $em->remove($entry);
         $em->flush();
         return $this->redirectToRoute('account.skills');
