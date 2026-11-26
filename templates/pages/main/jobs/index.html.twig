@@ -9,31 +9,134 @@
 {% block seoAuthor %}HNNW{% endblock %}
 
 {# CSS #}
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/jobs.css') }}">
+{% endblock %}
 
 {# JavaScript #}
 {% block javascript %}{% endblock %}
 
 {# Page content #}
 {% block body %}
-    <section>
+    <section class="jobs-page">
         <h1>Vacatures</h1>
-        {% for job in jobs %}
-            <article>
-                <h2>
-                    <a href="{{ path('main.jobs.detail', {slug: job.slug}) }}">
-                        {{ job.title }}
-                    </a>
-                </h2>
-                {% if job.organisation %}<p>{{ job.organisation.name }}</p>{% endif %}
-                {% if job.location %}<p>{{ job.location }}</p>{% endif %}
-                {% if job.description %}<p>{{ job.description|striptags|slice(0, 250) }}</p>{% endif %}
-                {% if job.applicationUrl %}
-                    <a href="{{ job.applicationUrl }}" target="_blank" rel="noopener noreferrer">Solliciteren via externe website</a>
+
+        <form method="get" action="{{ path('main.jobs.home') }}" class="jobs-filters" aria-label="Vacatures filteren">
+            <fieldset class="jobs-filters__fields">
+                <legend class="sr-only">Filters voor vacatures</legend>
+
+                <div class="jobs-field jobs-field--search">
+                    <label for="jobs-search">Zoeken in vacatures</label>
+                    <input
+                        id="jobs-search"
+                        type="search"
+                        name="q"
+                        value="{{ filters.search }}"
+                        placeholder="Titel, omschrijving of organisatie"
+                        maxlength="200"
+                    >
+                </div>
+
+                <div class="jobs-field">
+                    <label for="jobs-employment-type">Dienstverband</label>
+                    <select id="jobs-employment-type" name="employment_type">
+                        <option value="">Alle dienstverbanden</option>
+                        {% for option in employmentTypeOptions %}
+                            <option value="{{ option.value }}"
+                                    {% if filters.employmentType == option.value %}selected{% endif %}
+                            >{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="jobs-field">
+                    <label for="jobs-work-mode">Werkvorm</label>
+                    <select id="jobs-work-mode" name="work_mode">
+                        <option value="">Alle werkvormen</option>
+                        {% for option in workModeOptions %}
+                            <option value="{{ option.value }}"
+                                    {% if filters.workMode == option.value %}selected{% endif %}
+                            >{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="jobs-field">
+                    <label for="jobs-location">Locatie</label>
+                    <input
+                        id="jobs-location"
+                        type="search"
+                        name="location"
+                        value="{{ filters.location }}"
+                        placeholder="Bijvoorbeeld Amsterdam"
+                        maxlength="255"
+                    >
+                </div>
+            </fieldset>
+
+            <div class="jobs-filters__actions">
+                <button type="submit" class="jobs-button">Filters toepassen</button>
+                <a href="{{ path('main.jobs.home') }}" class="jobs-button jobs-button--secondary">
+                    Alle filters wissen
+                </a>
+            </div>
+        </form>
+
+        <p class="jobs-results">
+            {{ jobs|length }} {{ jobs|length == 1 ? 'vacature' : 'vacatures' }} gevonden.
+        </p>
+
+        {% if jobs is empty %}
+            <div class="jobs-empty" role="status">
+                {% if filters.hasActiveFilters %}
+                    <p>Geen vacatures gevonden die aan uw zoekopdracht en filters voldoen.</p>
+                    <p>Pas de zoekterm of filters aan, of wis alle filters.</p>
+                {% else %}
+                    <p>Er zijn momenteel geen gepubliceerde vacatures beschikbaar.</p>
                 {% endif %}
-            </article>
+            </div>
         {% else %}
-            <p>Er zijn momenteel geen gepubliceerde vacatures beschikbaar.</p>
-        {% endfor %}
+            <div class="jobs-list">
+                {% for job in jobs %}
+                    <article class="job-card">
+                        <h2 class="job-card__title">
+                            <a href="{{ path('main.jobs.detail', {slug: job.slug}) }}">
+                                {{ job.title }}
+                            </a>
+                        </h2>
+
+                        <p class="job-card__meta">
+                            {% if job.organisation %}<span>{{ job.organisation.name }}</span>{% endif %}
+                            {% if job.location %}<span>{{ job.location }}</span>{% endif %}
+                        </p>
+
+                        {% if job.employmentType or job.workMode %}
+                            <p class="job-card__tags">
+                                {% if job.employmentType %}
+                                    <span class="job-tag">
+                                        {{ employmentTypeLabels[job.employmentType.value]|default(job.employmentType.value) }}
+                                    </span>
+                                {% endif %}
+                                {% if job.workMode %}
+                                    <span class="job-tag">
+                                        {{ workModeLabels[job.workMode.value]|default(job.workMode.value) }}
+                                    </span>
+                                {% endif %}
+                            </p>
+                        {% endif %}
+
+                        {% if job.description %}
+                            <p class="job-card__description">{{ job.description|striptags|slice(0, 250) }}</p>
+                        {% endif %}
+
+                        {% if job.applicationUrl %}
+                            <a class="job-card__apply" href="{{ job.applicationUrl }}" target="_blank" rel="noopener noreferrer">
+                                Solliciteren via externe website
+                            </a>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
     </section>
 {% endblock %}
