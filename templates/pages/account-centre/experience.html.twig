@@ -59,7 +59,7 @@
                             {% endif %}
                         </div>
 
-                        <form action="{{ path('account.experience_delete', {'id': experience.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze ervaring wilt verwijderen?');">
+                        <form action="{{ path('account.experience_delete', {'id': experience.id}) }}" method="POST" data-controller="confirm" data-action="submit->confirm#submit" data-confirm-message-value="Weet je zeker dat je deze ervaring wilt verwijderen?">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_experience' ~ experience.id) }}">
                             <button type="submit" class="btn-card-cancel">Verwijderen</button>
                         </form>
@@ -76,7 +76,7 @@
                 <p>Vul de onderstaande velden in om een werkgever of project toe te voegen aan je profiel.</p>
             </div>
 
-            <form action="{{ path('account.experience') }}" method="POST" class="account-form">
+            <form action="{{ path('account.experience') }}" method="POST" class="account-form" data-controller="employment" >
                 <input type="hidden" name="_token" value="{{ csrf_token('account_experience') }}">
 
                 <div class="form-group">
@@ -104,7 +104,7 @@
                 </div>
 
                 <div class="form-group checkbox-group">
-                    <input type="checkbox" id="exp-is-current" name="is_current" value="1">
+                    <input type="checkbox" id="exp-is-current" data-employment-target="current" data-action="change->employment#update" name="is_current" value="1">
                     <label for="exp-is-current">Ik ben momenteel werkzaam in deze functie</label>
                 </div>
 
@@ -116,7 +116,7 @@
 
                     <div class="form-group">
                         <label for="exp-end-date">Einddatum</label>
-                        <input type="date" id="exp-end-date" name="end_date">
+                        <input type="date" id="exp-end-date" data-employment-target="endDate" name="end_date">
                     </div>
                 </div>
 

@@ -22,12 +22,22 @@ final readonly class TimestampAssetPackage implements PackageInterface
     {
         $url = $this->inner->getUrl($path);
 
-        $extension = strtolower(pathinfo(
-            parse_url($path, PHP_URL_PATH) ?: '',
-            PATHINFO_EXTENSION
-        ));
+        $assetPath = parse_url($path, PHP_URL_PATH) ?: '';
+
+        $extension = strtolower(
+            pathinfo($assetPath, PATHINFO_EXTENSION)
+        );
 
         if (!in_array($extension, ['css', 'js'], true)) {
+            return $url;
+        }
+
+        // Only apply timestamps to physical public assets.
+        $publicPath = dirname(__DIR__, 2)
+            . '/public/'
+            . ltrim($assetPath, '/');
+
+        if (!is_file($publicPath)) {
             return $url;
         }
 

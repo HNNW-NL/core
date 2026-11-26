@@ -36,6 +36,14 @@
 
     --button-primary-text: #020617;
     --transition-duration: .2s;
+
+    /* Stacking order */
+    --z-index-dropdown: 100;
+    --z-index-header: 200;
+    --z-index-overlay: 300;
+    --z-index-modal: 400;
+    --z-index-toast: 500;
+    --z-index-tooltip: 600;
 }
 
 [data-theme="light"] {
@@ -74,10 +82,10 @@ body {
     background-color: var(--background);
     color: var(--paragraph);
     min-height: 100svh;
-    font-family: 'Lato', sans-serif;
+    font-family: var(--font-body);
 
     h1, h2, h3, h4, h5, h6 {
-        font-family: 'Inter', sans-serif;
+        font-family: var(--font-heading);
     }
 
     h1 {
