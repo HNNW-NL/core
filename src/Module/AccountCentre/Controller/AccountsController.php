@@ -27,6 +27,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Form\FormError;
 
 #[Route('/account', name: 'account.')]
 final class AccountsController extends AbstractController
@@ -708,10 +709,23 @@ final class AccountsController extends AbstractController
     }
 
     #[Route('/skills', name: 'skills_save', methods: ['POST'])]
-    public function saveSkill(Request $request, EntityManagerInterface $em): Response
-    {
+    public function saveSkill(
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
         $profile = $this->profile($em);
-        $form = $this->createForm(ProfileSkillType::class, new ProfileSkill());
+
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+
+            return $this->redirectToRoute('account.home');
+        }
+
+        $form = $this->createForm(ProfileSkillType::class, new ProfileSkill(), [
+            'action' => $this->generateUrl('account.skills_save'),
+            'method' => 'POST',
+        ]);
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -722,38 +736,74 @@ final class AccountsController extends AbstractController
             $level = $data->getProficiencyLevel();
 
             if (!$skill || !$skill->isActive()) {
-                throw $this->createNotFoundException('Skill niet gevonden.');
+                $form->get('skill')->addError(
+                    new FormError('Selecteer een geldige, actieve vaardigheid.')
+                );
             }
 
-            $entry = $em->getRepository(ProfileSkill::class)->findOneBy([
-                'profile' => $profile,
-                'skill' => $skill,
-            ]);
-
-            if (!$entry) {
-                $entry = new ProfileSkill();
-                $entry->setProfile($profile);
-                $entry->setSkill($skill);
-
-                $em->persist($entry);
-                $this->addFlash('info', 'Vaardigheid is toegevoegd.');
-            } else {
-                $this->addFlash('info', 'Vaardigheid is aangepast.');
+            if (!$level) {
+                $form->get('proficiencyLevel')->addError(
+                    new FormError('Selecteer een geldig vaardigheidsniveau.')
+                );
             }
 
-            $entry->setProficiencyLevel($level);
-            try {
-                $em->flush();
-                $this->addFlash('success', 'Vaardigheid is opgeslagen.');
-            } catch (UniqueConstraintViolationException $e) {
-                $this->addFlash('error', 'Deze vaardigheid is al toegevoegd.');
+            if ($form->isValid()) {
+                $entry = $em->getRepository(ProfileSkill::class)->findOneBy([
+                    'profile' => $profile,
+                    'skill' => $skill,
+                ]);
+
+                $isNew = false;
+
+                if (!$entry) {
+                    $entry = new ProfileSkill();
+                    $entry->setProfile($profile);
+                    $entry->setSkill($skill);
+
+                    $em->persist($entry);
+                    $isNew = true;
+                }
+
+                $entry->setProficiencyLevel($level);
+
+                try {
+                    $em->flush();
+
+                    if ($isNew) {
+                        $this->addFlash('info', 'Vaardigheid is toegevoegd.');
+                    } else {
+                        $this->addFlash('info', 'Vaardigheid is aangepast.');
+                    }
+
+                    $this->addFlash('success', 'Vaardigheid is opgeslagen.');
+
+                    return $this->redirectToRoute('account.skills');
+
+                } catch (UniqueConstraintViolationException $e) {
+                    $form->get('skill')->addError(
+                        new FormError('Deze vaardigheid is al toegevoegd.')
+                    );
+                }
             }
+        }
+
+        if (!$form->isSubmitted()) {
+            $this->addFlash('error', 'Controleer de ingevoerde gegevens.');
 
             return $this->redirectToRoute('account.skills');
         }
 
-        $this->addFlash('error', 'Controleer de ingevoerde gegevens.');
-        return $this->redirectToRoute('account.skills');
+        return $this->render('pages/account-centre/skills.html.twig', [
+            'ProfileSkills' => $em->getRepository(ProfileSkill::class)->findBy([
+                'profile' => $profile,
+            ]),
+            'availableSkills' => $em->getRepository(Skill::class)->findBy(
+                ['active' => true],
+                ['name' => 'ASC']
+            ),
+            'levels' => SkillProficiencyLevel::cases(),
+            'form' => $form->createView(),
+        ]);
     }
 
     #[Route('/skills/{id}/delete', name: 'skills_delete', methods: ['POST'])]

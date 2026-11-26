@@ -40,12 +40,16 @@
             </div>
 
             {{ form_start(form) }}
-                {{ form_row(form.skill) }}
+                {{ form_label(form.skill) }}
+                {{ form_widget(form.skill) }}
+                {{ form_errors(form.skill) }}
 
-                {{ form_row(form.proficiencyLevel) }}
+                {{ form_label(form.proficiencyLevel) }}
+                {{ form_widget(form.proficiencyLevel) }}
+                {{ form_errors(form.proficiencyLevel) }}
 
                 <button type="submit" class="btn btn-primary">
-                    Vaardigheid toevoegen
+                    Vaardigheid opslaan
                 </button>
             {{ form_end(form) }}
         </section>
