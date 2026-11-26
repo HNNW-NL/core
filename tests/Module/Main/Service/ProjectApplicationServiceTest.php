@@ -60,12 +60,13 @@ final class ProjectApplicationServiceTest extends TestCase
     #[TestWith([20, true, 'active', 'withdrawn'])]
     #[TestWith([20, true, 'published', 'accepted'])]
     #[TestWith([20, true, 'active', 'rejected'])]
-    public function testMotivationAndDuplicateSubmission(int $length, bool $valid, string $projectStatus = 'active', ?string $existingState = null): void
+    #[TestWith([20, true, 'active', null, 'private'])]
+    public function testMotivationAndDuplicateSubmission(int $length, bool $valid, string $projectStatus = 'active', ?string $existingState = null, string $visibility = 'public'): void
     {
         $account = new Account();
         $account->verifyEmail();
         $profile = (new Profile())->setAccount($account);
-        $project = (new Project())->setStatus((new Status())->setScope('project')->setName($projectStatus))->setEndDate(null);
+        $project = (new Project())->setVisibility($visibility)->setStatus((new Status())->setScope('project')->setName($projectStatus))->setEndDate(null);
         $project->publish();
         $existing = null;
         $repository = $this->createStub(EntityRepository::class);
@@ -77,12 +78,16 @@ final class ProjectApplicationServiceTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getRepository')->willReturnCallback(static fn ($class) => $class === ProjectApplication::class ? $repository : $participants);
         $em->method('wrapInTransaction')->willReturnCallback(static fn ($operation) => $operation());
-        $em->expects($valid ? self::once() : self::never())->method('persist')->willReturnCallback(function ($application) use (&$existing) { $existing = $application; });
+        $em->expects($valid && $visibility === 'public' ? self::once() : self::never())->method('persist')->willReturnCallback(function ($application) use (&$existing) { $existing = $application; });
         $statuses = $this->createStub(StatusRepository::class);
         $statuses->method('findFirstByScopeAndNames')->willReturn((new Status())->setScope('ProjectApplication')->setName('send'));
         $service = new ProjectApplicationService($em, $statuses);
         if (!$valid) {
             $this->expectException(\DomainException::class);
+        }
+        if ($visibility !== 'public') {
+            $this->expectException(\DomainException::class);
+            $this->expectExceptionMessage('niet open');
         }
         $submission = $service->submitWithResult($project, $account, $profile, str_repeat('é', $length));
         self::assertTrue($submission->created);

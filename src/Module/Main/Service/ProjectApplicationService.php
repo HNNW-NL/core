@@ -27,6 +27,11 @@ final readonly class ProjectApplicationService
         return $this->submitWithResult($project, $account, $profile, $motivation)->application;
     }
 
+    public function findForProfile(Project $project, Profile $profile): ?ProjectApplication
+    {
+        return $this->em->getRepository(ProjectApplication::class)->findOneBy(['project' => $project, 'profile' => $profile]);
+    }
+
     public function submitWithResult(Project $project, Account $account, Profile $profile, string $motivation): ProjectApplicationSubmission
     {
         $motivation = trim($motivation);
@@ -44,7 +49,7 @@ final readonly class ProjectApplicationService
             if ($project->getOwnerAccount()?->getId() == $account->getId()) {
                 return 'Je kunt je niet aanmelden voor je eigen project.';
             }
-            if ($project->getDeletedAt() !== null || $project->getPublishedAt() === null
+            if ($project->getVisibility() !== 'public' || $project->getDeletedAt() !== null || $project->getPublishedAt() === null
                 || strcasecmp((string) $project->getStatus()?->getScope(), 'project') !== 0
                 || !in_array(mb_strtolower((string) $project->getStatus()?->getName()), ['published', 'active', 'open', 'actief'], true)
                 || ($project->getEndDate() !== null && $project->getEndDate() < new \DateTimeImmutable())) {

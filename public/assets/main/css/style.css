@@ -1,17 +1,56 @@
-body {
-   header {
-       position: sticky;
-       top: 0;
-       background-color: var(--header-background);
-       backdrop-filter: blur(8px);
-   }
+/* Public content components, independent of individual page styles. */
+.hnnw-public > main {
+    width: min(100% - 2rem, 1440px);
+    margin-inline: auto;
+    padding-block: 1.25rem;
+    overflow-wrap: anywhere;
+    > .content-panel, > .project-tasks, > .project-work-packages, > .project-apply {
+        max-width: 960px;
+        margin-inline: auto;
+        display: grid;
+        gap: 1rem;
+        padding: clamp(1rem, 3vw, 2rem);
+        background: var(--header-background);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        article { padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); }
+        p { line-height: 1.5; }
+        form { display: grid; gap: .75rem; }
+        textarea, input:not([type="hidden"]), select { max-width: 100%; padding: .65rem; background: var(--background); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); }
+        textarea { width: 100%; min-height: 8rem; }
+        button, .btn-primary { justify-self: start; }
+    }
+    .work-package-list, .package-task-list { display: grid; gap: .75rem; }
+    .work-package-card, .package-task-card { display: grid; gap: .75rem; }
+    .btn-primary, button[type="submit"] {
+        display: inline-flex;
+        width: fit-content;
+        padding: .55em 1.15em;
+        background: var(--hnnw-yellow-500);
+        color: var(--button-primary-text);
+        border: 1px solid transparent;
+        border-radius: var(--border-radius-button);
+        font-weight: 600;
+        cursor: pointer;
+        &:hover { background: var(--hnnw-yellow-400); }
+    }
+}
 
-   main {
-       min-height: 100dvh;
-
-   }
-
-   footer {
-
-   }
+.project-navigation {
+    max-width: 960px;
+    margin: 0 auto 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+    padding: .5rem;
+    background: var(--header-background);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    a {
+        padding: .65rem .85rem;
+        border-radius: var(--border-radius-sm);
+        color: var(--paragraph-grey);
+        &:hover { background: var(--background); }
+        &[aria-current="page"] { color: var(--accent-text); background: var(--background); }
+    }
 }

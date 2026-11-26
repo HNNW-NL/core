@@ -14,6 +14,11 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Form\Main\ProjectApplyType;
+use App\Module\Main\DTO\ProjectApplyDto;
+use App\Module\Main\DTO\ProjectApplyResult;
+use App\Module\Main\DTO\ProjectApplyStatus;
+use App\Module\Main\Handler\ProjectApplyHandler;
 
 #[Route('/projects', name: 'main.projects.')]
 final class ProjectsController extends AbstractController
@@ -51,43 +56,75 @@ final class ProjectsController extends AbstractController
     }
 
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET', 'POST'])]
-    public function apply(string $slug, ProjectRepository $projectRepository, Request $request,
-        CurrentProfileProvider $profiles, \App\Module\Main\Service\ProjectApplicationService $applications,
-        \Doctrine\ORM\EntityManagerInterface $em): Response
-    {
-        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository, true);
-        $account = $this->getUser();
-        $profile = $profiles->getProfile();
-        if (!$account instanceof \App\Entity\Account\Account || $profile === null) {
-            throw $this->createAccessDeniedException();
+    public function apply(
+        string $slug,
+        Request $request,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectApplyHandler $projectApplyHandler,
+    ): Response {
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository,
+            true
+        );
+
+        if ($this->getUser() === null) {
+            $this->addFlash(
+                'error',
+                'Je moet ingelogd zijn om je aan te melden voor een project.'
+            );
+
+            return $this->redirectToRoute(
+                'auth.login',
+                [],
+                Response::HTTP_SEE_OTHER
+            );
         }
-        $error = null;
-        $motivation = '';
-        if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('project-apply-'.$project->getId(), $request->request->getString('_token'))) {
-                throw $this->createAccessDeniedException();
-            }
-            $motivation = $request->request->getString('motivation');
-            try {
-                $submission = $applications->submitWithResult($project, $account, $profile, $motivation);
-                $this->addFlash($submission->created ? 'success' : 'info', $submission->created
-                    ? 'Je aanvraag is ingediend en staat in Mijn aanmeldingen.'
-                    : 'Je had je al aangemeld voor dit project. Je bestaande aanvraag staat in Mijn aanmeldingen.');
-                return $this->redirectToRoute('account.applications', status: 303);
-            } catch (\DomainException $exception) {
-                $error = $exception->getMessage();
-            }
+
+        $profile = $currentProfileProvider->getProfile();
+
+        if ($profile === null) {
+            return $this->render('pages/main/projects/apply.html.twig', [
+                'slug' => $slug,
+                'project' => $project,
+                'form' => null,
+                'blocked' => new ProjectApplyResult(
+                    ProjectApplyStatus::NoProfile,
+                    'Je hebt een profiel nodig om je aan te melden.'
+                ),
+            ]);
         }
-        $existing = $em->getRepository(\App\Entity\Project\ProjectApplication::class)
-            ->findOneBy(['project' => $project, 'profile' => $profile]);
-        $participant = $em->getRepository(\App\Entity\Project\ProjectParticipant::class)
-            ->findOneBy(['project' => $project, 'profile' => $profile]);
+
+        $dto = new ProjectApplyDto();
+        $form = $this->createForm(ProjectApplyType::class, $dto);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $result = $projectApplyHandler->handle(
+                $project,
+                $profile,
+                $dto
+            );
+
+            $this->addFlash(
+                $result->isSuccessful() ? 'success' : 'warning',
+                $result->message
+            );
+
+            return $this->redirectToRoute(
+                'main.projects.apply',
+                ['slug' => $slug],
+                Response::HTTP_SEE_OTHER
+            );
+        }
+
         return $this->render('pages/main/projects/apply.html.twig', [
-            'project' => $project, 'slug' => $slug, 'applicant' => $profile, 'existing' => $existing,
-            'participant' => $participant, 'error' => $error, 'motivation' => $motivation,
-            'applicationLabel' => $existing ? $applications->label($existing) : null,
-        ], new Response(status: $error ? 422 : 200));
+            'slug' => $slug,
+            'project' => $project,
+            'form' => $form,
+            'blocked' => $projectApplyHandler->check($project, $profile),
+        ], new Response(status: $form->isSubmitted() ? 422 : 200));
     }
 
     #[Route('/{slug}/chat', name: 'chat', methods: ['GET'])]

@@ -85,7 +85,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
             ->setParameter('project', $project->getId(), 'ulid')
-            ->orderBy('application.createdAt', 'DESC')
+            ->orderBy('application.lastModified', 'DESC')
+            ->addOrderBy('application.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -106,7 +107,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.id = :id')
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
-            ->setParameter('id', new Ulid($applicationId), 'ulid')
+            ->setParameter('id', Ulid::fromString($applicationId), 'ulid')
             ->setParameter('project', $project->getId(), 'ulid')
             ->getQuery();
 
