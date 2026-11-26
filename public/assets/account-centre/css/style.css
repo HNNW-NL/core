@@ -593,8 +593,7 @@ body[data-theme="dark"] {
 
 /* Beschikbaarheid Schema Hoofdcontainers */
 
-.availability-container,
-.blocked-dates-container {
+.availability-container {
     max-width: 100% !important;
     margin-bottom: 2rem;
     background: #0d1117;
@@ -769,31 +768,6 @@ body[data-theme="dark"] {
     .switch input:checked + .slider:before {
         transform: translateX(22px);
         background-color: #f0f6fc;
-    }
-}
-
-/* Uitzonderingen / Blocked Dates */
-
-.blocked-dates-title {
-    margin-top: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #c9d1d9;
-    margin-bottom: 1.25rem;
-}
-
-.blocked-dates-form {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    margin-bottom: 1.25rem;
-
-    input[type="date"] {
-        padding: 0.5rem;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        background: #161b22;
-        color: #f0f6fc;
     }
 }
 
