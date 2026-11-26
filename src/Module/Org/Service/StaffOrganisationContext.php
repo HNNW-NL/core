@@ -5,7 +5,7 @@ namespace App\Module\Org\Service;
 use App\Entity\Org\OrgRole;
 use App\Entity\Org\Organisation;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 final class StaffOrganisationContext
 {
@@ -16,8 +16,8 @@ final class StaffOrganisationContext
     {
         $value = $request->query->all()[self::QUERY_KEY] ?? null;
 
-        return is_string($value) && Uuid::isValid($value)
-            ? Uuid::fromString($value)->toRfc4122()
+        return is_string($value) && Ulid::isValid($value)
+            ? Ulid::fromString($value)->toBase32()
             : null;
     }
 
