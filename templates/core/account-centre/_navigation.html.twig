@@ -1,3 +1,7 @@
-<aside>
-    <p>Account Centre Navigation</p>
-</aside>
+<nav class="account-navigation" aria-label="Mijn account">
+    <a href="{{ path('account.home') }}">Overzicht</a>
+    <a href="{{ path('account.applications') }}">Aanmeldingen</a>
+    <a href="{{ path('account.projects') }}">Projecten</a>
+    <a href="{{ path('account.notifications') }}">Meldingen</a>
+    <a href="{{ path('account.settings') }}">Instellingen</a>
+</nav>

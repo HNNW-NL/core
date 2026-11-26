@@ -2,6 +2,7 @@
 
 namespace App\Repository\Project;
 
+use Symfony\Bridge\Doctrine\Types\UlidType;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
@@ -31,8 +32,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('participant.profile = :profile')
             ->andWhere('participant.joinedAt IS NOT NULL')
             ->andWhere('participant.leftAt IS NULL')
-            ->setParameter('project', $project)
-            ->setParameter('profile', $profile)
+            ->setParameter('project', $project->getId(), UlidType::NAME)
+            ->setParameter('profile', $profile->getId(), UlidType::NAME)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -43,8 +44,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('pp.profile = :profile')
             ->andWhere('pp.leftAt IS NULL')
             ->andWhere('pp.joinedAt IS NOT NULL')
-            ->setParameter('project', $project)
-            ->setParameter('profile', $profile)
+            ->setParameter('project', $project->getId(), UlidType::NAME)
+            ->setParameter('profile', $profile->getId(), UlidType::NAME)
             ->orderBy('pp.joinedAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -57,8 +58,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('pp.profile = :profile')
             ->andWhere('pp.leftAt IS NULL')
             ->andWhere('pp.joinedAt IS NOT NULL')
-            ->setParameter('project', $project)
-            ->setParameter('profile', $profile)
+            ->setParameter('project', $project->getId(), UlidType::NAME)
+            ->setParameter('profile', $profile->getId(), UlidType::NAME)
             ->orderBy('pp.joinedAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
@@ -84,7 +85,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->innerJoin('application.status', 'status')
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId(), UlidType::NAME)
             ->orderBy('application.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -107,7 +108,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
             ->setParameter('id', Uuid::fromString($applicationId), 'uuid')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId(), UlidType::NAME)
             ->getQuery();
 
         // OR06-B: binnen een transactie blokkeert dit een gelijktijdige tweede behandeling van dezelfde aanvraag.

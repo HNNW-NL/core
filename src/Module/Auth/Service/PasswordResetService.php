@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RequestContext;
 
@@ -22,6 +23,7 @@ final class PasswordResetService
         private readonly string $baseUrl,
         #[Autowire('%env(MAILER_FROM)%')]
         private readonly string $sender,
+        private readonly UserPasswordHasherInterface $passwordHasher,
     ) {
     }
 
@@ -86,5 +88,59 @@ final class PasswordResetService
         } finally {
             $this->router->setContext($originalContext);
         }
+    }
+
+    public function findValidToken(#[\SensitiveParameter] string $plainToken, string $email): ?ResetPasswordToken
+    {
+        if (!preg_match('/\A[0-9a-f]{64}\z/', $plainToken) || strlen($email) > 254 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+        $account = $this->entityManager->getRepository(Account::class)->findOneBy(['email' => $email, 'deletedAt' => null]);
+        if (!$account instanceof Account) {
+            return null;
+        }
+        foreach ($this->entityManager->getRepository(ResetPasswordToken::class)->findBy(['account' => $account, 'isUsed' => false]) as $candidate) {
+            if ($this->isValid($candidate, $plainToken)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    public function resetPassword(#[\SensitiveParameter] string $plainToken, string $email, #[\SensitiveParameter] string $password): bool
+    {
+        if (mb_strlen($password) < 8 || strlen($password) > 4096) {
+            throw new \InvalidArgumentException('Invalid password length.');
+        }
+        $token = $this->findValidToken($plainToken, $email);
+        if ($token === null) {
+            return false;
+        }
+        $account = $token->getAccount();
+        $passwordHash = $this->passwordHasher->hashPassword($account, $password);
+
+        return $this->entityManager->wrapInTransaction(function () use ($account, $token, $plainToken, $email, $passwordHash): bool {
+            $this->entityManager->lock($account, LockMode::PESSIMISTIC_WRITE);
+            $this->entityManager->refresh($account);
+            $this->entityManager->lock($token, LockMode::PESSIMISTIC_WRITE);
+            $this->entityManager->refresh($token);
+            if ($account->getDeletedAt() !== null || $account->getEmail() !== $email
+                || !$token->getAccount()->getId()->equals($account->getId()) || !$this->isValid($token, $plainToken)) {
+                return false;
+            }
+            $account->setPasswordHash($passwordHash);
+            foreach ($this->entityManager->getRepository(ResetPasswordToken::class)->findBy(['account' => $account, 'isUsed' => false]) as $otherToken) {
+                $otherToken->markAsUsed();
+            }
+
+            return true;
+        });
+    }
+
+    private function isValid(ResetPasswordToken $token, #[\SensitiveParameter] string $plainToken): bool
+    {
+        return !$token->isUsed() && $token->getExpiresAt() > new \DateTimeImmutable()
+            && password_verify($plainToken, $token->getTokenHash() ?? '');
     }
 }

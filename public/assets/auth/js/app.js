@@ -8,10 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	const password = form.querySelector('input[name="password"]');
 	const confirm = form.querySelector('input[name="confirm_password"]');
 	const terms = form.querySelector('input[name="terms"]');
-	const submitBtn = form.querySelector('button[type="submit"]');
 
 	const formErrors = document.getElementById('register-errors');
 	const emailError = document.getElementById('email-error');
+	const passwordError = document.getElementById('password-error');
+	const termsError = document.getElementById('terms-error');
 	const fullNameError = document.getElementById('full_name-error');
 	const usernameError = document.getElementById('username-error');
 	const confirmError = document.getElementById('confirm_password-error');
@@ -37,10 +38,11 @@ document.addEventListener('DOMContentLoaded', function () {
 	}
 
 	function clearFieldErrors() {
-		[emailError, fullNameError, usernameError, confirmError].forEach(function (el) {
+		[emailError, fullNameError, usernameError, confirmError, passwordError, termsError].forEach(function (el) {
 			if (!el) return;
 			el.textContent = '';
 			el.classList.add('visually-hidden');
+			form.querySelector('#' + el.id.replace(/-error$/, ''))?.removeAttribute('aria-invalid');
 		});
 
 		if (formErrors) {
@@ -53,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (!el) return;
 		el.textContent = msg;
 		el.classList.remove('visually-hidden');
+		form.querySelector('#' + el.id.replace(/-error$/, ''))?.setAttribute('aria-invalid', 'true');
 	}
 
 	function validateFormFields() {
@@ -64,18 +67,18 @@ document.addEventListener('DOMContentLoaded', function () {
 			valid = false;
 		}
 
-		if (!username.value.trim()) {
-			setFieldError(usernameError, 'Vul een gebruikersnaam in');
+		if (Array.from(username.value.trim()).length < 3) {
+			setFieldError(usernameError, 'Gebruik minimaal 3 tekens voor je gebruikersnaam');
 			valid = false;
 		}
 
-		if (!email.value || !email.value.includes('@')) {
+		if (!email.value || email.validity.typeMismatch) {
 			setFieldError(emailError, 'Vul een geldig e-mailadres in');
 			valid = false;
 		}
 
-		if (password.value.length < 8) {
-			setFieldError(strengthEl, 'Wachtwoord moet minimaal 8 tekens bevatten');
+		if (Array.from(password.value).length < 8) {
+			setFieldError(passwordError, 'Wachtwoord moet minimaal 8 tekens bevatten');
 			valid = false;
 		}
 
@@ -85,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 
 		if (!terms.checked) {
+			setFieldError(termsError, 'Ga akkoord met de voorwaarden en privacyverklaring.');
 			valid = false;
 		}
 
@@ -115,29 +119,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (strengthEl) {
 				strengthEl.classList.remove('error');
 			}
-			toggleSubmitState();
 		});
 	}
 
-	[fullName, username, email, confirm, terms].forEach(function (el) {
-		if (!el) return;
-		el.addEventListener('input', toggleSubmitState);
-		el.addEventListener('change', toggleSubmitState);
-	});
-
-	function toggleSubmitState() {
-		const ok = validateFormFields();
-		submitBtn.disabled = !ok;
-
-		if (submitBtn.disabled) {
-			submitBtn.classList.remove('btn-primary');
-		} else {
-			submitBtn.classList.add('btn-primary');
-		}
-	}
-
-	submitBtn.disabled = true;
-	submitBtn.classList.remove('btn-primary');
 	updateStrengthUI();
 
 	form.addEventListener('submit', function (e) {

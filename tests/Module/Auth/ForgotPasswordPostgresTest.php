@@ -230,19 +230,21 @@ final class ForgotPasswordPostgresTest extends WebTestCase
         self::assertSame(2, $this->tokenCount());
         self::assertSame(1, $this->tokenCount(unusedOnly: true));
         $client->request('GET', $oldLink);
-        self::assertResponseRedirects('/auth/forgot-password');
+        self::assertResponseStatusCodeSame(400);
+        self::assertSelectorExists('a[href="/auth/forgot-password"]');
         self::assertTrue(password_verify(self::PASSWORD, $this->storedPassword()));
         $page = $client->request('GET', $newLink);
         self::assertResponseIsSuccessful();
         $client->submit($page->selectButton('Wachtwoord opslaan')->form([
             'password' => 'New-password-456', 'confirm_password' => 'New-password-456',
         ]));
-        self::assertResponseRedirects('/auth/login');
+        self::assertResponseRedirects('/auth/login', 303);
         self::assertTrue(password_verify('New-password-456', $this->storedPassword()));
         self::assertFalse(password_verify(self::PASSWORD, $this->storedPassword()));
         self::assertSame(0, $this->tokenCount(unusedOnly: true));
         $client->request('GET', $newLink);
-        self::assertResponseRedirects('/auth/forgot-password');
+        self::assertResponseStatusCodeSame(400);
+        self::assertSelectorExists('a[href="/auth/forgot-password"]');
     }
 
     public function testExpiredLinkIsRejectedWithoutChangingPassword(): void
@@ -253,7 +255,8 @@ final class ForgotPasswordPostgresTest extends WebTestCase
         (new \ReflectionProperty(ResetPasswordToken::class, 'expiresAt'))->setValue($token, new \DateTimeImmutable('-1 minute'));
         $this->entityManager->flush();
         $client->request('GET', $this->mailedLink($this->messages[0]));
-        self::assertResponseRedirects('/auth/forgot-password');
+        self::assertResponseStatusCodeSame(400);
+        self::assertSelectorExists('a[href="/auth/forgot-password"]');
         self::assertTrue(password_verify(self::PASSWORD, $this->storedPassword()));
     }
 
@@ -316,7 +319,7 @@ final class ForgotPasswordPostgresTest extends WebTestCase
         $this->entityManager = new EntityManager($this->database, $this->configuration);
         $mailer = $this->createStub(MailerInterface::class);
         $mailer->method('send')->willReturnCallback(function (Email $mail): void { $this->messages[] = $mail; });
-        $service = new PasswordResetService($this->entityManager, $mailer, self::getContainer()->get(UrlGeneratorInterface::class), 'https://trusted.example.test', 'no-reply@example.test');
+        $service = new PasswordResetService($this->entityManager, $mailer, self::getContainer()->get(UrlGeneratorInterface::class), 'https://trusted.example.test', 'no-reply@example.test', self::getContainer()->get('security.user_password_hasher'));
         $service->sendResetLink(self::EMAIL);
         self::assertCount(1, $this->messages);
         self::assertSame(2, $this->tokenCount());
@@ -387,7 +390,7 @@ final class ForgotPasswordPostgresTest extends WebTestCase
         });
         $container->set(PasswordResetService::class, new PasswordResetService(
             $this->entityManager, $mailer, $container->get(UrlGeneratorInterface::class),
-            'https://trusted.example.test', 'HNNW <no-reply@example.test>',
+            'https://trusted.example.test', 'HNNW <no-reply@example.test>', $container->get('security.user_password_hasher'),
         ));
         $storage = new InMemoryStorage();
         $configuration = [

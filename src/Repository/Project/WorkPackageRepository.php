@@ -6,6 +6,8 @@ use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 class WorkPackageRepository extends ServiceEntityRepository
 {
@@ -22,7 +24,7 @@ class WorkPackageRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('workPackage')
             ->andWhere('IDENTITY(workPackage.project) = :projectId')
             ->andWhere('workPackage.deletedAt IS NULL')
-            ->setParameter('projectId', $projectId)
+            ->setParameter('projectId', Ulid::fromString($projectId), UlidType::NAME)
             ->orderBy('workPackage.dueDate', 'ASC')
             ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()
@@ -53,7 +55,7 @@ class WorkPackageRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('workPackage')
             ->andWhere('workPackage.project = :project')
             ->andWhere('workPackage.deletedAt IS NULL')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId(), UlidType::NAME)
             ->orderBy('workPackage.dueDate', 'ASC')
             ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()

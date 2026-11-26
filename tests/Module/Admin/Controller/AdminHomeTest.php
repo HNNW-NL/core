@@ -13,6 +13,8 @@ use App\Kernel;
 use App\Module\Admin\Service\DashboardTotals;
 use App\Module\Admin\Service\AccountOverview;
 use App\Security\AccountUserProvider;
+use App\Security\AccountUserChecker;
+use App\Entity\Common\Status;
 use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -277,12 +279,13 @@ final class AdminHomeTest extends WebTestCase
     /** @param array<class-string, int> $totals */
     private function clientFor(Account $account, array $totals = []): KernelBrowser
     {
+        $account->setStatus((new Status())->setScope('account')->setName('active'));
         $client = self::createClient();
         $accountRepository = $this->createStub(EntityRepository::class);
         $accountRepository->method('find')->willReturn($account);
         $authenticationEm = $this->createStub(EntityManagerInterface::class);
         $authenticationEm->method('getRepository')->willReturn($accountRepository);
-        self::getContainer()->set(AccountUserProvider::class, new AccountUserProvider($authenticationEm));
+        self::getContainer()->set(AccountUserProvider::class, new AccountUserProvider($authenticationEm, new AccountUserChecker()));
 
         $em = $this->createMock(EntityManagerInterface::class);
         $repositories = [];

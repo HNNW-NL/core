@@ -71,5 +71,22 @@
                 </div>
             </form>
         </div>
+        <section id="account-notifications" aria-labelledby="notifications-title">
+            <h2 id="notifications-title">{{ unread_only ? 'Ongelezen meldingen' : 'Mijn meldingen' }}</h2>
+            <div class="account-grid">
+                {% for notification in notification_records.items %}
+                    <article class="account-card">
+                        <h3>{{ notification.title }}</h3><p>{{ notification.message }}</p>
+                        {% if not notification.read %}
+                            <form method="post" action="{{ path('account.notification_read', {id: notification.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('read_notification' ~ notification.id) }}">
+                                <button type="submit" class="btn-primary">Markeer als gelezen</button>
+                            </form>
+                        {% endif %}
+                    </article>
+                {% else %}<p class="account-card">Je hebt geen meldingen in dit overzicht.</p>{% endfor %}
+            </div>
+            {% include 'pages/account-centre/_pagination.html.twig' with {records: notification_records, pagination_route: 'account.notifications', pagination_params: unread_only ? {unread: 1} : {}} %}
+        </section>
     </div>
 {% endblock %}

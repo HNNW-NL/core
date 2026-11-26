@@ -38,8 +38,10 @@
             <div class="project-card">
                 <h3 class="project-title">{{ project.title }}</h3>
                 <p class="project-summary">{{ project.summary }}</p>
-                <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Public page: {{ project.slug }}</a>
-                <a href="{{ path('org.modifyProject', {'id': project.id}) }}" class="project-slug">Edit page: {{ project.slug }}</a>
+                {% if (project.visibility == 'public' and project.publishedAt) or is_granted('PROJECT_VIEW', project) %}
+                    <a href="{{ path('main.projects.detail', {'slug': project.slug}) }}" class="project-slug">Project bekijken</a>
+                {% else %}<p>Je hebt momenteel geen kijkrechten voor dit project.</p>{% endif %}
+                {% if is_granted('PROJECT_EDIT', project) %}<a href="{{ path('org.modifyProject', {'id': project.id}) }}" class="project-slug">Project beheren</a>{% endif %}
             </div>
         {% endfor %}
     </div>
