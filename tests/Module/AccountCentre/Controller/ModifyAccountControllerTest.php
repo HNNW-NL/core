@@ -2,14 +2,11 @@
 
 namespace App\Tests\Module\AccountCentre\Controller;
 
-use App\DataFixtures\Account\AccountFixtures;
-use App\DataFixtures\Account\ProfileFixtures;
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class ModifyAccountControllerTest extends WebTestCase
 {
