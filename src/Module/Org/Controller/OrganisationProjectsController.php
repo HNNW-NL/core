@@ -2,6 +2,7 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Entity\Project\Project;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -64,16 +65,41 @@ final class OrganisationProjectsController extends AbstractController
 
     #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET'])]
     public function modifyProjectParticipants(
-        string $id,
-        ProjectRepository $projectRepository,
-    ): Response {
-        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+    string $id,
+    ProjectRepository $projectRepository,
+    ProjectParticipantRepository $participantRepository,
+    ProjectParticipantUpdateRoleHandler $applicationHandler,
+): Response {
+    $project = $this->getProjectAndCheckEditAccess(
+        $id,
+        $projectRepository
+    );
 
-        return $this->render('pages/org/projects/modify-participants.html.twig', [
+    $applications = $participantRepository
+        ->findApplicationsForProject($project);
+
+    $pendingApplicationIds = [];
+
+    foreach ($applications as $application) {
+        if ($applicationHandler->isPending($application)) {
+            $pendingApplicationIds[] = $application
+                ->getId()
+                ->toBase32();
+        }
+    }
+
+    return $this->render(
+        'pages/org/projects/modify-participants.html.twig',
+        [
             'id' => $id,
             'project' => $project,
-        ]);
-    }
+            'applications' => $applications,
+            'pending_application_ids' => $pendingApplicationIds,
+            'reject_reason_max_length' =>
+                ProjectParticipantUpdateRoleHandler::REJECT_REASON_MAX_LENGTH,
+        ]
+    );
+}
 
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
     public function inviteProjectParticipants(

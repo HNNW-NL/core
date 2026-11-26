@@ -7,7 +7,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\LockMode;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -24,8 +24,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     public function findActiveParticipant(
         Project $project,
         Profile $profile
-    ): ?ProjectParticipant
-    {
+    ): ?ProjectParticipant {
         return $this->createQueryBuilder('participant')
             ->andWhere('participant.project = :project')
             ->andWhere('participant.profile = :profile')
@@ -36,8 +35,11 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
-    public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
-    {
+
+    public function findActiveParticipantsByProjectAndProfile(
+        Project $project,
+        Profile $profile
+    ): array {
         return $this->createQueryBuilder('pp')
             ->andWhere('pp.project = :project')
             ->andWhere('pp.profile = :profile')
@@ -50,8 +52,10 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findLatestActiveParticipantByProjectAndProfile(Project $project, Profile $profile): ?ProjectParticipant
-    {
+    public function findLatestActiveParticipantByProjectAndProfile(
+        Project $project,
+        Profile $profile
+    ): ?ProjectParticipant {
         return $this->createQueryBuilder('pp')
             ->andWhere('pp.project = :project')
             ->andWhere('pp.profile = :profile')
@@ -65,13 +69,19 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function isActiveParticipant(Project $project, Profile $profile): bool
-    {
-        return $this->findActiveParticipantsByProjectAndProfile($project, $profile) !== [];
+    public function isActiveParticipant(
+        Project $project,
+        Profile $profile
+    ): bool {
+        return $this->findActiveParticipantsByProjectAndProfile(
+            $project,
+            $profile
+        ) !== [];
     }
 
     /**
-     * OR06-A: alle (niet verwijderde) aanvragen van een project, nieuwste eerst.
+     * OR06-A: alle niet-verwijderde aanvragen van een project,
+     * nieuwste eerst op basis van de ULID.
      *
      * @return list<ProjectApplication>
      */
@@ -85,18 +95,20 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
             ->setParameter('project', $project->getId(), 'ulid')
-            ->orderBy('application.createdAt', 'DESC')
+            ->orderBy('application.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
 
     /**
-     * OR06-A: één aanvraag binnen een specifiek project, zodat een organisatie
-     * nooit een aanvraag van een ander project kan behandelen.
+     * OR06-A: één aanvraag binnen een specifiek project.
      */
-    public function findApplicationForProject(string $applicationId, Project $project, bool $lockForUpdate = false): ?ProjectApplication
-    {
-        if (!Uuid::isValid($applicationId)) {
+    public function findApplicationForProject(
+        string $applicationId,
+        Project $project,
+        bool $lockForUpdate = false
+    ): ?ProjectApplication {
+        if (!Ulid::isValid($applicationId)) {
             return null;
         }
 
@@ -106,11 +118,12 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.id = :id')
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
-            ->setParameter('id', Uuid::fromString($applicationId), 'uuid')
+            ->setParameter('id', Ulid::fromString($applicationId), 'ulid')
             ->setParameter('project', $project->getId(), 'ulid')
             ->getQuery();
 
-        // OR06-B: binnen een transactie blokkeert dit een gelijktijdige tweede behandeling van dezelfde aanvraag.
+        // OR06-B: voorkomt gelijktijdige behandeling
+        // van dezelfde aanvraag binnen een transactie.
         if ($lockForUpdate) {
             $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
         }

@@ -49,7 +49,7 @@
 
                 <tbody>
                 {% for application in applications %}
-                    {% set applicationId = application.id.toRfc4122 %}
+                    {% set applicationId = application.id.toBase32 %}
                     {% set profile = application.profile %}
                     {% set applicantName = profile.displayName ?: (profile.firstName ~ ' ' ~ profile.lastName) %}
                     {% set isPending = applicationId in pending_application_ids %}
