@@ -42,12 +42,12 @@
                         <small class="account-flash" role="alert">{{ errors.username }}</small>
                     {% endif %}
                     <label for="username">Gebruikersnaam (Max 12 characters)</label>
-                    <input type="text" id="username" name="username" placeholder="Kies een gebruikersnaam" value="{{ account.username|default('') }}" required>
+                    <input type="text" id="username" name="username" placeholder="Kies een gebruikersnaam" value="{{ formData.username|default('') }}" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="text" id="email" name="email" placeholder="email" value="{{ account.email|default('') }}" disabled>
+                    <input type="text" id="email" name="email" placeholder="email" value="{{ formData.email|default('') }}" disabled>
                 </div>
 
                 <div class="form-group">
