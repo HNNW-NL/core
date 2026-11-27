@@ -4,6 +4,8 @@ namespace App\Module\Org\Service;
 
 use App\Entity\Common\Status;
 use App\Entity\Project\Project;
+use App\Entity\Project\PackageTask;
+use App\Entity\Project\ProjectApplication;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class ProjectLifecycle
@@ -18,7 +20,9 @@ final class ProjectLifecycle
         'completed' => ['archived'],
     ];
 
-    public function __construct(private readonly EntityManagerInterface $entityManager) {}
+    public function __construct(private readonly EntityManagerInterface $entityManager,
+        private readonly ProjectLeadEligibility $leadEligibility,
+    ) {}
 
     public function allowedTargets(Project $project): array
     {
@@ -54,6 +58,19 @@ final class ProjectLifecycle
             && in_array(strtolower((string) $project->getStatus()?->getName()), self::OPEN_APPLICATION_STATUSES, true);
     }
 
+    public static function allowsTaskChanges(Project $project): bool
+    {
+        return $project->getDeletedAt() === null
+            && !in_array(strtolower((string) $project->getStatus()?->getName()), ['completed', 'archived'], true);
+    }
+
+    public static function assertTaskChangesAllowed(Project $project): void
+    {
+        if (!self::allowsTaskChanges($project)) {
+            throw new \InvalidArgumentException('Tasks cannot be changed in a completed, archived or deleted project.');
+        }
+    }
+
     private function findStatus(string $name): ?Status
     {
         return $this->entityManager->getRepository(Status::class)
@@ -79,29 +96,54 @@ final class ProjectLifecycle
                 || trim((string) $project->getDescription()) === '' || $project->getOwnerAccount() === null) {
                 throw new \InvalidArgumentException('Add a title, summary, description and project lead before publishing.');
             }
+            $organisation = $project->getOwnerOrganisation();
+            $lead = $project->getOwnerAccount();
+            if ($organisation === null || $organisation->getDeletedAt() !== null
+                || !isset($this->leadEligibility->projectLeads($organisation)[(string) $lead->getId()])) {
+                throw new \InvalidArgumentException('Choose an eligible project lead from this organisation before publishing.');
+            }
             $project->publish();
         }
 
         if ($next === 'completed') {
-            foreach ($project->getWorkPackages() as $package) {
-                foreach ($package->getWorkPackageTasks() as $task) {
-                    if ($task->getDeletedAt() === null
-                        && !in_array(strtolower((string) $task->getStatus()?->getName()), ['completed', 'done', 'cancelled', 'canceled'], true)) {
-                        throw new \InvalidArgumentException('Finish or cancel all open tasks before completing the project.');
-                    }
-                }
-            }
-            foreach ($project->getApplications() as $application) {
-                if ($application->getDeletedAt() === null
-                    && in_array(strtolower((string) $application->getStatus()?->getName()), ['send', 'submitted'], true)) {
-                    throw new \InvalidArgumentException('Review all submitted applications before completing the project.');
-                }
-            }
+            $this->assertCanComplete($project);
         }
 
         $project->setStatus($status);
         if ($next === 'archived') {
             $project->unpublish();
+        }
+    }
+
+    private function assertCanComplete(Project $project): void
+    {
+        $openTasks = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(task.id)')
+            ->from(PackageTask::class, 'task')
+            ->join('task.workPackage', 'package')
+            ->leftJoin('task.status', 'taskStatus')
+            ->where('package.project = :project AND package.deletedAt IS NULL AND task.deletedAt IS NULL')
+            ->andWhere('taskStatus.id IS NULL OR LOWER(taskStatus.name) NOT IN (:finished)')
+            ->setParameter('project', $project)
+            ->setParameter('finished', ['completed', 'done', 'cancelled', 'canceled'])
+            ->getQuery()
+            ->getSingleScalarResult();
+        if ((int) $openTasks > 0) {
+            throw new \InvalidArgumentException('Finish or cancel all open tasks before completing the project.');
+        }
+
+        $pendingApplications = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(application.id)')
+            ->from(ProjectApplication::class, 'application')
+            ->join('application.status', 'applicationStatus')
+            ->where('application.project = :project AND application.deletedAt IS NULL')
+            ->andWhere('LOWER(applicationStatus.name) IN (:pending)')
+            ->setParameter('project', $project)
+            ->setParameter('pending', ['send', 'submitted'])
+            ->getQuery()
+            ->getSingleScalarResult();
+        if ((int) $pendingApplications > 0) {
+            throw new \InvalidArgumentException('Review all submitted applications before completing the project.');
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Module\Org\Service;
 
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use App\Entity\Account\Account;
 use App\Entity\Common\Status;
 use App\Entity\Org\Organisation;
@@ -19,27 +20,13 @@ final class CreateProjectService
         private readonly EntityManagerInterface $entityManager,
         private readonly SluggerInterface $slugger,
         private readonly ProjectLifecycle $lifecycle,
+        private readonly ProjectLeadEligibility $leadEligibility,
     ) {}
 
     /** @return array<string, Account> */
     public function projectLeads(Organisation $organisation): array
     {
-        $accounts = [$organisation->getOwnerAccount()];
-        foreach ($organisation->getOrgMembers() as $member) {
-            if ($member->getOrganisation() === $organisation) {
-                $accounts[] = $member->getAccount();
-            }
-        }
-
-        $leads = [];
-        foreach ($accounts as $account) {
-            $profile = $account?->getProfile();
-            if ($profile !== null && $profile->getDeletedAt() === null && $account->getDeletedAt() === null) {
-                $leads[(string) $account->getId()] = $account;
-            }
-        }
-
-        return $leads;
+        return $this->leadEligibility->projectLeads($organisation);
     }
 
     public function create(Organisation $organisation, array $input): Project
@@ -106,7 +93,11 @@ final class CreateProjectService
             $this->entityManager->persist($participant);
             $this->entityManager->flush();
         } catch (UniqueConstraintViolationException $e) {
-            throw new \InvalidArgumentException('A project with this title already exists.', previous: $e);
+            if (!str_contains(strtolower($e->getMessage()), '"uniq_5c93b3a4989d9b62"')) {
+                throw $e;
+            }
+
+            throw new ConflictHttpException('A project with this title already exists.', $e);
         }
 
         return $project;
@@ -115,14 +106,17 @@ final class CreateProjectService
     private static function text(array $input, string $field): string
     {
         $value = $input[$field] ?? '';
+        if (!is_string($value)) {
+            throw new \InvalidArgumentException(sprintf('Invalid value for %s.', $field));
+        }
 
-        return is_string($value) ? trim($value) : '';
+        return trim($value);
     }
 
     private static function date(array $input, string $field): ?\DateTimeImmutable
     {
         $value = self::text($input, $field);
-        if ($value === '' && !is_array($input[$field] ?? null)) {
+        if ($value === '') {
             return null;
         }
 

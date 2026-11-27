@@ -2,6 +2,7 @@
 
 namespace App\Module\Main\Service;
 
+use App\Module\Org\Service\ProjectLifecycle;
 use Doctrine\DBAL\LockMode;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
@@ -28,8 +29,8 @@ final readonly class ProjectApplyService
     public function check(Project $project, Profile $profile): ?ProjectApplyResult
     {
         if (
-            $project->getVisibility() !== 'public'
-            || $project->getPublishedAt() === null
+            !ProjectLifecycle::isPubliclyVisible($project)
+            || !ProjectLifecycle::acceptsApplications($project)
             || $project->getDeletedAt() !== null
         ) {
             return new ProjectApplyResult(

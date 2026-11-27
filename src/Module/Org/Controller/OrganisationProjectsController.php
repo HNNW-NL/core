@@ -2,15 +2,13 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Module\Org\Service\ProjectManagementActions;
 use App\Entity\Account\Account;
 use App\Entity\Project\Project;
 use App\Module\Org\Handler\ModifyProjectHandler;
 use App\Module\Org\Service\CreateProjectService;
 use App\Module\Org\Service\ProjectLifecycle;
 use App\Module\Org\Service\ProjectManagementAccess;
-use Doctrine\DBAL\LockMode;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
@@ -94,8 +92,7 @@ final class OrganisationProjectsController extends AbstractController
         Request $request,
         ProjectRepository $projectRepository,
         ProjectLifecycle $lifecycle,
-        EntityManagerInterface $entityManager,
-        LoggerInterface $logger,
+        ProjectManagementActions $actions,
         ModifyProjectHandler $handler,
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
@@ -121,36 +118,11 @@ final class OrganisationProjectsController extends AbstractController
                         throw new \InvalidArgumentException($result['error'] ?? 'The project could not be saved.');
                     }
                 } elseif ($intent === 'delete') {
-                    $entityManager->getConnection()->transactional(function () use ($entityManager, $project, $request): void {
-                        $entityManager->refresh($project, LockMode::PESSIMISTIC_WRITE);
-                        $this->denyProjectEditAccess($project);
-                        if (!$this->projectAccess->canDelete($project)) {
-                            throw $this->createAccessDeniedException();
-                        }
-                        if ($request->request->getString('delete_confirmation') !== 'DELETE') {
-                            throw new \InvalidArgumentException('Type DELETE to confirm project deletion.');
-                        }
-
-                        $project->softDelete();
-                        $project->unpublish();
-                        $entityManager->flush();
-                    });
+                    $actions->delete($project, $request->request->getString('delete_confirmation'));
 
                     return $this->redirectToRoute('org.projects', status: Response::HTTP_SEE_OTHER);
                 } elseif ($intent === 'transition') {
-                    $previous = $entityManager->getConnection()->transactional(function () use ($entityManager, $project, $lifecycle, $target): ?string {
-                        $entityManager->refresh($project, LockMode::PESSIMISTIC_WRITE);
-                        $this->denyProjectEditAccess($project);
-                        $previous = $project->getStatus()?->getName();
-                        $lifecycle->transition($project, $target);
-                        $entityManager->flush();
-
-                        return $previous;
-                    });
-                    $logger->info('Project status changed', [
-                        'project_id' => $id, 'from' => $previous, 'to' => $target,
-                        'account_id' => (string) $this->getUser()->getId(),
-                    ]);
+                    $actions->transition($project, $target, $this->getUser());
                 } else {
                     throw new \InvalidArgumentException('Unknown project action.');
                 }

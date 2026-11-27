@@ -92,9 +92,12 @@ class ProjectRepository extends ServiceEntityRepository
         }
 
         $query->innerJoin('project.ownerOrganisation', 'organisation')
-            ->andWhere('organisation.deletedAt IS NULL')
-            ->andWhere("LOWER(project.title) LIKE :title ESCAPE '!'")
-            ->setParameter('title', '%' . strtr(mb_strtolower(trim($title)), ['!' => '!!', '%' => '!%', '_' => '!_']) . '%');
+            ->andWhere('organisation.deletedAt IS NULL');
+
+        if ($title !== '') {
+            $query->andWhere("LOWER(project.title) LIKE :title ESCAPE '!'")
+                ->setParameter('title', '%' . strtr(mb_strtolower(trim($title)), ['!' => '!!', '%' => '!%', '_' => '!_']) . '%');
+        }
 
         $access = $query->expr()->orX();
         if ($account->getAdmin()?->isSuperAdmin() || $organisations !== []) {

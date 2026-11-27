@@ -5,9 +5,8 @@ namespace App\Module\Org\Service;
 use App\Entity\Account\Account;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
-use App\Repository\Project\ProjectParticipantRepository;
+use App\Repository\Project\ProjectRepository;
 use App\Security\Permission;
-use App\Security\ProjectPermission;
 use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -15,7 +14,7 @@ final class ProjectManagementAccess
 {
     public function __construct(
         private readonly Security $security,
-        private readonly ProjectParticipantRepository $participants,
+        private readonly ProjectRepository $projects,
     ) {}
 
     /** @return array<string, Organisation> */
@@ -60,25 +59,17 @@ final class ProjectManagementAccess
 
     public function canEdit(Project $project): bool
     {
-        $organisation = $project->getOwnerOrganisation();
-        if ($project->getDeletedAt() !== null || $organisation === null || $organisation->getDeletedAt() !== null
-            || !$this->security->isGranted(ProjectVoter::EDIT, $project)) {
-            return false;
-        }
-
-        if ($this->security->isGranted(Permission::ORG_MANAGE_PROJECTS->name, $organisation)) {
-            return true;
-        }
-
         $account = $this->security->getUser();
-        $profile = $account instanceof Account ? $account->getProfile() : null;
-        if ($profile === null) {
+        if (!$account instanceof Account) {
             return false;
         }
 
-        $participant = $this->participants->findLatestActiveParticipantByProjectAndProfile($project, $profile);
-
-        return ProjectPermission::EDIT->isGrantedBy($participant?->getRole(), $project);
+        return (int) $this->projects->organisationOverviewQuery('', $this->manageableOrganisations(), $account)
+            ->select('COUNT(project.id)')
+            ->andWhere('project.id = :managedProjectId')
+            ->setParameter('managedProjectId', $project->getId(), 'ulid')
+            ->getQuery()
+            ->getSingleScalarResult() === 1;
     }
 
     public function canDelete(Project $project): bool

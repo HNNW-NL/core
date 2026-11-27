@@ -8,5 +8,6 @@ enum WorkPackageTaskEnrollmentStatus: string
     case AlreadyAssignedToCurrentProfile = 'already_assigned_to_current_profile';
     case AlreadyAssignedToOtherProfile = 'already_assigned_to_other_profile';
     case NotParticipant = 'not_participant';
+    case ProjectClosed = 'project_closed';
     case TaskNotFound = 'task_not_found';
 }
