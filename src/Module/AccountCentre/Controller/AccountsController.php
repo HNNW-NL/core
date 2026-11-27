@@ -176,7 +176,6 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        // POST: Schema opslaan in de `availabilities` tabel
         if ($request->isMethod('POST')) {
             $this->csrf($request, 'account_availability');
 
@@ -375,7 +374,6 @@ final class AccountsController extends AbstractController
                 return $this->redirectToRoute('account.experience');
             }
 
-            // Gegevens uit het formulier ophalen
             $jobTitle = trim((string) $request->request->get('job_title', ''));
             $organisationName = trim((string) $request->request->get('organisation_name', ''));
             $startDateStr = trim((string) $request->request->get('start_date', ''));
@@ -451,7 +449,6 @@ final class AccountsController extends AbstractController
                     $experience->setEndDate($isCurrent ? null : $endDate);
                     $experience->setDescription($description !== '' ? $description : null);
 
-                    // Koppel de werkervaring aan het profiel van de ingelogde gebruiker.
                     $experience->setProfile($profile);
 
                     $em->persist($experience);
@@ -481,19 +478,133 @@ final class AccountsController extends AbstractController
         Request $request,
         EntityManagerInterface $em
     ): Response {
+        $profile = $this->profile($em);
+
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+            return $this->redirectToRoute('account.home');
+        }
+
         $experience = $em->getRepository(ProfileExperience::class)->find($id);
 
         if (!$experience || $experience->getDeletedAt() !== null) {
             throw $this->createNotFoundException();
         }
 
-        if ($experience->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
+        if ($experience->getProfile() !== $profile) {
             throw $this->createAccessDeniedException();
         }
 
-        return $this->render('pages/account-centre/modify-experience.html.twig', [
-            'experience' => $experience,
-        ]);
+        $errors = [];
+
+        if ($request->isMethod('POST')) {
+
+            if (!$this->isCsrfTokenValid(
+                'edit_experience' . $id,
+                $request->request->get('_token')
+            )) {
+                $this->addFlash('error', 'Ongeldig veiligheidstoken.');
+
+                return $this->redirectToRoute('account.modify_experience', [
+                    'id' => $id,
+                ]);
+            }
+
+            $jobTitle = trim((string) $request->request->get('job_title', ''));
+            $organisationName = trim((string) $request->request->get('organisation_name', ''));
+            $startDateStr = trim((string) $request->request->get('start_date', ''));
+            $endDateStr = trim((string) $request->request->get('end_date', ''));
+            $isCurrent = $request->request->getBoolean('is_current');
+            $description = trim((string) $request->request->get('description', ''));
+
+            if ($jobTitle === '') {
+                $errors['job_title'] = 'De functietitel is verplicht.';
+            }
+
+            if ($organisationName === '') {
+                $errors['organisation_name'] = 'De organisatienaam is verplicht.';
+            }
+
+            $startDate = null;
+
+            if ($startDateStr === '') {
+                $errors['start_date'] = 'De begindatum is verplicht.';
+            } else {
+                $startDate = \DateTimeImmutable::createFromFormat(
+                    '!Y-m-d',
+                    $startDateStr
+                );
+
+                if (
+                    !$startDate ||
+                    $startDate->format('Y-m-d') !== $startDateStr
+                ) {
+                    $errors['start_date'] = 'Vul een geldige begindatum in.';
+                    $startDate = null;
+                }
+            }
+
+            $endDate = null;
+
+            if (!$isCurrent && $endDateStr !== '') {
+                $endDate = \DateTimeImmutable::createFromFormat(
+                    '!Y-m-d',
+                    $endDateStr
+                );
+
+                if (
+                    !$endDate ||
+                    $endDate->format('Y-m-d') !== $endDateStr
+                ) {
+                    $errors['end_date'] = 'Vul een geldige einddatum in.';
+                    $endDate = null;
+                } elseif (
+                    $startDate !== null &&
+                    $endDate < $startDate
+                ) {
+                    $errors['end_date'] = 'De einddatum mag niet vóór de begindatum liggen.';
+                }
+            }
+
+            if (empty($errors)) {
+                try {
+                    $experience->setJobTitle($jobTitle);
+                    $experience->setOrganisationName($organisationName);
+                    $experience->setStartDate($startDate);
+                    $experience->setIsCurrent($isCurrent);
+                    $experience->setEndDate($isCurrent ? null : $endDate);
+                    $experience->setDescription(
+                        $description !== '' ? $description : null
+                    );
+
+                    $em->flush();
+
+                    $this->addFlash(
+                        'success',
+                        'Je werkervaring is bijgewerkt!'
+                    );
+
+                    return $this->redirectToRoute('account.experience');
+
+                } catch (\Exception $e) {
+                    $this->addFlash(
+                        'error',
+                        'Er is een fout opgetreden bij het opslaan van je werkervaring.'
+                    );
+                }
+            }
+        }
+
+        return $this->render(
+            'pages/account-centre/modify-experience.html.twig',
+            [
+                'experience' => $experience,
+                'errors' => $errors,
+                'formData' => $request->isMethod('POST')
+                    ? $request->request->all()
+                    : [],
+            ]
+        );
     }
 
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
