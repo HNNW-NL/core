@@ -123,6 +123,7 @@ final class ProjectsController extends AbstractController
             'slug' => $slug,
             'project' => $project,
             'form' => $form,
+            'applicant' => $profile,
             'blocked' => $projectApplyHandler->check($project, $profile),
         ], new Response(status: $form->isSubmitted() ? 422 : 200));
     }

@@ -73,6 +73,8 @@ final class ProjectPermissionTest extends TestCase
         $otherProject = new Project();
         $role = (new ProjectRole())->setProject($project)->setPermissionsMask($mask);
         $participant = (new ProjectParticipant())->setRole($role);
+        $participant->join();
+        $participant->setStatus((new \App\Entity\Common\Status())->setScope('ProjectParticipant')->setName('active'));
         $repository = $this->createStub(ProjectParticipantRepository::class);
         $repository->method('findActiveParticipantsByProjectAndProfile')->willReturn([$participant]);
         foreach (['findActiveParticipant', 'findLatestActiveParticipantByProjectAndProfile'] as $method) {

@@ -8,7 +8,10 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
 use App\Repository\Common\StatusRepository;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Module\Main\DTO\ProjectApplicationSubmission;
+use App\Module\Main\DTO\ProjectApplyResult;
+use App\Module\Main\DTO\ProjectApplyStatus;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler as ApplicationWorkflow;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,6 +22,7 @@ final readonly class ProjectApplicationService
     public function __construct(
         private EntityManagerInterface $em,
         private StatusRepository $statuses,
+        private ProjectParticipantRepository $participants,
     ) {
     }
 
@@ -38,35 +42,25 @@ final readonly class ProjectApplicationService
         if (mb_strlen($motivation) < 20 || mb_strlen($motivation) > 2000) {
             throw new \DomainException('De motivatie moet 20 tot en met 2.000 tekens bevatten.');
         }
-        $result = $this->em->wrapInTransaction(function () use ($project, $account, $profile, $motivation): ProjectApplicationSubmission|string {
+        $result = $this->em->wrapInTransaction(function () use ($project, $account, $profile, $motivation): ProjectApplicationSubmission|ProjectApplyResult|string {
             $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
             $this->em->refresh($project);
             $this->em->refresh($account);
-            if ($account->getDeletedAt() !== null || $account->getEmailVerifiedAt() === null
-                || $profile->getDeletedAt() !== null || $profile->getAccount()?->getId() != $account->getId()) {
-                throw new AccessDeniedHttpException('Bevestig eerst je e-mailadres.');
+            $this->em->refresh($profile);
+            if ($profile->getAccount()?->getId() != $account->getId()) {
+                return new ProjectApplyResult(ProjectApplyStatus::NoProfile, 'Gebruik je eigen actieve profiel.');
             }
-            if ($project->getOwnerAccount()?->getId() == $account->getId()) {
-                return 'Je kunt je niet aanmelden voor je eigen project.';
-            }
-            if ($project->getVisibility() !== 'public' || $project->getDeletedAt() !== null || $project->getPublishedAt() === null
-                || strcasecmp((string) $project->getStatus()?->getScope(), 'project') !== 0
-                || !in_array(mb_strtolower((string) $project->getStatus()?->getName()), ['published', 'active', 'open', 'actief'], true)
-                || ($project->getEndDate() !== null && $project->getEndDate() < new \DateTimeImmutable())) {
-                return 'Dit project staat niet open voor aanmeldingen.';
-            }
-            if ($this->em->getRepository(ProjectParticipant::class)->findOneBy(['project' => $project, 'profile' => $profile]) !== null) {
-                return 'Er bestaat al een deelname voor dit project.';
-            }
-            $existing = $this->em->getRepository(ProjectApplication::class)->findOneBy(['project' => $project, 'profile' => $profile]);
-            if ($existing !== null) {
-                if ($existing->getDeletedAt() !== null) {
-                    return 'Je eerdere aanvraag is ingetrokken. Deze wordt niet opnieuw ingediend.';
+            $blocked = $this->check($project, $profile);
+            if ($blocked !== null) {
+                if ($blocked->status === ProjectApplyStatus::NoProfile) {
+                    return $blocked;
                 }
-                if (!$this->pending($existing)) {
-                    return 'Je eerdere aanvraag is al behandeld ('.$this->label($existing).').';
+                $existing = $blocked->application;
+                if ($blocked->status === ProjectApplyStatus::AlreadyApplied && $existing !== null
+                    && $existing->getDeletedAt() === null && $this->pending($existing)) {
+                    return new ProjectApplicationSubmission($existing, false);
                 }
-                return new ProjectApplicationSubmission($existing, false);
+                return $blocked->message;
             }
             $status = $this->statuses->findFirstByScopeAndNames(ApplicationWorkflow::APPLICATION_SCOPE, ApplicationWorkflow::PENDING_NAMES);
             if ($status === null) {
@@ -76,10 +70,44 @@ final readonly class ProjectApplicationService
             $this->em->persist($application);
             return new ProjectApplicationSubmission($application, true);
         });
+        if ($result instanceof ProjectApplyResult) {
+            throw new AccessDeniedHttpException($result->message);
+        }
         if (is_string($result)) {
             throw new \DomainException($result);
         }
         return $result;
+    }
+
+    public function check(Project $project, Profile $profile): ?ProjectApplyResult
+    {
+        $account = $profile->getAccount();
+        if ($account === null || $account->getDeletedAt() !== null || $profile->getDeletedAt() !== null
+            || $account->getEmailVerifiedAt() === null) {
+            return new ProjectApplyResult(ProjectApplyStatus::NoProfile, 'Bevestig eerst je e-mailadres en gebruik je eigen actieve profiel.');
+        }
+        if ($project->getOwnerAccount()?->getId() == $account->getId()) {
+            return new ProjectApplyResult(ProjectApplyStatus::NotOpen, 'Je kunt je niet aanmelden voor je eigen project.');
+        }
+        if ($project->getVisibility() !== 'public' || $project->getDeletedAt() !== null || $project->getPublishedAt() === null
+            || strcasecmp((string) $project->getStatus()?->getScope(), 'project') !== 0
+            || !in_array(mb_strtolower((string) $project->getStatus()?->getName()), ['published', 'active', 'open', 'actief'], true)
+            || ($project->getEndDate() !== null && $project->getEndDate() < new \DateTimeImmutable())) {
+            return new ProjectApplyResult(ProjectApplyStatus::NotOpen, 'Dit project staat niet open voor aanmeldingen.');
+        }
+        if ($this->participants->isActiveParticipant($project, $profile)) {
+            return new ProjectApplyResult(ProjectApplyStatus::AlreadyParticipant, 'Er bestaat al een actieve deelname voor dit project.');
+        }
+        $existing = $this->findForProfile($project, $profile);
+        if ($existing !== null) {
+            $message = $existing->getDeletedAt() !== null ? 'Je eerdere aanvraag is ingetrokken. Deze wordt niet opnieuw ingediend.'
+                : ($this->pending($existing) ? 'Je had je al aangemeld voor dit project. Status: '.$this->label($existing).'.' : 'Je eerdere aanvraag is al behandeld ('.$this->label($existing).').');
+            return new ProjectApplyResult(ProjectApplyStatus::AlreadyApplied, $message, $existing);
+        }
+        if ($this->statuses->findFirstByScopeAndNames(ApplicationWorkflow::APPLICATION_SCOPE, ApplicationWorkflow::PENDING_NAMES) === null) {
+            return new ProjectApplyResult(ProjectApplyStatus::StatusNotFound, 'De aanvraagstatus is nog niet geconfigureerd.');
+        }
+        return null;
     }
 
     public function withdraw(ProjectApplication $application, Profile $profile): void

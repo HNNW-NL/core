@@ -4,151 +4,75 @@ namespace App\Tests\Module\Main\Service;
 
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
+use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Module\Main\DTO\ProjectApplyDto;
-use App\Module\Main\DTO\ProjectApplyStatus;
+use App\Module\Main\Service\ProjectApplicationService;
 use App\Module\Main\Service\ProjectApplyService;
+use App\Module\Main\Handler\ProjectApplyHandler;
+use App\Repository\Common\StatusRepository;
+use App\Repository\Project\ProjectParticipantRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Doctrine\ORM\EntityRepository;
+use PHPUnit\Framework\Attributes\TestWith;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
-// Fixtures: TestUser is an existing project participant; AdminUser is not.
-class ProjectApplyServiceTest extends KernelTestCase
+final class ProjectApplyServiceTest extends TestCase
 {
-    private EntityManagerInterface $entityManager;
-    private ProjectApplyService $service;
-
-    protected function setUp(): void
+    #[TestWith(['valid'])]
+    #[TestWith(['unverified'])]
+    #[TestWith(['owner'])]
+    #[TestWith(['private'])]
+    #[TestWith(['closed'])]
+    #[TestWith(['expired'])]
+    #[TestWith(['active'])]
+    #[TestWith(['inactive'])]
+    #[TestWith(['pending'])]
+    #[TestWith(['withdrawn'])]
+    #[TestWith(['accepted'])]
+    #[TestWith(['missing-status'])]
+    #[TestWith(['short-motivation'])]
+    public function testAllEntryPointsShareTheSubmissionRules(string $scenario): void
     {
-        self::bootKernel();
-
-        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        $this->service = self::getContainer()->get(ProjectApplyService::class);
-    }
-
-    private function getProject(): Project
-    {
-        return $this->entityManager->getRepository(Project::class)->findOneBy(['slug' => 'Test-Project']);
-    }
-
-    private function getProfile(string $username): Profile
-    {
-        $account = $this->entityManager->getRepository(Account::class)->findOneBy(['username' => $username]);
-
-        return $account->getProfile();
-    }
-
-    private function makeDto(string $motivation): ProjectApplyDto
-    {
-        $dto = new ProjectApplyDto();
-        $dto->motivation = $motivation;
-
-        return $dto;
-    }
-
-    private function findApplication(Project $project, Profile $profile): ?ProjectApplication
-    {
-        return $this->entityManager->getRepository(ProjectApplication::class)->findOneBy([
-            'project' => $project,
-            'profile' => $profile,
-        ]);
-    }
-
-    // apply
-
-    public function testWhenProfileHasNotAppliedShouldCreateApplication(): void
-    {
-        $project = $this->getProject();
-        $profile = $this->getProfile('AdminUser');
-
-        $result = $this->service->apply($project, $profile, $this->makeDto('  ik wil graag meedoen aan dit project  '));
-
-        $this->assertSame(ProjectApplyStatus::Success, $result->status);
-
-        $this->entityManager->clear();
-        $application = $this->findApplication($this->getProject(), $this->getProfile('AdminUser'));
-
-        $this->assertNotNull($application);
-        $this->assertSame('ik wil graag meedoen aan dit project', $application->getMotivation());
-        $this->assertSame('send', $application->getStatus()->getName());
-        $this->assertNull($application->getDeletedAt());
-    }
-
-    public function testWhenProfileAlreadyAppliedShouldGiveError(): void
-    {
-        $project = $this->getProject();
-        $profile = $this->getProfile('AdminUser');
-
-        $this->service->apply($project, $profile, $this->makeDto('eerste aanmelding voor dit project'));
-        $result = $this->service->apply($project, $profile, $this->makeDto('tweede aanmelding voor dit project'));
-
-        $this->assertSame(ProjectApplyStatus::AlreadyApplied, $result->status);
-        $this->assertSame('eerste aanmelding voor dit project', $this->findApplication($project, $profile)->getMotivation());
-    }
-
-    public function testWhenProfileIsAlreadyParticipantShouldGiveError(): void
-    {
-        $result = $this->service->apply($this->getProject(), $this->getProfile('TestUser'), $this->makeDto('ik wil nog een keer meedoen'));
-
-        $this->assertSame(ProjectApplyStatus::AlreadyParticipant, $result->status);
-    }
-
-    public function testWhenApplicationWasCancelledShouldRestoreIt(): void
-    {
-        $project = $this->getProject();
-        $profile = $this->getProfile('AdminUser');
-
-        $first = $this->service->apply($project, $profile, $this->makeDto('eerste aanmelding voor dit project'));
-        $first->application->markAsReviewed();
-        $first->application->setReviewerProfile($this->getProfile('TestUser'));
-        $first->application->setReview('afgewezen');
-        $first->application->softDelete();
-        $this->entityManager->flush();
-
-        $result = $this->service->apply($project, $profile, $this->makeDto('nieuwe aanmelding na annuleren'));
-
-        $this->assertSame(ProjectApplyStatus::Success, $result->status);
-        $this->assertEquals($first->application->getId(), $result->application->getId());
-        $this->assertNull($result->application->getDeletedAt());
-        $this->assertSame('nieuwe aanmelding na annuleren', $result->application->getMotivation());
-        $this->assertNull($result->application->getReviewedAt());
-        $this->assertNull($result->application->getReviewerProfile());
-        $this->assertNull($result->application->getReview());
-        $this->assertSame('send', $result->application->getStatus()->getName());
-    }
-
-    public function testWhenProjectIsPrivateShouldGiveError(): void
-    {
-        $project = $this->getProject();
-        $originalVisibility = $project->getVisibility();
-
-        try {
-            $project->setVisibility('private');
-            $this->entityManager->flush();
-
-            $result = $this->service->apply(
-                $project,
-                $this->getProfile('AdminUser'),
-                $this->makeDto('ik wil graag meedoen aan dit project')
-            );
-
-            $this->assertSame(ProjectApplyStatus::NotOpen, $result->status);
-            $this->assertNull(
-                $this->findApplication(
-                    $project,
-                    $this->getProfile('AdminUser')
-                )
-            );
-        } finally {
-            $project->setVisibility($originalVisibility);
-            $this->entityManager->flush();
+        $account = new Account();
+        if ($scenario !== 'unverified') { $account->verifyEmail(); }
+        $profile = (new Profile())->setAccount($account);
+        $project = (new Project())->setVisibility($scenario === 'private' ? 'private' : 'public')
+            ->setStatus((new Status())->setScope('project')->setName($scenario === 'closed' ? 'closed' : 'active'))
+            ->setEndDate($scenario === 'expired' ? new \DateTimeImmutable('-1 day') : null);
+        $project->publish();
+        if ($scenario === 'owner') { $project->setOwnerAccount($account); }
+        $existing = null;
+        if (in_array($scenario, ['pending', 'withdrawn', 'accepted'], true)) {
+            $existing = (new ProjectApplication())->setProject($project)->setProfile($profile)
+                ->setStatus((new Status())->setScope('ProjectApplication')->setName($scenario === 'accepted' ? 'accepted' : 'send'));
+            if ($scenario === 'withdrawn') { $existing->softDelete(); }
         }
-    }
-
-    // check
-
-    public function testWhenProfileHasNotAppliedCheckShouldGiveNull(): void
-    {
-        $this->assertNull($this->service->check($this->getProject(), $this->getProfile('AdminUser')));
+        $repository = $this->createStub(EntityRepository::class);
+        $repository->method('findOneBy')->willReturn($existing);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('getRepository')->willReturn($repository);
+        $em->method('wrapInTransaction')->willReturnCallback(static fn ($operation) => $operation());
+        $success = in_array($scenario, ['valid', 'inactive'], true);
+        $em->expects($success ? self::once() : self::never())->method('persist');
+        $statuses = $this->createStub(StatusRepository::class);
+        $statuses->method('findFirstByScopeAndNames')->willReturn($scenario === 'missing-status' ? null
+            : (new Status())->setScope('ProjectApplication')->setName('send'));
+        $participants = $this->createStub(ProjectParticipantRepository::class);
+        $participants->method('isActiveParticipant')->willReturn($scenario === 'active');
+        $central = new ProjectApplicationService($em, $statuses, $participants);
+        $service = new ProjectApplyService($central);
+        $handler = new ProjectApplyHandler($service);
+        self::assertEquals($central->check($project, $profile), $service->check($project, $profile));
+        self::assertEquals($central->check($project, $profile), $handler->check($project, $profile));
+        self::assertSame(in_array($scenario, ['valid', 'inactive', 'short-motivation'], true), $service->check($project, $profile) === null);
+        $dto = new ProjectApplyDto();
+        $dto->motivation = $scenario === 'short-motivation' ? 'kort' : 'Een geldige motivatie voor dit project.';
+        if ($scenario === 'unverified') { $this->expectException(AccessDeniedHttpException::class); }
+        $result = $handler->handle($project, $profile, $dto);
+        self::assertSame($success, $result->isSuccessful());
+        if ($scenario === 'pending') { self::assertSame($existing, $result->application); }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Security\Voter;
 use App\Entity\Account\Account;
 use App\Entity\Project\Project;
 use App\Security\ProjectPermission;
+use App\Security\ProjectParticipation;
 use App\Repository\Project\ProjectParticipantRepository;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
@@ -39,7 +40,7 @@ class ProjectVoter extends Voter
     ): bool {
         $user = $token->getUser();
 
-        if (!$user instanceof Account) {
+        if (!$user instanceof Account || $user->getDeletedAt() !== null) {
             return false;
         }
 
@@ -60,7 +61,7 @@ class ProjectVoter extends Voter
          */
         $profile = $user->getProfile();
 
-        if ($profile === null) {
+        if ($profile === null || $profile->getDeletedAt() !== null) {
             return false;
         }
 
@@ -73,6 +74,9 @@ class ProjectVoter extends Voter
         $participants = $this->participantRepository->findActiveParticipantsByProjectAndProfile($project, $profile);
         $mask = 0;
         foreach ($participants as $participant) {
+            if (!ProjectParticipation::isActive($participant)) {
+                continue;
+            }
             $role = $participant->getRole();
             if ($role !== null && ($role->getProject() === $project || $role->getProject()?->getId() == $project->getId())) {
                 $mask |= $role->getPermissionsMask() ?? 0;

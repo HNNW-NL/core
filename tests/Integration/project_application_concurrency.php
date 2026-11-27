@@ -17,7 +17,7 @@ $mode = $argv[1] ?? 'parent';
 if ($mode === 'worker') {
     $project = $em->getRepository(Project::class)->find(new Symfony\Component\Uid\Ulid($argv[3]));
     $account = $em->getRepository(Account::class)->find(new Symfony\Component\Uid\Ulid($argv[4]));
-    $service = new App\Module\Main\Service\ProjectApplicationService($em, new App\Repository\Common\StatusRepository($kernel->getContainer()->get('doctrine')));
+    $service = new App\Module\Main\Service\ProjectApplicationService($em, new App\Repository\Common\StatusRepository($kernel->getContainer()->get('doctrine')), new App\Repository\Project\ProjectParticipantRepository($kernel->getContainer()->get('doctrine')));
     if (($argv[2] ?? '') === 'hold') {
         $em->beginTransaction();
         $em->lock($project, Doctrine\DBAL\LockMode::PESSIMISTIC_WRITE);
@@ -61,7 +61,7 @@ try {
     $first = new Symfony\Component\Process\Process([PHP_BINARY, __FILE__, 'worker', 'hold', (string) $projectId, (string) $accountId], dirname(__DIR__, 2));
     $first->start();
     if (!$first->waitUntil(static fn ($type, $output) => str_contains($first->getOutput(), 'LOCKED'))) {
-        throw new RuntimeException('Het eerste verzoek heeft de projectlock niet verkregen.');
+        throw new RuntimeException('Het eerste verzoek heeft de projectlock niet verkregen. '.$first->getErrorOutput());
     }
     $second = new Symfony\Component\Process\Process([PHP_BINARY, __FILE__, 'worker', 'normal', (string) $projectId, (string) $accountId], dirname(__DIR__, 2));
     $second->start();

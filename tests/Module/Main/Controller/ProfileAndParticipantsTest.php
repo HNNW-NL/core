@@ -104,7 +104,8 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->persist($application);
         $skill = (new Skill())->setName('Databasevaardigheid-'.$this->runId)->setSlug('skill-'.$this->runId)->setCategory('Development');
         $this->persist($skill);
-        $this->persist((new ProfileSkill())->setProfile($this->owner->getProfile())->setSkill($skill));
+        $this->persist((new ProfileSkill())->setProfile($this->owner->getProfile())->setSkill($skill)
+            ->setProficiencyLevel(\App\Enum\SkillProficiencyLevel::ADVANCED)->setYearsOfExperience(3));
         $this->persist((new ProfileExperience())->setProfile($this->owner->getProfile())->setJobTitle('Private werkervaring')
             ->setOrganisation($org)
             ->setExternalOrganisationName('Voorbeeldbedrijf')->setStartDate(new \DateTimeImmutable('2024-01-01')));
@@ -128,14 +129,16 @@ final class ProfileAndParticipantsTest extends WebTestCase
         try {
             $em = static::getContainer()->get(EntityManagerInterface::class);
             $em->clear();
-            foreach ($this->owned as [$class, $id]) {
-                if ($class === ProjectParticipant::class && ($entity = $em->find($class, $id)) !== null) {
-                    $em->remove($entity);
-                }
-            }
-            $em->flush();
-            $em->clear();
-            foreach (array_reverse($this->owned) as [$class, $id]) {
+            // Foreign-key dependency order, independent of when each unique fixture was created.
+            $order = array_flip([
+                ProjectParticipant::class, \App\Entity\Account\Review::class, ProjectApplication::class, ProjectRole::class,
+                \App\Entity\Account\ProfileSocialLink::class, \App\Entity\Account\ProfileCertification::class,
+                \App\Entity\Account\ProfileEducation::class, ProfileExperience::class, ProfileSkill::class,
+                Project::class, Organisation::class, Profile::class, AccountSetting::class, Account::class, Skill::class, Status::class,
+            ]);
+            $records = $this->owned;
+            usort($records, static fn ($a, $b): int => ($order[$a[0]] ?? 0) <=> ($order[$b[0]] ?? 0));
+            foreach ($records as [$class, $id]) {
                 $entity = $em->find($class, $id);
                 if ($entity !== null) { $em->remove($entity); $em->flush(); }
             }
@@ -165,6 +168,8 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorNotExists('link[href$="/profile-responsive.css"], link[href$="/profile-navigation.css"]');
         self::assertSelectorNotExists('a[href="/account/modify"]');
         self::assertSelectorTextContains('.profile-skill-list', 'Databasevaardigheid');
+        self::assertSelectorTextContains('.profile-skill-list .si-context', 'Gevorderd · 3 jaar ervaring');
+        self::assertSelectorNotExists('.si-endorsements');
         $html = $this->client->getResponse()->getContent();
         self::assertStringNotContainsString($this->owner->getEmail(), $html);
         self::assertStringNotContainsString('Private werkervaring', $html);
@@ -404,11 +409,123 @@ final class ProfileAndParticipantsTest extends WebTestCase
         $this->em->flush();
         $voter = static::getContainer()->get(\App\Security\Voter\ProjectVoter::class);
         $token = new \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken($this->member, 'main', $this->member->getRoles());
-        self::assertSame(1, $voter->vote($token, $this->project, ['PROJECT_VIEW']));
+        self::assertSame(-1, $voter->vote($token, $this->project, ['PROJECT_VIEW']));
         $this->client->loginUser($this->member);
         $this->client->request('GET', '/projects/'.$this->project->getSlug().'/participants');
         self::assertResponseStatusCodeSame(403);
         self::assertSelectorNotExists('.participant-card');
+    }
+
+    #[\PHPUnit\Framework\Attributes\TestWith(['ProjectParticipant', 'active', true, false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['projectparticipant', 'actief', true, false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['ProjectParticipant', 'inactive', true, false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['ProjectApplication', 'active', true, false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['ProjectParticipant', 'active', false, false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['ProjectParticipant', 'active', true, true, false])]
+    public function testActiveMembershipDefinitionIsConsistent(string $scope, string $status, bool $joined, bool $left, bool $allowed): void
+    {
+        $candidate = $this->account('rights-matrix', false);
+        $role = $this->em->getRepository(ProjectRole::class)->findOneBy(['project' => $this->project, 'name' => 'Developer']);
+        $participant = (new ProjectParticipant())->setProject($this->project)->setProfile($candidate->getProfile())->setRole($role)
+            ->setStatus($this->fixtureStatus($scope, $status));
+        if ($joined) { $participant->join(); }
+        if ($left) { $participant->leave(); }
+        $this->persist($participant);
+        $this->em->flush();
+        $repository = static::getContainer()->get(\App\Repository\Project\ProjectParticipantRepository::class);
+        self::assertSame($allowed, $repository->isActiveParticipant($this->project, $candidate->getProfile()));
+        self::assertCount($allowed ? 1 : 0, $repository->findActiveParticipantsByProjectAndProfile($this->project, $candidate->getProfile()));
+        self::assertSame($allowed, $repository->findLatestActiveParticipantByProjectAndProfile($this->project, $candidate->getProfile()) !== null);
+        $token = new \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken($candidate, 'main', $candidate->getRoles());
+        self::assertSame($allowed ? 1 : -1, static::getContainer()->get(\App\Security\Voter\ProjectVoter::class)->vote($token, $this->project, ['PROJECT_VIEW']));
+        $this->client->loginUser($candidate);
+        $this->client->request('GET', '/projects/'.$this->project->getSlug().'/participants');
+        self::assertResponseStatusCodeSame($allowed ? 200 : 403);
+    }
+
+    #[\PHPUnit\Framework\Attributes\TestWith(['unverified'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['owner'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['closed'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['expired'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['private'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['wrong-scope'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['active'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['inactive'])]
+    public function testGetAndBothSubmissionServicesUseTheSameRules(string $scenario): void
+    {
+        $candidate = $this->account('eligibility', false);
+        if ($scenario !== 'unverified') { $candidate->verifyEmail(); }
+        if ($scenario === 'owner') { $this->project->setOwnerAccount($candidate); }
+        if ($scenario === 'closed') { $this->project->setStatus($this->fixtureStatus('project', 'closed')); }
+        if ($scenario === 'wrong-scope') { $this->project->setStatus($this->fixtureStatus('ProjectApplication', 'active')); }
+        if ($scenario === 'expired') { $this->project->setEndDate(new \DateTimeImmutable('-1 day')); }
+        if ($scenario === 'private') { $this->project->setVisibility('private'); }
+        if (in_array($scenario, ['active', 'inactive'], true)) {
+            $participant = (new ProjectParticipant())->setProject($this->project)->setProfile($candidate->getProfile())
+                ->setStatus($this->fixtureStatus('ProjectParticipant', $scenario));
+            $participant->join(); $this->persist($participant);
+        }
+        $this->em->flush();
+        $central = static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class);
+        $facade = static::getContainer()->get(\App\Module\Main\Service\ProjectApplyService::class);
+        $handler = static::getContainer()->get(\App\Module\Main\Handler\ProjectApplyHandler::class);
+        $blocked = $central->check($this->project, $candidate->getProfile());
+        self::assertSame($blocked?->status, $facade->check($this->project, $candidate->getProfile())?->status);
+        self::assertSame($blocked?->message, $handler->check($this->project, $candidate->getProfile())?->message);
+        self::assertSame($scenario === 'inactive', $blocked === null);
+        $dto = new \App\Module\Main\DTO\ProjectApplyDto(); $dto->motivation = 'Een geldige motivatie voor de centrale controle.';
+        if ($scenario === 'unverified') {
+            try { $facade->apply($this->project, $candidate->getProfile(), $dto); self::fail('Unverified identity accepted'); }
+            catch (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) { }
+        } else {
+            $result = $facade->apply($this->project, $candidate->getProfile(), $dto);
+            self::assertSame($scenario === 'inactive', $result->isSuccessful());
+            if ($result->isSuccessful()) { $this->owned[] = [ProjectApplication::class, $result->application->getId()]; }
+        }
+        self::assertSame($scenario === 'inactive' ? 1 : 0,
+            $this->em->getRepository(ProjectApplication::class)->count(['project' => $this->project, 'profile' => $candidate->getProfile()]));
+        if (in_array($scenario, ['unverified', 'closed', 'expired', 'wrong-scope', 'inactive'], true)) {
+            $this->client->loginUser($candidate);
+            $page = $this->client->request('GET', '/projects/'.$this->project->getSlug().'/apply');
+            self::assertResponseIsSuccessful();
+            self::assertCount(0, $page->filter('form[name="project_apply"]'));
+        }
+    }
+
+    #[\PHPUnit\Framework\Attributes\TestWith(['accept'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['reject'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['withdraw'])]
+    public function testDecisionsAndAccessStaySynchronized(string $decision): void
+    {
+        $this->fixtureStatus('ProjectApplication', 'rejected');
+        $former = $this->em->getRepository(ProjectParticipant::class)->findOneBy(['project' => $this->project, 'profile' => $this->outsider->getProfile()]);
+        $former->setRole($this->em->getRepository(ProjectRole::class)->findOneBy(['project' => $this->project, 'name' => 'Developer']));
+        $this->em->flush();
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['project' => $this->project, 'profile' => $this->outsider->getProfile()]);
+        $workflow = static::getContainer()->get(\App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler::class);
+        if ($decision === 'accept') {
+            self::assertTrue($workflow->acceptApplication($this->project, (string) $application->getId(), $this->owner->getProfile())['success']);
+            self::assertFalse($workflow->acceptApplication($this->project, (string) $application->getId(), $this->owner->getProfile())['success']);
+        } elseif ($decision === 'reject') {
+            self::assertTrue($workflow->rejectApplication($this->project, (string) $application->getId(), 'Niet passend voor dit project.', $this->owner->getProfile())['success']);
+        } else {
+            static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class)->withdraw($application, $this->outsider->getProfile());
+        }
+        self::assertSame(1, $this->em->getRepository(ProjectParticipant::class)->count(['project' => $this->project, 'profile' => $this->outsider->getProfile()]));
+        $repository = static::getContainer()->get(\App\Repository\Project\ProjectParticipantRepository::class);
+        self::assertSame($decision === 'accept', $repository->isActiveParticipant($this->project, $this->outsider->getProfile()));
+        $token = new \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken($this->outsider, 'main', $this->outsider->getRoles());
+        $voter = static::getContainer()->get(\App\Security\Voter\ProjectVoter::class);
+        self::assertSame($decision === 'accept' ? 1 : -1, $voter->vote($token, $this->project, ['PROJECT_VIEW']));
+        $page = static::getContainer()->get(\App\Module\Main\Service\ProjectParticipantsService::class)->load($this->project, $this->owner);
+        self::assertSame($decision === 'accept' ? 2 : 1, $page['total']);
+        $label = match ($decision) { 'accept' => 'Geaccepteerd', 'reject' => 'Afgewezen', default => 'Ingetrokken' };
+        self::assertSame(1, static::getContainer()->get(\App\Repository\Project\AccountApplicationRepository::class)
+            ->pageForProfile($this->outsider->getProfile(), $label, 1)['total']);
+        if ($decision === 'accept') {
+            $former->leave(); $this->em->flush();
+            self::assertSame(-1, $voter->vote($token, $this->project, ['PROJECT_VIEW']));
+        }
     }
 
     public function testPrivateParticipantOnlyExposesProjectDisplayNameAndRoles(): void

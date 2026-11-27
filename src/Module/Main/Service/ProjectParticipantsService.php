@@ -28,8 +28,8 @@ final readonly class ProjectParticipantsService
             ->andWhere('participant.project = :project')->setParameter('project', $project->getId(), 'ulid')
             ->andWhere('participant.joinedAt IS NOT NULL')->andWhere('participant.leftAt IS NULL')
             ->andWhere('profile.deletedAt IS NULL')->andWhere('account.deletedAt IS NULL')
-            ->andWhere('LOWER(status.scope) = :scope')->setParameter('scope', 'projectparticipant')
-            ->andWhere('LOWER(status.name) IN (:active)')->setParameter('active', ['active', 'actief']);
+            ->andWhere('LOWER(status.scope) = :scope')->setParameter('scope', \App\Security\ProjectParticipation::SCOPE)
+            ->andWhere('LOWER(status.name) IN (:active)')->setParameter('active', \App\Security\ProjectParticipation::ACTIVE_NAMES);
         $owner = $project->getOwnerAccount();
         if ($viewer->getId() != $owner?->getId()) {
             $access = (clone $query)->select('COUNT(participant.id)')->andWhere('account.id = :viewer')
@@ -49,7 +49,7 @@ final readonly class ProjectParticipantsService
             ->andWhere('profile.deletedAt IS NULL')->andWhere('account.deletedAt IS NULL')
             ->andWhere($activeMembership)
             ->setParameter('project', $project->getId(), 'ulid')
-            ->setParameter('scope', 'projectparticipant')->setParameter('active', ['active', 'actief']);
+            ->setParameter('scope', \App\Security\ProjectParticipation::SCOPE)->setParameter('active', \App\Security\ProjectParticipation::ACTIVE_NAMES);
         $total = (int) (clone $profiles)->select('COUNT(profile.id)')->getQuery()->getSingleScalarResult();
         $pages = max(1, (int) ceil($total / self::PAGE_SIZE));
         $page = min($pages, max(1, $requestedPage));

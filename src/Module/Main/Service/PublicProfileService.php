@@ -89,11 +89,27 @@ final readonly class PublicProfileService
             'receivedRecommendations' => [], 'givenRecommendations' => [], 'suggestions' => [],
         ];
         if ($visible(ProfileVisibilityPermission::SKILLS)) {
-            $data['skills'] = $this->em->createQueryBuilder()->select('skill.name')
+            $data['skills'] = $this->em->createQueryBuilder()->select('skill.name, record.proficiencyLevel, record.yearsOfExperience, record.featured')
                 ->from(ProfileSkill::class, 'record')->innerJoin('record.skill', 'skill')
                 ->andWhere('skill.active = true')
                 ->andWhere('record.profile = :profile')->setParameter('profile', $profile->getId(), 'ulid')
-                ->orderBy('skill.name', 'ASC')->getQuery()->getArrayResult();
+                ->orderBy('record.featured', 'DESC')->addOrderBy('skill.name', 'ASC')->getQuery()->getArrayResult();
+            foreach ($data['skills'] as &$skill) {
+                $level = $skill['proficiencyLevel'];
+                $level = $level instanceof \BackedEnum ? $level->value : $level;
+                $context = [];
+                if ($level !== null) {
+                    $context[] = match ($level) {
+                        'beginner' => 'Beginner', 'intermediate' => 'Gemiddeld', 'advanced' => 'Gevorderd', 'expert' => 'Expert',
+                        default => $level,
+                    };
+                }
+                if ($skill['yearsOfExperience'] !== null) {
+                    $context[] = $skill['yearsOfExperience'].' jaar ervaring';
+                }
+                $skill['context'] = $context === [] ? null : implode(' · ', $context);
+            }
+            unset($skill);
         }
         if ($visible(ProfileVisibilityPermission::EXPERIENCE)) {
             $data['experience'] = $this->em->createQueryBuilder()
@@ -113,7 +129,7 @@ final readonly class PublicProfileService
                     : ($company ? 'external:'.$company : 'record:'.$experience['id']);
                 $groups[$key] ??= ['company' => $company, 'logo' => $experience['organisationLogo'], 'positions' => []];
                 $groups[$key]['positions'][] = [
-                    'title' => $experience['jobTitle'], 'description' => $experience['description'], 'type' => '', 'location' => '',
+                    'title' => $experience['jobTitle'], 'description' => $experience['description'],
                     'period' => $experience['startDate']->format('m-Y').' – '.($experience['endDate']?->format('m-Y') ?? 'heden'),
                 ];
             }
@@ -190,7 +206,7 @@ final readonly class PublicProfileService
             ->andWhere('project.visibility = :visibility')->setParameter('visibility', 'public')
             ->andWhere('project.ownerAccount = :account OR (participant.id IS NOT NULL AND LOWER(participantStatus.scope) = :scope AND LOWER(participantStatus.name) IN (:active))')
             ->setParameter('account', $account->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid')
-            ->setParameter('scope', 'projectparticipant')->setParameter('active', ['active', 'actief']);
+            ->setParameter('scope', \App\Security\ProjectParticipation::SCOPE)->setParameter('active', \App\Security\ProjectParticipation::ACTIVE_NAMES);
         $data['publicProjectCount'] = (int) (clone $projects)->select('COUNT(DISTINCT project.id)')->getQuery()->getSingleScalarResult();
         $data['projectPages'] = max(1, (int) ceil($data['publicProjectCount'] / self::PROJECT_PAGE_SIZE));
         $data['projectPage'] = min($data['projectPages'], max(1, $requestedProjectPage));

@@ -26,16 +26,16 @@ final class ProjectApplicationServiceTest extends TestCase
         $account = new Account();
         if ($scenario !== 'unverified') { $account->verifyEmail(); }
         $profile = (new Profile())->setAccount($scenario === 'wrong-profile' ? new Account() : $account);
-        $project = (new Project())->setEndDate(null)->setStatus((new Status())->setScope('project')->setName($scenario === 'closed' ? 'closed' : 'active'));
+        $project = (new Project())->setVisibility('public')->setEndDate(null)->setStatus((new Status())->setScope('project')->setName($scenario === 'closed' ? 'closed' : 'active'));
         $project->publish();
         if ($scenario === 'owner') { $project->setOwnerAccount($account); }
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('wrapInTransaction')->willReturnCallback(static fn ($operation) => $operation());
-        $repository = $this->createStub(EntityRepository::class);
-        $repository->method('findOneBy')->willReturn(new \App\Entity\Project\ProjectParticipant());
+        $repository = $this->createStub(\App\Repository\Project\ProjectParticipantRepository::class);
+        $repository->method('isActiveParticipant')->willReturn($scenario === 'participant');
         $em->method('getRepository')->willReturn($repository);
         $em->expects(self::never())->method('persist');
-        $service = new ProjectApplicationService($em, $this->createStub(StatusRepository::class));
+        $service = new ProjectApplicationService($em, $this->createStub(StatusRepository::class), $repository);
         $this->expectException(in_array($scenario, ['unverified', 'wrong-profile'], true)
             ? \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException::class : \DomainException::class);
         $service->submit($project, $account, $profile, str_repeat('a', 20));
@@ -47,7 +47,7 @@ final class ProjectApplicationServiceTest extends TestCase
             ->setStatus((new Status())->setScope('ProjectApplication')->setName('send'));
         $em = $this->createStub(EntityManagerInterface::class);
         $em->method('wrapInTransaction')->willReturnCallback(static fn ($operation) => $operation());
-        $service = new ProjectApplicationService($em, $this->createStub(StatusRepository::class));
+        $service = new ProjectApplicationService($em, $this->createStub(StatusRepository::class), $this->createStub(\App\Repository\Project\ProjectParticipantRepository::class));
         $this->expectException(\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException::class);
         $service->withdraw($application, new Profile());
     }
@@ -73,15 +73,15 @@ final class ProjectApplicationServiceTest extends TestCase
         $repository->method('findOneBy')->willReturnCallback(function (array $criteria) use (&$existing) {
             return $existing;
         });
-        $participants = $this->createStub(EntityRepository::class);
-        $participants->method('findOneBy')->willReturn(null);
+        $participants = $this->createStub(\App\Repository\Project\ProjectParticipantRepository::class);
+        $participants->method('isActiveParticipant')->willReturn(false);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getRepository')->willReturnCallback(static fn ($class) => $class === ProjectApplication::class ? $repository : $participants);
         $em->method('wrapInTransaction')->willReturnCallback(static fn ($operation) => $operation());
         $em->expects($valid && $visibility === 'public' ? self::once() : self::never())->method('persist')->willReturnCallback(function ($application) use (&$existing) { $existing = $application; });
         $statuses = $this->createStub(StatusRepository::class);
         $statuses->method('findFirstByScopeAndNames')->willReturn((new Status())->setScope('ProjectApplication')->setName('send'));
-        $service = new ProjectApplicationService($em, $statuses);
+        $service = new ProjectApplicationService($em, $statuses, $participants);
         if (!$valid) {
             $this->expectException(\DomainException::class);
         }
@@ -118,7 +118,7 @@ final class ProjectApplicationServiceTest extends TestCase
             ->setStatus((new Status())->setScope('ProjectApplication')->setName($status));
         $em = $this->createStub(EntityManagerInterface::class);
         $em->method('wrapInTransaction')->willReturnCallback(static fn ($operation) => $operation());
-        $service = new ProjectApplicationService($em, $this->createStub(StatusRepository::class));
+        $service = new ProjectApplicationService($em, $this->createStub(StatusRepository::class), $this->createStub(\App\Repository\Project\ProjectParticipantRepository::class));
         if (!$allowed) {
             $this->expectException(\DomainException::class);
         }

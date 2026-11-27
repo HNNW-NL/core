@@ -18,6 +18,7 @@
 {% block body %}
     <section class="project-apply">
         <h2>Aanmelden voor {{ project.title }}</h2>
+        {% if applicant|default(null) %}<p>Aanvrager: {{ applicant.displayName|default(applicant.firstName) }}</p>{% endif %}
 
         {% if project.summary %}
             <p>{{ project.summary }}</p>
@@ -33,6 +34,7 @@
         {% if blocked %}
             <p>{{ blocked.message }}</p>
         {% else %}
+            <p>De bevoegde projectbeheerders kunnen je motivatie lezen om je aanvraag te beoordelen.</p>
             {{ form_start(form) }}
             {{ form_errors(form) }}
                 <div class="form-group">

@@ -27,7 +27,7 @@ class ProjectParticipantUpdateRoleHandler
     public const PENDING_NAMES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
     public const ACCEPTED_NAMES = ['accepted', 'geaccepteerd'];
     public const REJECTED_NAMES = ['rejected', 'afgewezen'];
-    private const PARTICIPANT_ACTIVE_NAMES = ['active', 'actief'];
+    private const PARTICIPANT_ACTIVE_NAMES = \App\Security\ProjectParticipation::ACTIVE_NAMES;
 
     public function __construct(
         private ProjectParticipantRepository $participantRepo,

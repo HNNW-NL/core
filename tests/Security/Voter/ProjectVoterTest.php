@@ -14,6 +14,31 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 class ProjectVoterTest extends TestCase
 {
+    #[\PHPUnit\Framework\Attributes\TestWith(['inactive'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['wrong-scope'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['pending'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['not-joined'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['left'])]
+    public function testInactiveRoleNeverContributesToCombinedPermissions(string $state): void
+    {
+        $account = (new Account())->setProfile(new Profile());
+        $project = new Project();
+        $active = (new ProjectParticipant())->setRole((new ProjectRole())->setProject($project)->setPermissionsMask(1))
+            ->setStatus((new \App\Entity\Common\Status())->setScope('ProjectParticipant')->setName('active'));
+        $active->join();
+        $invalid = (new ProjectParticipant())->setRole((new ProjectRole())->setProject($project)->setPermissionsMask(4))
+            ->setStatus((new \App\Entity\Common\Status())->setScope($state === 'wrong-scope' ? 'ProjectApplication' : 'ProjectParticipant')
+                ->setName(match ($state) { 'inactive' => 'inactive', 'pending' => 'send', default => 'active' }));
+        if ($state !== 'not-joined') { $invalid->join(); }
+        if ($state === 'left') { $invalid->leave(); }
+        $repository = $this->createStub(ProjectParticipantRepository::class);
+        $repository->method('findActiveParticipantsByProjectAndProfile')->willReturn([$active, $invalid]);
+        $voter = new ProjectVoter($repository);
+        $token = new UsernamePasswordToken($account, 'main', $account->getRoles());
+        self::assertSame(1, $voter->vote($token, $project, [ProjectVoter::VIEW]));
+        self::assertSame(-1, $voter->vote($token, $project, [ProjectVoter::DELETE]));
+    }
+
     public function testCombinedRolesDoNotGrantPermissionsFromAnotherProject(): void
     {
         $account = (new Account())->setProfile(new Profile());
@@ -24,6 +49,7 @@ class ProjectVoterTest extends TestCase
             (new ProjectParticipant())->setRole((new ProjectRole())->setProject($project)->setPermissionsMask(2)),
             (new ProjectParticipant())->setRole((new ProjectRole())->setProject($other)->setPermissionsMask(4)),
         ];
+        foreach ($participants as $participant) { $participant->join(); $participant->setStatus((new \App\Entity\Common\Status())->setScope('ProjectParticipant')->setName('active')); }
         $repository = $this->createStub(ProjectParticipantRepository::class);
         $repository->method('findActiveParticipantsByProjectAndProfile')->willReturn($participants);
         $voter = new ProjectVoter($repository);
@@ -135,6 +161,8 @@ class ProjectVoterTest extends TestCase
             ->willReturn(null);
 
         $participant = new ProjectParticipant();
+        $participant->join();
+        $participant->setStatus((new \App\Entity\Common\Status())->setScope('ProjectParticipant')->setName('active'));
 
         $repository
             ->expects(self::once())
@@ -187,6 +215,8 @@ class ProjectVoterTest extends TestCase
         $role->setProject($project)->setPermissionsMask(1);
 
         $participant = new ProjectParticipant();
+        $participant->join();
+        $participant->setStatus((new \App\Entity\Common\Status())->setScope('ProjectParticipant')->setName('active'));
         $participant->setProject($project);
         $participant->setProfile($profile);
         $participant->setRole($role);

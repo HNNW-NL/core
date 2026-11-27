@@ -131,9 +131,9 @@
                                         {% for position in experience.positions %}
                                             <div class="ei-position">
                                                 <h4>{{ position.title }}</h4>
-                                                {% if position.type %}<p>{{ position.type }}</p>{% endif %}
+                                                {% if position.type|default(null) %}<p>{{ position.type }}</p>{% endif %}
                                                 <p class="ei-muted">{{ position.period }}</p>
-                                                {% if position.location %}
+                                                {% if position.location|default(null) %}
                                                     <p class="ei-muted">{{ position.location }}</p>
                                                 {% endif %}
                                                 {% if position.description %}
@@ -145,9 +145,9 @@
                                 {% else %}
                                     {% set position = experience.positions|first %}
                                     <h3>{{ position.title }}</h3>
-                                    <p>{{ experience.company }}{% if position.type %} · {{ position.type }}{% endif %}</p>
+                                    <p>{{ experience.company }}{% if position.type|default(null) %} · {{ position.type }}{% endif %}</p>
                                     <p class="ei-muted">{{ position.period }}</p>
-                                    {% if position.location %}<p class="ei-muted">{{ position.location }}</p>{% endif %}
+                                    {% if position.location|default(null) %}<p class="ei-muted">{{ position.location }}</p>{% endif %}
                                     {% if position.description %}
                                         <p class="ei-description">{{ position.description|nl2br }}</p>
                                     {% endif %}
@@ -169,7 +169,7 @@
                 <h2 id="edu-title">Onderwijs</h2>
 
                 {% set educations = profileView.education|map(education => {
-    school: education.school, degree: education.degree, fieldOfStudy: education.fieldOfStudy, logo: education.logo, skills: '',
+    school: education.school, degree: education.degree, fieldOfStudy: education.fieldOfStudy, logo: education.logo,
     period: education.startDate|date('m-Y') ~ ' – ' ~ (education.endDate ? education.endDate|date('m-Y') : 'heden'),
     description: education.description
 }) %}
@@ -195,7 +195,7 @@
                                     <p class="edui-description">{{ education.description|nl2br }}</p>
                                 {% endif %}
 
-                                {% if education.skills %}
+                                {% if education.skills|default(null) %}
                                     <p class="edui-skills">
                                         <strong>Vaardigheden:</strong> {{ education.skills }}
                                     </p>
@@ -217,7 +217,7 @@
                 <h2 id="l-title">Licenties en certificeringen ({{ profileView.certificates|length }})</h2>
 
                 {% set certificates = profileView.certificates|map(certificate => {
-    title: certificate.title, issuer: certificate.issuer, logo: '',
+    title: certificate.title, issuer: certificate.issuer,
     issued: certificate.issuedOn ? certificate.issuedOn|date('m-Y') : '',
     expires: certificate.expiresOn ? certificate.expiresOn|date('m-Y') : '',
     credential: certificate.credential, url: certificate.url
@@ -227,7 +227,7 @@
                     {% for certificate in certificates %}
                         <article class="l-item">
                             <figure class="li-logo">
-                                {% if certificate.logo %}
+                                {% if certificate.logo|default(null) %}
                                     <img src="{{ certificate.logo }}" alt="{{ certificate.issuer }}">
                                 {% else %}
                                     <span>{{ certificate.issuer|slice(0, 1) }}</span>
@@ -268,7 +268,7 @@
             <section id="skills" class="section">
                 <h2 id="s-title">Vaardigheden ({{ profileView.skills|length }})</h2>
 
-                {% set profileSkills = profileView.skills|map(skill => {name: skill.name, context: '', endorsements: 0}) %}
+                {% set profileSkills = profileView.skills %}
 
                 <div id="s-list" class="profile-skill-list">
                     {% for skill in profileSkills %}
@@ -282,7 +282,7 @@
                                 </div>
                             {% endif %}
 
-                            {% if skill.endorsements > 0 %}
+                            {% if skill.endorsements|default(null) is not null %}
                                 <p class="si-endorsements">
                                     {{ skill.endorsements }} onderschrijvingen
                                 </p>

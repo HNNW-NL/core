@@ -21,53 +21,40 @@ class ProjectParticipantRepository extends ServiceEntityRepository
         parent::__construct($registry, ProjectParticipant::class);
     }
 
-    public function findActiveParticipant(
-        Project $project,
-        Profile $profile
-    ): ?ProjectParticipant
-    {
-        return $this->createQueryBuilder('participant')
-            ->andWhere('participant.project = :project')
-            ->andWhere('participant.profile = :profile')
-            ->andWhere('participant.joinedAt IS NOT NULL')
-            ->andWhere('participant.leftAt IS NULL')
-            ->setParameter('project', $project->getId(), 'ulid')
-            ->setParameter('profile', $profile->getId(), 'ulid')
-            ->getQuery()
-            ->getOneOrNullResult();
-    }
-    public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
+    private function activeFor(Project $project, Profile $profile): \Doctrine\ORM\QueryBuilder
     {
         return $this->createQueryBuilder('pp')
-            ->andWhere('pp.project = :project')
-            ->andWhere('pp.profile = :profile')
-            ->andWhere('pp.leftAt IS NULL')
-            ->andWhere('pp.joinedAt IS NOT NULL')
-            ->setParameter('project', $project->getId(), 'ulid')
-            ->setParameter('profile', $profile->getId(), 'ulid')
-            ->orderBy('pp.joinedAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->innerJoin('pp.status', 'activeStatus')
+            ->innerJoin('pp.profile', 'activeProfile')->innerJoin('activeProfile.account', 'activeAccount')
+            ->andWhere('pp.project = :project')->andWhere('pp.profile = :profile')
+            ->andWhere('pp.joinedAt IS NOT NULL')->andWhere('pp.leftAt IS NULL')
+            ->andWhere('activeProfile.deletedAt IS NULL')->andWhere('activeAccount.deletedAt IS NULL')
+            ->andWhere('LOWER(activeStatus.scope) = :scope')->andWhere('LOWER(activeStatus.name) IN (:names)')
+            ->setParameter('scope', \App\Security\ProjectParticipation::SCOPE)
+            ->setParameter('names', \App\Security\ProjectParticipation::ACTIVE_NAMES)
+            ->setParameter('project', $project->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid');
+    }
+
+    public function findActiveParticipant(Project $project, Profile $profile): ?ProjectParticipant
+    {
+        return $this->findLatestActiveParticipantByProjectAndProfile($project, $profile);
+    }
+
+    public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
+    {
+        return $this->activeFor($project, $profile)->orderBy('pp.joinedAt', 'DESC')->addOrderBy('pp.id', 'DESC')
+            ->getQuery()->getResult();
     }
 
     public function findLatestActiveParticipantByProjectAndProfile(Project $project, Profile $profile): ?ProjectParticipant
     {
-        return $this->createQueryBuilder('pp')
-            ->andWhere('pp.project = :project')
-            ->andWhere('pp.profile = :profile')
-            ->andWhere('pp.leftAt IS NULL')
-            ->andWhere('pp.joinedAt IS NOT NULL')
-            ->setParameter('project', $project->getId(), 'ulid')
-            ->setParameter('profile', $profile->getId(), 'ulid')
-            ->orderBy('pp.joinedAt', 'DESC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+        return $this->activeFor($project, $profile)->orderBy('pp.joinedAt', 'DESC')->addOrderBy('pp.id', 'DESC')
+            ->setMaxResults(1)->getQuery()->getOneOrNullResult();
     }
 
     public function isActiveParticipant(Project $project, Profile $profile): bool
     {
-        return $this->findActiveParticipantsByProjectAndProfile($project, $profile) !== [];
+        return (int) $this->activeFor($project, $profile)->select('COUNT(pp.id)')->getQuery()->getSingleScalarResult() > 0;
     }
 
     /**
