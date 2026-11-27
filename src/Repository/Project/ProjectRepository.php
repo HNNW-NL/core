@@ -33,6 +33,9 @@ class ProjectRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('project')
             ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
+            ->innerJoin('project.status', 'status')
+            ->andWhere('LOWER(status.name) <> :archivedStatus')
+            ->setParameter('archivedStatus', 'archived')
             ->andWhere('project.slug = :slug')
             ->andWhere('project.deletedAt IS NULL')
             ->andWhere('ownerOrganisation.deletedAt IS NULL')
@@ -208,6 +211,8 @@ class ProjectRepository extends ServiceEntityRepository
                 'project.remotePossible AS remotePossible'
             )
             ->innerJoin('project.status', 'status')
+            ->andWhere('LOWER(status.name) <> :archivedStatus')
+            ->setParameter('archivedStatus', 'archived')
             ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
             ->andWhere('project.publishedAt IS NOT NULL')
             ->andWhere('project.deletedAt IS NULL')
@@ -273,6 +278,8 @@ class ProjectRepository extends ServiceEntityRepository
             ->innerJoin('project.skills', 'projectSkill')
             ->innerJoin('projectSkill.skill', 'skill')
             ->innerJoin('project.status', 'status')
+            ->andWhere('LOWER(status.name) <> :archivedStatus')
+            ->setParameter('archivedStatus', 'archived')
             ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
             ->andWhere('project.slug IN (:slugs)')
             ->andWhere('project.publishedAt IS NOT NULL')

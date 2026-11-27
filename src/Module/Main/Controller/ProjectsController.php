@@ -433,6 +433,7 @@ final class ProjectsController extends AbstractController
             $allowPublicAccess
             && $project->getVisibility() === 'public'
             && $project->getPublishedAt() !== null
+            && strtolower((string) $project->getStatus()?->getName()) !== 'archived'
         ) {
             return $project;
         }

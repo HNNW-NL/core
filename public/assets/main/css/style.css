@@ -73,3 +73,47 @@
 .skip-link:focus {
     transform: translateY(0);
 }
+
+.main-breadcrumbs {
+    margin-block-end: 1rem;
+    font-size: .875rem;
+
+    ol {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    li {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        overflow-wrap: anywhere;
+
+        &:not(:first-child)::before {
+            content: "/";
+            color: var(--paragraph-grey);
+        }
+    }
+
+    a {
+        color: var(--accent-text);
+
+        &:hover {
+            text-decoration: underline;
+        }
+
+        &:focus-visible {
+            outline: .125rem solid var(--accent-text);
+            outline-offset: .125rem;
+        }
+    }
+
+    [aria-current="page"] {
+        color: var(--paragraph-grey);
+    }
+}

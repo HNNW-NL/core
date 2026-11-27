@@ -17,6 +17,12 @@
 {% block javascript %}{% endblock %}
 
 {# Page content #}
+{% block breadcrumbs %}
+    {% include 'pages/main/_breadcrumbs.html.twig' with {
+        currentPage: 'Projecten'
+    } only %}
+{% endblock %}
+
 {% block body %}
 <div class="home-page projects-page">
     <section class="open-projects container" aria-labelledby="projects-title">

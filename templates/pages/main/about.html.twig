@@ -17,6 +17,12 @@
 {% block javascript %}{% endblock %}
 
 {# Page content #}
+{% block breadcrumbs %}
+    {% include 'pages/main/_breadcrumbs.html.twig' with {
+        currentPage: 'Over HNNW'
+    } only %}
+{% endblock %}
+
 {% block body %}
     <div class="about-page">
 

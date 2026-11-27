@@ -8,10 +8,21 @@
     <link rel="stylesheet" href="{{ asset('assets/main/css/projects.css') }}">
 {% endblock %}
 
+{% block breadcrumbs %}
+    {% include 'pages/main/_breadcrumbs.html.twig' with {
+        currentPage: project.title,
+        parents: [
+            {
+                label: 'Projecten',
+                url: path('main.projects.home')
+            }
+        ]
+    } only %}
+{% endblock %}
+
 {% block body %}
     <div class="project-detail">
         <div class="project-detail__container">
-            <a class="project-detail__back" href="{{ path('main.projects.home') }}">← Terug naar projecten</a>
 
             {% if previewMode|default(false) %}
                 <p class="project-detail__preview-notice" role="status">Beheerderpreview: dit project is niet gepubliceerd en is alleen zichtbaar voor beheerders.</p>
@@ -37,7 +48,7 @@
                     {% endif %}
                 </header>
 
-                {% if not previewMode|default(false) %}
+                {% if not previewMode|default(false) and is_granted('PROJECT_VIEW', project) %}
                     {% include 'core/main/_project_navigation.html.twig' %}
                 {% endif %}
 
@@ -73,6 +84,10 @@
                             <div>
                                 <dt>Organisatie</dt>
                                 <dd>{{ project.ownerOrganisation.name|default('Niet opgegeven') }}</dd>
+                            </div>
+                            <div>
+                                <dt>Projectleider</dt>
+                                <dd>{{ project.ownerAccount.username|default('Niet opgegeven') }}</dd>
                             </div>
                             <div>
                                 <dt>Locatie</dt>

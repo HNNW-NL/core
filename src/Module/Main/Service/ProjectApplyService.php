@@ -31,6 +31,7 @@ final readonly class ProjectApplyService
             $project->getVisibility() !== 'public'
             || $project->getPublishedAt() === null
             || $project->getDeletedAt() !== null
+            || strtolower((string) $project->getStatus()?->getName()) === 'archived'
             || $project->getOwnerOrganisation() === null
             || $project->getOwnerOrganisation()->getDeletedAt() !== null
         ) {
