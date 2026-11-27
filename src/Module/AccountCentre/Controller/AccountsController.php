@@ -97,9 +97,7 @@ final class AccountsController extends AbstractController
     #[Route('/applications', name: 'applications', methods: ['GET'])]
     public function applications(EntityManagerInterface $em): Response
     {
-        $account = $this->account();
-
-        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        $profile = $this->profile($em);
 
         $applications = $em->getRepository(ProjectApplication::class)->findBy(
             ['profile' => $profile, 'deletedAt' => null],
@@ -121,8 +119,6 @@ final class AccountsController extends AbstractController
         $profile = $this->profile($em);
 
         $application = $em->getRepository(ProjectApplication::class)->find($id);
-        $account = $this->account();
-        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         if (!$application || $application->getDeletedAt() !== null) {
             throw $this->createNotFoundException('Aanmelding niet gevonden.');
@@ -503,8 +499,6 @@ final class AccountsController extends AbstractController
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->account();
-
         $experience = $em->getRepository(ProfileExperience::class)->find($id);
         if (!$experience || $experience->getDeletedAt() !== null) {
             throw $this->createNotFoundException();
@@ -513,7 +507,7 @@ final class AccountsController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
+        $profile = $this->profile($em);
 
         if (!$profile || $experience->getProfile() !== $profile) {
             throw $this->createAccessDeniedException('Je bent niet de eigenaar van deze ervaring.');
@@ -536,7 +530,6 @@ final class AccountsController extends AbstractController
             'username' => $account->getUsername(),
             'first_name' => $profile?->getFirstName() ?? '',
             'last_name' => $profile?->getLastName() ?? '',
-            'email' => $account->getEmail() ?? '',
             'display_name' => $profile?->getDisplayName() ?? '',
             'avatar_url' => $profile?->getAvatarUrl() ?? '',
             'location' => $profile?->getLocation() ?? '',
@@ -651,6 +644,7 @@ final class AccountsController extends AbstractController
             'profile' => $profile,
             'formData' => $formData,
             'errors' => $errors,
+            'email' => $account->getEmail(),
         ]);
     }
 
