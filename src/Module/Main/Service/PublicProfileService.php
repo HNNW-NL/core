@@ -17,6 +17,7 @@ use App\Security\ProjectParticipation;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Uid\Ulid;
 
 final readonly class PublicProfileService
 {
@@ -49,10 +50,11 @@ final readonly class PublicProfileService
 
     private static function safeImageUrl(?string $url): ?string
     {
+        // Develop supplies local image assets; no external image origins are configured as trusted.
         if ($url !== null && preg_match('~\A/(?!/)[^\\\\\x00-\x20]*\z~', $url)) {
             return $url;
         }
-        return self::safeUrl($url);
+        return null;
     }
 
     public static function safeUrl(?string $url): ?string
@@ -120,14 +122,7 @@ final readonly class PublicProfileService
             unset($skill);
         }
         if ($visible(ProfileVisibilityPermission::EXPERIENCE)) {
-            $experienceQuery = $this->em->createQueryBuilder()
-                ->from(ProfileExperience::class, 'record')->leftJoin('record.organisation', 'organisation')
-                ->andWhere('record.profile = :profile')->andWhere('record.deletedAt IS NULL')
-                ->setParameter('profile', $profile->getId(), 'ulid')
-                ->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC');
-            $data['experience'] = $this->sectionPage($experienceQuery, 'experience', $requestedSectionPages, $data)
-                ->select('record.id, record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.id AS organisationId, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
-                ->getQuery()->getArrayResult();
+            $data['experience'] = $this->experiencePage($profile, $requestedSectionPages, $data);
             foreach ($data['experience'] as &$experience) {
                 $experience['organisationLogo'] = self::safeImageUrl($experience['organisationLogo']);
             }
@@ -137,7 +132,7 @@ final readonly class PublicProfileService
                 $company = $experience['organisationName'] ?: $experience['externalOrganisationName'];
                 $key = $experience['organisationId'] !== null ? 'org:'.$experience['organisationId']
                     : ($company ? 'external:'.$company : 'record:'.$experience['id']);
-                $groups[$key] ??= ['company' => $company, 'logo' => $experience['organisationLogo'], 'positions' => []];
+                $groups[$key] ??= ['company' => $company, 'logo' => $experience['organisationLogo'], 'positions' => [], 'paginationKey' => $experience['paginationKey'], 'total' => $experience['groupTotal']];
                 $groups[$key]['positions'][] = [
                     'title' => $experience['jobTitle'], 'description' => $experience['description'],
                     'period' => $experience['startDate']->format('m-Y').' – '.($experience['endDate']?->format('m-Y') ?? 'heden'),
@@ -184,9 +179,18 @@ final readonly class PublicProfileService
             }
         }
         foreach (['receivedRecommendations' => 'profile', 'givenRecommendations' => 'reviewerProfile'] as $key => $relation) {
-            $reviews = $this->em->getRepository(Review::class)->findBy([
-                $relation => $profile, 'isPublic' => true, 'deletedAt' => null,
-            ], ['id' => 'DESC'], 10);
+            $otherRelation = $relation === 'profile' ? 'reviewerProfile' : 'profile';
+            $reviewQuery = $this->em->createQueryBuilder()->from(Review::class, 'record')
+                ->innerJoin('record.'.$otherRelation, 'person')->innerJoin('person.account', 'otherAccount')
+                ->leftJoin('otherAccount.setting', 'otherSetting')
+                ->andWhere('record.'.$relation.' = :profile')->setParameter('profile', $profile->getId(), 'ulid')
+                ->andWhere('record.isPublic = true')->andWhere('record.deletedAt IS NULL')
+                ->andWhere('person.deletedAt IS NULL')->andWhere('otherAccount.deletedAt IS NULL')
+                ->andWhere('otherSetting.profileVisibility = :public OR otherAccount.id = :viewer')
+                ->setParameter('public', 'public')->setParameter('viewer', $viewer?->getId(), 'ulid')
+                ->orderBy('record.id', 'DESC');
+            $reviews = $this->sectionPage($reviewQuery, $key, $requestedSectionPages, $data)
+                ->select('record', 'person', 'otherAccount', 'otherSetting')->getQuery()->getResult();
             foreach ($reviews as $review) {
                 $person = $relation === 'profile' ? $review->getReviewerProfile() : $review->getProfile();
                 if ($person === null || !$this->canView($person, $viewer)) {
@@ -234,6 +238,43 @@ final readonly class PublicProfileService
             ->setFirstResult(($data['projectPage'] - 1) * self::PROJECT_PAGE_SIZE)->setMaxResults(self::PROJECT_PAGE_SIZE)
             ->getQuery()->getArrayResult();
         return $data;
+    }
+
+    /** Paginate organisations first, then paginate positions within each selected organisation. */
+    private function experiencePage(Profile $profile, array $requestedPages, array &$data): array
+    {
+        $db = $this->em->getConnection();
+        $groupKey = "COALESCE('org:' || organisation_id::text, 'external:' || NULLIF(external_organisation_name, ''), 'record:' || id::text)";
+        $base = " FROM profile_experiences WHERE profile_id = :profile AND deleted_at IS NULL GROUP BY ".$groupKey;
+        $params = ['profile' => $profile->getId()];
+        $types = ['profile' => 'ulid'];
+        $total = (int) $db->fetchOne('SELECT COUNT(*) FROM (SELECT '.$groupKey.$base.') groups', $params, $types);
+        $pages = max(1, (int) ceil($total / self::SECTION_PAGE_SIZE));
+        $page = min($pages, max(1, (int) ($requestedPages['experience'] ?? 1)));
+        $data['pagination']['experience'] = ['total' => $total, 'pages' => $pages, 'page' => $page];
+        $groups = $db->fetchAllAssociative('SELECT '.$groupKey.' AS group_key, MAX(organisation_id::text) AS organisation_id, MAX(external_organisation_name) AS external_name, MAX(id::text) AS record_id'
+            .$base.' ORDER BY MAX(start_date) DESC, group_key ASC LIMIT '.self::SECTION_PAGE_SIZE.' OFFSET '.(($page - 1) * self::SECTION_PAGE_SIZE), $params, $types);
+        $rows = [];
+        foreach ($groups as $group) {
+            $query = $this->em->createQueryBuilder()->from(ProfileExperience::class, 'record')->leftJoin('record.organisation', 'organisation')
+                ->andWhere('record.profile = :profile')->andWhere('record.deletedAt IS NULL')->setParameter('profile', $profile->getId(), 'ulid')
+                ->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC');
+            if ($group['organisation_id'] !== null) {
+                $query->andWhere('record.organisation = :organisation')->setParameter('organisation', Ulid::fromRfc4122($group['organisation_id']), 'ulid');
+            } elseif ($group['external_name'] !== null && $group['external_name'] !== '') {
+                $query->andWhere('record.organisation IS NULL')->andWhere('record.externalOrganisationName = :name')->setParameter('name', $group['external_name']);
+            } else {
+                $query->andWhere('record.id = :id')->setParameter('id', Ulid::fromRfc4122($group['record_id']), 'ulid');
+            }
+            $key = 'positions_'.substr(hash('sha256', $group['group_key']), 0, 12);
+            $items = $this->sectionPage($query, $key, $requestedPages, $data)
+                ->select('record.id, record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.id AS organisationId, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
+                ->getQuery()->getArrayResult();
+            foreach ($items as $item) {
+                $rows[] = $item + ['paginationKey' => $key, 'groupTotal' => $data['pagination'][$key]['total']];
+            }
+        }
+        return $rows;
     }
 
     /** Counts without hydrating records and limits every visible section before fetching its data. */

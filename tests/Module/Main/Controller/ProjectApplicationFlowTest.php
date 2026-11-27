@@ -131,7 +131,12 @@ final class ProjectApplicationFlowTest extends WebTestCase
         $client->request('POST', $applyPath, ['project_apply' => ['_token' => $token, 'motivation' => $motivation]]);
         self::assertResponseRedirects($applyPath, 303);
         $client->followRedirect();
-        self::assertSelectorTextContains('body', 'niet opnieuw ingediend');
+        self::assertSelectorTextContains('body', 'Je aanvraag is ingediend');
+        self::assertSame(1, static::getContainer()->get(EntityManagerInterface::class)->getRepository(ProjectApplication::class)->count(['project' => $project, 'profile' => $profile]));
+        $currentEm = static::getContainer()->get(EntityManagerInterface::class);
+        $restored = $currentEm->find(ProjectApplication::class, $application->getId());
+        self::assertNull($restored->getDeletedAt());
+        static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class)->withdraw($restored, $restored->getProfile());
         $em = static::getContainer()->get(EntityManagerInterface::class);
         $profile = $em->find(Profile::class, $profile->getId());
         $owner = $em->find(Account::class, $owner->getId());

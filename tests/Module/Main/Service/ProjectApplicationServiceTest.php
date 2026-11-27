@@ -36,7 +36,7 @@ final class ProjectApplicationServiceTest extends TestCase
         $em->method('getRepository')->willReturn($repository);
         $em->expects(self::never())->method('persist');
         $service = new ProjectApplicationService($em, $this->createStub(StatusRepository::class), $repository);
-        $this->expectException(in_array($scenario, ['unverified', 'wrong-profile'], true)
+        $this->expectException($scenario === 'wrong-profile'
             ? \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException::class : \DomainException::class);
         $service->submit($project, $account, $profile, str_repeat('a', 20));
     }
@@ -101,8 +101,15 @@ final class ProjectApplicationServiceTest extends TestCase
             } else {
                 $application->setStatus((new Status())->setScope('ProjectApplication')->setName($existingState));
             }
-            $this->expectException(\DomainException::class);
-            $this->expectExceptionMessage($existingState === 'withdrawn' ? 'ingetrokken' : 'behandeld');
+            if ($existingState === 'withdrawn') {
+                $restored = $service->submitWithResult($project, $account, $profile, str_repeat('�', $length));
+                self::assertSame($application, $restored->application);
+                self::assertTrue($restored->created);
+                self::assertNull($application->getDeletedAt());
+            } else {
+                $this->expectException(\DomainException::class);
+                $this->expectExceptionMessage('behandeld');
+            }
         }
         self::assertSame($application, $service->submit($project, $account, $profile, str_repeat('é', $length)));
         self::assertFalse($service->submitWithResult($project, $account, $profile, str_repeat('é', $length))->created);

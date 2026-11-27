@@ -57,8 +57,8 @@ final class ProjectApplyServiceTest extends TestCase
         $em = $this->createMock(EntityManagerInterface::class);
         $em->method('getRepository')->willReturn($repository);
         $em->method('wrapInTransaction')->willReturnCallback(static fn ($operation) => $operation());
-        $success = in_array($scenario, ['valid', 'inactive'], true);
-        $em->expects($success ? self::once() : self::never())->method('persist');
+        $success = in_array($scenario, ['valid', 'inactive', 'withdrawn'], true);
+        $em->expects(in_array($scenario, ['valid', 'inactive'], true) ? self::once() : self::never())->method('persist');
         $statuses = $this->createStub(StatusRepository::class);
         $statuses->method('findFirstByScopeAndNames')->willReturn($scenario === 'missing-status' ? null
             : (new Status())->setScope('ProjectApplication')->setName('send'));
@@ -69,16 +69,16 @@ final class ProjectApplyServiceTest extends TestCase
         $handler = new ProjectApplyHandler($service);
         self::assertEquals($central->check($project, $profile), $service->check($project, $profile));
         self::assertEquals($central->check($project, $profile), $handler->check($project, $profile));
-        self::assertSame(in_array($scenario, ['valid', 'inactive', 'short-motivation'], true), $service->check($project, $profile) === null);
+        self::assertSame(in_array($scenario, ['valid', 'inactive', 'withdrawn', 'short-motivation'], true), $service->check($project, $profile) === null);
         $dto = new ProjectApplyDto();
         $dto->motivation = $scenario === 'short-motivation' ? 'kort' : 'Een geldige motivatie voor dit project.';
-        if ($scenario === 'unverified') { $this->expectException(AccessDeniedHttpException::class); }
         $result = $handler->handle($project, $profile, $dto);
         self::assertSame($success, $result->isSuccessful());
         self::assertSame(match ($scenario) {
-            'valid', 'inactive' => ProjectApplyStatus::Success,
+            'valid', 'inactive', 'withdrawn' => ProjectApplyStatus::Success,
             'active' => ProjectApplyStatus::AlreadyParticipant,
-            'pending', 'withdrawn', 'accepted', 'rejected' => ProjectApplyStatus::AlreadyApplied,
+            'pending', 'accepted', 'rejected' => ProjectApplyStatus::AlreadyApplied,
+            'unverified' => ProjectApplyStatus::EmailNotVerified,
             'missing-status' => ProjectApplyStatus::StatusNotFound,
             default => ProjectApplyStatus::NotOpen,
         }, $result->status);

@@ -5,6 +5,9 @@
         {% for key, state in view.pagination %}
             {% set parameters = parameters|merge({(key ~ '_page'): state.page}) %}
         {% endfor %}
+        {% if section in ['receivedRecommendations', 'givenRecommendations'] %}
+            {% set parameters = parameters|merge({recommendation_tab: section == 'givenRecommendations' ? 'given' : 'received'}) %}
+        {% endif %}
         <nav class="profile-project-pagination {{ footerClass }}" aria-label="Paginering {{ anchor }}">
             {% if pagination.page > 1 %}<a rel="prev" href="{{ path('main.profile', parameters|merge({(section ~ '_page'): pagination.page - 1})) }}#{{ anchor }}">Vorige</a>{% endif %}
             <span>Pagina {{ pagination.page }} van {{ pagination.pages }} ({{ pagination.total }})</span>

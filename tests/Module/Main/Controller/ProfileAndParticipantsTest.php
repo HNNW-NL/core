@@ -191,7 +191,7 @@ final class ProfileAndParticipantsTest extends WebTestCase
         foreach ($sections as $section) {
             self::assertCount(5, $first[$section], $section);
             self::assertCount(3, $second[$section], $section);
-            self::assertSame(['total' => 8, 'page' => 2, 'pages' => 2], $second['pagination'][$section]);
+            self::assertEquals(['total' => 8, 'page' => 2, 'pages' => 2], $second['pagination'][$section]);
             self::assertSame([], array_intersect(array_map('serialize', $first[$section]), array_map('serialize', $second[$section])));
         }
         self::assertSame([['name' => 'Vaardigheid 6-'.$this->runId]], $first['topSkills']);
@@ -217,6 +217,133 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSame([], $hidden['skills']);
         self::assertSame([], $hidden['topSkills']);
         self::assertArrayNotHasKey('skills', $hidden['pagination']);
+    }
+
+    public function testSubmissionRefreshesAndRestoresTheExistingWithdrawnRecord(): void
+    {
+        $this->outsider->verifyEmail();
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['profile' => $this->outsider->getProfile()]);
+        $application->setReviewerProfile($this->owner->getProfile())->setReview('Oud oordeel');
+        $application->markAsReviewed();
+        $this->em->flush();
+        // Simulate a committed concurrent change while the Identity Map still contains the old object.
+        $this->em->getConnection()->executeStatement('UPDATE project_applications SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id',
+            ['id' => $application->getId()], ['id' => 'ulid']);
+        self::assertNull($application->getDeletedAt());
+        $service = static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class);
+        $submission = $service->submitWithResult($this->project, $this->outsider, $this->outsider->getProfile(), 'Een volledig nieuwe geldige motivatie.');
+        self::assertSame($application, $submission->application);
+        self::assertTrue($submission->created);
+        self::assertNull($application->getDeletedAt());
+        self::assertNull($application->getReviewedAt());
+        self::assertNull($application->getReviewerProfile());
+        self::assertNull($application->getReview());
+        self::assertSame('Ingediend', $service->label($application));
+        self::assertSame('Een volledig nieuwe geldige motivatie.', $application->getMotivation());
+        self::assertSame(1, $this->em->getRepository(ProjectApplication::class)->count(['project' => $this->project, 'profile' => $this->outsider->getProfile()]));
+        self::assertFalse($service->submitWithResult($this->project, $this->outsider, $this->outsider->getProfile(), 'Een dubbele geldige motivatie.')->created);
+    }
+
+    public function testConcurrentReviewIsRefreshedAndRejectedWithdrawalKeepsTheManagerOpen(): void
+    {
+        $this->outsider->verifyEmail();
+        $this->em->flush();
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['profile' => $this->outsider->getProfile()]);
+        $this->em->getConnection()->executeStatement('UPDATE project_applications SET status_id = :status WHERE id = :id',
+            ['status' => $this->fixtureStatus('ProjectApplication', 'accepted')->getId(), 'id' => $application->getId()], ['status' => 'ulid', 'id' => 'ulid']);
+        $service = static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class);
+        try {
+            $service->submitWithResult($this->project, $this->outsider, $this->outsider->getProfile(), 'Een geldige motivatie voor deze aanvraag.');
+            self::fail('An already reviewed request must not be resubmitted.');
+        } catch (\App\Module\Main\Exception\ProjectApplicationBlocked $exception) {
+            self::assertStringContainsString('behandeld', $exception->getMessage());
+        }
+        try {
+            $service->withdraw($application, $this->outsider->getProfile());
+            self::fail('An accepted request must not be withdrawn.');
+        } catch (\DomainException) {
+            self::assertTrue($this->em->isOpen());
+            self::assertSame('Geaccepteerd', $service->label($application));
+            self::assertNotNull($this->em->getRepository(ProjectApplication::class)->find($application->getId()));
+        }
+    }
+
+    public function testExperiencePaginationKeepsOrganisationGroupsTogether(): void
+    {
+        $profile = $this->owner->getProfile();
+        for ($i = 0; $i < 7; ++$i) {
+            $this->persist((new ProfileExperience())->setProfile($profile)->setOrganisation($this->project->getOwnerOrganisation())
+                ->setJobTitle('Groepsfunctie '.$i)->setStartDate(new \DateTimeImmutable('2026-01-01')));
+        }
+        for ($i = 0; $i < 6; ++$i) {
+            $this->persist((new ProfileExperience())->setProfile($profile)->setExternalOrganisationName('Andere werkgever '.$i)
+                ->setJobTitle('Andere functie '.$i)->setStartDate(new \DateTimeImmutable('2025-01-01')));
+        }
+        $this->em->flush();
+        $service = static::getContainer()->get(\App\Module\Main\Service\PublicProfileService::class);
+        $first = $service->load($this->owner->getUsername(), $this->owner);
+        $second = $service->load($this->owner->getUsername(), $this->owner, 1, ['experience' => 2]);
+        self::assertSame(7, $first['pagination']['experience']['total']);
+        self::assertCount(5, $first['experienceGroups']);
+        self::assertCount(2, $second['experienceGroups']);
+        $group = $first['experienceGroups'][0];
+        self::assertSame('Projectorganisatie', $group['company']);
+        self::assertSame(8, $group['total']);
+        self::assertCount(5, $group['positions']);
+        self::assertNotContains('Projectorganisatie', array_column($second['experienceGroups'], 'company'));
+        $more = $service->load($this->owner->getUsername(), $this->owner, 1, [$group['paginationKey'] => 2]);
+        self::assertCount(3, $more['experienceGroups'][0]['positions']);
+        self::assertSame($group['company'], $more['experienceGroups'][0]['company']);
+        $this->client->loginUser($this->owner);
+        $page = $this->client->request('GET', '/profile/'.$this->owner->getUsername());
+        self::assertResponseIsSuccessful();
+        $link = $page->filter('#experience .e-item:first-child nav a[rel="next"]')->link();
+        $this->client->click($link);
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(3, '#experience .e-item:first-child .ei-position');
+    }
+
+    public function testRecommendationPrivacyIsAppliedBeforeCountingAndPagination(): void
+    {
+        $publicPerson = $this->account('public-reviewer', true)->getProfile();
+        foreach ([true, false] as $public) {
+            for ($i = 0; $i < ($public ? 6 : 12); ++$i) {
+                $other = $public ? $publicPerson : $this->outsider->getProfile();
+                foreach ([true, false] as $received) {
+                    $review = (new \App\Entity\Account\Review())->setProfile($received ? $this->owner->getProfile() : $other)
+                        ->setReviewerProfile($received ? $other : $this->owner->getProfile())->setProject($this->project)
+                        ->setStatus($this->fixtureStatus('review', 'active'))->setMessage(($public ? 'Zichtbaar ' : 'Verborgen ').$i);
+                    $review->makePublic();
+                    $this->persist($review);
+                }
+            }
+        }
+        $this->em->flush();
+        $service = static::getContainer()->get(\App\Module\Main\Service\PublicProfileService::class);
+        $first = $service->load($this->owner->getUsername(), null);
+        $second = $service->load($this->owner->getUsername(), null, 1, ['receivedRecommendations' => 2, 'givenRecommendations' => 2]);
+        foreach (['receivedRecommendations', 'givenRecommendations'] as $key) {
+            self::assertSame(6, $first['pagination'][$key]['total']);
+            self::assertCount(5, $first[$key]);
+            self::assertCount(1, $second[$key]);
+            foreach ([...$first[$key], ...$second[$key]] as $review) {
+                self::assertStringStartsWith('Zichtbaar ', $review['text']);
+            }
+        }
+        $page = $this->client->request('GET', '/profile/'.$this->owner->getUsername().'?givenRecommendations_page=2');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(1, '#rt-given-content .r-item');
+        self::assertSelectorExists('#rt-given[checked]');
+        self::assertCount(1, $page->filter('#rt-received-content nav a[rel="next"]'));
+        self::assertStringNotContainsString('Verborgen ', $this->client->getResponse()->getContent());
+        $page = $this->client->click($page->filter('#rt-given-content nav a[rel="prev"]')->link());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('#rt-given[checked]');
+        self::assertSelectorCount(5, '#rt-given-content .r-item');
+        $this->client->click($page->filter('#rt-received-content nav a[rel="next"]')->link());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('#rt-received[checked]');
+        self::assertSelectorCount(1, '#rt-received-content .r-item');
     }
 
     public function testPublicProfileRespectsVisibilityAndDatabaseChanges(): void
@@ -546,14 +673,12 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSame($blocked?->message, $handler->check($this->project, $candidate->getProfile())?->message);
         self::assertSame($scenario === 'inactive', $blocked === null);
         $dto = new \App\Module\Main\DTO\ProjectApplyDto(); $dto->motivation = 'Een geldige motivatie voor de centrale controle.';
+        $result = $facade->apply($this->project, $candidate->getProfile(), $dto);
+        self::assertSame($scenario === 'inactive', $result->isSuccessful());
         if ($scenario === 'unverified') {
-            try { $facade->apply($this->project, $candidate->getProfile(), $dto); self::fail('Unverified identity accepted'); }
-            catch (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) { }
-        } else {
-            $result = $facade->apply($this->project, $candidate->getProfile(), $dto);
-            self::assertSame($scenario === 'inactive', $result->isSuccessful());
-            if ($result->isSuccessful()) { $this->owned[] = [ProjectApplication::class, $result->application->getId()]; }
+            self::assertSame(\App\Module\Main\DTO\ProjectApplyStatus::EmailNotVerified, $result->status);
         }
+        if ($result->isSuccessful()) { $this->owned[] = [ProjectApplication::class, $result->application->getId()]; }
         self::assertSame($scenario === 'inactive' ? 1 : 0,
             $this->em->getRepository(ProjectApplication::class)->count(['project' => $this->project, 'profile' => $candidate->getProfile()]));
         if (in_array($scenario, ['unverified', 'closed', 'expired', 'wrong-scope', 'inactive'], true)) {

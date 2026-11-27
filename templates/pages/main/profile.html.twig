@@ -125,7 +125,7 @@
                             </figure>
 
                             <div class="ei-content">
-                                {% if experience.positions|length > 1 %}
+                                {% if experience.total > 1 %}
                                     <div class="ei-company">
                                         <h3>{{ experience.company }}</h3>
                                         {% if experience.duration|default('') %}<p class="ei-muted">{{ experience.duration }}</p>{% endif %}
@@ -157,6 +157,7 @@
                                         <p class="ei-description">{{ position.description|nl2br }}</p>
                                     {% endif %}
                                 {% endif %}
+                                {{ pagination.section(profileView, experience.paginationKey, 'experience', '') }}
                             </div>
                         </article>
                     {% else %}<p class="profile-empty">Er is nog geen werkervaring toegevoegd.</p>
@@ -315,8 +316,9 @@
                 {% set givenRecommendations = profileView.givenRecommendations %}
 
                 <div id="r-tabs">
-                    <input type="radio" name="recommendation-tab" id="rt-received" checked>
-                    <input type="radio" name="recommendation-tab" id="rt-given">
+                    {% set showGiven = app.request.query.get('recommendation_tab') == 'given' or (app.request.query.get('recommendation_tab') is null and profileView.pagination.givenRecommendations.page > 1) %}
+                    <input type="radio" name="recommendation-tab" id="rt-received" {% if not showGiven %}checked{% endif %}>
+                    <input type="radio" name="recommendation-tab" id="rt-given" {% if showGiven %}checked{% endif %}>
 
                     <div id="rt-navigation">
                         <label for="rt-received">Ontvangen</label>
@@ -341,6 +343,7 @@
                         {% else %}
                             <p class="r-empty">Er zijn nog geen ontvangen aanbevelingen.</p>
                         {% endfor %}
+                        {{ pagination.section(profileView, 'receivedRecommendations', 'recommendations', '') }}
                     </div>
 
                     <div id="rt-given-content" class="rt-content">
@@ -360,6 +363,7 @@
                         {% else %}
                             <p class="r-empty">Er zijn nog geen gegeven aanbevelingen.</p>
                         {% endfor %}
+                        {{ pagination.section(profileView, 'givenRecommendations', 'recommendations', '') }}
                     </div>
                 </div>
             </section>
@@ -367,7 +371,7 @@
 
         <section id="suggestions">
             <section id="more-profiles-for-you" class="section">
-                <h3>Meer profielen voor jou</h3>
+                <h3>Andere openbare profielen</h3>
                 {% set suggestedProfiles = profileView.suggestions|slice(0, 3) %}
 
                 <div class="suggestion-list">
@@ -397,7 +401,7 @@
             </section>
 
             <section id="people-you-may-know" class="section">
-                <h3>Personen die jij wellicht kent</h3>
+                <h3>Meer openbare profielen</h3>
                 {% set peopleYouMayKnow = profileView.suggestions|slice(3, 3) %}
 
                 <div class="suggestion-list">
