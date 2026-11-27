@@ -57,20 +57,9 @@ final readonly class ManageProjectWorkPackagesHandler
 
         $title = trim($input->getString('title'));
         $slug = trim($input->getString('slug'));
-        if ($title === '' || mb_strlen($title) > 255) {
-            throw new \InvalidArgumentException('Vul een titel van maximaal 255 tekens in.');
-        }
-        $unchangedSlug = $package !== null && $slug === $package->getSlug();
-        if (!$unchangedSlug && (strlen($slug) > 255 || !preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug))) {
-            throw new \InvalidArgumentException('Gebruik een slug met kleine letters, cijfers en enkele koppeltekens.');
-        }
         $description = trim($input->getString('description'));
         $dueDate = $this->parseDate($input->getString('dueDate'));
 
-        $existing = $this->repository->findOneBy(['project' => $project, 'slug' => $slug]);
-        if ($existing !== null && $existing !== $package) {
-            throw new \InvalidArgumentException('Deze slug wordt al gebruikt binnen dit project.');
-        }
         if ($package === null) {
             $this->packages->create(new CreateWorkPackageDTO((string) $project->getId(), $title, $slug, $description, $dueDate), $project);
         } else {
@@ -98,7 +87,11 @@ final readonly class ManageProjectWorkPackagesHandler
         if ($value === '') {
             return null;
         }
-        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+        try {
+            $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+        } catch (\ValueError) {
+            $date = false;
+        }
         if ($date === false || $date->format('Y-m-d') !== $value) {
             throw new \InvalidArgumentException('Vul een geldige deadline in.');
         }

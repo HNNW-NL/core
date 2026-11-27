@@ -36,11 +36,13 @@ class WorkPackageCrudService
         }
 
         return $this->entityManager->getConnection()->transactional(function () use ($dto): WorkPackage {
-            $project = $this->entityManager->find(Project::class, Ulid::fromString($dto->projectId), LockMode::PESSIMISTIC_READ);
+            // Serialize work package writes per project before checking slug uniqueness.
+            $project = $this->entityManager->find(Project::class, Ulid::fromString($dto->projectId), LockMode::PESSIMISTIC_WRITE);
             if (!$project) {
                 throw new \InvalidArgumentException('Project not found.');
             }
             $this->assertProjectAccess($project);
+            [$title, $slug] = $this->validateInput($project, $dto->title, $dto->slug);
 
             $status = $this->statusRepository->findFirstByScopeAndNames(WorkPackageWorkflowService::STATUS_SCOPE, ['Open', 'active'])
                 ?? $this->statusRepository->findFirstByScopeAndNames('WorkPackage', ['Open', 'active']);
@@ -51,8 +53,8 @@ class WorkPackageCrudService
             $workPackage = new WorkPackage();
             $workPackage->setProject($project);
             $workPackage->setStatus($status);
-            $workPackage->setTitle($dto->title);
-            $workPackage->setSlug($dto->slug);
+            $workPackage->setTitle($title);
+            $workPackage->setSlug($slug);
             $workPackage->setDescription($dto->description);
             $workPackage->setDueDate($dto->dueDate);
             $this->entityManager->persist($workPackage);
@@ -68,8 +70,9 @@ class WorkPackageCrudService
             if ($workPackage->getDeletedAt() !== null) {
                 throw new \InvalidArgumentException('Werkpakket is verwijderd.');
             }
-            $workPackage->setTitle($dto->title);
-            $workPackage->setSlug($dto->slug);
+            [$title, $slug] = $this->validateInput($workPackage->getProject(), $dto->title, $dto->slug, $workPackage);
+            $workPackage->setTitle($title);
+            $workPackage->setSlug($slug);
             $workPackage->setDescription($dto->description);
             $workPackage->setDueDate($dto->dueDate);
             $this->entityManager->flush();
@@ -96,11 +99,7 @@ class WorkPackageCrudService
         if (!Ulid::isValid($workPackageId)) {
             throw new \InvalidArgumentException('Invalid work package id.');
         }
-        $workPackage = $this->entityManager->find(
-            WorkPackage::class,
-            Ulid::fromString($workPackageId),
-            LockMode::PESSIMISTIC_WRITE,
-        );
+        $workPackage = $this->entityManager->find(WorkPackage::class, Ulid::fromString($workPackageId));
         if (!$workPackage) {
             throw new \InvalidArgumentException('Work package not found.');
         }
@@ -108,11 +107,44 @@ class WorkPackageCrudService
         if ($actualProject === null || ($project !== null && !$actualProject->getId()->equals($project->getId()))) {
             throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
         }
-        $this->assertProjectAccess($actualProject);
+        // Always lock project before work package, also on update/delete, to avoid
+        // opposing lock orders when another request creates or renames a package.
+        $lockedProject = $this->entityManager->find(Project::class, $actualProject->getId(), LockMode::PESSIMISTIC_WRITE);
+        if ($lockedProject === null) {
+            throw new \InvalidArgumentException('Project not found.');
+        }
+        $this->assertProjectAccess($lockedProject);
+        $this->entityManager->refresh($workPackage, LockMode::PESSIMISTIC_WRITE);
+        if ($workPackage->getProject() === null || !$workPackage->getProject()->getId()->equals($lockedProject->getId())) {
+            throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
+        }
         if (!$this->authorization->isGranted($permission, $workPackage)) {
             throw new AccessDeniedException('Je hebt onvoldoende rechten voor deze bewerking.');
         }
         return $workPackage;
+    }
+
+    /** @return array{string, string} */
+    private function validateInput(Project $project, string $title, string $slug, ?WorkPackage $current = null): array
+    {
+        $title = trim($title);
+        $slug = trim($slug);
+        if (preg_match('/[^\s\p{Z}]/u', $title) !== 1 || mb_strlen($title) > 255) {
+            throw new \InvalidArgumentException('Vul een titel van maximaal 255 tekens in.');
+        }
+        // Existing legacy slugs may remain unchanged; new or changed slugs must be canonical.
+        $unchangedSlug = $current !== null && $slug === $current->getSlug();
+        if ($slug === '' || mb_strlen($slug) > 255 || (!$unchangedSlug && !preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug))) {
+            throw new \InvalidArgumentException('Gebruik een slug met kleine letters, cijfers en enkele koppeltekens.');
+        }
+
+        // Archived packages retain their slugs and history within the project.
+        $existing = $this->entityManager->getRepository(WorkPackage::class)->findOneBy(['project' => $project, 'slug' => $slug]);
+        if ($existing !== null && ($current === null || !$existing->getId()->equals($current->getId()))) {
+            throw new \InvalidArgumentException('Deze slug wordt al gebruikt binnen dit project.');
+        }
+
+        return [$title, $slug];
     }
 
     private function assertProjectAccess(Project $project): void

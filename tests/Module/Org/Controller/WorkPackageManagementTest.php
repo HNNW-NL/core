@@ -57,13 +57,17 @@ final class WorkPackageManagementTest extends WebTestCase
         self::assertSelectorTextContains('[role="alert"]', 'databasewijziging door de Product Owner');
         $em = static::getContainer()->get(EntityManagerInterface::class);
         self::assertSame($snapshot, $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id'));
-        $client->request('POST', $path, [
-            '_action' => 'create_work_package', '_token' => $token,
-            'title' => 'Invalid date', 'slug' => 'or11-invalid', 'dueDate' => '2026-02-30',
-        ]);
-        self::assertResponseRedirects($path, 303);
-        $client->followRedirect();
-        self::assertSelectorTextContains('[role="alert"]', 'geldige deadline');
+        foreach (['2026-02-30', 'next monday', "2026-12-20\0"] as $invalidDate) {
+            $client->request('POST', $path, [
+                '_action' => 'create_work_package', '_token' => $token,
+                'title' => 'Invalid date', 'slug' => 'or11-invalid', 'dueDate' => $invalidDate,
+            ]);
+            self::assertResponseRedirects($path, 303);
+            $client->followRedirect();
+            self::assertSelectorTextContains('[role="alert"]', 'geldige deadline');
+            $em = static::getContainer()->get(EntityManagerInterface::class);
+            self::assertSame($snapshot, $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id'));
+        }
         self::assertSame($packageCount, (int) $client->getCrawler()->filter('.work-packages-stat-card strong')->eq(0)->text());
         $client->submitForm('Werkpakket opslaan', [
             'title' => 'OR11 Acceptance', 'slug' => 'or11-acceptance',
@@ -84,6 +88,18 @@ final class WorkPackageManagementTest extends WebTestCase
             static fn ($form): bool => $form->filter('input[name="_action"][value="update_work_package"]')->count() > 0
                 && $form->filter('input[name="workPackageId"][value="' . $packageId . '"]')->count() > 0,
         )->form();
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $beforeEdit = $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id');
+        $client->request('POST', $path, [
+            '_action' => 'update_work_package', '_token' => $edit->get('_token')->getValue(),
+            'workPackageId' => $packageId, 'title' => 'Must not be saved', 'slug' => 'or11-acceptance',
+            'description' => 'Must not be saved', 'dueDate' => "2026-12-20\0",
+        ]);
+        self::assertResponseRedirects($path, 303);
+        $client->followRedirect();
+        self::assertSelectorTextContains('[role="alert"]', 'geldige deadline');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        self::assertSame($beforeEdit, $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id'));
         $client->submit($edit, ['title' => 'OR11 Updated', 'description' => 'Changed description', 'dueDate' => '']);
         self::assertResponseRedirects($path, 303);
         $client->followRedirect();
