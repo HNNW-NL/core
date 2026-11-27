@@ -223,8 +223,6 @@ final class ProfileAndParticipantsTest extends WebTestCase
     {
         $this->outsider->verifyEmail();
         $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['profile' => $this->outsider->getProfile()]);
-        $application->setReviewerProfile($this->owner->getProfile())->setReview('Oud oordeel');
-        $application->markAsReviewed();
         $this->em->flush();
         // Simulate a committed concurrent change while the Identity Map still contains the old object.
         $this->em->getConnection()->executeStatement('UPDATE project_applications SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id',
@@ -344,6 +342,100 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('#rt-received[checked]');
         self::assertSelectorCount(1, '#rt-received-content .r-item');
+    }
+
+    #[\PHPUnit\Framework\Attributes\TestWith(['active', true, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['published', true, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['applications_closed', true, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['completed', true, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['archived', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['withdrawn', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['draft', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['open', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['actief', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['published', false, false, 'ProjectApplication'])]
+    public function testPublicProjectsAndApplicationsUseTheTeamOneLifecycle(string $status, bool $public, bool $open, string $scope = 'project'): void
+    {
+        $candidate = $this->account('lifecycle-applicant', true);
+        $candidate->verifyEmail();
+        $this->project->setStatus($this->fixtureStatus($scope, $status));
+        // Retain publication timestamp and visibility to exercise stale publication metadata.
+        $this->project->publish();
+        $this->em->flush();
+        $profiles = static::getContainer()->get(\App\Module\Main\Service\PublicProfileService::class);
+        $data = $profiles->load($this->owner->getUsername(), null);
+        self::assertSame($public ? 1 : 0, $data['publicProjectCount']);
+        self::assertCount($public ? 1 : 0, $data['projects']);
+        $applications = static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class);
+        self::assertSame($open, $applications->check($this->project, $candidate->getProfile()) === null);
+        $dto = new \App\Module\Main\DTO\ProjectApplyDto();
+        $dto->motivation = 'Een geldige motivatie voor deze lifecyclecontrole.';
+        $result = static::getContainer()->get(\App\Module\Main\Service\ProjectApplyService::class)->apply($this->project, $candidate->getProfile(), $dto);
+        self::assertSame($open, $result->isSuccessful());
+        if ($result->isSuccessful()) { $this->owned[] = [ProjectApplication::class, $result->application->getId()]; }
+        $this->client->request('GET', '/projects/'.$this->project->getSlug());
+        if ($public) {
+            self::assertResponseIsSuccessful();
+        } else {
+            self::assertResponseRedirects('/auth/login');
+        }
+
+    }
+
+    public function testDeletedOwnerOrganisationCannotReceiveApplicationsOrAppearOnProfiles(): void
+    {
+        $candidate = $this->account('deleted-org-applicant', true);
+        $candidate->verifyEmail();
+        $this->member->getSetting()->setProfileVisibility('public');
+        $this->project->getOwnerOrganisation()->softDelete();
+        $this->em->flush();
+        $service = static::getContainer()->get(\App\Module\Main\Service\PublicProfileService::class);
+        foreach ([$this->owner, $this->member] as $account) {
+            $data = $service->load($account->getUsername(), null);
+            self::assertSame(0, $data['publicProjectCount']);
+            self::assertSame([], $data['projects']);
+        }
+        $applications = static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class);
+        self::assertSame(\App\Module\Main\DTO\ProjectApplyStatus::NotOpen, $applications->check($this->project, $candidate->getProfile())->status);
+        try {
+            $applications->submit($this->project, $candidate, $candidate->getProfile(), 'Een geldige motivatie bij een verwijderde organisatie.');
+            self::fail('A deleted organisation cannot receive applications.');
+        } catch (\App\Module\Main\Exception\ProjectApplicationBlocked) {
+            self::assertTrue($this->em->isOpen());
+            self::assertSame(0, $this->em->getRepository(ProjectApplication::class)->count(['profile' => $candidate->getProfile()]));
+        }
+    }
+
+    #[\PHPUnit\Framework\Attributes\TestWith(['accepted', false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['rejected', false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['send', true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['accepted', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['rejected', false, false])]
+    public function testSoftDeletedReviewedApplicationsCannotBeRestored(string $status, bool $pending, bool $hasReview = true): void
+    {
+        $this->outsider->verifyEmail();
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['profile' => $this->outsider->getProfile()]);
+        $application->setStatus($this->fixtureStatus('ProjectApplication', $status));
+        if ($hasReview) {
+            $application->setReviewerProfile($this->owner->getProfile())->setReview('Historisch oordeel');
+            $application->markAsReviewed();
+        }
+        $application->softDelete();
+        $this->em->flush();
+        $this->em->refresh($application);
+        $reviewedAt = $application->getReviewedAt();
+        $service = static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class);
+        self::assertSame($pending, $service->pending($application));
+        self::assertFalse($service->canResubmit($application));
+        try {
+            $service->submit($this->project, $this->outsider, $this->outsider->getProfile(), 'Een nieuwe motivatie mag het oordeel niet wissen.');
+            self::fail('Reviewed history must not be restored.');
+        } catch (\App\Module\Main\Exception\ProjectApplicationBlocked) {
+            self::assertNotNull($application->getDeletedAt());
+            self::assertEquals($reviewedAt, $application->getReviewedAt());
+            self::assertSame($hasReview ? 'Historisch oordeel' : null, $application->getReview());
+            self::assertSame($hasReview ? $this->owner->getProfile()->getId()->toString() : null, $application->getReviewerProfile()?->getId()->toString());
+        }
     }
 
     public function testPublicProfileRespectsVisibilityAndDatabaseChanges(): void
@@ -684,7 +776,7 @@ final class ProfileAndParticipantsTest extends WebTestCase
         if (in_array($scenario, ['unverified', 'closed', 'expired', 'wrong-scope', 'inactive'], true)) {
             $this->client->loginUser($candidate);
             $page = $this->client->request('GET', '/projects/'.$this->project->getSlug().'/apply');
-            self::assertResponseIsSuccessful();
+            self::assertResponseStatusCodeSame(in_array($scenario, ['closed', 'wrong-scope'], true) ? 403 : 200);
             self::assertCount(0, $page->filter('form[name="project_apply"]'));
         }
     }

@@ -33,23 +33,8 @@ final class ProfileController extends AbstractController
     #[Route('/profile/{slug}', name: 'main.profile', methods: ['GET'])]
     public function viewProfile(string $slug, Request $request, PublicProfileService $profiles): Response
     {
-        $positionPages = [];
-        foreach ($request->query->keys() as $key) {
-            if (preg_match('/\A(positions_[a-f0-9]{12})_page\z/', $key, $match)) {
-                $positionPages[$match[1]] = $request->query->getInt($key, 1);
-            }
-        }
         $response = $this->render('pages/main/profile.html.twig', [
-            'profileView' => $profiles->load($slug, $this->getAccount(), $request->query->getInt('projects_page', 1), [
-                ...$positionPages,
-                'receivedRecommendations' => $request->query->getInt('receivedRecommendations_page', 1),
-                'givenRecommendations' => $request->query->getInt('givenRecommendations_page', 1),
-                'experience' => $request->query->getInt('experience_page', 1),
-                'education' => $request->query->getInt('education_page', 1),
-                'certificates' => $request->query->getInt('certificates_page', 1),
-                'skills' => $request->query->getInt('skills_page', 1),
-                'socialLinks' => $request->query->getInt('socialLinks_page', 1),
-            ]),
+            'profileView' => $profiles->loadFromRequest($slug, $this->getAccount(), $request),
         ]);
         $response->setPrivate();
         $response->headers->addCacheControlDirective('no-store');

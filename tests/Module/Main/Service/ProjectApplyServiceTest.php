@@ -41,7 +41,7 @@ final class ProjectApplyServiceTest extends TestCase
         $account = new Account();
         if ($scenario !== 'unverified') { $account->verifyEmail(); }
         $profile = (new Profile())->setAccount($account);
-        $project = (new Project())->setVisibility($scenario === 'private' ? 'private' : 'public')
+        $project = (new Project())->setOwnerOrganisation(new \App\Entity\Org\Organisation())->setVisibility($scenario === 'private' ? 'private' : 'public')
             ->setStatus((new Status())->setScope('project')->setName($scenario === 'closed' ? 'closed' : 'active'))
             ->setEndDate($scenario === 'expired' ? new \DateTimeImmutable('-1 day') : null);
         $project->publish();

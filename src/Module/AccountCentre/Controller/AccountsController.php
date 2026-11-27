@@ -95,16 +95,7 @@ final class AccountsController extends AbstractController
     public function applications(Request $request, EntityManagerInterface $em, \App\Module\Main\Service\ProjectApplicationService $service, \App\Repository\Project\AccountApplicationRepository $repository): Response
     {
         $profile = $this->profile($em);
-        $filter = $request->query->getString('status');
-        $pagination = $repository->pageForProfile($profile, $filter, max(1, $request->query->getInt('page', 1)));
-        $rows = [];
-        foreach ($pagination['items'] as $application) {
-            $rows[] = ['application' => $application, 'label' => $service->label($application),
-                'withdrawable' => $application->getDeletedAt() === null && $application->getParticipant() === null && $service->pending($application)];
-        }
-        return $this->render('pages/account-centre/applications.html.twig', [
-            'profile' => $profile, 'rows' => $rows, 'filter' => $filter, 'pagination' => $pagination,
-        ]);
+        return $this->render('pages/account-centre/applications.html.twig', $service->viewForProfile($profile, $request, $repository));
     }
 
     #[Route('/applications/{id}/cancel', name: 'applications_cancel', methods: ['POST'])]

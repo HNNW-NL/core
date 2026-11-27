@@ -26,7 +26,7 @@ final class ProjectApplicationServiceTest extends TestCase
         $account = new Account();
         if ($scenario !== 'unverified') { $account->verifyEmail(); }
         $profile = (new Profile())->setAccount($scenario === 'wrong-profile' ? new Account() : $account);
-        $project = (new Project())->setVisibility('public')->setEndDate(null)->setStatus((new Status())->setScope('project')->setName($scenario === 'closed' ? 'closed' : 'active'));
+        $project = (new Project())->setOwnerOrganisation(new \App\Entity\Org\Organisation())->setVisibility('public')->setEndDate(null)->setStatus((new Status())->setScope('project')->setName($scenario === 'closed' ? 'closed' : 'active'));
         $project->publish();
         if ($scenario === 'owner') { $project->setOwnerAccount($account); }
         $em = $this->createMock(EntityManagerInterface::class);
@@ -39,6 +39,43 @@ final class ProjectApplicationServiceTest extends TestCase
         $this->expectException($scenario === 'wrong-profile'
             ? \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException::class : \DomainException::class);
         $service->submit($project, $account, $profile, str_repeat('a', 20));
+    }
+
+    public function testHistoryIsRecheckedImmediatelyBeforeRestoration(): void
+    {
+        $account = new Account();
+        $account->verifyEmail();
+        $profile = (new Profile())->setAccount($account);
+        $pending = (new Status())->setScope('ProjectApplication')->setName('send');
+        $project = (new Project())->setOwnerOrganisation(new \App\Entity\Org\Organisation())->setVisibility('public')
+            ->setStatus((new Status())->setScope('project')->setName('published'))->setEndDate(null);
+        $project->publish();
+        $application = (new ProjectApplication())->setProject($project)->setProfile($profile)->setStatus($pending);
+        $application->softDelete();
+        $repository = $this->createStub(EntityRepository::class);
+        $repository->method('findOneBy')->willReturn($application);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->method('getRepository')->willReturn($repository);
+        $em->method('wrapInTransaction')->willReturnCallback(static fn ($operation) => $operation());
+        $refreshes = 0;
+        $em->method('refresh')->willReturnCallback(function ($entity) use ($application, &$refreshes): void {
+            if ($entity === $application && ++$refreshes === 2) {
+                $application->setStatus((new Status())->setScope('ProjectApplication')->setName('rejected'))->setReview('Bewaar het oordeel');
+                $application->markAsReviewed();
+            }
+        });
+        $em->expects(self::never())->method('persist');
+        $statuses = $this->createStub(StatusRepository::class);
+        $statuses->method('findFirstByScopeAndNames')->willReturn($pending);
+        $service = new ProjectApplicationService($em, $statuses, $this->createStub(\App\Repository\Project\ProjectParticipantRepository::class));
+        try {
+            $service->submit($project, $account, $profile, 'Een geldige motivatie voor herindiening.');
+            self::fail('Changed history must not be overwritten.');
+        } catch (\App\Module\Main\Exception\ProjectApplicationBlocked) {
+            self::assertNotNull($application->getDeletedAt());
+            self::assertNotNull($application->getReviewedAt());
+            self::assertSame('Bewaar het oordeel', $application->getReview());
+        }
     }
 
     public function testAnotherProfileCannotWithdrawApplication(): void
@@ -66,7 +103,7 @@ final class ProjectApplicationServiceTest extends TestCase
         $account = new Account();
         $account->verifyEmail();
         $profile = (new Profile())->setAccount($account);
-        $project = (new Project())->setVisibility($visibility)->setStatus((new Status())->setScope('project')->setName($projectStatus))->setEndDate(null);
+        $project = (new Project())->setOwnerOrganisation(new \App\Entity\Org\Organisation())->setVisibility($visibility)->setStatus((new Status())->setScope('project')->setName($projectStatus))->setEndDate(null);
         $project->publish();
         $existing = null;
         $repository = $this->createStub(EntityRepository::class);
@@ -102,7 +139,7 @@ final class ProjectApplicationServiceTest extends TestCase
                 $application->setStatus((new Status())->setScope('ProjectApplication')->setName($existingState));
             }
             if ($existingState === 'withdrawn') {
-                $restored = $service->submitWithResult($project, $account, $profile, str_repeat('é', $length));
+                $restored = $service->submitWithResult($project, $account, $profile, str_repeat('Ã©', $length));
                 self::assertSame($application, $restored->application);
                 self::assertTrue($restored->created);
                 self::assertNull($application->getDeletedAt());

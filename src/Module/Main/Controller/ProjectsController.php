@@ -9,6 +9,7 @@ use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectRepository;
 use App\Repository\Project\WorkPackageRepository;
 use App\Security\Voter\ProjectVoter;
+use App\Security\ProjectVisibility;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,11 +27,7 @@ final class ProjectsController extends AbstractController
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(ProjectRepository $projectRepository): Response
     {
-        $projects = $projectRepository->createQueryBuilder('p')
-            ->andWhere('p.deletedAt IS NULL')
-            ->andWhere('p.publishedAt IS NOT NULL')
-            ->andWhere('p.visibility = :visibility')
-            ->setParameter('visibility', 'public')
+        $projects = ProjectVisibility::restrictQuery($projectRepository->createQueryBuilder('p'), 'p')
             ->orderBy('p.publishedAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -327,13 +324,10 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        if ($allowPublicAccess && $project->getVisibility() === 'public' && $project->getPublishedAt() !== null) {
+        if ($allowPublicAccess && ProjectVisibility::isPubliclyVisible($project)) {
             return $project;
         }
-
-        if (!$allowPublicAccess || $project->getVisibility() !== 'public' || $project->getPublishedAt() === null) {
-            $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
-        }
+        $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
 
         return $project;
     }

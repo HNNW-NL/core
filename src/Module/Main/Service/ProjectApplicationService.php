@@ -8,9 +8,12 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\ProjectParticipantRepository;
+use App\Repository\Project\AccountApplicationRepository;
+use Symfony\Component\HttpFoundation\Request;
 use App\Module\Main\DTO\ProjectApplicationSubmission;
 use App\Module\Main\DTO\ProjectApplyResult;
 use App\Module\Main\DTO\ProjectApplyStatus;
+use App\Security\ProjectVisibility;
 use App\Workflow\ProjectApplicationWorkflow as ApplicationWorkflow;
 use App\Module\Main\Exception\ProjectApplicationBlocked;
 use Doctrine\DBAL\LockMode;
@@ -49,6 +52,9 @@ final readonly class ProjectApplicationService
         $result = $this->em->wrapInTransaction(function () use ($project, $account, $profile, $motivation): ProjectApplicationSubmission|ProjectApplyResult|AccessDeniedHttpException {
             $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
             $this->em->refresh($project);
+            if ($project->getOwnerOrganisation() !== null) {
+                $this->em->refresh($project->getOwnerOrganisation());
+            }
             $this->em->refresh($account);
             $this->em->refresh($profile);
             if ($profile->getAccount()?->getId() != $account->getId()) {
@@ -69,6 +75,9 @@ final readonly class ProjectApplicationService
             }
             $application = $this->findForProfile($project, $profile, true);
             if ($application !== null) {
+                if (!$this->canResubmit($application)) {
+                    return new ProjectApplyResult(ProjectApplyStatus::AlreadyApplied, 'Deze eerdere aanvraag kan niet opnieuw worden ingediend.', $application);
+                }
                 $application->restore();
                 $application->clearReviewDate();
                 $application->setReviewerProfile(null)->setReview(null);
@@ -100,9 +109,7 @@ final readonly class ProjectApplicationService
         if ($project->getOwnerAccount()?->getId() == $account->getId()) {
             return new ProjectApplyResult(ProjectApplyStatus::NotOpen, 'Je kunt je niet aanmelden voor je eigen project.');
         }
-        if ($project->getVisibility() !== 'public' || $project->getDeletedAt() !== null || $project->getPublishedAt() === null
-            || strcasecmp((string) $project->getStatus()?->getScope(), 'project') !== 0
-            || !in_array(mb_strtolower((string) $project->getStatus()?->getName()), ['published', 'active', 'open', 'actief'], true)
+        if (!ProjectVisibility::acceptsApplications($project)
             || ($project->getEndDate() !== null && $project->getEndDate() < new \DateTimeImmutable())) {
             return new ProjectApplyResult(ProjectApplyStatus::NotOpen, 'Dit project staat niet open voor aanmeldingen.');
         }
@@ -110,8 +117,8 @@ final readonly class ProjectApplicationService
             return new ProjectApplyResult(ProjectApplyStatus::AlreadyParticipant, 'Er bestaat al een actieve deelname voor dit project.');
         }
         $existing = $this->findForProfile($project, $profile, $refreshApplication);
-        if ($existing !== null && ($existing->getDeletedAt() === null || $existing->getParticipant() !== null)) {
-            $message = $existing->getDeletedAt() !== null ? 'Je eerdere aanvraag is ingetrokken. Deze wordt niet opnieuw ingediend.'
+        if ($existing !== null && !$this->canResubmit($existing)) {
+            $message = $existing->getDeletedAt() !== null ? 'Je eerdere aanvraag kan niet opnieuw worden ingediend.'
                 : ($this->pending($existing) ? 'Je had je al aangemeld voor dit project. Status: '.$this->label($existing).'.' : 'Je eerdere aanvraag is al behandeld ('.$this->label($existing).').');
             return new ProjectApplyResult(ProjectApplyStatus::AlreadyApplied, $message, $existing);
         }
@@ -143,6 +150,26 @@ final readonly class ProjectApplicationService
             throw $result;
         }
         return $result;
+    }
+
+    public function canResubmit(ProjectApplication $application): bool
+    {
+        // Withdrawal preserves the pending status. Soft-deletion of reviewed history is not withdrawal.
+        return $application->getDeletedAt() !== null && $this->pending($application)
+            && $application->getParticipant() === null && $application->getReviewedAt() === null
+            && $application->getReviewerProfile() === null && trim((string) $application->getReview()) === '';
+    }
+
+    public function viewForProfile(Profile $profile, Request $request, AccountApplicationRepository $repository): array
+    {
+        $filter = $request->query->getString('status');
+        $pagination = $repository->pageForProfile($profile, $filter, max(1, $request->query->getInt('page', 1)));
+        $rows = [];
+        foreach ($pagination['items'] as $application) {
+            $rows[] = ['application' => $application, 'label' => $this->label($application),
+                'withdrawable' => $application->getDeletedAt() === null && $application->getParticipant() === null && $this->pending($application)];
+        }
+        return compact('profile', 'rows', 'filter', 'pagination');
     }
 
     public function pending(ProjectApplication $application): bool

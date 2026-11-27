@@ -14,6 +14,8 @@ use App\Entity\Project\Project;
 use App\Enum\ProfileVisibilityPermission;
 use App\Enum\VisibilityLevel;
 use App\Security\ProjectParticipation;
+use App\Security\ProjectVisibility;
+use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -63,6 +65,20 @@ final readonly class PublicProfileService
             return null;
         }
         return preg_match('~\Ahttps?://~i', $url) && filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
+    }
+
+    public function loadFromRequest(string $username, ?Account $viewer, Request $request): array
+    {
+        $pages = [];
+        foreach (['experience', 'education', 'certificates', 'skills', 'socialLinks', 'receivedRecommendations', 'givenRecommendations'] as $key) {
+            $pages[$key] = $request->query->getInt($key.'_page', 1);
+        }
+        foreach ($request->query->keys() as $key) {
+            if (preg_match('/\A(positions_[a-f0-9]{12})_page\z/', $key, $match)) {
+                $pages[$match[1]] = $request->query->getInt($key, 1);
+            }
+        }
+        return $this->load($username, $viewer, $request->query->getInt('projects_page', 1), $pages);
     }
 
     public function load(string $username, ?Account $viewer, int $requestedProjectPage = 1, array $requestedSectionPages = []): array
@@ -230,6 +246,7 @@ final readonly class PublicProfileService
             ->andWhere('project.ownerAccount = :account OR (participant.id IS NOT NULL AND LOWER(participantStatus.scope) = :scope AND LOWER(participantStatus.name) IN (:active))')
             ->setParameter('account', $account->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid')
             ->setParameter('scope', ProjectParticipation::SCOPE)->setParameter('active', ProjectParticipation::ACTIVE_NAMES);
+        ProjectVisibility::restrictQuery($projects, 'project');
         $data['publicProjectCount'] = (int) (clone $projects)->select('COUNT(DISTINCT project.id)')->getQuery()->getSingleScalarResult();
         $data['projectPages'] = max(1, (int) ceil($data['publicProjectCount'] / self::PROJECT_PAGE_SIZE));
         $data['projectPage'] = min($data['projectPages'], max(1, $requestedProjectPage));
