@@ -27,6 +27,21 @@ class ProjectRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findOnePublicBySlug(string $slug): ?Project
+    {
+        return $this->createQueryBuilder('project')
+            ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
+            ->andWhere('project.slug = :slug')
+            ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('ownerOrganisation.deletedAt IS NULL')
+            ->andWhere('LOWER(project.visibility) = :visibility')
+            ->andWhere('project.publishedAt IS NOT NULL')
+            ->setParameter('slug', $slug)
+            ->setParameter('visibility', 'public')
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     /**
      * @return array{
      *     items: list<array{title: ?string, summary: ?string, slug: ?string, remotePossible: bool}>,

@@ -4,13 +4,16 @@ namespace App\Module\Main\Controller;
 
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
+use App\Entity\Account\Profile;
+use App\Entity\Project\Project;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRepository;
+use App\Module\Main\Handler\GetProjectWorkPackagesHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Module\Main\Handler\GetProjectWorkPackagesHandler;
 
 #[Route('/projects', name: 'main.projects.')]
 final class ProjectsController extends AbstractController
@@ -74,51 +77,98 @@ final class ProjectsController extends AbstractController
     }
 
     #[Route('/{slug}', name: 'detail', methods: ['GET'])]
-    public function detail(string $slug): Response
+    public function detail(
+        string $slug,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
+    ): Response
     {
-        return $this->render('pages/main/projects/detail.html.twig', [
-            'slug' => $slug,
-        ]);
-    } 
+        $project = $projectRepository->findOnePublicBySlug($slug);
+        if ($project === null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        $profile = $currentProfileProvider->getProfile();
+        $isTeamMember = $this->canAccessTeam($project, $profile, $participantRepository);
+        $canApply = $this->canAcceptApplications($project, $participantRepository);
+
+        return $this->noStore($this->render('pages/main/projects/detail.html.twig', [
+            'project' => [
+                'title' => $project->getTitle(),
+                'slug' => $project->getSlug(),
+                'summary' => $project->getSummary(),
+                'description' => $project->getDescription(),
+                'startDate' => $project->getStartDate(),
+                'endDate' => $project->getEndDate(),
+                'capacity' => $project->getCapacity(),
+                'remotePossible' => $project->isRemotePossible(),
+                'organisation' => $project->getOwnerOrganisation()?->getName(),
+            ],
+            'isTeamMember' => $isTeamMember,
+            'canApply' => $canApply,
+        ]));
+    }
 
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET'])]
-    public function apply(string $slug): Response
+    public function apply(
+        string $slug,
+        ProjectRepository $projectRepository,
+        ProjectParticipantRepository $participantRepository,
+    ): Response
     {
-        return $this->render('pages/main/projects/apply.html.twig', [
-            'slug' => $slug,
-        ]);
+        $project = $projectRepository->findOnePublicBySlug($slug);
+        if ($project === null || !$this->canAcceptApplications($project, $participantRepository)) {
+            throw $this->createNotFoundException('Aanmelden voor dit project is niet mogelijk.');
+        }
+
+        return $this->noStore($this->render('pages/main/projects/apply.html.twig', [
+            'slug' => $project->getSlug(),
+        ]));
     }
 
     #[Route('/{slug}/chat', name: 'chat', methods: ['GET'])]
-    public function chat(string $slug): Response
+    public function chat(
+        string $slug,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
+    ): Response
     {
-        return $this->render('pages/main/projects/chat.html.twig', [
-            'slug' => $slug,
-        ]);
+        return $this->renderTeamPage('chat', $slug, $projectRepository, $currentProfileProvider, $participantRepository);
     }
 
     #[Route('/{slug}/participants', name: 'participants', methods: ['GET'])]
-    public function participants(string $slug): Response
+    public function participants(
+        string $slug,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
+    ): Response
     {
-        return $this->render('pages/main/projects/participants.html.twig', [
-            'slug' => $slug,
-        ]);
+        return $this->renderTeamPage('participants', $slug, $projectRepository, $currentProfileProvider, $participantRepository);
     }
 
     #[Route('/{slug}/reviews', name: 'reviews', methods: ['GET'])]
-    public function reviews(string $slug): Response
+    public function reviews(
+        string $slug,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
+    ): Response
     {
-        return $this->render('pages/main/projects/reviews.html.twig', [
-            'slug' => $slug,
-        ]);
+        return $this->renderTeamPage('reviews', $slug, $projectRepository, $currentProfileProvider, $participantRepository);
     }
 
     #[Route('/{slug}/tasks', name: 'tasks', methods: ['GET'])]
-    public function tasks(string $slug): Response
+    public function tasks(
+        string $slug,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
+    ): Response
     {
-        return $this->render('pages/main/projects/tasks.html.twig', [
-            'slug' => $slug,
-        ]);
+        return $this->renderTeamPage('tasks', $slug, $projectRepository, $currentProfileProvider, $participantRepository);
     }
 
     #[Route('/{slug}/tasks/{taskId}/enroll', name: 'tasks.enroll', methods: ['POST'])]
@@ -128,6 +178,7 @@ final class ProjectsController extends AbstractController
         Request $request,
         ProjectRepository $projectRepository,
         CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
         WorkPackageTaskEnrollmentHandler $workPackageTaskEnrollmentHandler,
     ): RedirectResponse {
         if (!$this->isCsrfTokenValid('enroll-package-task-' . $taskId, (string) $request->request->get('_token'))) {
@@ -149,6 +200,10 @@ final class ProjectsController extends AbstractController
             return $this->redirectToRoute('main.projects.workPackages', ['slug' => $slug], Response::HTTP_SEE_OTHER);
         }
 
+        if (!$this->canAccessTeam($project, $profile, $participantRepository)) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
         $result = $workPackageTaskEnrollmentHandler->handle($project, $taskId, $profile);
 
         $this->addFlash($result->isSuccessful() ? 'success' : 'warning', $result->message);
@@ -157,21 +212,101 @@ final class ProjectsController extends AbstractController
     }
 
     #[Route('/{slug}/updates', name: 'updates', methods: ['GET'])]
-    public function updates(string $slug): Response
+    public function updates(
+        string $slug,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
+    ): Response
     {
-        return $this->render('pages/main/projects/updates.html.twig', [
-            'slug' => $slug,
-        ]);
+        return $this->renderTeamPage('updates', $slug, $projectRepository, $currentProfileProvider, $participantRepository);
     }
 
     #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
-    public function workPackages( 
-         string $slug,
-         GetProjectWorkPackagesHandler $handler,
-  ): Response {
-      return $this->render('pages/main/projects/work-packages.html.twig', [
-          'slug' => $slug,
-          'workPackages' => $handler->handle($slug),
-    ]);
- }
+    public function workPackages(
+        string $slug,
+        GetProjectWorkPackagesHandler $handler,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
+    ): Response {
+        $project = $projectRepository->findOneVisibleBySlug($slug);
+        $this->assertTeamAccess($project, $currentProfileProvider->getProfile(), $participantRepository);
+
+        return $this->noStore($this->render('pages/main/projects/work-packages.html.twig', [
+            'slug' => $project->getSlug(),
+            'workPackages' => $handler->handle($project->getSlug()),
+        ]));
+    }
+
+    private function renderTeamPage(
+        string $page,
+        string $slug,
+        ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        ProjectParticipantRepository $participantRepository,
+    ): Response {
+        $project = $projectRepository->findOneVisibleBySlug($slug);
+        $this->assertTeamAccess($project, $currentProfileProvider->getProfile(), $participantRepository);
+
+        return $this->noStore($this->render('pages/main/projects/' . $page . '.html.twig', [
+            'slug' => $project->getSlug(),
+        ]));
+    }
+
+    private function assertTeamAccess(
+        ?Project $project,
+        ?Profile $profile,
+        ProjectParticipantRepository $participantRepository,
+    ): void {
+        if ($project === null || !$this->canAccessTeam($project, $profile, $participantRepository)) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+    }
+
+    private function canAccessTeam(
+        Project $project,
+        ?Profile $profile,
+        ProjectParticipantRepository $participantRepository,
+    ): bool {
+        if ($profile === null || $profile->getDeletedAt() !== null) {
+            return false;
+        }
+
+        $profileAccount = $profile->getAccount();
+        $ownerAccount = $project->getOwnerAccount();
+        $isOwner = $profileAccount !== null
+            && $ownerAccount !== null
+            && (string) $profileAccount->getId() === (string) $ownerAccount->getId();
+
+        return $isOwner || $participantRepository->isActiveParticipant($project, $profile);
+    }
+
+    private function canAcceptApplications(
+        Project $project,
+        ProjectParticipantRepository $participantRepository,
+    ): bool {
+        $status = strtolower((string) $project->getStatus()?->getName());
+        if (!in_array($status, ['active', 'published'], true) || $project->getPublishedAt() === null) {
+            return false;
+        }
+
+        $endDate = $project->getEndDate();
+        if ($endDate !== null && $endDate < new \DateTimeImmutable('today')) {
+            return false;
+        }
+
+        $capacity = $project->getCapacity();
+        return $capacity === null || $participantRepository->countActiveForProject($project) < $capacity;
+    }
+
+    private function noStore(Response $response): Response
+    {
+        $response->setPrivate();
+        $response->setMaxAge(0);
+        $response->headers->set('Cache-Control', 'no-store, private, max-age=0, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+
+        return $response;
+    }
 }

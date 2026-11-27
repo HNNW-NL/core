@@ -3,6 +3,11 @@
 namespace App\Tests\Module\Main\Controller;
 
 use App\Repository\Project\ProjectRepository;
+use App\Entity\Common\Status;
+use App\Entity\Org\Organisation;
+use App\Entity\Project\Project;
+use App\Module\Main\Service\CurrentProfileProvider;
+use App\Repository\Project\ProjectParticipantRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ProjectsControllerTest extends WebTestCase
@@ -24,9 +29,34 @@ class ProjectsControllerTest extends WebTestCase
                 'page' => 2,
                 'pages' => 2,
             ]);
+        $detailProject = (new Project())
+            ->setTitle('Water project')
+            ->setSlug('water-project')
+            ->setSummary('Working on water quality.')
+            ->setDescription('Public project details.')
+            ->setStartDate(new \DateTimeImmutable('today'))
+            ->setCapacity(null)
+            ->setStatus((new Status())->setName('published'))
+            ->setVisibility('public')
+            ->setOwnerOrganisation((new Organisation())->setName('Public organisation'));
+        $detailProject->publish();
+        $repository->expects($this->once())
+            ->method('findOnePublicBySlug')
+            ->with('water-project')
+            ->willReturn($detailProject);
 
         $client = static::createClient();
+        $client->disableReboot();
         static::getContainer()->set(ProjectRepository::class, $repository);
+        $profileProvider = $this->createMock(CurrentProfileProvider::class);
+        $profileProvider->expects($this->once())
+            ->method('getProfile')
+            ->willReturn(null);
+        static::getContainer()->set(CurrentProfileProvider::class, $profileProvider);
+        static::getContainer()->set(
+            ProjectParticipantRepository::class,
+            $this->createStub(ProjectParticipantRepository::class),
+        );
         $crawler = $client->request('GET', '/projects?q=water&remote=yes&page=2');
 
         $this->assertResponseIsSuccessful();
@@ -36,7 +66,7 @@ class ProjectsControllerTest extends WebTestCase
 
         $client->click($crawler->selectLink('Water project')->link());
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('body', 'For project water-project');
+        $this->assertSelectorTextContains('h1', 'Water project');
     }
 
     public function testNoResultsShowRecoveryLinkAndKeepSearchFilter(): void
@@ -139,144 +169,4 @@ class ProjectsControllerTest extends WebTestCase
         $this->assertSelectorExists('input[name="q"][value=""]');
     }
 
-    // details
-    public function testShouldDiplayProjectTitle(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayProjectDescription(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayProjectStatus(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayProjectStartdate(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayProjectEndDate(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayProjectCapacity(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayIfRemoteIsPossible(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayOwner(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayOwnerOrginasation(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // apply
-
-    public function testShouldBeAbleToSendApplyForm(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // chat
-
-    public function testShouldDiplayMessages(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldBeAbleToAddMessage(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // participants
-
-    public function testShouldDiplayParticipants(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // tasks
-
-    public function testShouldDiplayTasks(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // enrollTask
-
-    public function testWhenNotLoggedInShouldBeRedirectedFromEnrollTask(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldBeAbleToEnroll(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // updates
-
-    public function testWhenNotOwnerShouldGiveError(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenOwnerShouldDisplayPage(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenOwnerAndSubmitUpdateShouldUpdateProject(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // workPackages
-
-    public function testWhenWorkPackagesExistShouldDisplayThem(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenWorkPackagesDoesntExistShouldDisplayNoWorkPackagesAvailable(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
 }

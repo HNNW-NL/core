@@ -267,6 +267,18 @@ class Profile
         return $this->deletedAt;
     }
 
+    /** @return Collection<int, ProfileSkill> */
+    public function getProfileSkills(): Collection
+    {
+        return $this->profileSkills;
+    }
+
+    /** @return Collection<int, ProfileExperience> */
+    public function getExperiences(): Collection
+    {
+        return $this->experiences;
+    }
+
     /**
      * @return Collection<int, ProjectApplication>
      */

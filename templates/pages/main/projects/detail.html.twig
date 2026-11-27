@@ -1,21 +1,57 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}Project {{ slug }} details{% endblock %}
+{% block title %}{{ project.title }}{% endblock %}
 
-{# SEO #}
-{% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
-{% block seoAuthor %}HNNW{% endblock %}
-
-{# CSS #}
-{% block stylesheets %}{% endblock %}
-
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <h2>Projects - Detail</h2>
-    <p>Main - projects detail page. For project {{ slug }}.</p>
+    <main class="project-detail">
+        <p><a href="{{ path('main.projects.home') }}">← Terug naar projecten</a></p>
+        <h1>{{ project.title }}</h1>
+        {% if project.organisation %}
+            <p>{{ project.organisation }}</p>
+        {% endif %}
+        {% if project.summary %}
+            <p>{{ project.summary }}</p>
+        {% endif %}
+        {% if project.description %}
+            <section aria-labelledby="project-description-title">
+                <h2 id="project-description-title">Over dit project</h2>
+                <p>{{ project.description }}</p>
+            </section>
+        {% endif %}
+
+        <dl>
+            <dt>Startdatum</dt>
+            <dd>{{ project.startDate|date('d-m-Y') }}</dd>
+            {% if project.endDate %}
+                <dt>Einddatum</dt>
+                <dd>{{ project.endDate|date('d-m-Y') }}</dd>
+            {% endif %}
+            {% if project.capacity %}
+                <dt>Capaciteit</dt>
+                <dd>{{ project.capacity }} deelnemers</dd>
+            {% endif %}
+            <dt>Op afstand</dt>
+            <dd>{{ project.remotePossible ? 'Mogelijk' : 'Niet mogelijk' }}</dd>
+        </dl>
+
+        {% if canApply %}
+            <p><a href="{{ path('main.projects.apply', {slug: project.slug}) }}">Aanmelden</a></p>
+        {% else %}
+            <p role="status">Aanmelden voor dit project is momenteel niet mogelijk.</p>
+        {% endif %}
+
+        {% if isTeamMember %}
+            <nav aria-label="Projectteam">
+                <h2>Projectteam</h2>
+                <ul>
+                    <li><a href="{{ path('main.projects.participants', {slug: project.slug}) }}">Deelnemers</a></li>
+                    <li><a href="{{ path('main.projects.chat', {slug: project.slug}) }}">Teamchat</a></li>
+                    <li><a href="{{ path('main.projects.reviews', {slug: project.slug}) }}">Reviews</a></li>
+                    <li><a href="{{ path('main.projects.tasks', {slug: project.slug}) }}">Taken</a></li>
+                    <li><a href="{{ path('main.projects.updates', {slug: project.slug}) }}">Updates</a></li>
+                    <li><a href="{{ path('main.projects.workPackages', {slug: project.slug}) }}">Werkpakketten</a></li>
+                </ul>
+            </nav>
+        {% endif %}
+    </main>
 {% endblock %}

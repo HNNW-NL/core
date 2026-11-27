@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class MainControllerTest extends WebTestCase
@@ -15,6 +16,23 @@ class MainControllerTest extends WebTestCase
         $this->assertSelectorNotExists('a.nav-button[href="/account"]');
         $this->assertSelectorTextContains('a.nav-button[href="/auth/login"]', 'Inloggen');
         $this->assertStringNotContainsString('TestUser', $crawler->text());
+    }
+
+    public function testLoggedInUserSeesAccountAndLogoutLinks(): void
+    {
+        $client = static::createClient();
+        $session = static::getContainer()->get('session.factory')->createSession();
+        $session->set('account_id', 'test-account');
+        $session->save();
+        $client->getCookieJar()->set(new Cookie($session->getName(), $session->getId()));
+
+        $crawler = $client->request('GET', '/');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('a.nav-button[href="/account"]');
+        $this->assertSelectorTextContains('a.nav-button[href="/account"]', 'Account');
+        $this->assertSelectorTextContains('a.nav-button[href="/auth/logout"]', 'Uitloggen');
+        $this->assertStringNotContainsString('Inloggen', $crawler->text());
     }
 
     public function testHomepageResponseIsNotSharedCached(): void
@@ -54,7 +72,7 @@ class MainControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Home');
+        $this->assertSelectorTextContains('h1', 'De juiste mensen voor publieke opgaven.');
     }
 
     //About
@@ -65,62 +83,7 @@ class MainControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/about');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'About');
+        $this->assertSelectorTextContains('h2', 'Eén plek voor samenwerking binnen de overheid.');
     }
 
-    // viewProfile
-
-    public function testWhenUserDoesntExistShouldGiveError(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayUserName(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayProfielFoto(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayLocation(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayStatus(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayLastLogin(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testUserExistShouldDisplayExpertise(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testUserExistShouldDisplaySocials(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testUserExistInShouldDisplayAchievements(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
 }

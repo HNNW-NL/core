@@ -4,10 +4,10 @@ namespace App\Module\Main\Service;
 
 use App\Entity\Account\Profile;
 use Symfony\Bundle\SecurityBundle\Security;
-final readonly class CurrentProfileProvider
+class CurrentProfileProvider
 {
     public function __construct(
-        private Security $security,
+        private readonly Security $security,
     ) {
     }
 

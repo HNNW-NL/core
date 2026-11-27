@@ -349,6 +349,22 @@
     min-height: 1.5em;
 }
 
+.public-profile-list {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.public-profile-list li {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.public-profile-list li > * {
+    display: block;
+}
+
 @media (max-width: 48rem) {
     .profile-grid {
         grid-template-columns: minmax(0, 1fr);

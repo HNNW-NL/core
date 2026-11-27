@@ -10,6 +10,7 @@ use App\Entity\Log\AuditLog;
 use App\Entity\Org\OrgMember;
 use App\Entity\Project\Project;
 use App\Entity\Common\Event;
+use App\Repository\Account\AccountRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -18,7 +19,7 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: AccountRepository::class)]
 #[ORM\Table(name: 'accounts')]
 #[ORM\HasLifecycleCallbacks]
 class Account implements UserInterface, PasswordAuthenticatedUserInterface
