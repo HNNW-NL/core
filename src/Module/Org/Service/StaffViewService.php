@@ -49,18 +49,11 @@ final class StaffViewService
             return ['items' => [], 'roles' => []];
         }
 
-        /** @var OrgMember $membership */
-        $membership = $memberships->first();
-        $organisation = $membership->getOrganisation();
-
-        if ($organisation === null) {
-            return ['items' => [], 'roles' => []];
-        }
         $organisations = [];
         $masks = [];
         foreach ($user->getOrgMemberships() as $membership) {
             $organisation = $membership->getOrganisation();
-            if ($organisation === null) {
+            if ($organisation === null || $organisation->getDeletedAt() !== null) {
                 continue;
             }
 
@@ -69,7 +62,7 @@ final class StaffViewService
             $masks[$id] = ($masks[$id] ?? 0) | StaffOrganisationContext::roleMask($membership->getOrgRole(), $organisation);
         }
 
-        $organisations = array_filter($organisations, static fn ($organisation, string $id): bool => Permission::ORG_VIEW->in($masks[$id]), ARRAY_FILTER_USE_BOTH);
+        $organisations = array_filter($organisations, static fn ($organisation, string $id): bool => Permission::ORG_VIEW->in($masks[$id]) && Permission::ORG_MANAGE_MEMBERS->in($masks[$id]), ARRAY_FILTER_USE_BOTH);
         $empty['organisations'] = array_map(static fn ($organisation): string => (string) $organisation->getName(), $organisations);
         $session = $request->getSession();
         $id = $request->query->has(StaffOrganisationContext::QUERY_KEY)

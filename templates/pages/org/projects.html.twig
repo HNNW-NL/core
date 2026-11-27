@@ -19,6 +19,6 @@
         <h2>Projects - Overview</h2>
         <p>Organization panel - projects overview page.</p>
 
-    {{ component('Org:ProjectsView') }}
+    {{ component('Org:OrganisationProjectsView', {organisationId: organisationId, query: app.request.query.get('q')|default('')}) }}
 
 {% endblock %}

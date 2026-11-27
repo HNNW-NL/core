@@ -180,22 +180,53 @@ final class StaffManagementServiceTest extends TestCase
         $accounts = $this->createStub(EntityRepository::class);
         $accounts->method('find')->willReturn($account);
         $members = $this->createMock(EntityRepository::class);
-        $members->expects(self::once())->method('findBy')->with(['organisation' => $otherOrg])->willReturn([$otherMembership]);
+        $members->expects(self::once())->method('findBy')
+            ->with(['organisation' => $this->org])
+            ->willReturn([$this->actor]);
+
         $roles = $this->createStub(EntityRepository::class);
-        $roles->method('findBy')->willReturn([$this->foreignRole]);
+        $roles->method('findBy')->willReturn([$this->actor->getOrgRole()]);
+
         $registry = $this->createStub(ManagerRegistry::class);
         $registry->method('getRepository')->willReturnMap([
-            [Account::class, null, $accounts], [OrgMember::class, null, $members], [OrgRole::class, null, $roles],
+            [Account::class, null, $accounts],
+            [OrgMember::class, null, $members],
+            [OrgRole::class, null, $roles],
         ]);
+
         $view = new StaffViewService($registry, $this->stack);
-        $query = $this->stack->getCurrentRequest()->query;
+        $request = $this->stack->getCurrentRequest();
+        $query = $request->query;
         $query->remove('organisation_id');
-        self::assertNull($view->getStaff()['organisationId']);
+
+        $data = $view->getStaff();
+        self::assertSame((string) $this->org->getId(), $data['organisationId']);
+        self::assertSame((string) $this->actor->getId(), $data['items'][0]['id']);
+        self::assertTrue($data['canAdd']);
+        self::assertTrue($data['canChangeRole']);
+        self::assertTrue($data['canRemove']);
+        self::assertArrayNotHasKey((string) $otherOrg->getId(), $data['organisations']);
 
         $query->set('organisation_id', (string) $otherOrg->getId());
+
         $data = $view->getStaff();
-        self::assertSame((string) $otherOrg->getId(), $data['organisationId']);
-        self::assertSame((string) $otherMembership->getId(), $data['items'][0]['id']);
+        self::assertNull($data['organisationId']);
+        self::assertSame([], $data['items']);
+        self::assertFalse($data['canAdd']);
+        self::assertFalse($data['canChangeRole']);
+        self::assertFalse($data['canRemove']);
+
+        $this->actor->getOrgRole()->setPermissionsMask(Permission::ORG_VIEW->value);
+        $query->remove('organisation_id');
+        $request->getSession()->set(
+            \App\Module\Org\Service\StaffOrganisationContext::SESSION_KEY,
+            (string) $otherOrg->getId(),
+        );
+
+        $data = $view->getStaff();
+        self::assertNull($data['organisationId']);
+        self::assertSame([], $data['items']);
+        self::assertSame([], $data['organisations']);
         self::assertFalse($data['canAdd']);
         self::assertFalse($data['canChangeRole']);
         self::assertFalse($data['canRemove']);
