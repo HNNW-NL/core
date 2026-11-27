@@ -6,12 +6,14 @@ use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Entity\Project\PackageTask;
 use App\Entity\Project\ProjectApplication;
+use App\Entity\Project\ProjectParticipant;
+use App\Repository\Project\ProjectParticipantRepository;
+use App\Workflow\ProjectApplicationWorkflow;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class ProjectLifecycle
 {
     private const OPEN_APPLICATION_STATUSES = ['active', 'published'];
-    public const PENDING_APPLICATION_STATUSES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
     public const PUBLIC_STATUSES = [...self::OPEN_APPLICATION_STATUSES, 'applications_closed', 'completed'];
 
     private const TRANSITIONS = [
@@ -68,11 +70,30 @@ final class ProjectLifecycle
             && in_array(strtolower((string) $project->getStatus()?->getName()), self::PUBLIC_STATUSES, true);
     }
 
-    public static function acceptsApplications(Project $project): bool
+    public function acceptsApplications(Project $project): bool
     {
-        return self::hasValidProjectContext($project)
-            && $project->getPublishedAt() !== null
-            && in_array(strtolower((string) $project->getStatus()?->getName()), self::OPEN_APPLICATION_STATUSES, true);
+        return self::isPubliclyVisible($project)
+            && in_array(strtolower((string) $project->getStatus()?->getName()), self::OPEN_APPLICATION_STATUSES, true)
+            && ($project->getEndDate() === null || $project->getEndDate() >= new \DateTimeImmutable())
+            && $this->hasParticipantCapacity($project);
+    }
+
+    private function hasParticipantCapacity(Project $project): bool
+    {
+        $capacity = $project->getCapacity();
+        if ($capacity === null) {
+            return true;
+        }
+
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('COUNT(DISTINCT participantProfile.id)')
+            ->from(ProjectParticipant::class, 'participant')
+            ->where('participant.project = :project')
+            ->setParameter('project', $project);
+
+        return (int) ProjectParticipantRepository::restrictToActive($query, 'participant')
+            ->getQuery()
+            ->getSingleScalarResult() < $capacity;
     }
 
     public static function allowsApplicationReview(Project $project): bool
@@ -159,8 +180,9 @@ final class ProjectLifecycle
             ->join('task.workPackage', 'package')
             ->leftJoin('task.status', 'taskStatus')
             ->where('package.project = :project AND package.deletedAt IS NULL AND task.deletedAt IS NULL')
-            ->andWhere('taskStatus.id IS NULL OR LOWER(taskStatus.name) NOT IN (:finished)')
+            ->andWhere('taskStatus.id IS NULL OR taskStatus.scope IS NULL OR LOWER(taskStatus.scope) NOT IN (:taskScopes) OR taskStatus.name IS NULL OR LOWER(taskStatus.name) NOT IN (:finished)')
             ->setParameter('project', $project)
+            ->setParameter('taskScopes', ['packagetask', 'package_task'])
             ->setParameter('finished', ['completed', 'done', 'cancelled', 'canceled'])
             ->getQuery()
             ->getSingleScalarResult();
@@ -171,11 +193,12 @@ final class ProjectLifecycle
         $pendingApplications = $this->entityManager->createQueryBuilder()
             ->select('COUNT(application.id)')
             ->from(ProjectApplication::class, 'application')
-            ->join('application.status', 'applicationStatus')
+            ->leftJoin('application.status', 'applicationStatus')
             ->where('application.project = :project AND application.deletedAt IS NULL')
-            ->andWhere('LOWER(applicationStatus.name) IN (:pending)')
+            ->andWhere('applicationStatus.id IS NULL OR applicationStatus.scope IS NULL OR LOWER(applicationStatus.scope) <> :applicationScope OR applicationStatus.name IS NULL OR LOWER(applicationStatus.name) NOT IN (:reviewed)')
             ->setParameter('project', $project)
-            ->setParameter('pending', self::PENDING_APPLICATION_STATUSES)
+            ->setParameter('applicationScope', strtolower(ProjectApplicationWorkflow::APPLICATION_SCOPE))
+            ->setParameter('reviewed', [...ProjectApplicationWorkflow::ACCEPTED_NAMES, ...ProjectApplicationWorkflow::REJECTED_NAMES])
             ->getQuery()
             ->getSingleScalarResult();
         if ((int) $pendingApplications > 0) {

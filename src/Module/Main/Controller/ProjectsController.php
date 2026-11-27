@@ -49,6 +49,7 @@ final class ProjectsController extends AbstractController
     public function detail(
         string $slug,
         ProjectRepository $projectRepository,
+        ProjectLifecycle $projectLifecycle,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
@@ -59,6 +60,7 @@ final class ProjectsController extends AbstractController
         return $this->render('pages/main/projects/detail.html.twig', [
             'slug' => $slug,
             'project' => $project,
+            'acceptsApplications' => $projectLifecycle->acceptsApplications($project),
         ]);
     }
 
@@ -69,6 +71,7 @@ final class ProjectsController extends AbstractController
         ProjectRepository $projectRepository,
         CurrentProfileProvider $currentProfileProvider,
         ProjectApplyHandler $projectApplyHandler,
+        ProjectLifecycle $projectLifecycle,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
@@ -76,7 +79,7 @@ final class ProjectsController extends AbstractController
             true
         );
 
-        if (!ProjectLifecycle::acceptsApplications($project)) {
+        if (!$projectLifecycle->acceptsApplications($project)) {
             throw $this->createAccessDeniedException('Applications are closed for this project.');
         }
 

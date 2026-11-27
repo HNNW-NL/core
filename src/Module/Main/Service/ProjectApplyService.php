@@ -3,6 +3,7 @@
 namespace App\Module\Main\Service;
 
 use App\Module\Org\Service\ProjectLifecycle;
+use App\Workflow\ProjectApplicationWorkflow;
 use Doctrine\DBAL\LockMode;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
@@ -16,23 +17,19 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class ProjectApplyService
 {
-    private const string SEND_STATUS_SCOPE = 'ProjectApplication';
     private const string SEND_STATUS_NAME = 'send';
 
     public function __construct(
         private EntityManagerInterface $entityManager,
         private StatusRepository $statusRepository,
         private ProjectParticipantRepository $projectParticipantRepository,
+        private ProjectLifecycle $projectLifecycle,
     ) {
     }
 
     public function check(Project $project, Profile $profile): ?ProjectApplyResult
     {
-        if (
-            !ProjectLifecycle::isPubliclyVisible($project)
-            || !ProjectLifecycle::acceptsApplications($project)
-            || $project->getDeletedAt() !== null
-        ) {
+        if (!$this->projectLifecycle->acceptsApplications($project)) {
             return new ProjectApplyResult(
                 ProjectApplyStatus::NotOpen,
                 'Dit project neemt geen aanmeldingen aan.',
@@ -88,7 +85,7 @@ final readonly class ProjectApplyService
         }
 
         $status = $this->statusRepository->findOneByScopeAndName(
-            self::SEND_STATUS_SCOPE,
+            ProjectApplicationWorkflow::APPLICATION_SCOPE,
             self::SEND_STATUS_NAME
         );
 

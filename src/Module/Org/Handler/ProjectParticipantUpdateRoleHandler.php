@@ -12,6 +12,7 @@ use App\Module\Org\Service\ProjectLifecycle;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRoleRepository;
+use App\Workflow\ProjectApplicationWorkflow;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,12 +22,8 @@ class ProjectParticipantUpdateRoleHandler
     // OR06-A: aanvragen beoordelen
     public const REJECT_REASON_MAX_LENGTH = 500;
 
-    private const APPLICATION_SCOPE = 'ProjectApplication';
     private const PARTICIPANT_SCOPE = 'ProjectParticipant';
 
-    /** 'send' komt uit de bestaande fixtures; de rest zijn toegestane synoniemen. */
-    private const ACCEPTED_NAMES = ['accepted', 'geaccepteerd'];
-    private const REJECTED_NAMES = ['rejected', 'afgewezen'];
     private const PARTICIPANT_ACTIVE_NAMES = ['active', 'actief'];
 
     public function __construct(
@@ -76,23 +73,22 @@ class ProjectParticipantUpdateRoleHandler
 
     public function isPendingStatus(Status $status): bool
     {
-        return strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) === 0
-            && in_array(mb_strtolower((string) $status->getName()), ProjectLifecycle::PENDING_APPLICATION_STATUSES, true);
+        return ProjectApplicationWorkflow::matches($status, ProjectApplicationWorkflow::PENDING_NAMES);
     }
 
     public function applicationStatusLabel(Status $status): string
     {
         $name = (string) $status->getName();
-        if (strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) !== 0) {
+        if (strcasecmp((string) $status->getScope(), ProjectApplicationWorkflow::APPLICATION_SCOPE) !== 0) {
             return $name;
         }
 
         $code = mb_strtolower($name);
 
         return match (true) {
-            in_array($code, ProjectLifecycle::PENDING_APPLICATION_STATUSES, true) => 'Ingediend',
-            in_array($code, self::ACCEPTED_NAMES, true) => 'Geaccepteerd',
-            in_array($code, self::REJECTED_NAMES, true) => 'Afgewezen',
+            in_array($code, ProjectApplicationWorkflow::PENDING_NAMES, true) => 'Ingediend',
+            in_array($code, ProjectApplicationWorkflow::ACCEPTED_NAMES, true) => 'Geaccepteerd',
+            in_array($code, ProjectApplicationWorkflow::REJECTED_NAMES, true) => 'Afgewezen',
             default => $name,
         };
     }
@@ -104,13 +100,13 @@ class ProjectParticipantUpdateRoleHandler
         }
 
         $targets = [];
-        $targetNames = $status->allowsApplicationRejection() ? [self::REJECTED_NAMES] : [];
+        $targetNames = $status->allowsApplicationRejection() ? [ProjectApplicationWorkflow::REJECTED_NAMES] : [];
         if ($status->allowsApplicationAcceptance()
             && $this->statusRepo->findFirstByScopeAndNames(self::PARTICIPANT_SCOPE, self::PARTICIPANT_ACTIVE_NAMES) !== null) {
-            array_unshift($targetNames, self::ACCEPTED_NAMES);
+            array_unshift($targetNames, ProjectApplicationWorkflow::ACCEPTED_NAMES);
         }
         foreach ($targetNames as $names) {
-            $target = $this->statusRepo->findFirstByScopeAndNames(self::APPLICATION_SCOPE, $names);
+            $target = $this->statusRepo->findFirstByScopeAndNames(ProjectApplicationWorkflow::APPLICATION_SCOPE, $names);
             if ($target !== null) {
                 $targets[] = $this->applicationStatusLabel($target);
             }
@@ -190,7 +186,7 @@ class ProjectParticipantUpdateRoleHandler
         if (!$application->getStatus()->allowsApplicationAcceptance()) {
             return $this->failure('Accepteren is uitgeschakeld voor deze status.');
         }
-        $acceptedStatus = $this->statusRepo->findFirstByScopeAndNames(self::APPLICATION_SCOPE, self::ACCEPTED_NAMES);
+        $acceptedStatus = $this->statusRepo->findFirstByScopeAndNames(ProjectApplicationWorkflow::APPLICATION_SCOPE, ProjectApplicationWorkflow::ACCEPTED_NAMES);
         $activeStatus = $this->statusRepo->findFirstByScopeAndNames(self::PARTICIPANT_SCOPE, self::PARTICIPANT_ACTIVE_NAMES);
 
         if ($acceptedStatus === null || $activeStatus === null) {
@@ -251,7 +247,7 @@ class ProjectParticipantUpdateRoleHandler
         if (!$application->getStatus()->allowsApplicationRejection()) {
             return $this->failure('Afwijzen is uitgeschakeld voor deze status.');
         }
-        $rejectedStatus = $this->statusRepo->findFirstByScopeAndNames(self::APPLICATION_SCOPE, self::REJECTED_NAMES);
+        $rejectedStatus = $this->statusRepo->findFirstByScopeAndNames(ProjectApplicationWorkflow::APPLICATION_SCOPE, ProjectApplicationWorkflow::REJECTED_NAMES);
 
         if ($rejectedStatus === null) {
             return $this->failure('De benodigde status (rejected) ontbreekt in de database. Laad de status-fixtures opnieuw.');

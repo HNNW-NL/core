@@ -6,6 +6,7 @@ use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
+use App\Entity\Project\ProjectParticipant;
 use App\Module\Main\DTO\ProjectApplyDto;
 use App\Module\Main\DTO\ProjectApplyStatus;
 use App\Module\Main\Service\ProjectApplyService;
@@ -24,6 +25,15 @@ class ProjectApplyServiceTest extends KernelTestCase
 
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $this->service = self::getContainer()->get(ProjectApplyService::class);
+        $project = $this->getProject();
+        $project->publish();
+        $participant = $this->entityManager->getRepository(ProjectParticipant::class)->findOneBy([
+            'project' => $project,
+            'profile' => $this->getProfile('TestUser'),
+        ]);
+        self::assertNotNull($participant);
+        $participant->join();
+        $this->entityManager->flush();
     }
 
     private function getProject(): Project
@@ -143,6 +153,28 @@ class ProjectApplyServiceTest extends KernelTestCase
             $project->setVisibility($originalVisibility);
             $this->entityManager->flush();
         }
+    }
+
+    public function testExpiredProjectRejectsApplications(): void
+    {
+        $project = $this->getProject();
+        $project->setEndDate(new \DateTimeImmutable('yesterday'));
+        $this->entityManager->flush();
+
+        $result = $this->service->apply($project, $this->getProfile('AdminUser'), $this->makeDto('Aanmelding'));
+
+        self::assertSame(ProjectApplyStatus::NotOpen, $result->status);
+    }
+
+    public function testFullProjectRejectsApplications(): void
+    {
+        $project = $this->getProject();
+        $project->setCapacity(1);
+        $this->entityManager->flush();
+
+        $result = $this->service->apply($project, $this->getProfile('AdminUser'), $this->makeDto('Aanmelding'));
+
+        self::assertSame(ProjectApplyStatus::NotOpen, $result->status);
     }
 
     // check
