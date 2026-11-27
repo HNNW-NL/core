@@ -2,13 +2,13 @@
     --auth-max-width:860px;
     --auth-gap:1.25rem;
     --color-bg: var(--background);
-    --color-panel: #0b1220;
-    --color-muted: #9aa4b2;
+    --color-panel: var(--card-background);
+    --color-muted: var(--paragraph-grey);
     --color-accent: #1f2937;
     --color-primary: var(--hnnw-yellow-500);
     --color-success: #2b7a0b;
     --color-danger: #f44336;
-    --radius:8px;
+    --radius:var(--border-radius);
 
     --input-bg: #ffffff;
     --input-fg: #0b1220;

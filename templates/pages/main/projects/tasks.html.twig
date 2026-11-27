@@ -7,7 +7,7 @@
 {% block seoAuthor %}HNNW{% endblock %}
     
 {% block body %}
-    {% include 'core/main/_project-navigation.html.twig' %}
+    {% include "core/main/_project_navigation.html.twig" %}
     {% set workPackageOverviews = hnnw_work_package_overviews(slug) %}
     {% set currentProfile = hnnw_current_profile() %}
 

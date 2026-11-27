@@ -80,9 +80,12 @@ final class WorkPackageAccessTest extends WebTestCase
         self::assertCount(2, $client->getCrawler()->filter('.package-task-card'));
         self::assertSelectorExists('form[action*="/enroll"]');
 
-        $client->clickLink('Projectoverzicht');
+        self::assertCount(1, $client->getCrawler()->filter('nav[aria-label="Projectnavigatie"]'));
+        self::assertSelectorExists('nav.project-navigation a[href="/projects/' . $project->getSlug() . '/updates"]');
+        $client->clickLink('Overzicht');
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('main', 'Projects - Detail');
+        self::assertSelectorTextContains('main h2', $project->getTitle());
+        self::assertSelectorExists('nav.project-navigation a[aria-current="page"][href="/projects/' . $project->getSlug() . '"]');
         $client->clickLink('Werkpakketten');
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.project-work-packages', 'Visible MS12 package');
@@ -93,7 +96,11 @@ final class WorkPackageAccessTest extends WebTestCase
         self::assertResponseIsSuccessful();
 
         // Even the owner cannot open another project's packages without membership.
-        $client->request('GET', '/projects/ms12-other/work-packages');
+        $client->request('GET', '/projects/ms12-other');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('main h2', 'Other project');
+        self::assertSelectorExists('a[href="/projects/ms12-other/apply"]');
+        $client->clickLink('Werkpakketten');
         self::assertResponseStatusCodeSame(403);
         self::assertStringNotContainsString('Other project secret', $client->getResponse()->getContent());
 

@@ -13,6 +13,7 @@ use App\Module\Main\Service\CurrentProfileProvider;
 use App\Module\Main\Handler\ChangeWorkPackageStatusHandler;
 use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
 use App\Repository\Project\ProjectRepository;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -68,13 +69,36 @@ final class OrganisationProjectsController extends AbstractController
     public function modifyProjectParticipants(
         string $id,
         ProjectRepository $projectRepository,
+        ProjectParticipantRepository $participantRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
     ): Response {
-        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+        $project = $this->getProjectAndCheckEditAccess(
+            $id,
+            $projectRepository
+        );
 
-        return $this->render('pages/org/projects/modify-participants.html.twig', [
-            'id' => $id,
-            'project' => $project,
-        ]);
+        $applications = $participantRepository
+            ->findApplicationsForProject($project);
+
+        $pendingApplicationIds = [];
+
+        foreach ($applications as $application) {
+            if ($applicationHandler->isPending($application)) {
+                $pendingApplicationIds[] = $application->getId()->toBase32();
+            }
+        }
+
+        return $this->render(
+            'pages/org/projects/modify-participants.html.twig',
+            [
+                'id' => $id,
+                'project' => $project,
+                'applications' => $applications,
+                'pending_application_ids' => $pendingApplicationIds,
+                'reject_reason_max_length' =>
+                    ProjectParticipantUpdateRoleHandler::REJECT_REASON_MAX_LENGTH,
+            ]
+        );
     }
 
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
