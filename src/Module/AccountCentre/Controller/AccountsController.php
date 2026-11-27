@@ -559,8 +559,12 @@ final class AccountsController extends AbstractController
             $location = $this->nullableTrim($formData['location']);
             $bio = $this->nullableTrim($formData['bio']);
 
-            if (empty($username) || mb_strlen($username) > 12) {
-                $errors['username'] = 'Username moet ingevuld zijn en mag maximaal 12 tekens bevatten.';
+            if (
+                empty($username) ||
+                mb_strlen($username) > 12 ||
+                !preg_match('/^[a-zA-Z0-9_]+$/', $username)
+            ) {
+                $errors['username'] = 'Username moet ingevuld zijn, mag maximaal 12 tekens bevatten en mag alleen letters, cijfers en underscores bevatten.';
             } elseif ($username !== $account->getUsername()) {
                 $existingAccount = $em->getRepository(Account::class)
                     ->findOneBy(['username' => $username]);
