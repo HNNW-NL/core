@@ -822,7 +822,7 @@ final class AccountsController extends AbstractController
         if ($entry->getProfile()?->getId()->toString() !== $this->profile($em)->getId()->toString()) {
             throw $this->createAccessDeniedException();
         }
-        $this->csrf($request, 'delete_skill' . $id);
+        $this->csrf($request, 'delete_account_skill' . $id);
         $em->remove($entry);
         $em->flush();
         return $this->redirectToRoute('account.skills');
