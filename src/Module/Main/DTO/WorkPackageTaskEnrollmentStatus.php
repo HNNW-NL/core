@@ -4,6 +4,7 @@ namespace App\Module\Main\DTO;
 
 enum WorkPackageTaskEnrollmentStatus: string
 {
+    case ProjectClosed = 'project_closed';
     case Success = 'success';
     case AlreadyAssignedToCurrentProfile = 'already_assigned_to_current_profile';
     case AlreadyAssignedToOtherProfile = 'already_assigned_to_other_profile';

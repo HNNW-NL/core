@@ -6,6 +6,8 @@ use App\Entity\Project\Project;
 use App\Entity\Project\PackageTask;
 use App\Entity\Project\WorkPackage;
 use App\Module\Main\DTO\CreateWorkPackageDTO;
+use App\Module\Org\Service\ProjectLifecycle;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Repository\Common\StatusRepository;
 use App\Security\Permission;
 use App\Security\Voter\ProjectVoter;
@@ -23,6 +25,7 @@ class WorkPackageCrudService
         private readonly EntityManagerInterface $entityManager,
         private readonly StatusRepository $statusRepository,
         private readonly AuthorizationCheckerInterface $authorization,
+        private readonly ProjectWriteLock $projectWriteLock,
     ) {
     }
 
@@ -35,12 +38,12 @@ class WorkPackageCrudService
             throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
         }
 
-        return $this->entityManager->getConnection()->transactional(function () use ($dto): WorkPackage {
-            // Serialize work package writes per project before checking slug uniqueness.
-            $project = $this->entityManager->find(Project::class, Ulid::fromString($dto->projectId), LockMode::PESSIMISTIC_WRITE);
-            if (!$project) {
-                throw new \InvalidArgumentException('Project not found.');
-            }
+        $project = $this->entityManager->find(Project::class, Ulid::fromString($dto->projectId));
+        if (!$project) {
+            throw new \InvalidArgumentException('Project not found.');
+        }
+
+        return $this->projectWriteLock->run($project, function () use ($dto, $project): WorkPackage {
             $this->assertProjectAccess($project);
             [$title, $slug] = $this->validateInput($project, $dto->title, $dto->slug);
 
@@ -65,8 +68,7 @@ class WorkPackageCrudService
 
     public function update(UpdateWorkPackageDTO $dto, ?Project $project = null): WorkPackage
     {
-        return $this->entityManager->getConnection()->transactional(function () use ($dto, $project): WorkPackage {
-            $workPackage = $this->findWorkPackage($dto->workPackageId, $project, WorkPackageVoter::EDIT);
+        return $this->withWorkPackage($dto->workPackageId, $project, WorkPackageVoter::EDIT, function (WorkPackage $workPackage) use ($dto): WorkPackage {
             if ($workPackage->getDeletedAt() !== null) {
                 throw new \InvalidArgumentException('Werkpakket is verwijderd.');
             }
@@ -83,8 +85,7 @@ class WorkPackageCrudService
 
     public function delete(string $workPackageId, ?Project $project = null): void
     {
-        $this->entityManager->getConnection()->transactional(function () use ($workPackageId, $project): void {
-            $workPackage = $this->findWorkPackage($workPackageId, $project, WorkPackageVoter::DELETE);
+        $this->withWorkPackage($workPackageId, $project, WorkPackageVoter::DELETE, function (WorkPackage $workPackage): void {
             // Count archived tasks as well to preserve their history and results.
             if ($this->entityManager->getRepository(PackageTask::class)->count(['workPackage' => $workPackage]) > 0) {
                 throw new \InvalidArgumentException('Een werkpakket met taken kan niet worden verwijderd.');
@@ -94,7 +95,7 @@ class WorkPackageCrudService
         });
     }
 
-    private function findWorkPackage(string $workPackageId, ?Project $project, string $permission): WorkPackage
+    private function withWorkPackage(string $workPackageId, ?Project $project, string $permission, callable $operation): mixed
     {
         if (!Ulid::isValid($workPackageId)) {
             throw new \InvalidArgumentException('Invalid work package id.');
@@ -107,21 +108,18 @@ class WorkPackageCrudService
         if ($actualProject === null || ($project !== null && !$actualProject->getId()->equals($project->getId()))) {
             throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
         }
-        // Always lock project before work package, also on update/delete, to avoid
-        // opposing lock orders when another request creates or renames a package.
-        $lockedProject = $this->entityManager->find(Project::class, $actualProject->getId(), LockMode::PESSIMISTIC_WRITE);
-        if ($lockedProject === null) {
-            throw new \InvalidArgumentException('Project not found.');
-        }
-        $this->assertProjectAccess($lockedProject);
-        $this->entityManager->refresh($workPackage, LockMode::PESSIMISTIC_WRITE);
-        if ($workPackage->getProject() === null || !$workPackage->getProject()->getId()->equals($lockedProject->getId())) {
-            throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
-        }
-        if (!$this->authorization->isGranted($permission, $workPackage)) {
-            throw new AccessDeniedException('Je hebt onvoldoende rechten voor deze bewerking.');
-        }
-        return $workPackage;
+        return $this->projectWriteLock->run($actualProject, function () use ($actualProject, $workPackage, $permission, $operation): mixed {
+            $this->assertProjectAccess($actualProject);
+            $this->entityManager->refresh($workPackage, LockMode::PESSIMISTIC_WRITE);
+            if ($workPackage->getProject() === null || !$workPackage->getProject()->getId()->equals($actualProject->getId())) {
+                throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
+            }
+            if (!$this->authorization->isGranted($permission, $workPackage)) {
+                throw new AccessDeniedException('Je hebt onvoldoende rechten voor deze bewerking.');
+            }
+
+            return $operation($workPackage);
+        });
     }
 
     /** @return array{string, string} */
@@ -157,6 +155,7 @@ class WorkPackageCrudService
         ) {
             throw new AccessDeniedException('Je mag de werkpakketten van dit project niet beheren.');
         }
+        ProjectLifecycle::assertTaskChangesAllowed($project);
     }
 
 }

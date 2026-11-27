@@ -3,7 +3,10 @@
 namespace App\Tests\Module\Main\Service;
 
 use App\Entity\Account\Account;
+use App\Entity\Admin\Admin;
+use App\Entity\Admin\AdminRole;
 use App\Entity\Common\Status;
+use App\Entity\Org\Organisation;
 use App\Entity\Org\OrgMember;
 use App\Entity\Org\OrgRole;
 use App\Entity\Project\PackageTask;
@@ -17,6 +20,7 @@ use App\Module\Admin\Service\PackageTaskCrudService as AdminPackageTaskCrudServi
 use App\Module\Main\Service\PackageTaskCrudService;
 use App\Module\Main\Service\PackageTaskInputValidator;
 use App\Module\Org\Handler\ManageProjectWorkPackagesHandler;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Repository\Common\StatusRepository;
 use App\Security\Permission;
 use App\Security\ProjectPermission;
@@ -143,7 +147,7 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
     public static function deniedCallerProvider(): iterable
     {
         foreach (self::entryProvider() as [$entry]) {
-            foreach (['anonymous', 'outsider', 'no project rights', 'no organisation rights'] as $actor) {
+            foreach (['anonymous', 'outsider', 'no project rights', 'no organisation rights', 'platform administrator only', 'organisation manager only', 'foreign organisation rights'] as $actor) {
                 yield $entry . ' / ' . $actor => [$entry, $actor];
             }
         }
@@ -328,6 +332,7 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
                 $container->get(StatusRepository::class),
                 $container->get(AuthorizationCheckerInterface::class),
                 $container->get(PackageTaskInputValidator::class),
+                $container->get(ProjectWriteLock::class),
             ))->create($dto, $project),
             'org handler' => $container->get(ManageProjectWorkPackagesHandler::class)->handle(
                 $project ?? $container->get(EntityManagerInterface::class)->find(WorkPackage::class, $dto->workPackageId)->getProject(),
@@ -351,11 +356,29 @@ final class PackageTaskCreationAccessTest extends KernelTestCase
         $outsider = $em->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']);
         $project = $em->getRepository(Project::class)->findOneBy(['slug' => 'Test-Project']);
         $role = (new OrgRole())->setName('Task access editor')->setOrganisation($project->getOwnerOrganisation())
-            ->setPermissionsMask($actor === 'no organisation rights' ? 0 : Permission::ORG_MANAGE_PROJECTS->value);
+            ->setPermissionsMask(in_array($actor, ['no organisation rights', 'platform administrator only', 'foreign organisation rights'], true) ? 0 : Permission::ORG_MANAGE_PROJECTS->value);
         $em->persist($role);
         $em->persist((new OrgMember())->setAccount($account)->setOrganisation($project->getOwnerOrganisation())->setOrgRole($role));
-        if ($actor === 'member' || $actor === 'no project rights') {
+        if (in_array($actor, ['member', 'no project rights', 'platform administrator only', 'organisation manager only'], true)) {
             $project->setOwnerAccount($outsider);
+        }
+        if ($actor === 'platform administrator only') {
+            $adminRole = (new AdminRole())->setName('Scoped task platform admin')
+                ->setPermissionsMask(Permission::ADMIN_MANAGE_ACCOUNTS->value | Permission::ADMIN_MANAGE_ORGANISATIONS->value);
+            $admin = (new Admin())->setAccount($account)->setAdminRole($adminRole)
+                ->setStatus($em->getRepository(Status::class)->findOneBy(['scope' => 'admin', 'name' => 'active']));
+            $account->setAdmin($admin);
+            $em->persist($adminRole);
+            $em->persist($admin);
+        }
+        if ($actor === 'foreign organisation rights') {
+            $otherOrganisation = (new Organisation())->setName('Other task organisation')->setSlug('scope-other-task-org')
+                ->setStatus($project->getOwnerOrganisation()->getStatus());
+            $otherRole = (new OrgRole())->setName('Foreign task project manager')->setOrganisation($otherOrganisation)
+                ->setPermissionsMask(Permission::ORG_MANAGE_PROJECTS->value);
+            $em->persist($otherOrganisation);
+            $em->persist($otherRole);
+            $em->persist((new OrgMember())->setAccount($account)->setOrganisation($otherOrganisation)->setOrgRole($otherRole));
         }
         if ($actor === 'member') {
             $participant = $em->getRepository(ProjectParticipant::class)->findOneBy(['project' => $project, 'profile' => $account->getProfile()]);

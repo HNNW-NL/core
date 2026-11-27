@@ -3,6 +3,10 @@
 namespace App\Tests\Module\Admin\Service;
 
 use App\Entity\Account\Account;
+use App\Entity\Admin\Admin;
+use App\Entity\Admin\AdminRole;
+use App\Entity\Common\Status;
+use App\Entity\Org\Organisation;
 use App\Entity\Org\OrgMember;
 use App\Entity\Org\OrgRole;
 use App\Entity\Project\Project;
@@ -18,6 +22,7 @@ use App\Module\Admin\Service\WorkPackageCrudService as AdminWorkPackageCrudServi
 use App\Module\Main\Service\WorkPackageCrudService;
 use App\Module\Org\Handler\CreateWorkPackageHandler as OrgCreateWorkPackageHandler;
 use App\Module\Org\Handler\ManageProjectWorkPackagesHandler;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Repository\Common\StatusRepository;
 use App\Security\Permission;
 use App\Security\ProjectPermission;
@@ -63,9 +68,28 @@ final class WorkPackageProjectBindingTest extends KernelTestCase
     public function testDirectServiceCallsRequireProjectAndOrganisationRights(string $operation, string $missingRight): void
     {
         [$em, $service, $project, $package] = $this->prepareEditor();
-        if ($missingRight === 'organisation') {
+        if ($missingRight === 'organisation' || $missingRight === 'foreign organisation' || $missingRight === 'platform administrator only') {
             $role = $em->getRepository(OrgRole::class)->findOneBy(['name' => 'FLOW-03 editor']);
             $role->setPermissionsMask(0);
+            $account = $project->getOwnerAccount();
+            if ($missingRight === 'foreign organisation') {
+                $other = (new Organisation())->setName('Other WP organisation')->setSlug('scope-other-wp-org')
+                    ->setStatus($project->getOwnerOrganisation()->getStatus());
+                $otherRole = (new OrgRole())->setOrganisation($other)->setName('Foreign WP project manager')
+                    ->setPermissionsMask(Permission::ORG_MANAGE_PROJECTS->value);
+                $em->persist($other);
+                $em->persist($otherRole);
+                $em->persist((new OrgMember())->setAccount($account)->setOrganisation($other)->setOrgRole($otherRole));
+            } elseif ($missingRight === 'platform administrator only') {
+                $adminRole = (new AdminRole())->setName('Scoped WP platform admin')
+                    ->setPermissionsMask(Permission::ADMIN_MANAGE_ACCOUNTS->value | Permission::ADMIN_MANAGE_ORGANISATIONS->value);
+                $admin = (new Admin())->setAccount($account)->setAdminRole($adminRole)
+                    ->setStatus($em->getRepository(Status::class)->findOneBy(['scope' => 'admin', 'name' => 'active']));
+                $account->setAdmin($admin);
+                $em->persist($adminRole);
+                $em->persist($admin);
+                $project->setOwnerAccount($em->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']));
+            }
             $em->flush();
         } elseif ($missingRight === 'project') {
             $project->setOwnerAccount($em->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']));
@@ -301,6 +325,7 @@ final class WorkPackageProjectBindingTest extends KernelTestCase
             $service = new AdminWorkPackageCrudService(
                 $container->get(EntityManagerInterface::class), $container->get(StatusRepository::class),
                 $container->get(AuthorizationCheckerInterface::class),
+                $container->get(ProjectWriteLock::class),
             );
         }
         match ($entry) {
@@ -317,7 +342,7 @@ final class WorkPackageProjectBindingTest extends KernelTestCase
     public static function deniedRightsProvider(): iterable
     {
         foreach (['create', 'update', 'delete'] as $operation) {
-            foreach (['organisation', 'project', 'both'] as $missingRight) {
+            foreach (['organisation', 'project', 'both', 'foreign organisation', 'platform administrator only'] as $missingRight) {
                 yield $operation . ' without ' . $missingRight . ' rights' => [$operation, $missingRight];
             }
         }

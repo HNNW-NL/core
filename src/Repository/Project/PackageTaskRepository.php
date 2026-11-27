@@ -7,6 +7,8 @@ use App\Entity\Project\PackageTask;
 use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\Query;
 use Symfony\Component\Uid\Ulid;
 
 /**
@@ -33,7 +35,7 @@ class PackageTaskRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function findOneForProject(Ulid|string $taskId, Project $project): ?PackageTask
+    public function findOneForProject(Ulid|string $taskId, Project $project, bool $lockForUpdate = false): ?PackageTask
     {
         try {
             $taskId = is_string($taskId) ? Ulid::fromString($taskId) : $taskId;
@@ -41,7 +43,7 @@ class PackageTaskRepository extends ServiceEntityRepository
             return null;
         }
 
-        return $this->createQueryBuilder('packageTask')
+        $query = $this->createQueryBuilder('packageTask')
             ->innerJoin('packageTask.workPackage', 'workPackage')
             ->andWhere('packageTask.id = :taskId')
             ->andWhere('workPackage.project = :project')
@@ -49,8 +51,12 @@ class PackageTaskRepository extends ServiceEntityRepository
             ->andWhere('packageTask.deletedAt IS NULL')
             ->setParameter('taskId', $taskId, 'ulid')
             ->setParameter('project', $project->getId(), 'ulid')
-            ->getQuery()
-            ->getOneOrNullResult();
+            ->getQuery();
+        if ($lockForUpdate) {
+            $query->setLockMode(LockMode::PESSIMISTIC_WRITE)->setHint(Query::HINT_REFRESH, true);
+        }
+
+        return $query->getOneOrNullResult();
     }
 
     /**

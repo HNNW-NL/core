@@ -9,6 +9,8 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\WorkPackage;
 use App\Kernel;
+use App\Module\Main\DTO\WorkPackageTaskEnrollmentStatus;
+use App\Module\Main\Service\WorkPackageTaskEnrollmentService;
 use App\Repository\Project\PackageTaskRepository;
 use App\Security\ProjectPermission;
 use Doctrine\ORM\EntityManagerInterface;
@@ -72,6 +74,62 @@ final class TaskEnrollmentTest extends WebTestCase
     {
         yield 'task page' => ['tasks'];
         yield 'work package page' => ['work-packages'];
+    }
+
+    #[DataProvider('closedProjectProvider')]
+    public function testStaleEnrollmentFormCannotAssignATaskInAClosedProject(string $page, string $state): void
+    {
+        [$client, , $participant, $task] = $this->loginMember();
+        $slug = $participant->getProject()->getSlug();
+        $crawler = $client->request('GET', '/projects/' . $slug . '/' . $page);
+        self::assertResponseIsSuccessful();
+        $form = $crawler->filter('form[action$="/' . $task->getId()->toRfc4122() . '/enroll"]')->form();
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $project = $em->find(Project::class, $participant->getProject()->getId());
+        $status = (new Status())->setScope('project')->setName($state)->setColourHex('#10B981');
+        $em->persist($status);
+        $project->setStatus($status);
+        $em->flush();
+        $before = $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id');
+
+        $client->submit($form);
+
+        self::assertResponseRedirects('/projects/' . $slug . '/work-packages', 303);
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        self::assertSame($before, $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id'));
+        $client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.alert-warning', 'Dit project staat geen taakinschrijvingen meer toe.');
+    }
+
+    public static function closedProjectProvider(): iterable
+    {
+        foreach (self::pageProvider() as [$page]) {
+            foreach (['completed', 'archived', 'withdrawn'] as $state) {
+                yield "$page / $state" => [$page, $state];
+            }
+        }
+    }
+
+    public function testPreviouslyLoadedTaskCannotOverwriteALaterAssignment(): void
+    {
+        [, $em, $participant, $task] = $this->loginMember();
+        $otherProfile = $participant->getProject()->getOwnerAccount()->getProfile();
+        $em->getConnection()->executeStatement(
+            'UPDATE package_tasks SET assigned_profile_id = ? WHERE id = ?',
+            [$otherProfile->getId(), $task->getId()], ['ulid', 'ulid'],
+        );
+        self::assertNull($task->getAssignedProfile());
+        $before = $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id');
+
+        $result = static::getContainer()->get(WorkPackageTaskEnrollmentService::class)->enroll(
+            $participant->getProject(), $task->getId(), $participant->getProfile(),
+        );
+
+        self::assertSame(WorkPackageTaskEnrollmentStatus::AlreadyAssignedToOtherProfile, $result->status);
+        self::assertEquals($otherProfile->getId(), $result->packageTask?->getAssignedProfile()?->getId());
+        $em->flush();
+        self::assertSame($before, $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id'));
     }
 
     #[DataProvider('unavailableTaskProvider')]

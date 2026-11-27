@@ -6,6 +6,7 @@ use App\Entity\Common\Status;
 use App\Module\Main\Service\WorkPackageWorkflowService;
 use App\Module\Org\Mapper\WorkPackageMapper;
 use App\Module\Org\Service\WorkPackageOverviewService;
+use App\Module\Org\Service\ProjectLifecycle;
 use App\Security\Voter\WorkPackageVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -34,6 +35,7 @@ class GetOrgProjectWorkPackagesHandler
             $allowed = [];
             if ($status?->getScope() === WorkPackageWorkflowService::STATUS_SCOPE
                 && $status->getName() !== null
+                && $package->getProject() !== null && ProjectLifecycle::allowsTaskChanges($package->getProject())
                 && $this->authorizationChecker->isGranted(WorkPackageVoter::EDIT, $package)
             ) {
                 $allowed = array_intersect($this->workflow->getAllowedTransitions($status->getName()), $availableNames);

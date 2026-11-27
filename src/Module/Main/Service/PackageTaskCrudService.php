@@ -7,6 +7,8 @@ use App\Entity\Project\PackageTask;
 use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
 use App\Module\Main\DTO\CreatePackageTaskDTO;
+use App\Module\Org\Service\ProjectLifecycle;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Repository\Common\StatusRepository;
 use App\Security\Permission;
 use App\Security\Voter\ProjectVoter;
@@ -24,6 +26,7 @@ class PackageTaskCrudService
         private readonly StatusRepository $statusRepository,
         private readonly AuthorizationCheckerInterface $authorization,
         private readonly PackageTaskInputValidator $validator,
+        private readonly ProjectWriteLock $projectWriteLock,
     ) {
     }
 
@@ -33,21 +36,24 @@ class PackageTaskCrudService
             throw new \InvalidArgumentException('Invalid work package id.');
         }
 
-        return $this->entityManager->getConnection()->transactional(function () use ($dto, $project): PackageTask {
-            $workPackage = $this->entityManager->find(
-                WorkPackage::class,
-                Ulid::fromString($dto->workPackageId),
-                LockMode::PESSIMISTIC_WRITE,
-            );
+        $workPackage = $this->entityManager->find(WorkPackage::class, Ulid::fromString($dto->workPackageId));
+        if ($workPackage === null || $workPackage->getProject() === null) {
+            throw new \InvalidArgumentException('Work package not found.');
+        }
+        $actualProject = $workPackage->getProject();
+        if ($project !== null && !$actualProject->getId()->equals($project->getId())) {
+            throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
+        }
 
-            if (!$workPackage || $workPackage->getDeletedAt() !== null) {
+        return $this->projectWriteLock->run($actualProject, function () use ($dto, $workPackage, $actualProject): PackageTask {
+            $this->entityManager->refresh($workPackage, LockMode::PESSIMISTIC_WRITE);
+            if ($workPackage->getDeletedAt() !== null) {
                 throw new \InvalidArgumentException('Work package not found.');
             }
-            $actualProject = $workPackage->getProject();
-            if ($actualProject === null || $actualProject->getDeletedAt() !== null) {
+            if ($actualProject->getDeletedAt() !== null) {
                 throw new \InvalidArgumentException('Project not found.');
             }
-            if ($project !== null && !$actualProject->getId()->equals($project->getId())) {
+            if ($workPackage->getProject() === null || !$workPackage->getProject()->getId()->equals($actualProject->getId())) {
                 throw new \InvalidArgumentException('Werkpakket hoort niet bij dit project.');
             }
             if (!$this->authorization->isGranted(ProjectVoter::EDIT, $actualProject)
@@ -56,6 +62,7 @@ class PackageTaskCrudService
             ) {
                 throw new AccessDeniedException('Je mag geen taken aanmaken binnen dit werkpakket.');
             }
+            ProjectLifecycle::assertTaskChangesAllowed($actualProject);
 
             $validated = $this->validator->validateCreation($dto, $workPackage);
 

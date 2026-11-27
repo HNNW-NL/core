@@ -6,6 +6,8 @@ use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use App\Module\Main\DTO\WorkPackageTaskEnrollmentResult;
 use App\Module\Main\DTO\WorkPackageTaskEnrollmentStatus;
+use App\Module\Org\Service\ProjectLifecycle;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectParticipantRepository;
@@ -28,11 +30,23 @@ final readonly class WorkPackageTaskEnrollmentService
         private PackageTaskRepository $packageTaskRepository,
         private ProjectParticipantRepository $projectParticipantRepository,
         private StatusRepository $statusRepository,
+        private ProjectWriteLock $projectWriteLock,
     ) {
     }
 
     public function enroll(Project $project, Ulid|string $taskId, Profile $profile): WorkPackageTaskEnrollmentResult
     {
+        return $this->projectWriteLock->run($project, fn (): WorkPackageTaskEnrollmentResult => $this->enrollInLockedProject($project, $taskId, $profile));
+    }
+
+    private function enrollInLockedProject(Project $project, Ulid|string $taskId, Profile $profile): WorkPackageTaskEnrollmentResult
+    {
+        if (!ProjectLifecycle::allowsTaskChanges($project)) {
+            return new WorkPackageTaskEnrollmentResult(
+                WorkPackageTaskEnrollmentStatus::ProjectClosed,
+                'Dit project staat geen taakinschrijvingen meer toe.',
+            );
+        }
         if (!$this->projectParticipantRepository->isActiveParticipant($project, $profile)) {
             return new WorkPackageTaskEnrollmentResult(
                 WorkPackageTaskEnrollmentStatus::NotParticipant,
@@ -40,7 +54,7 @@ final readonly class WorkPackageTaskEnrollmentService
             );
         }
 
-        $packageTask = $this->packageTaskRepository->findOneForProject($taskId, $project);
+        $packageTask = $this->packageTaskRepository->findOneForProject($taskId, $project, true);
 
         if ($packageTask === null) {
             return new WorkPackageTaskEnrollmentResult(
