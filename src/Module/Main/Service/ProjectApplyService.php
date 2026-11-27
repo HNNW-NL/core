@@ -5,6 +5,7 @@ namespace App\Module\Main\Service;
 use Doctrine\DBAL\LockMode;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
+use App\Service\Project\ProjectPublicationPolicy;
 use App\Entity\Project\ProjectApplication;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Module\Main\DTO\ProjectApplyDto;
@@ -28,20 +29,16 @@ final readonly class ProjectApplyService
     public function isOpen(Project $project): bool
     {
         if (
-            $project->getVisibility() !== 'public'
-            || $project->getPublishedAt() === null
-            || $project->getDeletedAt() !== null
+            !ProjectPublicationPolicy::isPublic($project)
             || !in_array(
-                strtolower((string) $project->getStatus()?->getName()),
-                ['active', 'published'],
+                strtolower(trim((string) $project->getStatus()?->getName())),
+                ProjectPublicationPolicy::APPLICATION_STATUSES,
                 true,
             )
             || (
                 $project->getEndDate() !== null
                 && $project->getEndDate() < new \DateTimeImmutable('today')
             )
-            || $project->getOwnerOrganisation() === null
-            || $project->getOwnerOrganisation()->getDeletedAt() !== null
         ) {
             return false;
         }

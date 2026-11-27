@@ -4,7 +4,7 @@ namespace App\Repository\Project;
 
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
-use App\Entity\Project\ProjectParticipant;
+use App\Service\Project\ProjectPublicationPolicy;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -32,56 +32,11 @@ class ProjectRepository extends ServiceEntityRepository
 
     public function findOnePublicBySlug(string $slug): ?Project
     {
-        return $this->createQueryBuilder('project')
-            ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
-            ->innerJoin('project.status', 'status')
-            ->andWhere('LOWER(status.name) <> :archivedStatus')
-            ->setParameter('archivedStatus', 'archived')
+        return $this->createPublicVisibilityQueryBuilder()
             ->andWhere('project.slug = :slug')
-            ->andWhere('project.deletedAt IS NULL')
-            ->andWhere('ownerOrganisation.deletedAt IS NULL')
-            ->andWhere('project.publishedAt IS NOT NULL')
-            ->andWhere('project.visibility IN (:visibilities)')
             ->setParameter('slug', $slug)
-            ->setParameter('visibilities', ['public'])
             ->getQuery()
             ->getOneOrNullResult();
-    }
-
-    public function canAcceptApplications(Project $project): bool
-    {
-        $now = new \DateTimeImmutable();
-        $status = $project->getStatus();
-
-        if (
-            strtolower(trim((string) $status?->getName())) !== 'published'
-            || $status?->getScope() !== 'project'
-            || $project->getPublishedAt() === null
-            || $project->getDeletedAt() !== null
-            || !in_array($project->getVisibility(), ['public', 'unlisted'], true)
-            || $project->getStartDate() > $now
-            || ($project->getEndDate() !== null && $project->getEndDate() < $now)
-        ) {
-            return false;
-        }
-
-        $capacity = $project->getCapacity();
-        if ($capacity === null) {
-            return true;
-        }
-
-        $activeParticipants = (int) $this->getEntityManager()
-            ->createQueryBuilder()
-            ->select('COUNT(participant.id)')
-            ->from(ProjectParticipant::class, 'participant')
-            ->andWhere('participant.project = :project')
-            ->andWhere('participant.joinedAt IS NOT NULL')
-            ->andWhere('participant.leftAt IS NULL')
-            ->setParameter('project', $project)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return $activeParticipants < $capacity;
     }
 
     public function findOneUnpublishedBySlug(string $slug): ?Project
@@ -89,7 +44,13 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('project')
             ->andWhere('project.slug = :slug')
             ->andWhere('project.deletedAt IS NULL')
-            ->andWhere('project.publishedAt IS NULL')
+            ->innerJoin('project.status', 'status')
+            ->andWhere(
+                '(project.publishedAt IS NULL OR LOWER(TRIM(status.name)) = :draftStatus)'
+            )
+            ->andWhere('LOWER(TRIM(status.name)) <> :archivedStatus')
+            ->setParameter('draftStatus', 'draft')
+            ->setParameter('archivedStatus', 'archived')
             ->setParameter('slug', $slug)
             ->getQuery()
             ->getOneOrNullResult();
@@ -225,6 +186,24 @@ class ProjectRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    private function createPublicVisibilityQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('project')
+            ->innerJoin('project.status', 'status')
+            ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
+            ->andWhere('LOWER(TRIM(status.name)) NOT IN (:nonPublicStatuses)')
+            ->andWhere("TRIM(status.name) <> ''")
+            ->andWhere('project.publishedAt IS NOT NULL')
+            ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('ownerOrganisation.deletedAt IS NULL')
+            ->andWhere('project.visibility = :visibility')
+            ->setParameter(
+                'nonPublicStatuses',
+                ProjectPublicationPolicy::NON_PUBLIC_STATUSES,
+            )
+            ->setParameter('visibility', 'public');
+    }
+
     private function createPublicProjectsQueryBuilder(
         string $search = '',
         bool $onlyAcceptingApplications = false,
@@ -239,7 +218,7 @@ class ProjectRepository extends ServiceEntityRepository
                     AND ' . $participantAlias . '.leftAt IS NULL
             )';
 
-        $queryBuilder = $this->createQueryBuilder('project')
+        $queryBuilder = $this->createPublicVisibilityQueryBuilder()
             ->select(
                 'project.slug AS slug',
                 'project.title AS title',
@@ -248,26 +227,21 @@ class ProjectRepository extends ServiceEntityRepository
                 'ownerOrganisation.location AS location',
                 'status.name AS projectStatus',
                 'project.remotePossible AS remotePossible'
-            )
-            ->innerJoin('project.status', 'status')
-            ->andWhere('LOWER(status.name) <> :archivedStatus')
-            ->setParameter('archivedStatus', 'archived')
-            ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
-            ->andWhere('project.publishedAt IS NOT NULL')
-            ->andWhere('project.deletedAt IS NULL')
-            ->andWhere('ownerOrganisation.deletedAt IS NULL')
-            ->andWhere('project.visibility = :visibility')
-            ->setParameter('visibility', 'public');
+            );
 
         if ($includeAvailability || $onlyAcceptingApplications) {
             $queryBuilder->setParameter(
                 'applicationDate',
                 new \DateTimeImmutable('today')
             );
+            $queryBuilder->setParameter(
+                'applicationStatuses',
+                ProjectPublicationPolicy::APPLICATION_STATUSES,
+            );
         }
 
         $availabilityConditions =
-            "(LOWER(status.name) IN ('active', 'published')"
+            "(LOWER(TRIM(status.name)) IN (:applicationStatuses)"
             . " AND (project.endDate IS NULL OR project.endDate >= :applicationDate))";
 
         if ($includeAvailability) {
@@ -324,21 +298,12 @@ class ProjectRepository extends ServiceEntityRepository
         }
 
         $slugs = array_column($projects, 'slug');
-        $skillRows = $this->createQueryBuilder('project')
+        $skillRows = $this->createPublicVisibilityQueryBuilder()
             ->select('project.slug AS slug', 'skill.name AS skillName')
             ->innerJoin('project.skills', 'projectSkill')
             ->innerJoin('projectSkill.skill', 'skill')
-            ->innerJoin('project.status', 'status')
-            ->andWhere('LOWER(status.name) <> :archivedStatus')
-            ->setParameter('archivedStatus', 'archived')
-            ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
             ->andWhere('project.slug IN (:slugs)')
-            ->andWhere('project.publishedAt IS NOT NULL')
-            ->andWhere('project.deletedAt IS NULL')
-            ->andWhere('ownerOrganisation.deletedAt IS NULL')
-            ->andWhere('project.visibility = :visibility')
             ->setParameter('slugs', $slugs)
-            ->setParameter('visibility', 'public')
             ->orderBy('skill.name', 'ASC')
             ->getQuery()
             ->getScalarResult();
