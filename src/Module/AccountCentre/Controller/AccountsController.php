@@ -582,7 +582,7 @@ final class AccountsController extends AbstractController
                 $errors['last_name'] = 'Achternaam moet ingevuld zijn en mag maximaal 50 tekens bevatten.';
             }
 
-            if ($displayName !== null && mb_strlen($displayName) > 50) {
+            if (empty($displayName) || mb_strlen($displayName) > 50) {
                 $errors['display_name'] = 'Display name mag maximaal 50 tekens bevatten.';
             }
 
