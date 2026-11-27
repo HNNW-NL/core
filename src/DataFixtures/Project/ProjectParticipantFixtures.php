@@ -24,6 +24,7 @@ class ProjectParticipantFixtures extends Fixture implements DependentFixtureInte
         $projectParticipant->setProject($this->getReference(ProjectFixtures::TEST_PROJECT_REFERENCE, Project::class));
         $projectParticipant->setRole($this->getReference(ProjectRoleFixtures::TEST_PROJECT_ROLE, ProjectRole::class));
         $projectParticipant->setStatus($this->getReference(StatusFixtures::TEST_DEFAULT_PROJECT_PARTICIPANTS_STATUS_REFERENCE, Status::class));
+        $projectParticipant->join();
         $manager->persist($projectParticipant);
 
         $manager->flush();

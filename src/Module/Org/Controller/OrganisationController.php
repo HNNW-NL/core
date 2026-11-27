@@ -4,6 +4,7 @@ namespace App\Module\Org\Controller;
 
 use App\Entity\Project\Project;
 use App\Entity\Account\Account;
+use App\Module\Org\Service\StaffViewService;
 use App\Entity\Org\Organisation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -158,10 +159,21 @@ public function index(Request $request): Response
     }
 
     #[Route('/staff/{id}', name: 'viewStaff', methods: ['GET'])]
-    public function viewStaff(string $id): Response
-    {
+    public function viewStaff(
+        string $id,
+        StaffViewService $staffViewService,
+    ): Response {
+        $data = $staffViewService->getStaffMember($id);
+
+        if ($data === null) {
+            throw $this->createNotFoundException(
+                'Medewerker niet gevonden.'
+            );
+        }
+
         return $this->render('pages/org/staff/view.html.twig', [
             'id' => $id,
+            ...$data,
         ]);
     }
 

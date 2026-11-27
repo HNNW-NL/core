@@ -10,6 +10,7 @@ use App\Security\Permission;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Uid\Ulid;
 
@@ -18,6 +19,7 @@ final class StaffManagementService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly RequestStack $requestStack,
+        private readonly Security $security,
     ) {
     }
 
@@ -71,15 +73,12 @@ final class StaffManagementService
         $member->setOrgRole($role);
 
         $this->entityManager->persist($member);
-        $this->entityManager->flush();
 
         return $member;
     }
 
     public function changeRole(string $memberId, string $roleId): OrgMember
     {
-        $organisation = $this->getCurrentOrganisation();
-
         return $this->manage(
             [Permission::ORG_MANAGE_ROLES],
             fn (Organisation $organisation, int $mask): OrgMember => $this->updateRole($organisation, $memberId, $roleId, $mask),
@@ -118,14 +117,12 @@ final class StaffManagementService
 
         $this->requireManagementContinuity($organisation, $member, $role);
         $member->setOrgRole($role);
-        $this->entityManager->flush();
 
         return $member;
     }
 
     public function removeMember(string $memberId): void
     {
-        $organisation = $this->getCurrentOrganisation();
         $this->manage(
             [Permission::ORG_MANAGE_MEMBERS],
             fn (Organisation $organisation) => $this->remove($organisation, $memberId),
@@ -141,7 +138,6 @@ final class StaffManagementService
 
         $this->requireManagementContinuity($organisation, $member, null);
         $this->entityManager->remove($member);
-        $this->entityManager->flush();
     }
 
     /** @param list<Permission> $requiredPermissions */
@@ -157,8 +153,13 @@ final class StaffManagementService
         try {
             return $this->entityManager->wrapInTransaction(function () use ($account, $request, $organisationId, $requiredPermissions, $operation): mixed {
                 $organisation = $this->entityManager->find(Organisation::class, Ulid::fromString($organisationId), LockMode::PESSIMISTIC_WRITE);
-                if (!$organisation instanceof Organisation) {
-                    throw new \RuntimeException('Geen toegang tot deze organisatie.');
+                if (
+                    !$organisation instanceof Organisation
+                    || $organisation->getDeletedAt() !== null
+                ) {
+                    throw new \RuntimeException(
+                        'Geen toegang tot deze organisatie.'
+                    );
                 }
 
                 $mask = $this->getAccountMask($account, $organisation);
@@ -234,58 +235,15 @@ final class StaffManagementService
 
     private function getCurrentAccount(): Account
     {
-        $request = $this->requestStack->getCurrentRequest();
-
-        if ($request === null || !$request->hasPreviousSession()) {
-            throw new \RuntimeException(
-                'Je moet ingelogd zijn om staff te beheren.'
-            );
-        }
-
-        $accountId = $request->getSession()->get('account_id');
-
-        if (!is_string($accountId) || !Ulid::isValid($accountId)) {
-            throw new \RuntimeException(
-                'Je moet ingelogd zijn om staff te beheren.'
-            );
-        }
-
-        $account = $this->entityManager->find(
-            Account::class,
-            Ulid::fromString($accountId)
-        );
+        $account = $this->security->getUser();
 
         if (!$account instanceof Account) {
             throw new \RuntimeException(
-                'Het ingelogde account bestaat niet meer.'
+                'Je moet ingelogd zijn om staff te beheren.'
             );
         }
 
         return $account;
-    }
-
-    private function getCurrentOrganisation(): Organisation
-    {
-        $account = $this->getCurrentAccount();
-
-        $memberships = $account->getOrgMemberships();
-
-        if ($memberships->isEmpty()) {
-            throw new \RuntimeException(
-                'Je bent geen lid van een organisatie.'
-            );
-        }
-
-        $membership = $memberships->first();
-        $organisation = $membership->getOrganisation();
-
-        if (!$organisation instanceof Organisation) {
-            throw new \RuntimeException(
-                'De organisatie kon niet worden bepaald.'
-            );
-        }
-
-        return $organisation;
     }
 
     private function findRoleForOrganisation(

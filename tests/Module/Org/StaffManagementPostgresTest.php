@@ -23,6 +23,8 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Uid\Ulid;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -203,7 +205,14 @@ final class StaffManagementPostgresTest extends TestCase
         $db->executeQuery("SELECT set_config('application_name', ?, false)", [$schema]);
         $db->executeStatement("SET lock_timeout TO '12s'");
         try {
-            $service = new StaffManagementService($em, self::session($actorId, $organisationId));
+            $account = $em->find(Account::class, Ulid::fromString($actorId));
+            $security = new class($account) extends Security {
+                public function __construct(private Account $account) {}
+                public function getUser(): ?Account {
+                    return $this->account;
+                }
+            };
+            $service = new StaffManagementService($em, self::session($actorId, $organisationId), $security);
             if ($roleId === null) {
                 $service->removeMember($memberId);
             } else {
@@ -249,10 +258,20 @@ final class StaffManagementPostgresTest extends TestCase
         return $stack;
     }
 
+    private function securityForActor(): Security
+    {
+        $security = $this->createStub(Security::class);
+        $security->method('getUser')->willReturn($this->actor);
+
+        return $security;
+    }
+
     private function service(): StaffManagementService
     {
         return new StaffManagementService(
-            $this->em, self::session((string) $this->actor->getId(), (string) $this->organisation->getId()),
+            $this->em,
+            self::session((string) $this->actor->getId(), (string) $this->organisation->getId()),
+            $this->securityForActor(),
         );
     }
 

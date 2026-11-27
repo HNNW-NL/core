@@ -2,43 +2,43 @@
 
 namespace App\Module\Main\Service;
 
+use Doctrine\DBAL\LockMode;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
-use App\Entity\Project\ProjectParticipant;
+use App\Repository\Project\ProjectParticipantRepository;
 use App\Module\Main\DTO\ProjectApplyDto;
 use App\Module\Main\DTO\ProjectApplyResult;
 use App\Module\Main\DTO\ProjectApplyStatus;
 use App\Repository\Common\StatusRepository;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
-use Throwable;
 
 final readonly class ProjectApplyService
 {
-    // zo heet de status in StatusFixtures, als het goed is is dit de status van een nieuwe aanmelding
     private const string SEND_STATUS_SCOPE = 'ProjectApplication';
     private const string SEND_STATUS_NAME = 'send';
 
     public function __construct(
         private EntityManagerInterface $entityManager,
         private StatusRepository $statusRepository,
-        private ManagerRegistry $managerRegistry,
+        private ProjectParticipantRepository $projectParticipantRepository,
     ) {
     }
 
-    // geeft een fout terug als dit profiel zich niet mag aanmelden, en null als het wel mag
     public function check(Project $project, Profile $profile): ?ProjectApplyResult
     {
-        if ($project->getVisibility() === 'private') {
+        if (
+            $project->getVisibility() !== 'public'
+            || $project->getPublishedAt() === null
+            || $project->getDeletedAt() !== null
+        ) {
             return new ProjectApplyResult(
                 ProjectApplyStatus::NotOpen,
                 'Dit project neemt geen aanmeldingen aan.',
             );
         }
 
-        if ($this->isParticipant($project, $profile)) {
+        if ($this->projectParticipantRepository->isActiveParticipant($project, $profile)) {
             return new ProjectApplyResult(
                 ProjectApplyStatus::AlreadyParticipant,
                 'Je doet al mee aan dit project.',
@@ -58,19 +58,38 @@ final readonly class ProjectApplyService
         return null;
     }
 
-    /**
-     * @throws UniqueConstraintViolationException
-     * @throws Throwable
-     */
-    public function apply(Project $project, Profile $profile, ProjectApplyDto $dto): ProjectApplyResult
-    {
+    public function apply(
+        Project $project,
+        Profile $profile,
+        ProjectApplyDto $dto
+    ): ProjectApplyResult {
+        return $this->entityManager->wrapInTransaction(
+            function () use ($project, $profile, $dto): ProjectApplyResult {
+                $this->entityManager->refresh(
+                    $project,
+                    LockMode::PESSIMISTIC_WRITE
+                );
+
+                return $this->doApply($project, $profile, $dto);
+            }
+        );
+    }
+
+    private function doApply(
+        Project $project,
+        Profile $profile,
+        ProjectApplyDto $dto
+    ): ProjectApplyResult {
         $error = $this->check($project, $profile);
 
         if ($error !== null) {
             return $error;
         }
 
-        $status = $this->statusRepository->findOneByScopeAndName(self::SEND_STATUS_SCOPE, self::SEND_STATUS_NAME);
+        $status = $this->statusRepository->findOneByScopeAndName(
+            self::SEND_STATUS_SCOPE,
+            self::SEND_STATUS_NAME
+        );
 
         if ($status === null) {
             return new ProjectApplyResult(
@@ -79,13 +98,13 @@ final readonly class ProjectApplyService
             );
         }
 
-        // de database staat maar 1 aanmelding per project en profiel toe (ook geannuleerd), dus een oude zet ik terug
         $application = $this->findApplication($project, $profile);
 
         if ($application === null) {
             $application = new ProjectApplication();
             $application->setProject($project);
             $application->setProfile($profile);
+
             $this->entityManager->persist($application);
         } else {
             $application->restore();
@@ -97,33 +116,6 @@ final readonly class ProjectApplyService
         $application->setStatus($status);
         $application->setMotivation(trim((string) $dto->motivation));
 
-        // bij een dubbele klik kan de tweede tegen de unique regel botsen, dat is dan gewoon al aangemeld
-        try {
-            $this->entityManager->flush();
-        } catch (Throwable $exception) {
-            if (!$exception instanceof UniqueConstraintViolationException) {
-                throw $exception;
-            }
-
-            $entityManager = $this->managerRegistry->resetManager();
-
-            $existingApplication = $entityManager
-                ->getRepository(ProjectApplication::class)
-                ->findOneBy([
-                    'project' => $project,
-                    'profile' => $profile,
-                ]);
-
-            if ($existingApplication !== null) {
-                return new ProjectApplyResult(
-                    ProjectApplyStatus::AlreadyApplied,
-                    'Je hebt al een aanmelding voor dit project.',
-                );
-            }
-
-            throw $exception;
-        }
-
         return new ProjectApplyResult(
             ProjectApplyStatus::Success,
             'Je aanmelding is verstuurd.',
@@ -131,24 +123,20 @@ final readonly class ProjectApplyService
         );
     }
 
-    // findActiveParticipant in ProjectParticipantRepository is nog leeg (team 4), dus zelf gezocht: leftAt leeg = doet nog mee
-    private function isParticipant(Project $project, Profile $profile): bool
-    {
-        $participant = $this->entityManager->getRepository(ProjectParticipant::class)->findOneBy([
-            'project' => $project,
-            'profile' => $profile,
-            'leftAt' => null,
-        ]);
-
-        return $participant !== null;
-    }
-
     // zoekt ook geannuleerde aanmeldingen, daarom geen check op deletedAt
-    private function findApplication(Project $project, Profile $profile): ?ProjectApplication
-    {
-        return $this->entityManager->getRepository(ProjectApplication::class)->findOneBy([
-            'project' => $project,
-            'profile' => $profile,
-        ]);
+    private function findApplication(
+        Project $project,
+        Profile $profile
+    ): ?ProjectApplication {
+        return $this->entityManager->createQueryBuilder()
+            ->select('application')
+            ->from(ProjectApplication::class, 'application')
+            ->where('application.project = :project')
+            ->andWhere('application.profile = :profile')
+            ->setParameter('project', $project->getId(), 'ulid')
+            ->setParameter('profile', $profile->getId(), 'ulid')
+            ->getQuery()
+            ->setHint(\Doctrine\ORM\Query::HINT_REFRESH, true)
+            ->getOneOrNullResult();
     }
 }

@@ -2,11 +2,6 @@
 
 namespace App\Module\Main\Controller;
 
-use App\Form\Main\ProjectApplyType;
-use App\Module\Main\DTO\ProjectApplyDto;
-use App\Module\Main\DTO\ProjectApplyResult;
-use App\Module\Main\DTO\ProjectApplyStatus;
-use App\Module\Main\Handler\ProjectApplyHandler;
 use App\Entity\Project\Project;
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
@@ -19,6 +14,11 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Form\Main\ProjectApplyType;
+use App\Module\Main\DTO\ProjectApplyDto;
+use App\Module\Main\DTO\ProjectApplyResult;
+use App\Module\Main\DTO\ProjectApplyStatus;
+use App\Module\Main\Handler\ProjectApplyHandler;
 
 #[Route('/projects', name: 'main.projects.')]
 final class ProjectsController extends AbstractController
@@ -63,23 +63,36 @@ final class ProjectsController extends AbstractController
         CurrentProfileProvider $currentProfileProvider,
         ProjectApplyHandler $projectApplyHandler,
     ): Response {
-        $project = $this->getProjectAndCheckViewAccess($slug, $projectRepository, true);
+        $project = $this->getProjectAndCheckViewAccess(
+            $slug,
+            $projectRepository,
+            true
+        );
 
         if ($this->getUser() === null) {
-            $this->addFlash('error', 'Je moet ingelogd zijn om je aan te melden voor een project.');
+            $this->addFlash(
+                'error',
+                'Je moet ingelogd zijn om je aan te melden voor een project.'
+            );
 
-            return $this->redirectToRoute('auth.login', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute(
+                'auth.login',
+                [],
+                Response::HTTP_SEE_OTHER
+            );
         }
 
         $profile = $currentProfileProvider->getProfile();
 
-        // ingelogd maar nog geen profiel, dan laat de pagina dat zien in plaats van het formulier
         if ($profile === null) {
             return $this->render('pages/main/projects/apply.html.twig', [
                 'slug' => $slug,
                 'project' => $project,
                 'form' => null,
-                'blocked' => new ProjectApplyResult(ProjectApplyStatus::NoProfile, 'Je hebt een profiel nodig om je aan te melden.'),
+                'blocked' => new ProjectApplyResult(
+                    ProjectApplyStatus::NoProfile,
+                    'Je hebt een profiel nodig om je aan te melden.'
+                ),
             ]);
         }
 
@@ -88,12 +101,22 @@ final class ProjectsController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $result = $projectApplyHandler->handle($project, $profile, $dto);
+            $result = $projectApplyHandler->handle(
+                $project,
+                $profile,
+                $dto
+            );
 
-            // terug naar deze pagina, daar zie je de melding en staat dat je al aangemeld bent
-            $this->addFlash($result->isSuccessful() ? 'success' : 'warning', $result->message);
+            $this->addFlash(
+                $result->isSuccessful() ? 'success' : 'warning',
+                $result->message
+            );
 
-            return $this->redirectToRoute('main.projects.apply', ['slug' => $slug], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute(
+                'main.projects.apply',
+                ['slug' => $slug],
+                Response::HTTP_SEE_OTHER
+            );
         }
 
         return $this->render('pages/main/projects/apply.html.twig', [

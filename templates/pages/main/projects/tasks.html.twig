@@ -7,6 +7,7 @@
 {% block seoAuthor %}HNNW{% endblock %}
     
 {% block body %}
+    {% include "core/main/_project_navigation.html.twig" %}
     {% set workPackageOverviews = hnnw_work_package_overviews(slug) %}
     {% set currentProfile = hnnw_current_profile() %}
 
@@ -56,10 +57,10 @@
                             {% endif %}
                         {% elseif currentProfile %}
                             <form method="post"
-                             action="{{ path('main.projects.workPackages.enrollTask', {
-                              slug: slug,
-                             taskId: packageTask.id.toRfc4122()
-                             }) }}">
+                                  action="{{ path('main.projects.workPackages.enrollTask', {
+                                      slug: slug,
+                                      taskId: packageTask.id.toRfc4122()
+                                  }) }}">
 
                                 <input type="hidden"
                                        name="_token"

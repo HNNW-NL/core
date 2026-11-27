@@ -22,6 +22,7 @@ use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -43,6 +44,7 @@ final class StaffManagementServiceTest extends TestCase
     private OrgRole $privilegedRole;
     private array $members;
     private RequestStack $stack;
+    private Security $security;
 
     protected function setUp(): void
     {
@@ -87,7 +89,9 @@ final class StaffManagementServiceTest extends TestCase
 
             return null;
         });
-        $this->service = new StaffManagementService($this->em, $this->stack);
+        $this->security = $this->createStub(Security::class);
+        $this->security->method('getUser')->willReturn($this->actor->getAccount());
+        $this->service = new StaffManagementService($this->em, $this->stack, $this->security);
     }
 
     public function testAddsAccountWithOrganisationRole(): void
@@ -194,7 +198,7 @@ final class StaffManagementServiceTest extends TestCase
             [OrgRole::class, null, $roles],
         ]);
 
-        $view = new StaffViewService($registry, $this->stack);
+        $view = new StaffViewService($registry, $this->stack, $this->security);
         $request = $this->stack->getCurrentRequest();
         $query = $request->query;
         $query->remove('organisation_id');
@@ -255,7 +259,7 @@ final class StaffManagementServiceTest extends TestCase
         $em->expects(self::once())->method('flush')->willThrowException($failure);
 
         try {
-            (new StaffManagementService($em, $this->stack))->addMember('staff-test@example.test', (string) $this->viewer->getId());
+            (new StaffManagementService($em, $this->stack, $this->security))->addMember('staff-test@example.test', (string) $this->viewer->getId());
             self::fail('Expected a validation error for the unique constraint violation.');
         } catch (\InvalidArgumentException $e) {
             self::assertSame($failure, $e->getPrevious());

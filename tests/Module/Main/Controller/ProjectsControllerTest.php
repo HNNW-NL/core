@@ -4,6 +4,7 @@ namespace App\Tests\Module\Main\Controller;
 
 use App\Entity\Account\Account;
 use App\Entity\Project\ProjectApplication;
+use App\Entity\Project\Project;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -116,8 +117,17 @@ class ProjectsControllerTest extends WebTestCase
         ]);
         $this->assertResponseRedirects('/projects/Test-Project/apply');
 
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $project = $entityManager->getRepository(Project::class)->findOneBy([
+            'slug' => 'Test-Project',
+        ]);
+
+        $this->assertNotNull($project);
+
         $application = $entityManager->getRepository(ProjectApplication::class)->findOneBy([
             'profile' => $account->getProfile(),
+            'project' => $project,
         ]);
         $this->assertNotNull($application);
         $this->assertSame('ik wil graag meedoen aan dit project', $application->getMotivation());

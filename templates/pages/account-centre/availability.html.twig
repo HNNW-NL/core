@@ -1,7 +1,15 @@
 {% extends 'layouts/ac.base.html.twig' %}
 
+{# Page title meta tag #}
 {% block title %}Mijn Beschikbaarheid{% endblock %}
 
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
 {% block body %}
     <div id="account-centre-container">
 
@@ -25,20 +33,34 @@
             {% endfor %}
         {% endfor %}
 
-        <form action="{{ path('account.availability') }}" method="POST" id="tidycal-schedule-form">
+        <form action="{{ path('account.availability') }}" method="POST" id="availability-schedule-form">
             <input type="hidden" name="_token" value="{{ csrf_token('account_availability') }}">
 
-            <input type="hidden" name="type" value="TidyCal Schema">
-            <input type="hidden" name="hours" id="calculated_hours" value="40">
-            <input type="hidden" name="start_date" value="{{ 'now'|date('Y-m-d') }}">
+            <div class="form-group">
+                <label for="availability-start-date">Geldig vanaf</label>
+                <input type="date"
+                       id="availability-start-date"
+                       name="start_date"
+                       value="{{ 'now'|date('Y-m-d') }}"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="availability-end-date">
+                    Geldig tot (optioneel)
+                </label>
+                <input type="date"
+                       id="availability-end-date"
+                       name="end_date">
+            </div>
 
             {# WEEKELIJKSE DIENSTREGELING CONTAINER #}
-            <div class="tidycal-container">
-                <div class="tidycal-header">
-                    <span class="tidycal-title">Beschikbaarheid:</span>
+            <div class="availability-container">
+                <div class="availability-header">
+                    <span class="availability-title">Beschikbaarheid:</span>
                 </div>
 
-                <div class="tidycal-days-list">
+                <div class="availability-days-list">
                     {% for key, day in defaultSchedule %}
                         <div class="day-row" data-day="{{ key }}">
 
@@ -79,36 +101,96 @@
         </form>
 
         {# HISTORIE OVERZICHT #}
-        <div class="tidycal-container history-container">
-            <div class="tidycal-header">
-                <span class="tidycal-title">Opgeslagen beschikbaarheidsschema's</span>
+        <div class="availability-container history-container">
+            <div class="availability-header">
+        <span class="availability-title">
+            Opgeslagen beschikbaarheid
+        </span>
             </div>
+
             <div class="table-container">
                 <table class="custom-table dark-table">
                     <thead>
                     <tr>
-                        <th>Actieve Dagen</th>
+                        <th>Dag</th>
+                        <th>Type</th>
+                        <th>Uren</th>
+                        <th>Geldig vanaf</th>
+                        <th>Geldig tot</th>
                         <th>Aangemaakt op</th>
                         <th class="text-right">Actie</th>
                     </tr>
                     </thead>
+
                     <tbody>
                     {% for availability in availabilities %}
                         <tr>
                             <td>
-                                <strong class="text-light">{{ availability.daysSummary }}</strong>
+                                <strong class="text-light">
+                                    {{ availability.daysSummary }}
+                                </strong>
                             </td>
-                            <td class="text-light">{{ availability.startDate|date('d-m-Y') }}</td>
+
+                            <td class="text-light">
+                                {% if availability.baseType == 'available' %}
+                                    Beschikbaar
+                                {% elseif availability.baseType == 'unavailable' %}
+                                    Niet beschikbaar
+                                {% elseif availability.baseType == 'preferred' %}
+                                    Voorkeursuren
+                                {% else %}
+                                    Onbekend
+                                {% endif %}
+                            </td>
+
+                            <td class="text-light">
+                                {{ availability.startTime is not null
+                                ? availability.startTime|date('H:i')
+                                : '—' }}
+                                -
+                                {{ availability.endTime is not null
+                                ? availability.endTime|date('H:i')
+                                : '—' }}
+                            </td>
+
+                            <td class="text-light">
+                                {{ availability.startDate|date('d-m-Y') }}
+                            </td>
+
+                            <td class="text-light">
+                                {{ availability.endDate
+                                ? availability.endDate|date('d-m-Y')
+                                : 'Onbepaald' }}
+                            </td>
+
+                            <td class="text-light">
+                                {{ availability.createdAt|date('d-m-Y') }}
+                            </td>
+
                             <td class="text-right">
-                                <form action="{{ path('account.availability_delete', {'id': availability.id}) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je dit schema wilt verwijderen?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_availability' ~ availability.id) }}">
-                                    <button type="submit" class="btn-card-cancel">Verwijderen</button>
+                                <form action="{{ path('account.availability_delete', {
+                                    id: availability.id
+                                }) }}" method="POST" data-controller="confirm" data-action="submit->confirm#submit" data-confirm-message-value="Weet je zeker dat je deze beschikbaarheid wilt verwijderen?">
+
+                                    <input type="hidden"
+                                           name="_token"
+                                           value="{{ csrf_token(
+                                               'delete_availability' ~ availability.id
+                                           ) }}">
+
+                                    <button type="submit"
+                                            class="btn-card-cancel">
+                                        Verwijderen
+                                    </button>
                                 </form>
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="3" class="text-center text-muted-dark">Nog geen schema's opgeslagen.</td>
+                            <td colspan="7"
+                                class="text-center text-muted-dark">
+                                Nog geen beschikbaarheid opgeslagen.
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
