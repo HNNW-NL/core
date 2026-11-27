@@ -533,6 +533,96 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSame(1, $data['publicProjectCount']);
     }
 
+    #[\PHPUnit\Framework\Attributes\TestWith(['send', 'ProjectApplication', false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['sent', 'ProjectApplication', false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['pending', 'ProjectApplication', false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['submitted', 'ProjectApplication', false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['ingediend', 'ProjectApplication', false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['PeNdInG', 'pRoJeCtApPlIcAtIoN', false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['accepted', 'ProjectApplication', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['rejected', 'ProjectApplication', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['pending', 'ProjectParticipant', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['send', 'ProjectApplication', true, false])]
+    public function testCompletionUsesAllCentralPendingStatuses(string $name, string $scope, bool $deleted, bool $blocked): void
+    {
+        $this->fixtureStatus('project', 'completed');
+        $this->project->setStatus($this->fixtureStatus('project', 'applications_closed'));
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['profile' => $this->outsider->getProfile()]);
+        $application->setStatus($this->fixtureStatus($scope, $name));
+        if ($deleted) { $application->softDelete(); }
+        $this->em->flush();
+        $lifecycle = static::getContainer()->get(\App\Module\Org\Service\ProjectLifecycle::class);
+        try {
+            $lifecycle->transition($this->project, 'completed');
+            self::assertFalse($blocked, 'An unreviewed application must block completion.');
+            $this->em->flush();
+            self::assertSame('completed', $this->project->getStatus()->getName());
+        } catch (\InvalidArgumentException $exception) {
+            self::assertTrue($blocked);
+            self::assertStringContainsString('Review all submitted applications', $exception->getMessage());
+            self::assertSame('applications_closed', $this->project->getStatus()->getName());
+        }
+    }
+
+    #[\PHPUnit\Framework\Attributes\TestWith([1, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith([2, true])]
+    public function testApplicationCapacityCountsPeopleAndIsRecheckedInsideTheTransaction(int $capacity, bool $available): void
+    {
+        $candidate = $this->account('capacity-applicant', true);
+        $candidate->verifyEmail();
+        $this->project->setCapacity($capacity);
+        $this->em->flush();
+        $repository = static::getContainer()->get(\App\Repository\Project\ProjectParticipantRepository::class);
+        self::assertSame(1, $repository->countActiveProfiles($this->project), 'Two active roles belong to one person; former members do not occupy a place.');
+        $service = static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class);
+        self::assertSame($available, $service->check($this->project, $candidate->getProfile()) === null);
+        if ($available) {
+            // The form was available, but another request fills the project before POST.
+            $late = (new ProjectParticipant())->setProject($this->project)->setProfile($this->outsider->getProfile())
+                ->setStatus($this->fixtureStatus('ProjectParticipant', 'active'));
+            $late->join();
+            $this->persist($late);
+            $this->em->flush();
+        }
+        try {
+            $service->submit($this->project, $candidate, $candidate->getProfile(), 'Een geldige motivatie bij een volledig bezet project.');
+            self::fail('A full project must reject a direct submission.');
+        } catch (\App\Module\Main\Exception\ProjectApplicationBlocked $exception) {
+            self::assertSame(\App\Module\Main\DTO\ProjectApplyStatus::NotOpen, $exception->result->status);
+            self::assertTrue($this->em->isOpen());
+        }
+        self::assertSame(0, $this->em->getRepository(ProjectApplication::class)->count(['profile' => $candidate->getProfile()]));
+    }
+
+    public function testFullCapacityCannotBeBypassedThroughTheApplyRouteOrAcceptance(): void
+    {
+        $candidate = $this->account('capacity-http', true);
+        $candidate->verifyEmail();
+        $this->em->flush();
+        $this->client->loginUser($candidate);
+        $path = '/projects/'.$this->project->getSlug().'/apply';
+        $page = $this->client->request('GET', $path);
+        self::assertResponseIsSuccessful();
+        $token = $page->filter('input[name="project_apply[_token]"]')->attr('value');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $project = $em->find(Project::class, $this->project->getId());
+        $project->setCapacity(1);
+        $em->flush();
+        $this->client->request('POST', $path, ['project_apply' => ['_token' => $token, 'motivation' => 'Een geldige motivatie bij het eerder geopende formulier.']]);
+        self::assertResponseRedirects($path, 303);
+        $this->client->followRedirect();
+        self::assertSelectorNotExists('form[name="project_apply"]');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        self::assertSame(0, $em->getRepository(ProjectApplication::class)->count(['profile' => $candidate->getProfile()]));
+        $project = $em->find(Project::class, $this->project->getId());
+        $application = $em->getRepository(ProjectApplication::class)->findOneBy(['project' => $project, 'profile' => $this->outsider->getProfile()]);
+        $result = static::getContainer()->get(\App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler::class)
+            ->acceptApplication($project, (string) $application->getId(), $em->find(Profile::class, $this->owner->getProfile()->getId()));
+        self::assertFalse($result['success']);
+        self::assertSame('send', $application->getStatus()->getName());
+        self::assertSame(0, $em->getRepository(ProjectParticipant::class)->count(['application' => $application]));
+    }
+
     public function testPublicProfileRespectsVisibilityAndDatabaseChanges(): void
     {
         $path = '/profile/'.$this->owner->getUsername();

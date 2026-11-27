@@ -59,6 +59,14 @@ class ProjectParticipantRepository extends ServiceEntityRepository
         return (int) $this->activeFor($project, $profile)->select('COUNT(pp.id)')->getQuery()->getSingleScalarResult() > 0;
     }
 
+    public function countActiveProfiles(Project $project): int
+    {
+        return (int) self::restrictToActive($this->createQueryBuilder('participant'), 'participant')
+            ->select('COUNT(DISTINCT participantProfile.id)')
+            ->andWhere('participant.project = :project')->setParameter('project', $project->getId(), 'ulid')
+            ->getQuery()->getSingleScalarResult();
+    }
+
     /**
      * OR06-A: alle (niet verwijderde) aanvragen van een project, nieuwste eerst.
      *

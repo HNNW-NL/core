@@ -113,7 +113,7 @@ final readonly class ProjectApplicationService
         if ($project->getOwnerAccount()?->getId() == $account->getId()) {
             return new ProjectApplyResult(ProjectApplyStatus::NotOpen, 'Je kunt je niet aanmelden voor je eigen project.');
         }
-        if (!ProjectVisibility::acceptsApplications($project)
+        if (!ProjectVisibility::acceptsApplications($project, $this->participants->countActiveProfiles($project))
             || ($project->getEndDate() !== null && $project->getEndDate() < new \DateTimeImmutable())) {
             return new ProjectApplyResult(ProjectApplyStatus::NotOpen, 'Dit project staat niet open voor aanmeldingen.');
         }

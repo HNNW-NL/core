@@ -7,6 +7,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\PackageTask;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Workflow\ProjectApplicationWorkflow;
 
 final class ProjectLifecycle
 {
@@ -57,11 +58,18 @@ final class ProjectLifecycle
             && in_array(strtolower((string) $project->getStatus()?->getName()), self::PUBLIC_STATUSES, true);
     }
 
-    public static function acceptsApplications(Project $project): bool
+    public static function acceptsApplications(Project $project, ?int $activeParticipants = null): bool
     {
         return self::hasValidProjectContext($project)
             && $project->getPublishedAt() !== null
-            && in_array(strtolower((string) $project->getStatus()?->getName()), self::OPEN_APPLICATION_STATUSES, true);
+            && in_array(strtolower((string) $project->getStatus()?->getName()), self::OPEN_APPLICATION_STATUSES, true)
+            && self::hasAvailableCapacity($project, $activeParticipants);
+    }
+
+    public static function hasAvailableCapacity(Project $project, ?int $activeParticipants): bool
+    {
+        return $project->getCapacity() === null
+            || ($activeParticipants !== null && $activeParticipants >= 0 && $activeParticipants < $project->getCapacity());
     }
 
     public static function allowsTaskChanges(Project $project): bool
@@ -157,9 +165,11 @@ final class ProjectLifecycle
             ->from(ProjectApplication::class, 'application')
             ->join('application.status', 'applicationStatus')
             ->where('application.project = :project AND application.deletedAt IS NULL')
+            ->andWhere('LOWER(applicationStatus.scope) = :applicationScope')
             ->andWhere('LOWER(applicationStatus.name) IN (:pending)')
             ->setParameter('project', $project->getId(), 'ulid')
-            ->setParameter('pending', ['send', 'submitted'])
+            ->setParameter('applicationScope', strtolower(ProjectApplicationWorkflow::APPLICATION_SCOPE))
+            ->setParameter('pending', ProjectApplicationWorkflow::PENDING_NAMES)
             ->getQuery()
             ->getSingleScalarResult();
         if ((int) $pendingApplications > 0) {

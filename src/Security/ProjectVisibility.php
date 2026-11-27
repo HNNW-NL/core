@@ -13,9 +13,9 @@ final class ProjectVisibility
         return ProjectLifecycle::isPubliclyVisible($project);
     }
 
-    public static function acceptsApplications(Project $project): bool
+    public static function acceptsApplications(Project $project, ?int $activeParticipants = null): bool
     {
-        return self::isPubliclyVisible($project) && ProjectLifecycle::acceptsApplications($project);
+        return self::isPubliclyVisible($project) && ProjectLifecycle::acceptsApplications($project, $activeParticipants);
     }
 
     public static function restrictQuery(QueryBuilder $query, string $alias): QueryBuilder

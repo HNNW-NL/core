@@ -72,7 +72,9 @@ $project = (new Project())->setOwnerAccount($owner)->setOwnerOrganisation($org)-
     ->setTitle('Aanvraagproject')->setSlug('race-project-'.$runId)->setVisibility('public')->setSummary('Test')
     ->setDescription('Test')->setCapacity(10)->setStartDate(new \DateTimeImmutable())->setEndDate(null);
 $project->publish();
-$accepting = $mode === 'accept-parent';
+$capacityRace = $mode === 'capacity-parent';
+$accepting = $mode === 'accept-parent' || $capacityRace;
+if ($capacityRace) { $project->setCapacity(1); }
 $ownerProfile = (new Profile())->setAccount($owner)->setFirstName('Reviewer')->setLastName('Test')->setAvatarUrl('');
 $owner->setProfile($ownerProfile);
 $accepted = $statuses->findOneBy(['scope' => 'ProjectApplication', 'name' => 'accepted']) ?? (new Status())->setScope('ProjectApplication')->setName('accepted')->setColourHex('#10b981');
@@ -89,11 +91,25 @@ $em->flush();
 $projectId = $project->getId();
 $accountId = $account->getId();
 $applicationId = null;
+$secondApplicationId = null;
 if ($accepting) {
     $application = (new ProjectApplication())->setProject($project)->setProfile($profile)->setStatus($pending);
     $em->persist($application);
     $em->flush();
     $applicationId = (string) $application->getId();
+    if ($capacityRace) {
+        $secondAccount = (new Account())->setUsername('race-second-'.$runId)->setEmail('race-second-'.$runId.'@example.test')->setPasswordHash('unused')->setStatus($active);
+        $secondProfile = (new Profile())->setAccount($secondAccount)->setFirstName('Second')->setLastName('Applicant')->setAvatarUrl('');
+        $secondAccount->setProfile($secondProfile);
+        foreach ([$secondAccount, $secondProfile] as $entity) {
+            $owned[] = [$entity::class, $entity->getId()];
+            $em->persist($entity);
+        }
+        $secondApplication = (new ProjectApplication())->setProject($project)->setProfile($secondProfile)->setStatus($pending);
+        $em->persist($secondApplication);
+        $em->flush();
+        $secondApplicationId = (string) $secondApplication->getId();
+    }
 }
 $workerMode = $accepting ? 'accept-worker' : 'worker';
 $workerAccountId = $accepting ? (string) $owner->getId() : (string) $accountId;
@@ -105,7 +121,7 @@ try {
     if (!$first->waitUntil(static fn ($type, $output) => str_contains($first->getOutput(), 'LOCKED'))) {
         throw new RuntimeException('Het eerste verzoek heeft de projectlock niet verkregen. '.$first->getErrorOutput());
     }
-    $second = new Symfony\Component\Process\Process([PHP_BINARY, __FILE__, $workerMode, 'normal', (string) $projectId, $workerAccountId, $applicationId ?? '', $barrier], dirname(__DIR__, 2));
+    $second = new Symfony\Component\Process\Process([PHP_BINARY, __FILE__, $workerMode, 'normal', (string) $projectId, $workerAccountId, $secondApplicationId ?? $applicationId ?? '', $barrier], dirname(__DIR__, 2));
     $second->start();
     $first->wait();
     $second->wait();
@@ -125,6 +141,13 @@ try {
             throw new RuntimeException('Concurrent acceptance did not preserve one atomic transition.');
         }
         echo "PASS: concurrent acceptance succeeds once; database contains one accepted application and one participant.\n";
+        if ($capacityRace) {
+            $secondApplication = $em->find(ProjectApplication::class, new Symfony\Component\Uid\Ulid($secondApplicationId));
+            if ($secondApplication->getStatus()->getName() !== 'send') {
+                throw new RuntimeException('The applicant exceeding capacity must remain pending.');
+            }
+            echo "PASS: last available slot is assigned once; other applicant remains pending.\n";
+        }
     } else {
         if (empty($one[1]) || $one[1] !== ($two[1] ?? null) || $count !== 1) {
             throw new RuntimeException('Concurrent submissions did not return the same unique application.');
