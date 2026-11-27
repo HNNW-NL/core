@@ -145,6 +145,20 @@ class ProjectApplyServiceTest extends KernelTestCase
         }
     }
 
+    public function testExpiredProjectIsClosedForApplications(): void
+    {
+        $project = $this->getProject();
+        $originalEndDate = $project->getEndDate();
+
+        try {
+            $project->setEndDate(new \DateTimeImmutable('yesterday'));
+            $this->assertFalse($this->service->isOpen($project));
+        } finally {
+            $project->setEndDate($originalEndDate);
+            $this->entityManager->flush();
+        }
+    }
+
     // check
 
     public function testWhenProfileHasNotAppliedCheckShouldGiveNull(): void

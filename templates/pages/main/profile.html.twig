@@ -1,539 +1,226 @@
 {% extends 'layouts/main.base.html.twig' %}
 
-{# Page title meta tag #}
-{% block title %}{{ slug }}{% endblock %}
+{% block title %}Profiel{% endblock %}
 
-{# SEO #}
-{% block seoKeywords %}{% endblock %}
-{% block seoDescription %}{% endblock %}
-{% block seoAuthor %}HNNW{% endblock %}
-
-{# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset("assets/main/css/home.css") }}">
-    <link rel="stylesheet" href="{{ asset("assets/main/css/profile.css") }}">
+    <link rel="stylesheet" href="{{ asset('assets/main/css/profile.css') }}">
 {% endblock %}
 
-{# JavaScript #}
-{% block javascript %}{% endblock %}
-
-{# Page content #}
 {% block body %}
-    <div id="inner-main">
-        <article id="profile">
-            <section id="basic-info">
-                <figure id="p-cover">
-                    <img id="pc-img" src="{{ asset("assets/shared/img/placeholders/banner.svg") }}" alt="">
-                </figure>
+    {% set currentProfile = profile|default(null) %}
+    <div class="profile-page">
+        <header class="profile-header">
+            <div class="profile-avatar">
+                {% if currentProfile and currentProfile.avatarUrl %}
+                    <img id="preview" src="{{ currentProfile.avatarUrl }}" alt="Profielfoto">
+                    <span class="profile-avatar-placeholder" id="avatar-placeholder" aria-hidden="true" hidden>H</span>
+                {% else %}
+                    <img id="preview" alt="Profielfoto" hidden>
+                    <span class="profile-avatar-placeholder" id="avatar-placeholder" aria-hidden="true">H</span>
+                {% endif %}
 
-                <div id="p-image">
-                    <figure id="p-avatar">
-                        <img src="{{ asset("assets/shared/img/placeholders/profile.svg") }}" alt="">
-                    </figure>
-                    <a id="pi-icon" href="">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M14.826 19A3 3 0 0 1 12 21a3 3 0 0 1-2.825-2zM12 2a7 7 0 0 1 7 7v3.528a1 1 0 0 0 .106.447l1.717 3.433A1.1 1.1 0 0 1 19.838 18H4.162a1.1 1.1 0 0 1-.984-1.592l1.717-3.433A1 1 0 0 0 5 12.528V9a7 7 0 0 1 7-7"/></svg>
-                    </a>
-                </div>
-
-                <div id="p-info">
-                    <div id="pi-core">
-                        <div id="pc-info">
-                            <div id="pci-title">
-                                <div id="pci-name">
-                                    <div id="pcin-name">
-                                        <h1>Riley de Man</h1>
-                                    </div>
-                                    <figure id="pcin-verification">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="m8.38 12l2.41 2.42l4.83-4.84"/><path d="M10.75 2.45c.69-.59 1.82-.59 2.52 0l1.58 1.36c.3.26.86.47 1.26.47h1.7c1.06 0 1.93.87 1.93 1.93v1.7c0 .39.21.96.47 1.26l1.36 1.58c.59.69.59 1.82 0 2.52l-1.36 1.58c-.26.3-.47.86-.47 1.26v1.7c0 1.06-.87 1.93-1.93 1.93h-1.7c-.39 0-.96.21-1.26.47l-1.58 1.36c-.69.59-1.82.59-2.52 0l-1.58-1.36c-.3-.26-.86-.47-1.26-.47H6.18c-1.06 0-1.93-.87-1.93-1.93V16.1c0-.39-.21-.95-.46-1.25l-1.35-1.59c-.58-.69-.58-1.81 0-2.5l1.35-1.59c.25-.3.46-.86.46-1.25V6.2c0-1.06.87-1.93 1.93-1.93h1.73c.39 0 .96-.21 1.26-.47z"/></g></svg>
-                                    </figure>
-                                </div>
-                                <div id="pci-pronouns">
-                                    <p>He/Him</p>
-                                </div>
-                            </div>
-
-                            <p id="pci-headline">Software Engineer & Software  Developer | Software Engineer intern @ SCC-ICT | Product Owner & Lead Developer Het Nieuwe² Werken (HNNW) @ DIVD Academy</p>
-                            <p id="pci-location">Wassenaar, South Holland, Netherlands</p>
-                        </div>
-                        <div id="pc-companies">
-                            <div class="company">
-                                <figure class="comp-icon">
-                                    <img src="{{ asset("assets/shared/img/placeholders/organisation.svg") }}" alt="">
-                                </figure>
-                                <p>SCC-ICT</p>
-                            </div>
-                            <div class="company">
-                                <figure class="comp-icon">
-                                    <img src="{{ asset("assets/shared/img/placeholders/organisation.svg") }}" alt="">
-                                </figure>
-                                <p>Grafisch Lyceum Utrecht</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="pi-website">
-                        <a id="piw-link" href="https://rileydeman.com" target="_blank">
-                            <p>rileydeman.com</p>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6v2H5v12h12v-6zM13 3v2h4.586l-7.793 7.793l1.414 1.414L19 6.414V11h2V3z"/></svg>
-                        </a>
-                    </div>
-
-                    <div id="pi-stats">
-                        <p>Stats (e.g. <span>133</span> connections, <span>12</span> projects)</p>
-                    </div>
-
-                    <div id="pi-btns">
-                        <a href="#" id="pib-projects">
-                            <span>Bekijk projecten</span>
-                        </a>
-                    </div>
-                </div>
-            </section>
-
-            <section id="about" class="section">
-                <h2 id="a-title">Over</h2>
-                <p id="a-descr">
-                    I’m a software developer from the Netherlands with a strong interest in scalable web applications, backend systems, open-source software, and technical product development. Over the years, I’ve worked on personal, school, and collaborative projects that helped me grow from building simple websites into developing modern applications and contributing to larger real-world platforms.
-                    <br><br>
-                    In 2023, I started the Creative Software Development course at Grafisch Lyceum Utrecht, where I focus on web development, software engineering, and technical collaboration. Since then, I’ve continued improving my skills through practical projects involving architecture, backend development, product thinking, and technical decision-making within both independent and team-based environments.
-                    <br><br>
-                    Alongside development, I’ve become increasingly interested in software engineering concepts such as maintainability, scalability, system architecture, cybersecurity, and long-term product design. My current work includes collaborative public-sector and open-source projects where I contribute not only as a developer, but also in technical leadership and product-oriented roles.
+                <input
+                    class="profile-upload-input"
+                    id="upload"
+                    type="file"
+                    accept="image/*"
+                    aria-describedby="upload-feedback"
+                >
+                <label for="upload" class="upload-btn">Kies profielfoto</label>
+                <p class="profile-feedback" id="upload-feedback" role="status" aria-live="polite">
+                    Kies een afbeeldingsbestand.
                 </p>
-                <div id="top-skills">
-                    <figure id="ts-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.467 8.694l.246-.566a4.36 4.36 0 0 1 2.22-2.25l.759-.339a.53.53 0 0 0 0-.963l-.717-.319a4.37 4.37 0 0 1-2.251-2.326l-.253-.611a.506.506 0 0 0-.942 0l-.253.61a4.37 4.37 0 0 1-2.25 2.327l-.718.32a.53.53 0 0 0 0 .962l.76.338a4.36 4.36 0 0 1 2.219 2.251l.246.566c.18.414.753.414.934 0M5 6a1 1 0 0 0-.8.4l-3 4a1 1 0 0 0 .057 1.269l9 10a1 1 0 0 0 1.486 0l9-10l-1.486-1.338L11 19.505l-7.707-8.563L5.5 8H14V6z"/></svg>
-                    </figure>
-                    <div id="ts-content">
-                        <p id="ts-title">Top skills</p>
-                        <p>Product Management • Software Engineering • Software Development • Cybersecurity • Python (Programming Language)</p>
-                    </div>
-                </div>
-            </section>
+            </div>
 
-            <section id="experience" class="section">
-                <h2 id="e-title">Werkervaring</h2>
-
-                {% set experiences = [
-                    {
-                        company: 'SSC-ICT',
-                        logo: '',
-                        positions: [
-                        { title: 'Software Engineer', type: 'Internship', period: 'Sep 2026 - Present', location: 'The Hague, South Holland, Netherlands · Hybrid', description: '' }
-                    ]
-                    },
-                    {
-                        company: 'DIVD.WORKS',
-                        logo: '',
-                        positions: [
-                        { title: 'Software Engineer', type: 'Part-time', period: 'Jul 2026 - Present', location: 'Remote', description: '' }
-                    ]
-                    },
-                    {
-                        company: 'DIVD Academy',
-                        logo: '',
-                        duration: '10 mos',
-                        location: 'Hybrid',
-                        positions: [
-                        { title: 'Vocational Education Mentor (ICT)', type: 'Full-time', period: 'Apr 2026 - Present', location: 'Netherlands', description: '' },
-                        { title: 'Product Owner & Lead Developer Het Nieuwe² Werken (HNNW)', type: 'Full-time', period: 'Mar 2026 - Present', location: 'The Hague, South Holland, Netherlands', description: 'Product Owner and Lead Developer of the HNNW platform, coordinating development and technical decisions.' },
-                        { title: 'Cyber Security Trainee', type: 'Internship', period: 'Feb 2026 - Jul 2026', location: 'The Hague, South Holland, Netherlands', description: 'Cybersecurity training focused on web application security and practical security testing.' }
-                    ]
-                    },
-                    {
-                        company: 'Spellenwinkel.nl',
-                        logo: '',
-                        duration: '4 yrs 4 mos',
-                        location: 'Delft, South Holland, Netherlands · On-site',
-                        positions: [
-                        { title: 'TCG Employee', type: 'Part-time', period: 'Mar 2026 - Present', location: '', description: '' },
-                        { title: 'All-Round Logistics Employee - TCG Department', type: 'Part-time', period: 'Jul 2024 - Mar 2026', location: '', description: 'Collecting orders, replenishing inventory, packing parcels and handling trading card products.' },
-                        { title: 'All-Round Logistics Employee', type: 'Part-time', period: 'Sep 2023 - Jul 2024', location: '', description: '' },
-                        { title: 'Logistics Employee', type: 'Full-time', period: 'Jan 2023 - Aug 2023', location: '', description: '' },
-                        { title: 'Logistics Employee', type: 'Part-time', period: 'Aug 2022 - Dec 2022', location: '', description: '' }
-                    ]
-                    },
-                    {
-                        company: 'Blue-Lagoon',
-                        logo: '',
-                        positions: [
-                        { title: 'Intern Animal Care', type: 'Internship', period: 'Jan 2022 - Mar 2022', location: 'Maassluis, South Holland, Netherlands · On-site', description: 'Taking care of animals, filling shelves, assisting in the store and preparing packages for shipping.' }
-                    ]
-                    }
-                ] %}
-
-                <div id="e-list">
-                    {% for experience in experiences %}
-                        <article class="e-item">
-                            <figure class="ei-logo">
-                                {% if experience.logo %}
-                                    <img src="{{ experience.logo }}" alt="{{ experience.company }}">
-                                {% else %}
-                                    <span>{{ experience.company|slice(0, 1) }}</span>
-                                {% endif %}
-                            </figure>
-
-                            <div class="ei-content">
-                                {% if experience.positions|length > 1 %}
-                                    <div class="ei-company">
-                                        <h3>{{ experience.company }}</h3>
-                                        <p class="ei-muted">{{ experience.duration|default('') }}</p>
-                                        <p class="ei-muted">{{ experience.location|default('') }}</p>
-                                    </div>
-
-                                    <div class="ei-timeline">
-                                        {% for position in experience.positions %}
-                                            <div class="ei-position">
-                                                <h4>{{ position.title }}</h4>
-                                                <p>{{ position.type }}</p>
-                                                <p class="ei-muted">{{ position.period }}</p>
-                                                {% if position.location %}
-                                                    <p class="ei-muted">{{ position.location }}</p>
-                                                {% endif %}
-                                                {% if position.description %}
-                                                    <p class="ei-description">{{ position.description }}</p>
-                                                {% endif %}
-                                            </div>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    {% set position = experience.positions|first %}
-                                    <h3>{{ position.title }}</h3>
-                                    <p>{{ experience.company }} · {{ position.type }}</p>
-                                    <p class="ei-muted">{{ position.period }}</p>
-                                    <p class="ei-muted">{{ position.location }}</p>
-                                    {% if position.description %}
-                                        <p class="ei-description">{{ position.description }}</p>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </article>
-                    {% endfor %}
-                </div>
-
-                <a class="e-footer" href="#">
-                    <p>Alle werkervaring weergeven</p>
-                    <span aria-hidden="true">→</span>
-                </a>
-            </section>
-
-            <section id="education" class="section">
-                <h2 id="edu-title">Onderwijs</h2>
-
-                {% set educations = [
-                    {
-                        school: 'Grafisch Lyceum Utrecht',
-                        degree: 'MBO 4, Software Developer',
-                        period: 'Sep 2023 - Jul 2027',
-                        description: 'Creative Software Development - Web Development',
-                        skills: 'Cascading Style Sheets (CSS), MySQL, PHP en meer',
-                        logo: ''
-                    },
-                    {
-                        school: 'Aeres MBO Barneveld',
-                        degree: 'MBO 4, Bedrijfsleider Dierverzorging',
-                        period: 'Sep 2021 - Dec 2022',
-                        description: '',
-                        skills: 'Microsoft Excel en Microsoft Word',
-                        logo: ''
-                    }
-                ] %}
-
-                <div id="edu-list">
-                    {% for education in educations %}
-                        <article class="edu-item">
-                            <figure class="edui-logo">
-                                {% if education.logo %}
-                                    <img src="{{ education.logo }}" alt="{{ education.school }}">
-                                {% else %}
-                                    <span>{{ education.school|slice(0, 1) }}</span>
-                                {% endif %}
-                            </figure>
-
-                            <div class="edui-content">
-                                <h3>{{ education.school }}</h3>
-                                <p>{{ education.degree }}</p>
-                                <p class="edui-muted">{{ education.period }}</p>
-
-                                {% if education.description %}
-                                    <p class="edui-description">{{ education.description }}</p>
-                                {% endif %}
-
-                                {% if education.skills %}
-                                    <p class="edui-skills">
-                                        <strong>Vaardigheden:</strong> {{ education.skills }}
-                                    </p>
-                                {% endif %}
-                            </div>
-                        </article>
-                    {% endfor %}
-                </div>
-
-                <a class="edu-footer" href="#">
-                    <p>Alle opleidingen weergeven</p>
-                    <span aria-hidden="true">→</span>
-                </a>
-            </section>
-
-            <section id="licenses" class="section">
-                <h2 id="l-title">Licenties en certificeringen (3)</h2>
-
-                {% set certificates = [
-                    {
-                        title: 'Workshop Participation Certificate - Vocational Education Mentor',
-                        issuer: 'Samenwerkingsorganisatie Beroepsonderwijs Bedrijfsleven (SBB)',
-                        issued: 'Issued Jun 2026',
-                        credential: '',
-                        url: '',
-                        logo: ''
-                    },
-                    {
-                        title: 'Example Certificate',
-                        issuer: 'Issuing Organisation',
-                        issued: 'Issued 2026',
-                        credential: 'EXAMPLE-123',
-                        url: '',
-                        logo: ''
-                    },
-                    {
-                        title: 'Example Training Certificate',
-                        issuer: 'Training Provider',
-                        issued: 'Issued 2025',
-                        credential: '',
-                        url: '',
-                        logo: ''
-                    }
-                ] %}
-
-                <div id="l-list">
-                    {% for certificate in certificates %}
-                        <article class="l-item">
-                            <figure class="li-logo">
-                                {% if certificate.logo %}
-                                    <img src="{{ certificate.logo }}" alt="{{ certificate.issuer }}">
-                                {% else %}
-                                    <span>{{ certificate.issuer|slice(0, 1) }}</span>
-                                {% endif %}
-                            </figure>
-
-                            <div class="li-content">
-                                <h3>{{ certificate.title }}</h3>
-                                <p>{{ certificate.issuer }}</p>
-                                <p class="li-muted">{{ certificate.issued }}</p>
-
-                                {% if certificate.credential %}
-                                    <p class="li-muted">
-                                        Credential ID: {{ certificate.credential }}
-                                    </p>
-                                {% endif %}
-
-                                {% if certificate.url %}
-                                    <a class="li-action" href="{{ certificate.url }}" target="_blank" rel="noopener noreferrer">
-                                        <p>Certificaat weergeven</p>
-                                        <span aria-hidden="true">↗</span>
-                                    </a>
-                                {% endif %}
-                            </div>
-                        </article>
-                    {% endfor %}
-                </div>
-
-                <a class="l-footer" href="#">
-                    <p>Alle certificeringen weergeven</p>
-                    <span aria-hidden="true">→</span>
-                </a>
-            </section>
-
-            <section id="skills" class="section">
-                <h2 id="s-title">Vaardigheden (25)</h2>
-
-                {% set profileSkills = [
-                    {
-                        name: 'Product Management',
-                        context: 'Product Owner & Lead Developer · HNNW',
-                        endorsements: 0
-                    },
-                    {
-                        name: 'Software Engineering',
-                        context: 'SSC-ICT en DIVD Academy',
-                        endorsements: 0
-                    },
-                    {
-                        name: 'Software Development',
-                        context: 'Grafisch Lyceum Utrecht en werkervaring',
-                        endorsements: 0
-                    },
-                    {
-                        name: 'Cybersecurity',
-                        context: 'DIVD Academy',
-                        endorsements: 0
-                    },
-                    {
-                        name: 'Python (Programming Language)',
-                        context: 'Projecten en opleiding',
-                        endorsements: 0
-                    }
-                ] %}
-
-                <div id="s-list">
-                    {% for skill in profileSkills %}
-                        <article class="s-item">
-                            <h3>{{ skill.name }}</h3>
-
-                            {% if skill.context %}
-                                <div class="si-context">
-                                    <span aria-hidden="true">◇</span>
-                                    <p>{{ skill.context }}</p>
-                                </div>
-                            {% endif %}
-
-                            {% if skill.endorsements > 0 %}
-                                <p class="si-endorsements">
-                                    {{ skill.endorsements }} onderschrijvingen
-                                </p>
-                            {% endif %}
-                        </article>
-                    {% endfor %}
-                </div>
-
-                <a class="s-footer" href="#">
-                    <p>Alle 25 vaardigheden weergeven</p>
-                    <span aria-hidden="true">→</span>
-                </a>
-            </section>
-
-            <section id="recommendations" class="section">
-                <h2 id="r-title">Aanbevelingen</h2>
-
-                {% set receivedRecommendations = [
-                    {
-                        name: 'Voorbeeldpersoon',
-                        initials: 'VP',
-                        headline: 'Software Engineer',
-                        relation: 'Worked together on a software development project',
-                        date: 'November 2026',
-                        text: 'Dit is een voorbeeld van een ontvangen aanbeveling. Hier kan een collega of leidinggevende een aanbeveling schrijven over de samenwerking, technische kennis en professionele vaardigheden.'
-                    }
-                ] %}
-
-                {% set givenRecommendations = [] %}
-
-                <div id="r-tabs">
-                    <input type="radio" name="recommendation-tab" id="rt-received" checked>
-                    <input type="radio" name="recommendation-tab" id="rt-given">
-
-                    <div id="rt-navigation">
-                        <label for="rt-received">Ontvangen</label>
-                        <label for="rt-given">Gegeven</label>
-                    </div>
-
-                    <div id="rt-received-content" class="rt-content">
-                        {% for recommendation in receivedRecommendations %}
-                            <article class="r-item">
-                                <figure class="ri-avatar">
-                                    <span>{{ recommendation.initials }}</span>
-                                </figure>
-
-                                <div class="ri-content">
-                                    <h3>{{ recommendation.name }}</h3>
-                                    <p class="ri-headline">{{ recommendation.headline }}</p>
-                                    <p class="ri-muted">{{ recommendation.date }}</p>
-                                    <p class="ri-muted">{{ recommendation.relation }}</p>
-                                    <p class="ri-description">{{ recommendation.text }}</p>
-                                </div>
-                            </article>
+            <div class="profile-text" id="profile-text">
+                <h1>Naam</h1>
+                <p>@username</p>
+                <p>
+                    <button
+                        class="location-trigger"
+                        id="location-trigger"
+                        type="button"
+                        aria-haspopup="dialog"
+                        aria-controls="location-dialog"
+                    >
+                        Locatie: <span id="current-location">{{ currentProfile.location|default('Niet ingesteld') }}</span>
+                        <span>(wijzigen)</span>
+                    </button>
+                </p>
+                {% if app and app.user %}
+                    <p>Status:
+                        {% if app.user.status and app.user.status.id == 1 %}
+                            Online
+                        {% elseif app.user.status and app.user.status.id == 2 %}
+                            Afwezig
                         {% else %}
-                            <p class="r-empty">Er zijn nog geen ontvangen aanbevelingen.</p>
-                        {% endfor %}
+                            Offline
+                        {% endif %}
+                    </p>
+                    <p>
+                        Laatst actief:
+                        {{ app.user.lastLoginAt ? app.user.lastLoginAt|date('d-m-Y H:i') : 'Onbekend' }}
+                    </p>
+                {% else %}
+                    <p>Occupation / Status</p>
+                    <p>Laatst actief: Onbekend</p>
+                {% endif %}
+            </div>
+        </header>
+
+        <dialog class="location-dialog" id="location-dialog" aria-labelledby="location-dialog-title">
+            <form id="location-form">
+                <h2 id="location-dialog-title">Locatie aanpassen</h2>
+                <label for="new-location">Nieuwe locatie</label>
+                <select id="new-location" name="location" required>
+                    <option value="">-- Kies een stad --</option>
+                    <option value="Den Haag">Den Haag</option>
+                    <option value="Amsterdam">Amsterdam</option>
+                    <option value="Rotterdam">Rotterdam</option>
+                    <option value="Utrecht">Utrecht</option>
+                    <option value="Eindhoven">Eindhoven</option>
+                    <option value="Groningen">Groningen</option>
+                    <option value="Maastricht">Maastricht</option>
+                </select>
+                <p class="profile-feedback" id="location-feedback" role="status" aria-live="polite"></p>
+                <div class="dialog-actions">
+                    <button type="submit">Opslaan</button>
+                    <button type="button" id="location-cancel">Annuleren</button>
+                </div>
+            </form>
+        </dialog>
+
+        <div class="profile-grid">
+            <section class="profile-card card-about-me" aria-labelledby="about-title">
+                <h2 id="about-title">Over mij</h2>
+                <p class="text-muted">This is an example text.</p>
+
+                <h2>Expertise</h2>
+                <div class="expertise-container" aria-label="Expertise">
+                    <span class="bubble">Expertise 1</span>
+                    <span class="bubble">Expertise 2</span>
+                    <span class="bubble">Expertise 3</span>
+                </div>
+            </section>
+
+            <section class="profile-card profile-actions" aria-labelledby="profile-actions-title">
+                <h2 id="profile-actions-title">Profielacties</h2>
+                <div class="action-buttons">
+                    <a href="#" class="btn-outline">Edit Profile</a>
+                    <a href="#" class="btn-outline">Projects</a>
+                </div>
+                <div class="profile-socials">
+                    <h3>Socials</h3>
+                    <div class="socials-icons" aria-hidden="true">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/instagram.svg" alt="">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/youtube.svg" alt="">
+                        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v12/icons/tiktok.svg" alt="">
                     </div>
-
-                    <div id="rt-given-content" class="rt-content">
-                        {% for recommendation in givenRecommendations %}
-                            <article class="r-item">
-                                <figure class="ri-avatar">
-                                    <span>{{ recommendation.initials }}</span>
-                                </figure>
-
-                                <div class="ri-content">
-                                    <h3>{{ recommendation.name }}</h3>
-                                    <p class="ri-headline">{{ recommendation.headline }}</p>
-                                    <p class="ri-muted">{{ recommendation.date }}</p>
-                                    <p class="ri-description">{{ recommendation.text }}</p>
-                                </div>
-                            </article>
-                        {% else %}
-                            <p class="r-empty">Er zijn nog geen gegeven aanbevelingen.</p>
-                        {% endfor %}
-                    </div>
                 </div>
             </section>
-        </article>
 
-        <section id="suggestions">
-            <section id="more-profiles-for-you" class="section">
-                <h3>Meer profielen voor jou</h3>
-                {% set suggestedProfiles = [
-                    { name: 'Alex Morgan', initials: 'AM', headline: 'Software Engineer | Backend Development', action: 'Verbinden', mutual: '8 gezamenlijke connecties' },
-                    { name: 'Sam de Vries', initials: 'SV', headline: 'Product Owner | Open-source projecten', action: 'Volgen', mutual: '3 gezamenlijke connecties' },
-                    { name: 'Jamie Bakker', initials: 'JB', headline: 'DevOps Engineer | Linux & Cloud', action: 'Verbinden', mutual: '5 gezamenlijke connecties' }
-                ] %}
-
-                <div class="suggestion-list">
-                    {% for person in suggestedProfiles %}
-                        <article class="suggestion-person">
-                            <figure class="sp-avatar" aria-hidden="true">
-                                <span>{{ person.initials }}</span>
-                            </figure>
-                            <div class="sp-content">
-                                <p class="sp-name">{{ person.name }}</p>
-                                <p class="sp-headline">{{ person.headline }}</p>
-                                <p class="sp-mutual">{{ person.mutual }}</p>
-                                <a class="sp-action" href="#">
-                                    <p>{{ person.action }}</p>
-                                </a>
-                            </div>
-                        </article>
-                    {% endfor %}
+            <section class="profile-card profile-tech" aria-labelledby="tech-title">
+                <h2 id="tech-title">Technologieën</h2>
+                <div class="tech-stack">
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript"></div>
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5"></div>
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3"></div>
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg" alt="MySQL"></div>
+                    <div class="tech-icon"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP"></div>
                 </div>
-                <a class="suggestion-footer" href="#">
-                    <p>Alles weergeven</p>
-                    <svg aria-hidden="true" viewBox="0 0 24 24">
-                        <path d="M5 12h14m-6-6 6 6-6 6"/>
-                    </svg>
-                </a>
             </section>
 
-            <section id="people-you-may-know" class="section">
-                <h3>Personen die jij wellicht kent</h3>
-                {% set peopleYouMayKnow = [
-                    { name: 'Robin Jansen', initials: 'RJ', headline: 'Full-stack Developer', mutual: '2 gezamenlijke connecties' },
-                    { name: 'Noa Visser', initials: 'NV', headline: 'UX/UI Designer', mutual: '4 gezamenlijke connecties' },
-                    { name: 'Daniël Smit', initials: 'DS', headline: 'Software Development Student', mutual: '1 gezamenlijke connectie' }
-                ] %}
-
-                <div class="suggestion-list">
-                    {% for person in peopleYouMayKnow %}
-                        <article class="suggestion-person">
-                            <figure class="sp-avatar" aria-hidden="true">
-                                <span>{{ person.initials }}</span>
-                            </figure>
-                            <div class="sp-content">
-                                <p class="sp-name">{{ person.name }}</p>
-                                <p class="sp-headline">{{ person.headline }}</p>
-                                <p class="sp-mutual">{{ person.mutual }}</p>
-                                <a class="sp-action" href="#">
-                                    <p>{{ person.action|default('Verbinden') }}</p>
-                                </a>
-                            </div>
-                        </article>
-                    {% endfor %}
+            <section class="profile-card profile-achievements" aria-labelledby="achievements-title">
+                <h2 id="achievements-title">Prestaties</h2>
+                <div class="achievements-bar" aria-hidden="true">
+                    <span class="circle"></span>
+                    <span class="circle"></span>
+                    <span class="circle"></span>
+                    <span class="circle"></span>
+                    <span class="circle"></span>
                 </div>
-                <a class="suggestion-footer" href="#">
-                    <p>Alles weergeven</p>
-                    <svg aria-hidden="true" viewBox="0 0 24 24">
-                        <path d="M5 12h14m-6-6 6 6-6 6"/>
-                    </svg>
-                </a>
             </section>
-        </section>
+        </div>
     </div>
+
+    <script>
+        const uploadInput = document.getElementById('upload');
+        const profilePreview = document.getElementById('preview');
+        const avatarPlaceholder = document.getElementById('avatar-placeholder');
+        const uploadFeedback = document.getElementById('upload-feedback');
+        const locationDialog = document.getElementById('location-dialog');
+        const locationTrigger = document.getElementById('location-trigger');
+        const locationForm = document.getElementById('location-form');
+        const locationSelect = document.getElementById('new-location');
+        const locationFeedback = document.getElementById('location-feedback');
+
+        uploadInput.addEventListener('change', () => {
+            const file = uploadInput.files[0];
+            if (!file) {
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                uploadFeedback.textContent = 'Kies een geldig afbeeldingsbestand.';
+                uploadInput.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                profilePreview.src = reader.result;
+                profilePreview.hidden = false;
+                avatarPlaceholder.hidden = true;
+                uploadFeedback.textContent = 'Voorbeeld van de profielfoto bijgewerkt.';
+            });
+            reader.addEventListener('error', () => {
+                uploadFeedback.textContent = 'De afbeelding kon niet worden geladen.';
+            });
+            reader.readAsDataURL(file);
+        });
+
+        locationTrigger.addEventListener('click', () => {
+            locationFeedback.textContent = '';
+            locationDialog.showModal();
+            locationSelect.focus();
+        });
+
+        locationDialog.addEventListener('close', () => locationTrigger.focus());
+
+        document.getElementById('location-cancel').addEventListener('click', () => {
+            locationDialog.close();
+        });
+
+        locationForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!locationSelect.value) {
+                locationFeedback.textContent = 'Kies eerst een stad.';
+                locationSelect.focus();
+                return;
+            }
+
+            try {
+                const response = await fetch('{{ path('profile_update_location') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ location: locationSelect.value })
+                });
+                let data;
+                try {
+                    data = await response.json();
+                } catch {
+                    throw new Error('De server gaf een ongeldig antwoord terug.');
+                }
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'De locatie kon niet worden opgeslagen.');
+                }
+
+                document.getElementById('current-location').textContent = data.location;
+                locationDialog.close();
+            } catch (error) {
+                locationFeedback.textContent = error.message || 'Er ging iets mis. Probeer het opnieuw.';
+            }
+        });
+    </script>
 {% endblock %}

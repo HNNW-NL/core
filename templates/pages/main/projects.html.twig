@@ -28,14 +28,32 @@
         </div>
 
         <form class="project-filters" method="get" action="{{ path('main.projects.home') }}">
-            <label for="project-search">Zoek op titel of samenvatting</label>
-            <input id="project-search" type="search" name="q" value="{{ search }}">
+            <div class="project-filter-field">
+                <label for="project-search">Zoek op titel of samenvatting</label>
+                <input id="project-search" type="search" name="q" maxlength="100" value="{{ search }}">
+            </div>
+            <div class="project-filter-field">
+                <label for="project-remote">Werken op afstand</label>
+                <select id="project-remote" name="remote">
+                    <option value="" {{ remoteFilter == '' ? 'selected' : '' }}>Alle projecten</option>
+                    <option value="yes" {{ remoteFilter == 'yes' ? 'selected' : '' }}>Op afstand mogelijk</option>
+                    <option value="no" {{ remoteFilter == 'no' ? 'selected' : '' }}>Op locatie</option>
+                </select>
+            </div>
             <label class="project-open-filter">
                 <input type="checkbox" name="open" value="1" {% if onlyAcceptingApplications %}checked{% endif %}>
                 Alleen projecten waarop je je kunt aanmelden
             </label>
             <button type="submit">Zoeken</button>
         </form>
+
+        {% if filterErrors is not empty %}
+            <div class="project-filter-errors" role="alert">
+                {% for error in filterErrors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
 
         <p class="project-results-count">
             {{ totalProjects }} {{ totalProjects == 1 ? 'project' : 'projecten' }} gevonden
@@ -71,17 +89,22 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p class="open-projects-empty">Er zijn op dit moment geen openbare projecten beschikbaar.</p>
+            <div class="open-projects-empty" role="status">
+                <p>Geen projecten gevonden. Pas je zoekterm of filters aan en probeer het opnieuw.</p>
+                {% if hasFilters %}
+                    <a href="{{ path('main.projects.home') }}">Toon alle projecten</a>
+                {% endif %}
+            </div>
         {% endif %}
 
         {% if totalPages > 1 %}
             <nav class="project-pagination" aria-label="Paginering">
                 {% if currentPage > 1 %}
-                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, page: currentPage - 1 }) }}">Vorige</a>
+                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, remote: remoteFilter, page: currentPage - 1 }) }}">Vorige</a>
                 {% endif %}
                 <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
                 {% if currentPage < totalPages %}
-                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, page: currentPage + 1 }) }}">Volgende</a>
+                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, remote: remoteFilter, page: currentPage + 1 }) }}">Volgende</a>
                 {% endif %}
             </nav>
         {% endif %}

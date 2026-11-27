@@ -73,10 +73,6 @@
                                 <dd>{{ project.ownerOrganisation.name|default('Niet opgegeven') }}</dd>
                             </div>
                             <div>
-                                <dt>Projectleider</dt>
-                                <dd>{{ projectLeaderName|default('') is not empty ? projectLeaderName : 'Niet vermeld' }}</dd>
-                            </div>
-                            <div>
                                 <dt>Locatie</dt>
                                 <dd>
                                     {{ project.ownerOrganisation.location|default('Niet opgegeven') }}

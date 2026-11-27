@@ -27,11 +27,19 @@ final readonly class ProjectApplyService
 
     public function isOpen(Project $project): bool
     {
+        $status = strtolower((string) $project->getStatus()?->getName());
         if (
             $project->getVisibility() !== 'public'
             || $project->getPublishedAt() === null
             || $project->getDeletedAt() !== null
+            || $project->getOwnerOrganisation()?->getDeletedAt() !== null
+            || !in_array($status, ['active', 'published'], true)
         ) {
+            return false;
+        }
+
+        $endDate = $project->getEndDate();
+        if ($endDate !== null && $endDate < new \DateTimeImmutable('today')) {
             return false;
         }
 
@@ -42,10 +50,13 @@ final readonly class ProjectApplyService
         $activeParticipants = (int) $this->projectParticipantRepository
             ->createQueryBuilder('participant')
             ->select('COUNT(participant.id)')
+            ->innerJoin('participant.status', 'status')
             ->andWhere('participant.project = :project')
             ->andWhere('participant.joinedAt IS NOT NULL')
             ->andWhere('participant.leftAt IS NULL')
+            ->andWhere('LOWER(status.name) = :active')
             ->setParameter('project', $project->getId(), 'ulid')
+            ->setParameter('active', 'active')
             ->getQuery()
             ->getSingleScalarResult();
 

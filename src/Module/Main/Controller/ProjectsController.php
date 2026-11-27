@@ -23,36 +23,78 @@ use App\Module\Main\Handler\ProjectApplyHandler;
 #[Route('/projects', name: 'main.projects.')]
 final class ProjectsController extends AbstractController
 {
+    private const PROJECTS_PER_PAGE = 20;
+
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(
         Request $request,
         ProjectRepository $projectRepository,
     ): Response {
-        $search = trim($request->query->getString('q'));
-        $onlyAcceptingApplications = $request->query->getBoolean('open');
-        $perPage = 20;
+        $query = $request->query->all();
+        $errors = [];
+
+        $rawSearch = $query['q'] ?? '';
+        if (!is_string($rawSearch) || preg_match('/\A.{0,100}\z/us', trim($rawSearch)) !== 1) {
+            $errors[] = 'Gebruik een zoekterm van maximaal 100 tekens.';
+            $search = '';
+        } else {
+            $search = trim($rawSearch);
+        }
+
+        $rawRemoteFilter = $query['remote'] ?? '';
+        if (!is_string($rawRemoteFilter) || !in_array($rawRemoteFilter, ['', 'yes', 'no'], true)) {
+            $errors[] = 'De gekozen projectfilter is ongeldig.';
+            $remoteFilter = '';
+        } else {
+            $remoteFilter = $rawRemoteFilter;
+        }
+
+        $rawOpenFilter = $query['open'] ?? '';
+        if (!is_string($rawOpenFilter) || !in_array($rawOpenFilter, ['', '1', '0'], true)) {
+            $errors[] = 'De gekozen aanmeldfilter is ongeldig.';
+            $rawOpenFilter = '';
+        }
+        $onlyAcceptingApplications = $rawOpenFilter === '1';
+
+        $rawPage = $query['page'] ?? '1';
+        $requestedPage = is_string($rawPage)
+            ? filter_var($rawPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])
+            : false;
+        if ($requestedPage === false) {
+            $errors[] = 'Het paginanummer is ongeldig. Je ziet pagina 1.';
+            $requestedPage = 1;
+        }
+
+        $remotePossible = $remoteFilter === 'yes' ? true : ($remoteFilter === 'no' ? false : null);
 
         $totalProjects = $projectRepository->countPublicProjects(
             $search,
             $onlyAcceptingApplications,
+            $remotePossible,
         );
 
-        $totalPages = max(1, (int) ceil($totalProjects / $perPage));
-        $page = min(max(1, $request->query->getInt('page', 1)), $totalPages);
+        $totalPages = max(1, (int) ceil($totalProjects / self::PROJECTS_PER_PAGE));
+        $page = min(max(1, $requestedPage), $totalPages);
 
-        return $this->render('pages/main/projects.html.twig', [
+        $response = $this->render('pages/main/projects.html.twig', [
             'publicProjects' => $projectRepository->findPaginatedPublicProjects(
                 $search,
                 $onlyAcceptingApplications,
                 $page,
-                $perPage,
+                self::PROJECTS_PER_PAGE,
+                $remotePossible,
             ),
             'search' => $search,
             'onlyAcceptingApplications' => $onlyAcceptingApplications,
+            'remoteFilter' => $remoteFilter,
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalProjects' => $totalProjects,
+            'filterErrors' => $errors,
+            'hasFilters' => $search !== '' || $onlyAcceptingApplications || $remoteFilter !== '',
         ]);
+
+        return $this->noStore($response);
     }
 
     #[Route('/{slug}', name: 'detail', methods: ['GET'])]
@@ -76,14 +118,13 @@ final class ProjectsController extends AbstractController
             ? $projectApplyService->check($project, $profile)
             : null;
 
-        return $this->render('pages/main/projects/detail.html.twig', [
+        return $this->noStore($this->render('pages/main/projects/detail.html.twig', [
             'slug' => $slug,
             'project' => $project,
-            'projectLeaderName' => trim((string) $project->getOwnerAccount()?->getProfile()?->getDisplayName()),
             'application' => $blocked?->application,
             'blocked' => $blocked,
             'isOpen' => $projectApplyService->isOpen($project),
-        ]);
+        ]));
     }
 
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET', 'POST'])]
@@ -116,7 +157,7 @@ final class ProjectsController extends AbstractController
         $profile = $currentProfileProvider->getProfile();
 
         if ($profile === null) {
-            return $this->render('pages/main/projects/apply.html.twig', [
+            return $this->noStore($this->render('pages/main/projects/apply.html.twig', [
                 'slug' => $slug,
                 'project' => $project,
                 'form' => null,
@@ -124,7 +165,7 @@ final class ProjectsController extends AbstractController
                     ProjectApplyStatus::NoProfile,
                     'Je hebt een profiel nodig om je aan te melden.'
                 ),
-            ]);
+            ]));
         }
 
         $dto = new ProjectApplyDto();
@@ -150,12 +191,12 @@ final class ProjectsController extends AbstractController
             );
         }
 
-        return $this->render('pages/main/projects/apply.html.twig', [
+        return $this->noStore($this->render('pages/main/projects/apply.html.twig', [
             'slug' => $slug,
             'project' => $project,
             'form' => $form,
             'blocked' => $projectApplyHandler->check($project, $profile),
-        ]);
+        ]));
     }
 
     #[Route('/{slug}/chat', name: 'chat', methods: ['GET'])]
@@ -168,10 +209,10 @@ final class ProjectsController extends AbstractController
             $projectRepository
         );
 
-        return $this->render('pages/main/projects/chat.html.twig', [
+        return $this->noStore($this->render('pages/main/projects/chat.html.twig', [
             'slug' => $slug,
             'project' => $project,
-        ]);
+        ]));
     }
 
     #[Route('/{slug}/participants', name: 'participants', methods: ['GET'])]
@@ -184,10 +225,10 @@ final class ProjectsController extends AbstractController
             $projectRepository
         );
 
-        return $this->render('pages/main/projects/participants.html.twig', [
+        return $this->noStore($this->render('pages/main/projects/participants.html.twig', [
             'slug' => $slug,
             'project' => $project,
-        ]);
+        ]));
     }
 
     #[Route('/{slug}/reviews', name: 'reviews', methods: ['GET'])]
@@ -200,10 +241,10 @@ final class ProjectsController extends AbstractController
             $projectRepository
         );
 
-        return $this->render('pages/main/projects/reviews.html.twig', [
+        return $this->noStore($this->render('pages/main/projects/reviews.html.twig', [
             'slug' => $slug,
             'project' => $project,
-        ]);
+        ]));
     }
 
     #[Route('/{slug}/tasks', name: 'tasks', methods: ['GET'])]
@@ -217,14 +258,14 @@ final class ProjectsController extends AbstractController
             $projectRepository
         );
 
-        return $this->render('pages/main/projects/tasks.html.twig', [
+        return $this->noStore($this->render('pages/main/projects/tasks.html.twig', [
             'slug' => $slug,
             'project' => $project,
             'packageTasks' => array_merge([], ...array_map(
                 static fn ($workPackage): array => $workPackage->getWorkPackageTasks()->toArray(),
                 $workPackageRepository->findActiveByProject($project)
             )),
-        ]);
+        ]));
     }
 
     #[Route('/{slug}/tasks/{taskId}/enroll', name: 'workPackages.enrollTask', methods: ['POST'])]
@@ -315,10 +356,10 @@ final class ProjectsController extends AbstractController
             $projectRepository
         );
 
-        return $this->render('pages/main/projects/updates.html.twig', [
+        return $this->noStore($this->render('pages/main/projects/updates.html.twig', [
             'slug' => $slug,
             'project' => $project,
-        ]);
+        ]));
     }
 
     #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
@@ -332,11 +373,11 @@ final class ProjectsController extends AbstractController
             $projectRepository
         );
 
-        return $this->render('pages/main/projects/work-packages.html.twig', [
+        return $this->noStore($this->render('pages/main/projects/work-packages.html.twig', [
             'slug' => $slug,
             'project' => $project,
             'workPackages' => $workPackageRepository->findActiveByProject($project),
-        ]);
+        ]));
     }
 
     /**
@@ -354,7 +395,12 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        if ($allowPublicAccess && $project->getVisibility() === 'public' && $project->getPublishedAt() !== null) {
+        if (
+            $allowPublicAccess
+            && $project->getVisibility() === 'public'
+            && $project->getPublishedAt() !== null
+            && $project->getOwnerOrganisation()?->getDeletedAt() === null
+        ) {
             return $project;
         }
 
@@ -363,5 +409,15 @@ final class ProjectsController extends AbstractController
         }
 
         return $project;
+    }
+
+    private function noStore(Response $response): Response
+    {
+        $response->setPrivate();
+        $response->setMaxAge(0);
+        $response->headers->set('Cache-Control', 'no-store, private, max-age=0, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+
+        return $response;
     }
 }

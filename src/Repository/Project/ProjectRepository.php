@@ -32,12 +32,14 @@ class ProjectRepository extends ServiceEntityRepository
     public function findOnePublicBySlug(string $slug): ?Project
     {
         return $this->createQueryBuilder('project')
+            ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
             ->andWhere('project.slug = :slug')
             ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('ownerOrganisation.deletedAt IS NULL')
             ->andWhere('project.publishedAt IS NOT NULL')
-            ->andWhere('project.visibility IN (:visibilities)')
+            ->andWhere('project.visibility = :visibility')
             ->setParameter('slug', $slug)
-            ->setParameter('visibilities', ['public', 'unlisted'])
+            ->setParameter('visibility', 'public')
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -147,8 +149,14 @@ class ProjectRepository extends ServiceEntityRepository
         bool $onlyAcceptingApplications,
         int $page,
         int $perPage,
+        ?bool $remotePossible = null,
     ): array {
-        $projects = $this->createPublicProjectsQueryBuilder($search, $onlyAcceptingApplications)
+        $projects = $this->createPublicProjectsQueryBuilder(
+            $search,
+            $onlyAcceptingApplications,
+            true,
+            $remotePossible,
+        )
             ->orderBy('project.publishedAt', 'DESC')
             ->addOrderBy('project.id', 'ASC')
             ->setFirstResult((max(1, $page) - 1) * $perPage)
@@ -162,11 +170,13 @@ class ProjectRepository extends ServiceEntityRepository
     public function countPublicProjects(
         string $search,
         bool $onlyAcceptingApplications,
+        ?bool $remotePossible = null,
     ): int {
         return (int) $this->createPublicProjectsQueryBuilder(
             $search,
             $onlyAcceptingApplications,
             false,
+            $remotePossible,
         )
             ->select('COUNT(DISTINCT project.id)')
             ->getQuery()
@@ -177,13 +187,16 @@ class ProjectRepository extends ServiceEntityRepository
         string $search = '',
         bool $onlyAcceptingApplications = false,
         bool $includeAvailability = true,
+        ?bool $remotePossible = null,
     ): QueryBuilder {
         $activeParticipantCount = static fn (string $participantAlias): string =>
             '(SELECT COUNT(' . $participantAlias . '.id)
                 FROM App\Entity\Project\ProjectParticipant ' . $participantAlias . '
+                INNER JOIN ' . $participantAlias . '.status ' . $participantAlias . 'Status
                 WHERE ' . $participantAlias . '.project = project
                     AND ' . $participantAlias . '.joinedAt IS NOT NULL
                     AND ' . $participantAlias . '.leftAt IS NULL
+                    AND LOWER(' . $participantAlias . 'Status.name) = \'active\'
             )';
 
         $queryBuilder = $this->createQueryBuilder('project')
@@ -200,6 +213,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
             ->andWhere('project.publishedAt IS NOT NULL')
             ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('ownerOrganisation.deletedAt IS NULL')
             ->andWhere('project.visibility = :visibility')
             ->setParameter('visibility', 'public');
 
@@ -208,23 +222,40 @@ class ProjectRepository extends ServiceEntityRepository
                 'availabilityParticipant',
             );
             $queryBuilder->addSelect(
-                'CASE WHEN project.capacity IS NULL OR '
+                'CASE WHEN LOWER(status.name) IN (\'active\', \'published\') '
+                    . 'AND (project.endDate IS NULL OR project.endDate >= CURRENT_DATE()) '
+                    . 'AND (project.capacity IS NULL OR '
                     . $availabilityParticipantCount
-                    . ' < project.capacity THEN 1 ELSE 0 END AS canApply'
+                    . ' < project.capacity) THEN 1 ELSE 0 END AS canApply'
             );
         }
 
         $search = trim($search);
         if ($search !== '') {
+            $escapedSearch = str_replace(
+                ['!', '%', '_'],
+                ['!!', '!%', '!_'],
+                mb_strtolower($search),
+            );
             $queryBuilder
-                ->andWhere('(LOWER(project.title) LIKE :search OR LOWER(project.summary) LIKE :search)')
-                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+                ->andWhere("(LOWER(project.title) LIKE :search ESCAPE '!' OR LOWER(project.summary) LIKE :search ESCAPE '!')")
+                ->setParameter('search', '%' . $escapedSearch . '%');
+        }
+
+        if ($remotePossible !== null) {
+            $queryBuilder
+                ->andWhere('project.remotePossible = :remotePossible')
+                ->setParameter('remotePossible', $remotePossible);
         }
 
         if ($onlyAcceptingApplications) {
             $filterParticipantCount = $activeParticipantCount('filterParticipant');
             $queryBuilder->andWhere(
-                '(project.capacity IS NULL OR ' . $filterParticipantCount . ' < project.capacity)'
+                "LOWER(status.name) IN ('active', 'published') "
+                    . 'AND (project.endDate IS NULL OR project.endDate >= CURRENT_DATE()) '
+                    . 'AND (project.capacity IS NULL OR '
+                    . $filterParticipantCount
+                    . ' < project.capacity)'
             );
         }
 
@@ -247,9 +278,11 @@ class ProjectRepository extends ServiceEntityRepository
             ->innerJoin('project.skills', 'projectSkill')
             ->innerJoin('projectSkill.skill', 'skill')
             ->innerJoin('project.status', 'status')
+            ->innerJoin('project.ownerOrganisation', 'ownerOrganisation')
             ->andWhere('project.slug IN (:slugs)')
             ->andWhere('project.publishedAt IS NOT NULL')
             ->andWhere('project.deletedAt IS NULL')
+            ->andWhere('ownerOrganisation.deletedAt IS NULL')
             ->andWhere('project.visibility = :visibility')
             ->setParameter('slugs', $slugs)
             ->setParameter('visibility', 'public')
