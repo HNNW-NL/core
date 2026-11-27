@@ -5,6 +5,7 @@ namespace App\DataFixtures\Common;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Common\Status;
+use App\Module\Main\Service\WorkPackageWorkflowService;
 
 class StatusFixtures extends Fixture
 {
@@ -12,12 +13,17 @@ class StatusFixtures extends Fixture
     public const TEST_DEFAULT_ACCOUNT_STATUS_REFERENCE = 'default-status';
     public const TEST_DEFAULT_ORGANISATION_STATUS_REFERENCE = 'default-organisation-status';
     public const TEST_DEFAULT_PROJECT_STATUS_REFERENCE = 'default-project-status';
+    public const TEST_PUBLISHED_PROJECT_STATUS_REFERENCE = 'published-project-status';
     public const TEST_DEFAULT_REVIEW_STATUS_REFERENCE = 'default-review-status';
     public const TEST_DEFAULT_ADMIN_STATUS_REFERENCE = 'default-admin-status';
     public const TEST_DEFAULT_PACKAGE_TASK_STATUS_REFERENCE = 'default-package-task-status';
     public const TEST_DEFAULT_WORK_PACKAGE_STATUS_REFERENCE = 'default-work-package-status';
     public const TEST_DEFAULT_PROJECT_APPLICATIONS_STATUS_REFERENCE = 'default-project-applications-status';
     public const TEST_DEFAULT_PROJECT_PARTICIPANTS_STATUS_REFERENCE = 'default-project-participants-status';
+
+    public function __construct(private readonly WorkPackageWorkflowService $workPackageWorkflow)
+    {
+    }
 
     public function load(ObjectManager $manager): void
     {
@@ -39,6 +45,12 @@ class StatusFixtures extends Fixture
         $defaultProjectStatus->setColourHex('#10B981');
         $manager->persist($defaultProjectStatus);
 
+        $publishedProjectStatus = new Status();
+        $publishedProjectStatus->setName('published');
+        $publishedProjectStatus->setScope('project');
+        $publishedProjectStatus->setColourHex('#10B981');
+        $manager->persist($publishedProjectStatus);
+
 
         $defaultReviewStatus = new Status();
         $defaultReviewStatus->setName('active');
@@ -58,17 +70,40 @@ class StatusFixtures extends Fixture
         $defaultPackageTaskStatus->setColourHex('#10B981');
         $manager->persist($defaultPackageTaskStatus);
 
-        $defaultWorkPackageStatus = new Status();
-        $defaultWorkPackageStatus->setName('active');
-        $defaultWorkPackageStatus->setScope('WorkPackage');
-        $defaultWorkPackageStatus->setColourHex('#10B981');
-        $manager->persist($defaultWorkPackageStatus);
+        foreach ($this->workPackageWorkflow->getStatusNames() as $name) {
+            $status = $manager->getRepository(Status::class)->findOneBy([
+                'name' => $name,
+                'scope' => WorkPackageWorkflowService::STATUS_SCOPE,
+            ]);
+            if ($status === null) {
+                $status = (new Status())
+                    ->setName($name)
+                    ->setScope(WorkPackageWorkflowService::STATUS_SCOPE)
+                    ->setColourHex('#10B981');
+                $manager->persist($status);
+            }
+            if ($name === 'Open') {
+                $defaultWorkPackageStatus = $status;
+            }
+        }
 
         $defaultProjectApplicationStatus = new Status();
         $defaultProjectApplicationStatus->setName('send');
         $defaultProjectApplicationStatus->setScope('ProjectApplication');
         $defaultProjectApplicationStatus->setColourHex('#10B981');
         $manager->persist($defaultProjectApplicationStatus);
+
+        $acceptedProjectApplicationStatus = new Status();
+        $acceptedProjectApplicationStatus->setName('accepted');
+        $acceptedProjectApplicationStatus->setScope('ProjectApplication');
+        $acceptedProjectApplicationStatus->setColourHex('#10B981');
+        $manager->persist($acceptedProjectApplicationStatus);
+
+        $rejectedProjectApplicationStatus = new Status();
+        $rejectedProjectApplicationStatus->setName('rejected');
+        $rejectedProjectApplicationStatus->setScope('ProjectApplication');
+        $rejectedProjectApplicationStatus->setColourHex('#EF4444');
+        $manager->persist($rejectedProjectApplicationStatus);
 
         $defaultProjectParticipantStatus = new Status();
         $defaultProjectParticipantStatus->setName('active');
@@ -79,6 +114,7 @@ class StatusFixtures extends Fixture
         $manager->flush();
 
         $this->addReference(self::TEST_DEFAULT_PROJECT_STATUS_REFERENCE, $defaultProjectStatus);
+        $this->addReference(self::TEST_PUBLISHED_PROJECT_STATUS_REFERENCE, $publishedProjectStatus);
         $this->addReference(self::TEST_DEFAULT_ORGANISATION_STATUS_REFERENCE, $defaultOrgStatus);
         $this->addReference(self::TEST_DEFAULT_ACCOUNT_STATUS_REFERENCE, $defaultStatus); 
         $this->addReference(self::TEST_DEFAULT_REVIEW_STATUS_REFERENCE, $defaultReviewStatus);

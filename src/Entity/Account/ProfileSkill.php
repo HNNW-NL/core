@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Entity\Account;
 
+use App\Enum\SkillProficiencyLevel;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'profile_skills', uniqueConstraints: [
@@ -15,8 +17,8 @@ class ProfileSkill
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: "profileSkills")]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
@@ -26,14 +28,19 @@ class ProfileSkill
     #[ORM\JoinColumn(name: 'skill_id', nullable: false)]
     private ?Skill $skill = null;
 
-    #[ORM\Column(name: 'proficiency_level', length: 50)]
-    private ?string $proficiencyLevel = null;
+    #[ORM\Column(
+        name: 'proficiency_level',
+        length: 50,
+        nullable: true,
+        enumType: SkillProficiencyLevel::class
+    )]
+    private ?SkillProficiencyLevel $proficiencyLevel = null;
 
     #[ORM\Column(name: 'is_featured', type: "boolean", nullable: false)]
     private bool $featured = false;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column(name: 'years_of_experience', type: 'smallint', nullable: true)]
+    private ?int $yearsOfExperience = null;
 
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
@@ -48,10 +55,10 @@ class ProfileSkill
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -59,10 +66,7 @@ class ProfileSkill
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -108,12 +112,12 @@ class ProfileSkill
         return $this;
     }
 
-    public function getProficiencyLevel(): ?string
+    public function getProficiencyLevel(): ?SkillProficiencyLevel
     {
         return $this->proficiencyLevel;
     }
 
-    public function setProficiencyLevel(?string $proficiencyLevel): static
+    public function setProficiencyLevel(?SkillProficiencyLevel $proficiencyLevel): static
     {
         $this->proficiencyLevel = $proficiencyLevel;
 
@@ -127,7 +131,25 @@ class ProfileSkill
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
+    }
+
+    public function getYearsOfExperience(): ?int
+    {
+        return $this->yearsOfExperience;
+    }
+
+    public function setYearsOfExperience(?int $years): static
+    {
+        if ($years !== null && ($years < 0 || $years > 100)) {
+            throw new \InvalidArgumentException(
+                'Years of experience must be between 0 and 100.'
+            );
+        }
+
+        $this->yearsOfExperience = $years;
+
+        return $this;
     }
 
     public function getLastModified(): \DateTimeImmutable

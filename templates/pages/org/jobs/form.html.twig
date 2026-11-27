@@ -1,0 +1,32 @@
+{% extends 'layouts/org.base.html.twig' %}
+
+{# Page title meta tag #}
+{% block title %}{{ mode == 'create' ? 'Vacature aanmaken' : 'Vacature wijzigen' }}{% endblock %}
+
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
+{% block body %}
+    <h1>{{ mode == 'create' ? 'Vacature aanmaken' : 'Vacature wijzigen' }}</h1>
+    <p>Organisatie: {{ organisation.name }}</p>
+    {% for message in app.flashes('error') %}<p role="alert">{{ message }}</p>{% endfor %}
+    <form method="post" action="{{ mode == 'create' ? path('org.jobs.create') : path('org.jobs.modify', {id: job.id}) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token(mode == 'create' ? 'org_job_create' : 'org_job_edit_' ~ job.id) }}">
+        <input type="hidden" name="organisation" value="{{ organisation.id }}">
+        <p><label>Titel <input name="title" required maxlength="255" value="{{ job.title }}"></label></p>
+        <p><label>Beschrijving <textarea name="description" required>{{ job.description }}</textarea></label></p>
+        <p><label>Sollicitatie-URL <input type="url" name="application_url" required value="{{ job.applicationUrl }}"></label></p>
+        <p><label>Locatie <input name="location" maxlength="255" value="{{ job.location }}"></label></p>
+        <p><label>Dienstverband <select name="employment_type" required>
+                    {% for type in employmentTypes %}<option value="{{ type.value }}" {% if job.employmentType and job.employmentType.value == type.value %}selected{% endif %}>{{ type.value }}</option>{% endfor %}
+                </select></label></p>
+        <p><label>Werkwijze <select name="work_mode" required>
+                    {% for workMode in workModes %}<option value="{{ workMode.value }}" {% if job.workMode and job.workMode.value == workMode.value %}selected{% endif %}>{{ workMode.value }}</option>{% endfor %}
+                </select></label></p>
+        <button type="submit">Opslaan</button>
+    </form>
+{% endblock %}

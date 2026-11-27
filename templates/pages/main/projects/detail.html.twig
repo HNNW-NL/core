@@ -1,57 +1,111 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {% block title %}{{ project.title }}{% endblock %}
+{% block seoDescription %}{{ project.summary }}{% endblock %}
+{% block seoAuthor %}HNNW{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('assets/main/css/projects.css') }}">
+{% endblock %}
 
 {% block body %}
-    <main class="project-detail">
-        <p><a href="{{ path('main.projects.home') }}">← Terug naar projecten</a></p>
-        <h1>{{ project.title }}</h1>
-        {% if project.organisation %}
-            <p>{{ project.organisation }}</p>
-        {% endif %}
-        {% if project.summary %}
-            <p>{{ project.summary }}</p>
-        {% endif %}
-        {% if project.description %}
-            <section aria-labelledby="project-description-title">
-                <h2 id="project-description-title">Over dit project</h2>
-                <p>{{ project.description }}</p>
-            </section>
-        {% endif %}
+    <div class="project-detail">
+        <div class="project-detail__container">
+            <a class="project-detail__back" href="{{ path('main.projects.home') }}">← Terug naar projecten</a>
 
-        <dl>
-            <dt>Startdatum</dt>
-            <dd>{{ project.startDate|date('d-m-Y') }}</dd>
-            {% if project.endDate %}
-                <dt>Einddatum</dt>
-                <dd>{{ project.endDate|date('d-m-Y') }}</dd>
+            {% if previewMode|default(false) %}
+                <p class="project-detail__preview-notice" role="status">Beheerderpreview: dit project is niet gepubliceerd en is alleen zichtbaar voor beheerders.</p>
             {% endif %}
-            {% if project.capacity %}
-                <dt>Capaciteit</dt>
-                <dd>{{ project.capacity }} deelnemers</dd>
-            {% endif %}
-            <dt>Op afstand</dt>
-            <dd>{{ project.remotePossible ? 'Mogelijk' : 'Niet mogelijk' }}</dd>
-        </dl>
 
-        {% if canApply %}
-            <p><a href="{{ path('main.projects.apply', {slug: project.slug}) }}">Aanmelden</a></p>
-        {% else %}
-            <p role="status">Aanmelden voor dit project is momenteel niet mogelijk.</p>
-        {% endif %}
+            {% for type, messages in app.flashes %}
+                {% for message in messages %}
+                    <p class="project-detail__notice project-detail__notice--{{ type }}" role="status">{{ message }}</p>
+                {% endfor %}
+            {% endfor %}
 
-        {% if isTeamMember %}
-            <nav aria-label="Projectteam">
-                <h2>Projectteam</h2>
-                <ul>
-                    <li><a href="{{ path('main.projects.participants', {slug: project.slug}) }}">Deelnemers</a></li>
-                    <li><a href="{{ path('main.projects.chat', {slug: project.slug}) }}">Teamchat</a></li>
-                    <li><a href="{{ path('main.projects.reviews', {slug: project.slug}) }}">Reviews</a></li>
-                    <li><a href="{{ path('main.projects.tasks', {slug: project.slug}) }}">Taken</a></li>
-                    <li><a href="{{ path('main.projects.updates', {slug: project.slug}) }}">Updates</a></li>
-                    <li><a href="{{ path('main.projects.workPackages', {slug: project.slug}) }}">Werkpakketten</a></li>
-                </ul>
-            </nav>
-        {% endif %}
-    </main>
+            <article>
+                <header class="project-detail__hero">
+                    <div class="project-detail__eyebrow">
+                        {{ project.ownerOrganisation.name|default('Organisatie') }}
+                    </div>
+                    <div class="project-detail__title-row">
+                        <h1>{{ project.title }}</h1>
+                        <span class="project-detail__status">{{ project.status.name|default('Status onbekend') }}</span>
+                    </div>
+                    {% if project.summary %}
+                        <p class="project-detail__summary">{{ project.summary }}</p>
+                    {% endif %}
+                </header>
+
+                {% include 'core/main/_project_navigation.html.twig' %}
+
+                <div class="project-detail__layout">
+                    <section class="project-detail__content" aria-labelledby="project-description-heading">
+                        <h2 id="project-description-heading">Over dit project</h2>
+                        {% if project.description %}
+                            <div class="project-detail__description">{{ project.description }}</div>
+                        {% else %}
+                            <p>Er is nog geen uitgebreide beschrijving toegevoegd.</p>
+                        {% endif %}
+
+                        <h2>Gezochte vaardigheden</h2>
+                        {% if project.skills is not empty %}
+                            <ul>
+                                {% for projectSkill in project.skills %}
+                                    <li>
+                                        {{ projectSkill.skill.name }}
+                                        {% if projectSkill.required %}
+                                            (vereist)
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>Vaardigheden zijn niet opgegeven voor dit project.</p>
+                        {% endif %}
+                    </section>
+
+                    <aside class="project-detail__sidebar" aria-label="Projectgegevens">
+                        <h2>Projectgegevens</h2>
+                        <dl>
+                            <div>
+                                <dt>Organisatie</dt>
+                                <dd>{{ project.ownerOrganisation.name|default('Niet opgegeven') }}</dd>
+                            </div>
+                            <div>
+                                <dt>Locatie</dt>
+                                <dd>
+                                    {{ project.ownerOrganisation.location|default('Niet opgegeven') }}
+                                    {% if project.remotePossible %}<span class="project-detail__tag">Remote mogelijk</span>{% endif %}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>Startdatum</dt>
+                                <dd>{{ project.startDate ? project.startDate|date('d-m-Y') : 'Niet opgegeven' }}</dd>
+                            </div>
+                            {% if project.endDate %}
+                                <div>
+                                    <dt>Einddatum</dt>
+                                    <dd>{{ project.endDate|date('d-m-Y') }}</dd>
+                                </div>
+                            {% endif %}
+                        </dl>
+
+                        {% if application|default(null) %}
+                            <p class="project-detail__application-status">
+                                Je aanvraagstatus: <strong>{{ application.status.name|default('In behandeling') }}</strong>
+                            </p>
+                            <a class="project-detail__button project-detail__button--secondary" href="{{ path('account.applications') }}">Bekijk mijn aanmeldingen</a>
+                        {% elseif blocked|default(null) %}
+                            <p class="project-detail__closed">{{ blocked.message }}</p>
+                        {% elseif isOpen|default(false) %}
+                            <a class="project-detail__button" href="{{ path('main.projects.apply', {slug: project.slug}) }}">Meld je aan</a>
+                        {% else %}
+                            <p class="project-detail__closed">Dit project is momenteel niet open voor aanmeldingen.</p>
+                        {% endif %}
+                    </aside>
+                </div>
+            </article>
+        </div>
+    </div>
 {% endblock %}

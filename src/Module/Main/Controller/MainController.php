@@ -4,7 +4,12 @@ namespace App\Module\Main\Controller;
 
 use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
+use App\Entity\Common\Event;
+use App\Enum\ProfileVisibilityPermission;
+use App\Enum\VisibilityLevel;
 use App\Repository\Account\AccountRepository;
+use App\Repository\Project\ProjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -13,9 +18,11 @@ use Symfony\Component\Routing\Attribute\Route;
 final class MainController extends AbstractController
 {
     #[Route('', name: 'home', methods: ['GET'])]
-    public function index(): Response
+    public function index(ProjectRepository $projectRepository): Response
     {
-        $response = $this->render('pages/main/index.html.twig');
+        $response = $this->render('pages/main/index.html.twig', [
+            'publicProjects' => $projectRepository->findPublicProjects(6),
+        ]);
         $response->setPrivate();
         $response->setMaxAge(0);
         $response->headers->set('Cache-Control', 'no-store, private, max-age=0, must-revalidate');
@@ -60,6 +67,14 @@ final class MainController extends AbstractController
             throw $this->createNotFoundException('Profiel niet gevonden.');
         }
 
+        $settings = $account->getSetting();
+        $canViewHeadline = $isOwner
+            || $settings?->getSectionVisibility(ProfileVisibilityPermission::HEADLINE) === VisibilityLevel::PUBLIC;
+        $canViewSkills = $isOwner
+            || $settings?->getSectionVisibility(ProfileVisibilityPermission::SKILLS) === VisibilityLevel::PUBLIC;
+        $canViewExperience = $isOwner
+            || $settings?->getSectionVisibility(ProfileVisibilityPermission::EXPERIENCE) === VisibilityLevel::PUBLIC;
+
         $displayName = trim((string) $profile->getDisplayName());
         if ($displayName === '') {
             $displayName = trim((string) $profile->getFirstName() . ' ' . (string) $profile->getLastName());
@@ -69,30 +84,34 @@ final class MainController extends AbstractController
         }
 
         $skills = [];
-        foreach ($profile->getProfileSkills() as $profileSkill) {
-            $skill = $profileSkill->getSkill();
-            if ($skill !== null) {
-                $skills[] = [
-                    'name' => $skill->getName(),
-                    'proficiency' => $profileSkill->getProficiencyLevel(),
-                ];
+        if ($canViewSkills) {
+            foreach ($profile->getProfileSkills() as $profileSkill) {
+                $skill = $profileSkill->getSkill();
+                if ($skill !== null) {
+                    $skills[] = [
+                        'name' => $skill->getName(),
+                        'proficiency' => $profileSkill->getProficiencyLevel()?->value,
+                    ];
+                }
             }
         }
 
         $experiences = [];
-        foreach ($profile->getExperiences() as $experience) {
-            if ($experience->getDeletedAt() !== null) {
-                continue;
-            }
+        if ($canViewExperience) {
+            foreach ($profile->getExperiences() as $experience) {
+                if ($experience->getDeletedAt() !== null) {
+                    continue;
+                }
 
-            $experiences[] = [
-                'organisation' => $experience->getOrganisationName(),
-                'title' => $experience->getJobTitle(),
-                'description' => $experience->getDescription(),
-                'startDate' => $experience->getStartDate(),
-                'endDate' => $experience->getEndDate(),
-                'isCurrent' => $experience->isCurrent(),
-            ];
+                $experiences[] = [
+                    'organisation' => $experience->getDisplayOrganisationName(),
+                    'title' => $experience->getJobTitle(),
+                    'description' => $experience->getDescription(),
+                    'startDate' => $experience->getStartDate(),
+                    'endDate' => $experience->getEndDate(),
+                    'isCurrent' => $experience->isCurrent(),
+                ];
+            }
         }
         usort(
             $experiences,
@@ -104,7 +123,7 @@ final class MainController extends AbstractController
                 'displayName' => $displayName,
                 'username' => $account->getUsername(),
                 'avatarUrl' => $profile->getAvatarUrl() === 'none' ? null : $profile->getAvatarUrl(),
-                'biography' => $profile->getDescription(),
+                'biography' => $canViewHeadline ? $profile->getDescription() : null,
                 'skills' => $skills,
                 'experiences' => $experiences,
             ],
@@ -118,16 +137,31 @@ final class MainController extends AbstractController
     }
 
     #[Route('/events', name: 'events', methods: ['GET'])]
-    public function events(): Response
+    public function events(EntityManagerInterface $em): Response
     {
-        return $this->render('pages/main/events/index.html.twig');
+        $events = $em->getRepository(Event::class)->findBy(
+            ['deletedAt' => null],
+            ['startDatetime' => 'ASC']
+        );
+
+        return $this->render('pages/main/events/index.html.twig', ['events' => $events]);
     }
 
     #[Route('/events/{slug}', name: 'event', methods: ['GET'])]
-    public function viewEvent(string $slug): Response
+    public function viewEvent(string $slug, EntityManagerInterface $em): Response
     {
+        $event = $em->getRepository(Event::class)->findOneBy([
+            'slug' => $slug,
+            'deletedAt' => null,
+        ]);
+
+        if ($event === null) {
+            throw $this->createNotFoundException('Evenement niet gevonden.');
+        }
+
         return $this->render('pages/main/events/detail.html.twig', [
-            "slug" => $slug,
+            'slug' => $slug,
+            'event' => $event,
         ]);
     }
 }

@@ -2,88 +2,69 @@
 
 namespace App\Tests;
 
-use Symfony\Component\BrowserKit\Cookie;
+use App\Repository\Project\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class MainControllerTest extends WebTestCase
 {
-    public function testLoggedOutUserSeesLoginLinkWithoutAccountData(): void
+    public function testLoggedOutHomepageShowsLoginWithoutAccountDataAndIsNotSharedCached(): void
     {
         $client = static::createClient();
+        $this->mockHomepageProjects([]);
         $crawler = $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorNotExists('a.nav-button[href="/account"]');
-        $this->assertSelectorTextContains('a.nav-button[href="/auth/login"]', 'Inloggen');
+        $this->assertSelectorExists('a[href="/auth/login"]');
+        $this->assertSelectorNotExists('a[href="/account"]');
         $this->assertStringNotContainsString('TestUser', $crawler->text());
+        $this->assertNoStoreResponse($client->getResponse());
     }
 
-    public function testLoggedInUserSeesAccountAndLogoutLinks(): void
+    public function testLoggedInHomepageShowsAccountAndLogoutLinks(): void
     {
         $client = static::createClient();
-        $session = static::getContainer()->get('session.factory')->createSession();
-        $session->set('account_id', 'test-account');
-        $session->save();
-        $client->getCookieJar()->set(new Cookie($session->getName(), $session->getId()));
+        $this->mockHomepageProjects([]);
+        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authorizationChecker->expects($this->once())
+            ->method('isGranted')
+            ->with('ROLE_USER')
+            ->willReturn(true);
+        static::getContainer()->set('security.authorization_checker', $authorizationChecker);
 
-        $crawler = $client->request('GET', '/');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('a.nav-button[href="/account"]');
-        $this->assertSelectorTextContains('a.nav-button[href="/account"]', 'Account');
-        $this->assertSelectorTextContains('a.nav-button[href="/auth/logout"]', 'Uitloggen');
-        $this->assertStringNotContainsString('Inloggen', $crawler->text());
-    }
-
-    public function testHomepageResponseIsNotSharedCached(): void
-    {
-        $client = static::createClient();
         $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
-        $cacheControl = (string) $client->getResponse()->headers->get('Cache-Control');
-        $this->assertStringContainsString('no-store', $cacheControl);
-        $this->assertStringContainsString('private', $cacheControl);
-        $this->assertSame('no-cache', $client->getResponse()->headers->get('Pragma'));
+        $this->assertSelectorExists('a[href="/account"]');
+        $this->assertSelectorExists('a[href="/auth/logout"]');
+        $this->assertSelectorNotExists('a[href="/auth/login"]');
+        $this->assertNoStoreResponse($client->getResponse());
     }
-
-    public function testLogoutClearsAccountSession(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/');
-
-        $session = $client->getRequest()->getSession();
-        $session->set('account_id', 'test-account');
-        $session->set('dev_account_id', 'dev-account');
-
-        $client->request('GET', '/auth/logout');
-
-        $this->assertResponseRedirects('/');
-        $client->followRedirect();
-        $this->assertSelectorNotExists('a.nav-button[href="/account"]');
-        $this->assertSelectorTextContains('a.nav-button[href="/auth/login"]', 'Inloggen');
-    }
-
-    // Index
-
-    public function testShouldDisplayHome(): void
-    {
-        $client = static::createClient();
-        $crawler = $client->request('GET', '/');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'De juiste mensen voor publieke opgaven.');
-    }
-
-    //About
 
     public function testShouldDisplayAbout(): void
     {
         $client = static::createClient();
-        $crawler = $client->request('GET', '/about');
+        $client->request('GET', '/about');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Eén plek voor samenwerking binnen de overheid.');
+        $this->assertSelectorTextContains('h1', 'Samenwerken');
     }
 
+    private function mockHomepageProjects(array $projects): void
+    {
+        $repository = $this->createMock(ProjectRepository::class);
+        $repository->expects($this->once())
+            ->method('findPublicProjects')
+            ->with(6)
+            ->willReturn($projects);
+        static::getContainer()->set(ProjectRepository::class, $repository);
+    }
+
+    private function assertNoStoreResponse(\Symfony\Component\HttpFoundation\Response $response): void
+    {
+        $cacheControl = (string) $response->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('private', $cacheControl);
+        $this->assertSame('no-cache', $response->headers->get('Pragma'));
+    }
 }

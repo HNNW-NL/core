@@ -2,10 +2,12 @@
 
 namespace App\Entity\Account;
 
+use App\Enum\AvailabilityType;
+use App\Enum\DayOfWeek;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'availabilities')]
@@ -15,15 +17,19 @@ class Availability
     // Columns
 
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
     #[ORM\ManyToOne(inversedBy: 'availabilities')]
     #[ORM\JoinColumn(name: 'profile_id', nullable: false)]
     private ?Profile $profile = null;
 
-    #[ORM\Column(name: 'availability_type', length: 35)]
-    private ?string $availabilityType = null;
+    #[ORM\Column(
+        name: 'availability_type',
+        length: 35,
+        enumType: AvailabilityType::class
+    )]
+    private ?AvailabilityType $availabilityType = null;
 
     #[ORM\Column(name: 'valid_from', type: Types::DATE_IMMUTABLE)]
     private ?\DateTimeImmutable $validFrom = null;
@@ -31,8 +37,12 @@ class Availability
     #[ORM\Column(name: 'valid_until', type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $validUntil = null;
 
-    #[ORM\Column(name: 'day_of_week', length: 25)]
-    private ?string $dayOfWeek = null;
+    #[ORM\Column(
+        name: 'day_of_week',
+        length: 25,
+        enumType: DayOfWeek::class
+    )]
+    private ?DayOfWeek $dayOfWeek = null;
 
     #[ORM\Column(name: 'start_time', type: Types::TIME_IMMUTABLE)]
     private ?\DateTimeImmutable $startTime = null;
@@ -42,9 +52,6 @@ class Availability
 
     #[ORM\Column(name: 'note', type: Types::TEXT, nullable: true)]
     private ?string $note = null;
-
-    #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(name: 'last_modified', type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $lastModified;
@@ -62,10 +69,10 @@ class Availability
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -73,10 +80,7 @@ class Availability
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -110,12 +114,12 @@ class Availability
         return $this;
     }
 
-    public function getDayOfWeek(): ?string
+    public function getDayOfWeek(): ?DayOfWeek
     {
         return $this->dayOfWeek;
     }
 
-    public function setDayOfWeek(?string $dayOfWeek): static
+    public function setDayOfWeek(?DayOfWeek $dayOfWeek): static
     {
         $this->dayOfWeek = $dayOfWeek;
 
@@ -146,13 +150,14 @@ class Availability
         return $this;
     }
 
-    public function getAvailabilityType(): ?string
+    public function getAvailabilityType(): ?AvailabilityType
     {
         return $this->availabilityType;
     }
 
-    public function setAvailabilityType(?string $availabilityType): static
-    {
+    public function setAvailabilityType(
+        ?AvailabilityType $availabilityType
+    ): static {
         $this->availabilityType = $availabilityType;
 
         return $this;
@@ -196,7 +201,7 @@ class Availability
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable

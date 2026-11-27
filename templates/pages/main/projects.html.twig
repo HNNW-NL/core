@@ -1,7 +1,7 @@
 {% extends 'layouts/main.base.html.twig' %}
 
 {# Page title meta tag #}
-{% block title %}Projects{% endblock %}
+{% block title %}Projecten{% endblock %}
 
 {# SEO #}
 {% block seoKeywords %}{% endblock %}
@@ -10,7 +10,7 @@
 
 {# CSS #}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('assets/main/css/projects.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/main/css/index.css') }}">
 {% endblock %}
 
 {# JavaScript #}
@@ -18,93 +18,96 @@
 
 {# Page content #}
 {% block body %}
-    <section class="projects-page" aria-labelledby="projects-title">
-        <header class="projects-heading">
-            <p class="projects-eyebrow">Ontdek samenwerking</p>
-            <h1 id="projects-title">Projecten</h1>
-            <p>Vind projecten en publieke opgaven waar je aan kunt bijdragen.</p>
-        </header>
-
-        <form class="projects-filters" method="get" action="{{ path('main.projects.home') }}">
-            <div class="projects-field">
-                <label for="project-search">Zoek projecten</label>
-                <input
-                    id="project-search"
-                    name="q"
-                    type="search"
-                    value="{{ search }}"
-                    maxlength="100"
-                    placeholder="Zoek op titel of samenvatting"
-                >
+<div class="home-page projects-page">
+    <section class="open-projects container" aria-labelledby="projects-title">
+        <div class="open-projects-heading">
+            <div>
+                <p class="hnnw-eyebrow">Doe mee</p>
+                <h1 id="projects-title">Openbare projecten</h1>
             </div>
+        </div>
 
-            <div class="projects-field">
-                <label for="project-remote-filter">Werken op afstand</label>
-                <select id="project-remote-filter" name="remote">
+        <form class="project-filters" method="get" action="{{ path('main.projects.home') }}">
+            <div class="project-filter-field">
+                <label for="project-search">Zoek op titel of samenvatting</label>
+                <input id="project-search" type="search" name="q" maxlength="100" value="{{ search }}">
+            </div>
+            <div class="project-filter-field">
+                <label for="project-remote">Werken op afstand</label>
+                <select id="project-remote" name="remote">
                     <option value="" {{ remoteFilter == '' ? 'selected' : '' }}>Alle projecten</option>
                     <option value="yes" {{ remoteFilter == 'yes' ? 'selected' : '' }}>Op afstand mogelijk</option>
                     <option value="no" {{ remoteFilter == 'no' ? 'selected' : '' }}>Op locatie</option>
                 </select>
             </div>
-
-            <button class="projects-submit" type="submit">Zoeken</button>
-            {% if hasFilters %}
-                <a class="projects-clear" href="{{ path('main.projects.home') }}">Wis filters</a>
-            {% endif %}
+            <label class="project-open-filter">
+                <input type="checkbox" name="open" value="1" {% if onlyAcceptingApplications %}checked{% endif %}>
+                Alleen projecten waarop je je kunt aanmelden
+            </label>
+            <button type="submit">Zoeken</button>
         </form>
 
         {% if filterErrors is not empty %}
-            <div class="projects-alert" role="alert">
+            <div class="project-filter-errors" role="alert">
                 {% for error in filterErrors %}
                     <p>{{ error }}</p>
                 {% endfor %}
             </div>
         {% endif %}
 
-        {% if projects is empty %}
-            <div class="projects-empty-state" role="status">
-                <span class="projects-empty-mark" aria-hidden="true">⌕</span>
-                <h2>Geen projecten gevonden</h2>
-                <p>Pas je zoekterm of filter aan en probeer het opnieuw.</p>
-                {% if hasFilters %}
-                    <a class="projects-empty-link" href="{{ path('main.projects.home') }}">Toon alle projecten</a>
-                {% endif %}
+        <p class="project-results-count">
+            {{ totalProjects }} {{ totalProjects == 1 ? 'project' : 'projecten' }} gevonden
+        </p>
+
+        {% if publicProjects is not empty %}
+            <div class="open-projects-grid">
+                {% for project in publicProjects %}
+                    <article class="open-project-card">
+                        <h2><a href="{{ path('main.projects.detail', { slug: project.slug }) }}">{{ project.title }}</a></h2>
+                        <p class="open-project-organisation">{{ project.organisationName }}</p>
+                        <p class="open-project-summary">{{ project.summary }}</p>
+                        {% if project.skills is not empty %}
+                            <p class="project-skills">Vaardigheden: {{ project.skills|join(', ') }}</p>
+                        {% endif %}
+                        <p class="project-location">
+                            {% if project.location %}
+                                {{ project.location }}
+                            {% elseif project.remotePossible %}
+                                Op afstand mogelijk
+                            {% else %}
+                                Locatie niet opgegeven
+                            {% endif %}
+                        </p>
+                        <p class="project-status">Status: {{ project.projectStatus == 'published' ? 'Gepubliceerd' : project.projectStatus }}</p>
+                        {% if project.canApply %}
+                            <a class="open-project-link" href="{{ path('main.projects.apply', { slug: project.slug }) }}">Aanmelden mogelijk</a>
+                        {% else %}
+                            <p class="project-application-closed">Aanmelden niet mogelijk</p>
+                        {% endif %}
+                        <a class="open-project-link" href="{{ path('main.projects.detail', { slug: project.slug }) }}">Bekijk project</a>
+                    </article>
+                {% endfor %}
             </div>
         {% else %}
-            <p class="projects-count">{{ total }} project{{ total == 1 ? '' : 'en' }} gevonden</p>
-            <ul class="projects-list">
-                {% for project in projects %}
-                    <li>
-                        <article class="project-card">
-                            <h2>
-                                <a class="project-card-link" href="{{ path('main.projects.detail', {slug: project.slug}) }}">
-                                    {{ project.title }}
-                                </a>
-                            </h2>
-                            <p>{{ project.summary }}</p>
-                            {% if project.remotePossible %}
-                                <p class="project-remote">Op afstand mogelijk</p>
-                            {% endif %}
-                        </article>
-                    </li>
-                {% endfor %}
-            </ul>
+            <div class="open-projects-empty" role="status">
+                <p>Geen projecten gevonden. Pas je zoekterm of filters aan en probeer het opnieuw.</p>
+                {% if hasFilters %}
+                    <a href="{{ path('main.projects.home') }}">Toon alle projecten</a>
+                {% endif %}
+            </div>
+        {% endif %}
 
-            {% if pages > 1 %}
-                <nav class="projects-pagination" aria-label="Projectpagina's">
-                    {% if page > 1 %}
-                        <a class="projects-page-link" href="{{ path('main.projects.home', {q: search, remote: remoteFilter, page: page - 1}) }}">
-                            Vorige
-                        </a>
-                    {% endif %}
-                    <span class="projects-page-number">Pagina {{ page }} van {{ pages }}</span>
-                    {% if page < pages %}
-                        <a class="projects-page-link" href="{{ path('main.projects.home', {q: search, remote: remoteFilter, page: page + 1}) }}">
-                            Volgende
-                        </a>
-                    {% endif %}
-                </nav>
-            {% endif %}
+        {% if totalPages > 1 %}
+            <nav class="project-pagination" aria-label="Paginering">
+                {% if currentPage > 1 %}
+                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, remote: remoteFilter, page: currentPage - 1 }) }}">Vorige</a>
+                {% endif %}
+                <span>Pagina {{ currentPage }} van {{ totalPages }}</span>
+                {% if currentPage < totalPages %}
+                    <a href="{{ path('main.projects.home', { q: search, open: onlyAcceptingApplications ? 1 : null, remote: remoteFilter, page: currentPage + 1 }) }}">Volgende</a>
+                {% endif %}
+            </nav>
         {% endif %}
     </section>
+</div>
 {% endblock %}

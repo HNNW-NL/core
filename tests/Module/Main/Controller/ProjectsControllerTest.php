@@ -3,170 +3,122 @@
 namespace App\Tests\Module\Main\Controller;
 
 use App\Repository\Project\ProjectRepository;
-use App\Entity\Common\Status;
-use App\Entity\Org\Organisation;
-use App\Entity\Project\Project;
-use App\Module\Main\Service\CurrentProfileProvider;
-use App\Repository\Project\ProjectParticipantRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ProjectsControllerTest extends WebTestCase
 {
-    public function testSearchAndRemoteFilterArePagedOnServerAndLinkToMatchingProject(): void
+    public function testSearchAndRemoteFilterArePagedOnServer(): void
     {
         $repository = $this->createMock(ProjectRepository::class);
         $repository->expects($this->once())
-            ->method('findPublicPage')
-            ->with('water', true, 2, 12)
-            ->willReturn([
-                'items' => [[
-                    'title' => 'Water project',
-                    'summary' => 'Working on water quality.',
-                    'slug' => 'water-project',
-                    'remotePossible' => true,
-                ]],
-                'total' => 13,
-                'page' => 2,
-                'pages' => 2,
-            ]);
-        $detailProject = (new Project())
-            ->setTitle('Water project')
-            ->setSlug('water-project')
-            ->setSummary('Working on water quality.')
-            ->setDescription('Public project details.')
-            ->setStartDate(new \DateTimeImmutable('today'))
-            ->setCapacity(null)
-            ->setStatus((new Status())->setName('published'))
-            ->setVisibility('public')
-            ->setOwnerOrganisation((new Organisation())->setName('Public organisation'));
-        $detailProject->publish();
+            ->method('countPublicProjects')
+            ->with('water', true, true)
+            ->willReturn(21);
         $repository->expects($this->once())
-            ->method('findOnePublicBySlug')
-            ->with('water-project')
-            ->willReturn($detailProject);
+            ->method('findPaginatedPublicProjects')
+            ->with('water', true, 2, 20, true)
+            ->willReturn([[
+                'slug' => 'water-project',
+                'title' => 'Water project',
+                'summary' => 'A public project.',
+                'organisationName' => 'Public organisation',
+                'location' => null,
+                'projectStatus' => 'published',
+                'remotePossible' => true,
+                'canApply' => true,
+                'skills' => ['PHP'],
+            ]]);
 
         $client = static::createClient();
-        $client->disableReboot();
         static::getContainer()->set(ProjectRepository::class, $repository);
-        $profileProvider = $this->createMock(CurrentProfileProvider::class);
-        $profileProvider->expects($this->once())
-            ->method('getProfile')
-            ->willReturn(null);
-        static::getContainer()->set(CurrentProfileProvider::class, $profileProvider);
-        static::getContainer()->set(
-            ProjectParticipantRepository::class,
-            $this->createStub(ProjectParticipantRepository::class),
-        );
-        $crawler = $client->request('GET', '/projects?q=water&remote=yes&page=2');
+        $client->request('GET', '/projects?q=water&remote=yes&open=1&page=2');
 
         $this->assertResponseIsSuccessful();
-        $this->assertStringContainsString('no-store', (string) $client->getResponse()->headers->get('Cache-Control'));
-        $this->assertSelectorTextContains('h2 a[href="/projects/water-project"]', 'Water project');
-        $this->assertSelectorTextContains('nav[aria-label="Projectpagina\'s"]', 'Pagina 2 van 2');
-
-        $client->click($crawler->selectLink('Water project')->link());
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Water project');
+        $cacheControl = (string) $client->getResponse()->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertSelectorTextContains('.project-results-count', '21 projecten gevonden');
+        $this->assertSelectorTextContains('a[href="/projects/water-project"]', 'Water project');
+        $this->assertSelectorExists('select[name="remote"] option[value="yes"][selected]');
+        $this->assertSelectorTextContains('.project-pagination', 'Pagina 2 van 2');
     }
 
-    public function testNoResultsShowRecoveryLinkAndKeepSearchFilter(): void
+    public function testCombinedFiltersWithNoResultsOfferARecoveryLink(): void
     {
         $repository = $this->createMock(ProjectRepository::class);
         $repository->expects($this->once())
-            ->method('findPublicPage')
-            ->with('unknown', false, 1, 12)
-            ->willReturn([
-                'items' => [],
-                'total' => 0,
-                'page' => 1,
-                'pages' => 1,
-            ]);
+            ->method('countPublicProjects')
+            ->with('unknown', false, false)
+            ->willReturn(0);
+        $repository->expects($this->once())
+            ->method('findPaginatedPublicProjects')
+            ->with('unknown', false, 1, 20, false)
+            ->willReturn([]);
 
         $client = static::createClient();
         static::getContainer()->set(ProjectRepository::class, $repository);
         $client->request('GET', '/projects?q=unknown&remote=no');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('.projects-empty-state', 'Geen projecten gevonden');
-        $this->assertSelectorExists('a[href="/projects"]');
+        $this->assertSelectorTextContains('.open-projects-empty', 'Geen projecten gevonden');
+        $this->assertSelectorExists('.open-projects-empty a[href="/projects"]');
         $this->assertSelectorExists('input[name="q"][value="unknown"]');
-        $this->assertSelectorExists('option[value="no"][selected]');
+        $this->assertSelectorExists('select[name="remote"] option[value="no"][selected]');
     }
 
-    public function testInvalidFilterAndPageAreReportedAndRecovered(): void
+    public function testInvalidSearchFilterAndPageAreReportedAndRecovered(): void
     {
         $repository = $this->createMock(ProjectRepository::class);
         $repository->expects($this->once())
-            ->method('findPublicPage')
-            ->with('', null, 1, 12)
-            ->willReturn([
-                'items' => [],
-                'total' => 0,
-                'page' => 1,
-                'pages' => 1,
-            ]);
-
-        $client = static::createClient();
-        static::getContainer()->set(ProjectRepository::class, $repository);
-        $client->request('GET', '/projects?remote=invalid&page=0');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('[role="alert"]', 'De gekozen projectfilter is ongeldig.');
-        $this->assertSelectorTextContains('[role="alert"]', 'Het paginanummer is ongeldig.');
-    }
-
-    public function testAnonymousVisitorOnlySeesPublicProjectCardContent(): void
-    {
-        $repository = $this->createMock(ProjectRepository::class);
+            ->method('countPublicProjects')
+            ->with('', false, null)
+            ->willReturn(0);
         $repository->expects($this->once())
-            ->method('findPublicPage')
-            ->with('', null, 1, 12)
-            ->willReturn([
-                'items' => [[
-                    'title' => 'Public project',
-                    'summary' => 'A public project summary.',
-                    'slug' => 'public-project',
-                    'remotePossible' => false,
-                    'description' => 'PRIVATE FULL PROJECT DESCRIPTION',
-                    'applicationMotivation' => 'PRIVATE APPLICATION MOTIVATION',
-                    'participantEmail' => 'private@example.test',
-                ]],
-                'total' => 1,
-                'page' => 1,
-                'pages' => 1,
-            ]);
+            ->method('findPaginatedPublicProjects')
+            ->with('', false, 1, 20, null)
+            ->willReturn([]);
 
         $client = static::createClient();
         static::getContainer()->set(ProjectRepository::class, $repository);
-        $crawler = $client->request('GET', '/projects');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2 a[href="/projects/public-project"]', 'Public project');
-        $this->assertStringNotContainsString('PRIVATE FULL PROJECT DESCRIPTION', $crawler->html());
-        $this->assertStringNotContainsString('PRIVATE APPLICATION MOTIVATION', $crawler->html());
-        $this->assertStringNotContainsString('private@example.test', $crawler->html());
-    }
-
-    public function testOverlongSearchTermIsReportedAndRecovered(): void
-    {
-        $repository = $this->createMock(ProjectRepository::class);
-        $repository->expects($this->once())
-            ->method('findPublicPage')
-            ->with('', null, 1, 12)
-            ->willReturn([
-                'items' => [],
-                'total' => 0,
-                'page' => 1,
-                'pages' => 1,
-            ]);
-
-        $client = static::createClient();
-        static::getContainer()->set(ProjectRepository::class, $repository);
-        $client->request('GET', '/projects?q=' . str_repeat('a', 101));
+        $client->request('GET', '/projects?q=' . str_repeat('a', 101) . '&remote=invalid&page=0');
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('[role="alert"]', 'maximaal 100 tekens');
+        $this->assertSelectorTextContains('[role="alert"]', 'projectfilter is ongeldig');
+        $this->assertSelectorTextContains('[role="alert"]', 'paginanummer is ongeldig');
         $this->assertSelectorExists('input[name="q"][value=""]');
     }
 
+    public function testPublicListingDoesNotRenderPrivateProjectFields(): void
+    {
+        $repository = $this->createMock(ProjectRepository::class);
+        $repository->expects($this->once())
+            ->method('countPublicProjects')
+            ->with('', false, null)
+            ->willReturn(1);
+        $repository->expects($this->once())
+            ->method('findPaginatedPublicProjects')
+            ->with('', false, 1, 20, null)
+            ->willReturn([[
+                'slug' => 'public-project',
+                'title' => 'Public project',
+                'summary' => 'Public summary',
+                'organisationName' => 'Public organisation',
+                'location' => null,
+                'projectStatus' => 'published',
+                'remotePossible' => false,
+                'canApply' => false,
+                'skills' => [],
+                'applicationMotivation' => 'PRIVATE APPLICATION MOTIVATION',
+                'participantEmail' => 'private@example.test',
+            ]]);
+
+        $client = static::createClient();
+        static::getContainer()->set(ProjectRepository::class, $repository);
+        $client->request('GET', '/projects');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('a[href="/projects/public-project"]', 'Public project');
+        $this->assertStringNotContainsString('PRIVATE APPLICATION MOTIVATION', (string) $client->getResponse()->getContent());
+        $this->assertStringNotContainsString('private@example.test', (string) $client->getResponse()->getContent());
+    }
 }

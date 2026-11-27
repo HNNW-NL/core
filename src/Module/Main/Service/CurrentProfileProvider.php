@@ -3,23 +3,17 @@
 namespace App\Module\Main\Service;
 
 use App\Entity\Account\Profile;
-use Symfony\Bundle\SecurityBundle\Security;
-class CurrentProfileProvider
+use App\Security\CurrentAccountProvider;
+
+final readonly class CurrentProfileProvider
 {
     public function __construct(
-        private readonly Security $security,
+        private CurrentAccountProvider $currentAccountProvider,
     ) {
     }
 
     public function getProfile(): ?Profile
     {
-        $user = $this->security->getUser();
-
-        if ($user === null || !method_exists($user, 'getProfile')) {
-            return null;
-        }
-        $profile = $user->getProfile();
-
-        return $profile instanceof Profile ? $profile : null;
+        return $this->currentAccountProvider->getAccount()?->getProfile();
     }
 }

@@ -1,0 +1,36 @@
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid #48504c;
+    border-radius: 0.375rem;
+    background-color: #191818;
+    width: fit-content;
+}
+
+.alert-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.alert-success {
+    border-color: #bbf7d0;
+    background-color: #166534;
+}
+
+.alert-danger {
+    border-color: #fecaca;
+    background-color: #991b1b;
+}
+
+.alert-warning {
+    border-color: #fde68a;
+    background-color: #92400e;
+}
+
+.alert-info {
+    border-color: #bfdbfe;
+    background-color: #1e40af;
+}

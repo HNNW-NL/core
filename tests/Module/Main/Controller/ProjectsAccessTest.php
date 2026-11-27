@@ -2,16 +2,13 @@
 
 namespace App\Tests\Module\Main\Controller;
 
-use App\Entity\Account\Account;
-use App\Entity\Account\Profile;
 use App\Entity\Common\Status;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
-use App\Module\Main\Service\CurrentProfileProvider;
-use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRepository;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class ProjectsAccessTest extends WebTestCase
 {
@@ -24,29 +21,19 @@ class ProjectsAccessTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h1', 'Public project');
-        $this->assertSelectorNotExists('nav[aria-label="Projectteam"]');
+        $this->assertSelectorNotExists('nav[aria-label="Projectnavigatie"]');
         $this->assertStringNotContainsString('Private motivation', (string) $client->getResponse()->getContent());
     }
 
     #[DataProvider('teamRouteProvider')]
-    public function testTeamRoutesHideProjectFromNonParticipant(string $route): void
+    public function testTeamRoutesRejectAnonymousVisitors(string $route): void
     {
         $client = static::createClient();
-        $this->setProjectRepository('private-project', $this->createProject(), true);
-        $profileProvider = $this->createMock(CurrentProfileProvider::class);
-        $profileProvider->expects($this->once())
-            ->method('getProfile')
-            ->willReturn(new Profile());
-        static::getContainer()->set(CurrentProfileProvider::class, $profileProvider);
-        $participantRepository = $this->createMock(ProjectParticipantRepository::class);
-        $participantRepository->expects($this->once())
-            ->method('isActiveParticipant')
-            ->willReturn(false);
-        static::getContainer()->set(ProjectParticipantRepository::class, $participantRepository);
+        $this->setProjectRepository('private-project', $this->createProject());
 
         $client->request('GET', '/projects/private-project/' . $route);
 
-        $this->assertResponseStatusCodeSame(404);
+        $this->assertResponseRedirects('/auth/login');
     }
 
     public static function teamRouteProvider(): array
@@ -66,7 +53,7 @@ class ProjectsAccessTest extends WebTestCase
         $client = static::createClient();
         $repository = $this->createMock(ProjectRepository::class);
         $repository->expects($this->once())
-            ->method('findOnePublicBySlug')
+            ->method('findOneVisibleBySlug')
             ->with('unknown-project')
             ->willReturn(null);
         static::getContainer()->set(ProjectRepository::class, $repository);
@@ -76,7 +63,7 @@ class ProjectsAccessTest extends WebTestCase
         $this->assertResponseStatusCodeSame(404);
     }
 
-    public function testClosedProjectCannotBeOpenedForApplicationDirectly(): void
+    public function testClosedProjectApplicationRouteRequiresLogin(): void
     {
         $client = static::createClient();
         $project = $this->createProject();
@@ -85,33 +72,25 @@ class ProjectsAccessTest extends WebTestCase
 
         $client->request('GET', '/projects/closed-project/apply');
 
-        $this->assertResponseStatusCodeSame(404);
+        $this->assertResponseRedirects('/auth/login');
     }
 
-    public function testActiveParticipantGetsTeamLinksOnProjectDetail(): void
+    public function testAuthorizedParticipantGetsTeamNavigation(): void
     {
         $client = static::createClient();
-        $this->setProjectRepository('public-project', $this->createProject());
-        $participantRepository = $this->createMock(ProjectParticipantRepository::class);
-        $participantRepository->expects($this->once())
-            ->method('isActiveParticipant')
-            ->willReturn(true);
-        static::getContainer()->set(ProjectParticipantRepository::class, $participantRepository);
+        $project = $this->createProject();
+        $this->setProjectRepository('public-project', $project);
 
-        $account = (new Account())
-            ->setUsername('participant')
-            ->setEmail('participant@example.test');
-        $profile = (new Profile())->setAccount($account);
-        $account->setProfile($profile);
-        $profileProvider = $this->createMock(CurrentProfileProvider::class);
-        $profileProvider->expects($this->once())
-            ->method('getProfile')
-            ->willReturn($profile);
-        static::getContainer()->set(CurrentProfileProvider::class, $profileProvider);
+        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authorizationChecker->expects($this->exactly(2))
+            ->method('isGranted')
+            ->willReturnCallback(static fn (string $attribute): bool => $attribute === 'PROJECT_VIEW');
+        static::getContainer()->set('security.authorization_checker', $authorizationChecker);
+
         $client->request('GET', '/projects/public-project');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('nav[aria-label="Projectteam"] a[href="/projects/public-project/chat"]');
+        $this->assertSelectorExists('nav[aria-label="Projectnavigatie"] a[href="/projects/public-project/work-packages"]');
     }
 
     private function createProject(): Project
@@ -135,12 +114,11 @@ class ProjectsAccessTest extends WebTestCase
         return $project;
     }
 
-    private function setProjectRepository(string $slug, Project $project, bool $teamRoute = false): void
+    private function setProjectRepository(string $slug, Project $project): void
     {
         $repository = $this->createMock(ProjectRepository::class);
-        $lookupMethod = $teamRoute ? 'findOneVisibleBySlug' : 'findOnePublicBySlug';
         $repository->expects($this->once())
-            ->method($lookupMethod)
+            ->method('findOneVisibleBySlug')
             ->with($slug)
             ->willReturn($project);
 

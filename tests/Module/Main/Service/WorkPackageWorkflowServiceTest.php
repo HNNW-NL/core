@@ -2,83 +2,32 @@
 
 namespace App\Tests\Module\Main\Service;
 
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use App\Module\Main\Service\WorkPackageWorkflowService;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-class WorkPackageWorkflowServiceTest extends KernelTestCase
+final class WorkPackageWorkflowServiceTest extends TestCase
 {
-    // canTransition
-
-    public function testWhenStatusIsDraftAndNewStatusIsPlannedShouldReturnTrue(): void
+    #[DataProvider('statusProvider')]
+    public function testAllowedTransitions(string $status, array $allowed): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $workflow = new WorkPackageWorkflowService();
+
+        self::assertSame($allowed, $workflow->getAllowedTransitions($status));
+        foreach ($workflow->getStatusNames() as $target) {
+            self::assertSame(in_array($target, $allowed, true), $workflow->canTransition($status, $target));
+        }
+        self::assertFalse($workflow->canTransition($status, 'Unknown'));
     }
 
-    public function testWhenStatusIsDraftAndNewStatusIsCancelledShouldReturnTrue(): void
+    public static function statusProvider(): iterable
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenStatusIsPlannedAndNewStatusIsOpenShouldReturnTrue(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenStatusIsPlannedAndNewStatusIsCancelledShouldReturnTrue(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenStatusIsOpenAndNewStatusIsAssignedShouldReturnTrue(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenStatusIsOpenAndNewStatusIsCancelledShouldReturnTrue(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenStatusIsAssignedAndNewStatusIsClosedShouldReturnTrue(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenStatusIsAssignedAndNewStatusIsCancelledShouldReturnTrue(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenStatusIsClosedShouldReturnFalse(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenStatusIsCancelledShouldReturnFalse(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // getAllowedTransitions
-
-    public function testWhenTransitionsIsValidTransactionShouldPossibleTransactions(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenTransitionsIsNotValidTransactionShouldReturnEmptyArray(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        yield 'draft' => ['Draft', ['Planned', 'Cancelled']];
+        yield 'planned' => ['Planned', ['Open', 'Cancelled']];
+        yield 'open' => ['Open', ['Assigned', 'Cancelled']];
+        yield 'assigned' => ['Assigned', ['Closed', 'Cancelled']];
+        yield 'closed' => ['Closed', []];
+        yield 'cancelled' => ['Cancelled', []];
+        yield 'unknown' => ['Unknown', []];
     }
 }

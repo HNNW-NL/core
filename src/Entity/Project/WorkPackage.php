@@ -1,13 +1,14 @@
 <?php
+
 namespace App\Entity\Project;
 
 use App\Entity\Common\Status;
+use App\Repository\Project\WorkPackageRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
-use App\Repository\Project\WorkPackageRepository;
+use Symfony\Bridge\Doctrine\Types\UlidType;
+use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity(repositoryClass: WorkPackageRepository::class)]
 #[ORM\Table(name: 'work_packages')]
@@ -15,21 +16,18 @@ use App\Repository\Project\WorkPackageRepository;
     name: 'uniq_project_work_package_scope',
     columns: ['project_id', 'slug']
 )]
-
 #[ORM\HasLifecycleCallbacks]
 class WorkPackage
 {
-    // Columns
-
     #[ORM\Id]
-    #[ORM\Column(name: 'id', type: UuidType::NAME, unique: true)]
-    private Uuid $id;
+    #[ORM\Column(name: 'id', type: UlidType::NAME, unique: true)]
+    private Ulid $id;
 
-    #[ORM\ManyToOne(inversedBy: "workPackages")]
+    #[ORM\ManyToOne(inversedBy: 'workPackages')]
     #[ORM\JoinColumn(name: 'project_id', nullable: false)]
     private ?Project $project = null;
 
-    #[ORM\ManyToOne(inversedBy: "workPackages")]
+    #[ORM\ManyToOne(inversedBy: 'workPackages')]
     #[ORM\JoinColumn(name: 'status_id', nullable: false)]
     private ?Status $status = null;
 
@@ -45,15 +43,11 @@ class WorkPackage
     #[ORM\Column(name: 'description', type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
-
     #[ORM\Column(name: 'last_modified', type: 'datetime_immutable')]
     private \DateTimeImmutable $lastModified;
 
     #[ORM\Column(name: 'deleted_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $deletedAt = null;
-
 
     // Reverse FKs
 
@@ -65,11 +59,11 @@ class WorkPackage
 
     public function __construct()
     {
-        $this->id = Uuid::v7();
+        $this->id = new Ulid();
         $this->workPackageTasks = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): Ulid
     {
         return $this->id;
     }
@@ -77,10 +71,7 @@ class WorkPackage
     #[ORM\PrePersist]
     public function onCreate(): void
     {
-        $now = new \DateTimeImmutable();
-
-        $this->createdAt = $now;
-        $this->lastModified = $now;
+        $this->lastModified = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate]
@@ -103,9 +94,6 @@ class WorkPackage
     {
         $this->deletedAt = null;
     }
-
-
-    /// Getters & Setters Functions
 
     public function getProject(): ?Project
     {
@@ -181,7 +169,7 @@ class WorkPackage
 
     public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->id->getDateTime();
     }
 
     public function getLastModified(): \DateTimeImmutable
@@ -194,32 +182,32 @@ class WorkPackage
         return $this->deletedAt;
     }
 
-/**
- * @return Collection<int, PackageTask>
- */
-public function getWorkPackageTasks(): Collection
-{
-    return $this->workPackageTasks;
-}
-
-public function addWorkPackageTask(PackageTask $workPackageTask): static
-{
-    if (!$this->workPackageTasks->contains($workPackageTask)) {
-        $this->workPackageTasks->add($workPackageTask);
-        $workPackageTask->setWorkPackage($this);
+    /**
+     * @return Collection<int, PackageTask>
+     */
+    public function getWorkPackageTasks(): Collection
+    {
+        return $this->workPackageTasks;
     }
 
-    return $this;
-}
-
-public function removeWorkPackageTask(PackageTask $workPackageTask): static
-{
-    if ($this->workPackageTasks->removeElement($workPackageTask)) {
-        if ($workPackageTask->getWorkPackage() === $this) {
-            $workPackageTask->setWorkPackage(null);
+    public function addWorkPackageTask(PackageTask $workPackageTask): static
+    {
+        if (!$this->workPackageTasks->contains($workPackageTask)) {
+            $this->workPackageTasks->add($workPackageTask);
+            $workPackageTask->setWorkPackage($this);
         }
+
+        return $this;
     }
 
-    return $this;
-}
+    public function removeWorkPackageTask(PackageTask $workPackageTask): static
+    {
+        if ($this->workPackageTasks->removeElement($workPackageTask)) {
+            if ($workPackageTask->getWorkPackage() === $this) {
+                $workPackageTask->setWorkPackage(null);
+            }
+        }
+
+        return $this;
+    }
 }
