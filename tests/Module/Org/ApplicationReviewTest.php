@@ -9,6 +9,7 @@ use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
 use App\Repository\Common\StatusRepository;
+use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRoleRepository;
 use Doctrine\DBAL\LockMode;
@@ -39,6 +40,7 @@ final class ApplicationReviewTest extends TestCase
         $em->expects(self::exactly(2))->method('lock')->with($project, LockMode::PESSIMISTIC_WRITE);
         $workflow = new ProjectParticipantUpdateRoleHandler(
             $participants, $this->createStub(ProjectRoleRepository::class), $em, $statuses,
+            $this->createStub(PackageTaskRepository::class),
         );
 
         self::assertSame(!$enabled, $workflow->isPending($application));
@@ -56,6 +58,7 @@ final class ApplicationReviewTest extends TestCase
             $this->createStub(ProjectRoleRepository::class),
             $this->createStub(EntityManagerInterface::class),
             $this->createStub(StatusRepository::class),
+            $this->createStub(PackageTaskRepository::class),
         );
         $application = new ProjectApplication();
         self::assertFalse($workflow->isPending($application));
@@ -101,6 +104,7 @@ final class ApplicationReviewTest extends TestCase
         ));
         $workflow = new ProjectParticipantUpdateRoleHandler(
             $participants, $this->createStub(ProjectRoleRepository::class), $em, $statuses,
+            $this->createStub(PackageTaskRepository::class),
         );
 
         self::assertSame(['Geaccepteerd'], $workflow->configuredTransitions($pending));
