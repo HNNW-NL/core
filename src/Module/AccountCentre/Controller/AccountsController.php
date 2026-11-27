@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Module\AccountCentre\Controller;
 
 use App\Entity\Account\Account;
+use App\Entity\Account\Profile;
 use App\Entity\Account\AccountSetting;
 use App\Entity\Account\Availability;
 use App\Entity\Account\Notification;
-use App\Entity\Account\Profile;
 use App\Entity\Account\ProfileExperience;
 use App\Entity\Account\ProfileSkill;
 use App\Entity\Account\Review;
@@ -61,7 +61,8 @@ final class AccountsController extends AbstractController
         $account = $this->account();
         $settings = $em->getRepository(AccountSetting::class)->findOneBy(['account' => $account]);
         if (!$settings) {
-            $settings = $this->createAccountSettings($em, $account);
+            $settings = (new AccountSetting())->setAccount($account);
+            $em->persist($settings);
         }
         return $settings;
     }
@@ -350,45 +351,128 @@ final class AccountsController extends AbstractController
             return $this->redirectToRoute('account.home');
         }
 
-        if ($request->isMethod('POST')) {
-            $this->csrf($request, 'account_experience');
-            $title = trim((string) $request->request->get('job_title', ''));
-            $organisation = trim((string) $request->request->get('organisation_name', ''));
-            $from = $this->date((string) $request->request->get('start_date', ''));
-            $current = $request->request->has('is_current');
+        $editId = $request->query->get('edit');
+        $editingExperience = null;
 
-            $endDateInput = trim(
-                $request->request->getString('end_date')
-            );
-
-            $until = $current || $endDateInput === ''
-                ? null
-                : $this->date($endDateInput);
+        if ($editId) {
+            $editingExperience = $em
+                ->getRepository(ProfileExperience::class)
+                ->find($editId);
 
             if (
-                $title === ''
-                || $organisation === ''
-                || !$from
-                || (!$current && $endDateInput !== '' && !$until)
-                || ($until && $until < $from)
+                !$editingExperience ||
+                $editingExperience->getProfile() !== $profile ||
+                $editingExperience->getDeletedAt() !== null
             ) {
-                $this->addFlash('error', 'Controleer de verplichte velden en datums.');
+                throw $this->createAccessDeniedException();
+            }
+        }
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid(
+                $request->request->get('edit_id')
+                    ? 'edit_experience' . $request->request->get('edit_id')
+                    : 'create_experience',
+                $request->request->get('_token')
+            )) {
+                $this->addFlash('error', 'Ongeldig veiligheidstoken.');
+                return $this->redirectToRoute('account.experience');
+            }
+
+            // Gegevens uit het formulier ophalen
+            $jobTitle = trim((string) $request->request->get('job_title', ''));
+            $organisationName = trim((string) $request->request->get('organisation_name', ''));
+            $startDateStr = trim((string) $request->request->get('start_date', ''));
+            $endDateStr = trim((string) $request->request->get('end_date', ''));
+            $isCurrent = $request->request->getBoolean('is_current');
+            $description = trim((string) $request->request->get('description', ''));
+
+            $errors = [];
+
+            if ($jobTitle === '') {
+                $errors[] = 'De functietitel is verplicht.';
+            }
+
+            if ($organisationName === '') {
+                $errors[] = 'De organisatienaam is verplicht.';
+            }
+
+            $startDate = null;
+
+            if ($startDateStr === '') {
+                $errors[] = 'De begindatum is verplicht.';
             } else {
-                $experience = (new ProfileExperience())
-                    ->setProfile($profile)
-                    ->setJobTitle($title)
-                    ->setExternalOrganisationName($organisation)
-                    ->setStartDate($from)
-                    ->setEndDate($until)
-                    ->setIsCurrent($current)
-                    ->setDescription(trim((string) $request->request->get('description', '')) ?: null);
-                $em->persist($experience);
-                $em->flush();
-                $this->addFlash('success', 'Werkervaring toegevoegd.');
+                $startDate = \DateTimeImmutable::createFromFormat('!Y-m-d', $startDateStr);
+
+                if (!$startDate || $startDate->format('Y-m-d') !== $startDateStr) {
+                    $errors[] = 'Vul een geldige begindatum in.';
+                    $startDate = null;
+                }
+            }
+
+            $endDate = null;
+
+            if (!$isCurrent && $endDateStr !== '') {
+                $endDate = \DateTimeImmutable::createFromFormat('!Y-m-d', $endDateStr);
+
+                if (!$endDate || $endDate->format('Y-m-d') !== $endDateStr) {
+                    $errors[] = 'Vul een geldige einddatum in.';
+                    $endDate = null;
+                } elseif ($startDate !== null && $endDate < $startDate) {
+                    $errors[] = 'De einddatum mag niet vóór de begindatum liggen.';
+                }
+            }
+
+            if (!empty($errors)) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error);
+                }
+            } else {
+                try {
+                    $editId = $request->request->get('edit_id');
+
+                    if ($editId) {
+                        $experience = $em
+                            ->getRepository(ProfileExperience::class)
+                            ->find($editId);
+
+                        if (
+                            !$experience ||
+                            $experience->getProfile() !== $profile ||
+                            $experience->getDeletedAt() !== null
+                        ) {
+                            throw $this->createAccessDeniedException();
+                        }
+                    } else {
+                        $experience = new ProfileExperience();
+                        $experience->setProfile($profile);
+                    }
+
+                    $experience->setJobTitle($jobTitle);
+                    $experience->setOrganisationName($organisationName);
+                    $experience->setStartDate($startDate);
+                    $experience->setIsCurrent($isCurrent);
+                    $experience->setEndDate($isCurrent ? null : $endDate);
+                    $experience->setDescription($description !== '' ? $description : null);
+
+                    // Koppel de werkervaring aan het profiel van de ingelogde gebruiker.
+                    $experience->setProfile($profile);
+
+                    $em->persist($experience);
+                    $em->flush();
+
+                    $this->addFlash(
+                        'success',
+                        $editId ? 'Je werkervaring is bijgewerkt!' : 'Je werkervaring is succesvol toegevoegd!'
+                    );
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Er is een fout opgetreden bij het opslaan van je werkervaring.');
+                }
             }
             return $this->redirectToRoute('account.experience');
         }
         return $this->render('pages/account-centre/experience.html.twig', [
+            'editingExperience' => $editingExperience,
             'experiences' => $em->getRepository(ProfileExperience::class)->findBy(
                 ['profile' => $profile, 'deletedAt' => null], ['startDate' => 'DESC']
             ),
