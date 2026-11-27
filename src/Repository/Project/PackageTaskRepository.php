@@ -87,8 +87,29 @@ class PackageTaskRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('pt')
             ->join('pt.workPackage', 'wp')
             ->andWhere('wp.project = :project')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId()->toRfc4122())
             ->getQuery()
             ->getResult();
     }
+    // OR06-C: controleren op openstaande toegewezen taken
+// OR06-C: controleren op openstaande toegewezen taken
+public function hasOpenAssignedTasks(
+    Project $project,
+    Profile $profile
+): bool {
+    return (int) $this->createQueryBuilder('packageTask')
+        ->select('COUNT(packageTask.id)')
+        ->innerJoin('packageTask.workPackage', 'workPackage')
+        ->innerJoin('packageTask.status', 'status')
+        ->andWhere('workPackage.project = :project')
+        ->andWhere('packageTask.assignedProfile = :profile')
+        ->andWhere('packageTask.deletedAt IS NULL')
+        ->andWhere('workPackage.deletedAt IS NULL')
+        ->andWhere('LOWER(status.name) NOT IN (:closedStatuses)')
+        ->setParameter('project', $project->getId()->toRfc4122())
+        ->setParameter('profile', $profile->getId()->toRfc4122())
+        ->setParameter('closedStatuses', ['completed'])
+        ->getQuery()
+        ->getSingleScalarResult() > 0;
+}
 }

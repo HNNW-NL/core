@@ -46,7 +46,7 @@ class ProfileRepository extends ServiceEntityRepository
             ->select('DISTINCT p')
             ->innerJoin(ProjectParticipant::class, 'pp', 'WITH', 'pp.profile = p')
             ->andWhere('pp.project = :project')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId()->toRfc4122())
             ->getQuery()
             ->getResult();
     }

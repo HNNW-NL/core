@@ -3,9 +3,9 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    row-gap: 1vh;
+    row-gap: 0.75rem;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 3vh;
+    font-size: 1rem;
 }
 
 .edit-participants-table{
@@ -54,14 +54,14 @@
 }
 
 .edit-participants-table td{
-    padding: 1vh 1vw;
+    padding: 0.6rem 0.8rem;
 }
 
 .select-role{
     background-color:  #0f172ab3;
     border-collapse: collapse;
     border: none;
-    font-size: 3vh;
+    font-size: 1rem;
 }
 
 .submit{
@@ -70,9 +70,9 @@
     border: none;
     cursor: pointer;
     appearance: none;
-    font-size: 3vh;
-    padding: 0.5vh 0.5vw;
-    border-radius: 0.2vw;
+    font-size: 1rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 6px;
 }
 
 .submit:hover{
@@ -225,4 +225,24 @@ footer {
 
 .participants-empty {
     opacity: 0.8;
+}
+
+/* OR06-C: compact deelnemersoverzicht */
+.edit-participants-form {
+    display: flow-root;
+    overflow-x: auto;
+}
+.edit-participants-form > .submit {
+    margin-bottom: 0.75rem;
+}
+.edit-participants-table {
+    font-size: 1rem;
+}
+.edit-participants-table .select-role {
+    font-size: inherit;
+    padding: 0.35rem 0.5rem;
+}
+.edit-participants-table .btn {
+    font-size: 0.875rem;
+    white-space: nowrap;
 }

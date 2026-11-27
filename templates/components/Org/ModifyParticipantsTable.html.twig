@@ -4,11 +4,13 @@
             The changes were saved.
         </twig:Shared:Alert>
     {% endif %}
+
     {% if this.errorMessage %}
         <twig:Shared:Alert variant="error">
             {{ errorMessage }}
         </twig:Shared:Alert>
     {% endif %}
+
     <button
         type="button"
         data-action="live#action"
@@ -17,6 +19,7 @@
     >
         Submit Changes
     </button>
+
     <table class="edit-participants-table" id="edit-participants-table">
         <thead>
         <tr id="table-header-row">
@@ -24,26 +27,73 @@
             <td draggable="true">Date joined</td>
             <td draggable="true">Status</td>
             <td draggable="true">Role</td>
+            <td>Acties</td>
         </tr>
         </thead>
+
         <tbody>
         {% for participant in this.participants %}
+            {% set isActive = participant.joinedAt and not participant.leftAt %}
+
             <tr>
-                <td>{{ participant.profile.displayName }}</td> <!-- link to profile page-->
-                <td>{{ participant.joinedAt ? participant.joinedAt|date('d/m/Y') : '-' }}</td>
-                <td>{{ participant.status.name }}</td>
                 <td>
-                    <select
-                        class="select-role"
-                        data-model="rolesByParticipant[{{ participant.id }}]"
-                    >
-                        {% for role in this.roles %}
-                            <option value="{{ role.id }}"
-                                    {% if role == participant.role %}selected{% endif %}>
-                                {{ role.name }}
+                    {{ participant.profile.displayName ?: (participant.profile.firstName ~ ' ' ~ participant.profile.lastName) }}
+                </td>
+
+                <td>
+                    {{ participant.joinedAt ? participant.joinedAt|date('d/m/Y') : '-' }}
+                </td>
+
+                <td>
+                    {% if participant.leftAt %}
+                        Beëindigd ({{ participant.leftAt|date('d/m/Y') }})
+                    {% else %}
+                        {{ participant.status.name }}
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if isActive %}
+                        <select
+                            class="select-role"
+                            data-model="rolesByParticipant[{{ participant.id }}]"
+                        >
+                            <option value="" disabled
+                                    {% if not participant.role %}selected{% endif %}>
+                                Selecteer een rol
                             </option>
-                        {% endfor %}
-                    </select>
+
+                            {% for role in this.roles %}
+                                <option value="{{ role.id }}"
+                                        {% if role == participant.role %}selected{% endif %}>
+                                    {{ role.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    {% else %}
+                        {{ participant.role ? participant.role.name : '—' }}
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if isActive %}
+                        {% set participantId = participant.id.toBase32 %}
+
+                        <form method="post"
+                              action="{{ path('org.modifyProject.participants.terminate', {id: this.projectId, participantId: participantId}) }}"
+                              onsubmit="return confirm('Weet je zeker dat je deze deelname wilt beëindigen?');">
+
+                            <input type="hidden"
+                                   name="_token"
+                                   value="{{ csrf_token('org_terminate_participant_' ~ participantId) }}">
+
+                            <button type="submit" class="btn btn--reject">
+                                Deelname beëindigen
+                            </button>
+                        </form>
+                    {% else %}
+                        —
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
