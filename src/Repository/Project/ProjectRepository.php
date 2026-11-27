@@ -2,7 +2,11 @@
 
 namespace App\Repository\Project;
 
+use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
+use App\Entity\Project\ProjectApplication;
+use App\Entity\Project\ProjectParticipant;
+use App\Security\ProjectPermission;
 use App\Entity\Project\Project;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -34,7 +38,7 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('project')
             ->andWhere('project.id = :id')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('id', $id)
+            ->setParameter('id', $id, 'ulid')
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -64,7 +68,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->innerJoin('project.participants', 'participant')
             ->andWhere('participant.profile = :profile')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('profile', $profile);
+            ->setParameter('profile', $profile->getId(), 'ulid');
 
         $query = trim($query);
 
@@ -77,4 +81,91 @@ class ProjectRepository extends ServiceEntityRepository
         return $qb;
     }
 
+    public function organisationOverviewQuery(string $title, array $organisations, ?Account $account): QueryBuilder
+    {
+        $query = $this->createQueryBuilder('project')
+            ->leftJoin('project.status', 'status')
+            ->andWhere('project.deletedAt IS NULL');
+
+        if ($account === null) {
+            return $query->andWhere('1 = 0');
+        }
+
+        $query->innerJoin('project.ownerOrganisation', 'organisation')
+            ->andWhere('organisation.deletedAt IS NULL');
+
+        if ($title !== '') {
+            $query->andWhere("LOWER(project.title) LIKE :title ESCAPE '!'")
+                ->setParameter('title', '%' . strtr(mb_strtolower(trim($title)), ['!' => '!!', '%' => '!%', '_' => '!_']) . '%');
+        }
+
+        $access = $query->expr()->orX();
+        if ($account->getAdmin()?->isSuperAdmin() || $organisations !== []) {
+            $owner = $query->expr()->andX('project.ownerAccount = :account');
+            $query->setParameter('account', $account->getId(), 'ulid');
+            if (!$account->getAdmin()?->isSuperAdmin()) {
+                $owner->add('organisation.id IN (:organisationIds)');
+                $query->setParameter('organisationIds', array_map(
+                    static fn ($organisation): string => $organisation->getId()->toRfc4122(),
+                    array_values($organisations),
+                ));
+            }
+            $access->add($owner);
+        }
+
+        if ($account->getProfile() === null) {
+            return $query->andWhere($access->count() === 0 ? '1 = 0' : $access);
+        }
+
+        // Active project roles grant access only to the project they belong to.
+        $editableParticipation = $this->getEntityManager()->createQueryBuilder()
+            ->select('participant.id')
+            ->from(ProjectParticipant::class, 'participant')
+            ->innerJoin('participant.role', 'projectRole')
+            ->where('participant.project = project.id AND participant.profile = :profile')
+            ->andWhere('projectRole.project = project.id')
+            // The EDIT bit is set in the upper half of each mask period, including signed masks.
+            ->andWhere('(MOD(projectRole.permissionsMask, :editPeriod) >= :editPermission
+                OR MOD(projectRole.permissionsMask, :editPeriod) BETWEEN :negativeEditRemainder AND -1)');
+        ProjectParticipantRepository::restrictToActive($editableParticipation, 'participant');
+
+        $access->add('EXISTS (' . $editableParticipation->getDQL() . ')');
+
+        return $query
+            ->andWhere($access)
+            ->setParameter('profile', $account->getProfile()->getId(), 'ulid')
+            ->setParameter('editPeriod', ProjectPermission::EDIT->value * 2)
+            ->setParameter('editPermission', ProjectPermission::EDIT->value)
+            ->setParameter('negativeEditRemainder', -ProjectPermission::EDIT->value);
+    }
+
+    public function findOrganisationOverviewPage(QueryBuilder $query, int $offset, int $limit): array
+    {
+        $participantCount = $this->getEntityManager()->createQueryBuilder()
+            ->select('COUNT(DISTINCT activeParticipantProfile.id)')
+            ->from(ProjectParticipant::class, 'activeParticipant')
+            ->where('activeParticipant.project = project.id');
+        ProjectParticipantRepository::restrictToActive($participantCount, 'activeParticipant');
+
+        $applicationCount = $this->getEntityManager()->createQueryBuilder()
+            ->select('COUNT(application.id)')
+            ->from(ProjectApplication::class, 'application')
+            ->innerJoin('application.status', 'applicationStatus')
+            ->where('application.project = project.id AND application.deletedAt IS NULL')
+            ->andWhere('LOWER(applicationStatus.name) IN (:submittedStatuses)');
+
+        return $query
+            ->addSelect('status', 'lead', 'leadProfile')
+            ->leftJoin('project.ownerAccount', 'lead')
+            ->leftJoin('lead.profile', 'leadProfile')
+            ->addSelect('(' . $participantCount->getDQL() . ') AS participantCount')
+            ->addSelect('(' . $applicationCount->getDQL() . ') AS applicationCount')
+            ->setParameter('submittedStatuses', ['send', 'submitted'])
+            ->orderBy('project.title', 'ASC')
+            ->addOrderBy('project.id', 'ASC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

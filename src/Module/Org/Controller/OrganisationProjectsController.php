@@ -2,7 +2,13 @@
 
 namespace App\Module\Org\Controller;
 
+use App\Module\Org\Service\ProjectManagementActions;
+use App\Entity\Account\Account;
 use App\Entity\Project\Project;
+use App\Module\Org\Handler\ModifyProjectHandler;
+use App\Module\Org\Service\CreateProjectService;
+use App\Module\Org\Service\ProjectLifecycle;
+use App\Module\Org\Service\ProjectManagementAccess;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler;
@@ -11,16 +17,16 @@ use App\Module\Main\Handler\ChangeWorkPackageStatusHandler;
 use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
 use App\Repository\Project\ProjectRepository;
 use App\Repository\Project\ProjectParticipantRepository;
-use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\Ulid;
-use App\Security\Permission;
 
 #[Route('/org', name: 'org.')]
 final class OrganisationProjectsController extends AbstractController
 {
+    public function __construct(private readonly ProjectManagementAccess $projectAccess) {}
+
     #[Route('/projects', name: 'projects', methods: ['GET'])]
     public function projects(): Response
     {
@@ -30,23 +36,110 @@ final class OrganisationProjectsController extends AbstractController
         return $this->render('pages/org/projects.html.twig');
     }
 
-    #[Route('/projects/create', name: 'createProject', methods: ['GET'])]
-    public function createProject(): Response
+    #[Route('/projects/create', name: 'createProject', methods: ['GET', 'POST'])]
+    public function createProject(Request $request, CreateProjectService $service): Response
     {
-        return $this->render('pages/org/projects/create.html.twig');
+        $account = $this->getUser();
+        if (!$account instanceof Account || $account->getProfile() === null) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $organisations = $this->projectAccess->creationOrganisations();
+        if ($organisations === []) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $organisationId = $request->isMethod('POST')
+            ? $request->request->getString('organisation_id')
+            : $request->query->getString('organisation', array_key_first($organisations));
+        $organisation = $organisations[$organisationId] ?? null;
+        if ($organisation === null) {
+            throw $this->createAccessDeniedException('Select an organisation you can manage.');
+        }
+
+        $error = null;
+        $input = [];
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('org_create_project_' . $organisationId, $request->request->getString('_token'))) {
+                throw $this->createAccessDeniedException('Invalid form token.');
+            }
+            $input = $request->request->all();
+            try {
+                $project = $service->create($organisation, $input);
+
+                if ($this->projectAccess->canEdit($project)) {
+                    return $this->redirectToRoute('org.modifyProject', ['id' => $project->getId()], Response::HTTP_SEE_OTHER);
+                }
+
+                return $this->redirectToRoute('org.projects', status: Response::HTTP_SEE_OTHER);
+            } catch (\InvalidArgumentException $exception) {
+                $error = $exception->getMessage();
+            }
+        }
+
+        return $this->render('pages/org/projects/create.html.twig', [
+            'organisation' => $organisation,
+            'organisations' => $organisations,
+            'leads' => $service->projectLeads($organisation),
+            'error' => $error,
+            'input' => array_filter($input, 'is_string'),
+        ], new Response(status: $error === null ? 200 : 422));
     }
 
-    #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET'])]
+    #[Route('/projects/modify/{id}', name: 'modifyProject', methods: ['GET', 'POST'])]
     public function modifyProject(
         string $id,
+        Request $request,
         ProjectRepository $projectRepository,
+        ProjectLifecycle $lifecycle,
+        ProjectManagementActions $actions,
+        ModifyProjectHandler $handler,
     ): Response {
         $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
+        $error = null;
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('org_modify_project_' . $id, $request->request->getString('_token'))) {
+                throw $this->createAccessDeniedException('Invalid form token.');
+            }
+            $intent = $request->request->getString('intent');
+            $target = $request->request->getString('transition');
+            try {
+                if ($intent === 'modify' && $target === '') {
+                    $fields = array_intersect_key($request->request->all(), array_flip([
+                        'title', 'summary', 'description', 'visibility', 'startDate', 'endDate', 'capacity', 'last_modified',
+                    ]));
+                    $fields['project_id'] = (string) $project->getId();
+                    $fields['organisation_id'] = (string) $project->getOwnerOrganisation()->getId();
+                    $trustedRequest = $request->duplicate([], $fields, [
+                        'id' => $id, 'organisation_id' => $fields['organisation_id'], '_current_project' => $project,
+                    ]);
+                    $result = $handler->handle($trustedRequest, $this->getUser());
+                    if (($result['success'] ?? false) !== true || isset($result['error'])) {
+                        throw new \InvalidArgumentException($result['error'] ?? 'The project could not be saved.');
+                    }
+                } elseif ($intent === 'delete') {
+                    $actions->delete($project, $request->request->getString('delete_confirmation'));
+
+                    return $this->redirectToRoute('org.projects', status: Response::HTTP_SEE_OTHER);
+                } elseif ($intent === 'transition') {
+                    $actions->transition($project, $target, $this->getUser());
+                } else {
+                    throw new \InvalidArgumentException('Unknown project action.');
+                }
+
+                return $this->redirectToRoute('org.modifyProject', ['id' => $id], Response::HTTP_SEE_OTHER);
+            } catch (\InvalidArgumentException $exception) {
+                $error = $exception->getMessage();
+            }
+        }
 
         return $this->render('pages/org/projects/modify.html.twig', [
             'id' => $id,
             'project' => $project,
-        ]);
+            'canDelete' => $this->projectAccess->canDelete($project),
+            'transitions' => $lifecycle->allowedTargets($project),
+            'error' => $error,
+        ], new Response(status: $error === null ? 200 : 422));
     }
 
     #[Route('/projects/modify/{id}/matching', name: 'modifyProject.matching', methods: ['GET'])]
@@ -278,10 +371,18 @@ final class OrganisationProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        $this->denyAccessUnlessGranted(ProjectVoter::EDIT, $project);
-
-        $this->denyAccessUnlessGranted(Permission::ORG_MANAGE_PROJECTS->name, $project->getOwnerOrganisation());
+        $this->denyProjectEditAccess($project);
 
         return $project;
+    }
+
+    private function denyProjectEditAccess(Project $project): void
+    {
+        if ($project->getDeletedAt() !== null || $project->getOwnerOrganisation()?->getDeletedAt() !== null) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+        if (!$this->projectAccess->canEdit($project)) {
+            throw $this->createAccessDeniedException();
+        }
     }
 }

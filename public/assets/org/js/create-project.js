@@ -37,27 +37,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const button = document.getElementById("submit-btn");
-    const form = document.querySelector("form");
-
-    if (form && button) {
-        form.addEventListener("submit", function (e) {
-
-            e.preventDefault();
-
-            // UI feedback tijdens het aanmaken van het project
-            button.textContent = "Creating project...";
-            button.disabled = true;
-            button.classList.add("loading");
-
-            setTimeout(() => {
-                // Reset knop na loading delay (1.5 seconden)
-                button.textContent = "Create project";
-                button.disabled = false;
-
-                form.submit();
-            }, 1500); // 1.5 seconden loading delay
-        });
-    }
-
 });

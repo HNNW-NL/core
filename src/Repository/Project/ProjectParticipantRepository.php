@@ -9,6 +9,8 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Uid\Ulid;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -25,16 +27,14 @@ class ProjectParticipantRepository extends ServiceEntityRepository
 
     private function activeFor(Project $project, Profile $profile): \Doctrine\ORM\QueryBuilder
     {
-        return $this->createQueryBuilder('pp')
-            ->innerJoin('pp.status', 'activeStatus')
-            ->innerJoin('pp.profile', 'activeProfile')->innerJoin('activeProfile.account', 'activeAccount')
+        return self::restrictToActive($this->createQueryBuilder('pp'), 'pp')
             ->andWhere('pp.project = :project')->andWhere('pp.profile = :profile')
-            ->andWhere('pp.joinedAt IS NOT NULL')->andWhere('pp.leftAt IS NULL')
-            ->andWhere('activeProfile.deletedAt IS NULL')->andWhere('activeAccount.deletedAt IS NULL')
-            ->andWhere('LOWER(activeStatus.scope) = :scope')->andWhere('LOWER(activeStatus.name) IN (:names)')
-            ->setParameter('scope', ProjectParticipation::SCOPE)
-            ->setParameter('names', ProjectParticipation::ACTIVE_NAMES)
             ->setParameter('project', $project->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid');
+    }
+
+    public static function restrictToActive(QueryBuilder $query, string $alias): QueryBuilder
+    {
+        return ProjectParticipation::restrictQuery($query, $alias);
     }
 
     public function findActiveParticipant(Project $project, Profile $profile): ?ProjectParticipant
@@ -103,6 +103,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
         // OR06-B: binnen een transactie blokkeert dit een gelijktijdige tweede behandeling van dezelfde aanvraag.
         if ($lockForUpdate) {
             $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
+            $query->setHint(Query::HINT_REFRESH, true);
         }
 
         return $query->getOneOrNullResult();

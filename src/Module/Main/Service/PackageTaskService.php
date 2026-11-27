@@ -2,6 +2,8 @@
 
 namespace App\Module\Main\Service;
 
+use App\Module\Org\Service\ProjectLifecycle;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Entity\Account\Profile;
 use App\Entity\Common\Status;
 use App\Entity\Project\PackageTask;
@@ -11,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 class PackageTaskService
 {
     public function __construct(
+        private readonly ProjectWriteLock $projectWriteLock,
         private readonly PackageTaskRepository $packageTaskRepository,
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -31,10 +34,23 @@ class PackageTaskService
 
     public function completeTask(PackageTask $task, Status $completedStatus): PackageTask
     {
-        $task->setStatus($completedStatus);
+        $project = $task->getWorkPackage()?->getProject();
+        if ($project === null) {
+            throw new \InvalidArgumentException('Task does not belong to a project.');
+        }
 
-        $this->entityManager->flush();
+        return $this->projectWriteLock->run($project, function () use ($task, $completedStatus, $project): PackageTask {
+            ProjectLifecycle::assertTaskChangesAllowed($project);
+            $this->entityManager->refresh($task);
+            if ($task->getDeletedAt() !== null || $task->getWorkPackage()?->getProject() !== $project
+                || $task->getWorkPackage()->getDeletedAt() !== null) {
+                throw new \InvalidArgumentException('Task does not belong to this project.');
+            }
+            $task->setStatus($completedStatus);
 
-        return $task;
+            $this->entityManager->flush();
+
+            return $task;
+        });
     }
 }

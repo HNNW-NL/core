@@ -2,6 +2,8 @@
 
 namespace App\Module\Admin\Service;
 
+use App\Module\Org\Service\ProjectLifecycle;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Entity\Common\Status;
 use App\Entity\Project\PackageTask;
 use App\Entity\Project\WorkPackage;
@@ -12,6 +14,7 @@ use Symfony\Component\Uid\Ulid;
 class PackageTaskCrudService
 {
     public function __construct(
+        private readonly ProjectWriteLock $projectWriteLock,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -28,19 +31,31 @@ class PackageTaskCrudService
             throw new \InvalidArgumentException('Work package not found.');
         }
 
-        $task = new PackageTask();
-        $task->setWorkPackage($workPackage);
-        $task->setStatus($this->findDefaultStatus($workPackage));
-        $task->setTitle($dto->title);
-        $task->setSlug($dto->slug);
-        $task->setDescription($dto->description);
-        $task->setDueDate($dto->dueDate);
-        $task->setPriority($dto->priority);
+        $project = $workPackage->getProject();
+        if ($project === null) {
+            throw new \InvalidArgumentException('Work package does not belong to a project.');
+        }
 
-        $this->entityManager->persist($task);
-        $this->entityManager->flush();
+        return $this->projectWriteLock->run($project, function () use ($dto, $project, $workPackage): PackageTask {
+            ProjectLifecycle::assertTaskChangesAllowed($project);
+            $this->entityManager->refresh($workPackage);
+            if ($workPackage->getDeletedAt() !== null || $workPackage->getProject() !== $project) {
+                throw new \InvalidArgumentException('Work package not found in this project.');
+            }
+            $task = new PackageTask();
+            $task->setWorkPackage($workPackage);
+            $task->setStatus($this->findDefaultStatus($workPackage));
+            $task->setTitle($dto->title);
+            $task->setSlug($dto->slug);
+            $task->setDescription($dto->description);
+            $task->setDueDate($dto->dueDate);
+            $task->setPriority($dto->priority);
 
-        return $task;
+            $this->entityManager->persist($task);
+            $this->entityManager->flush();
+
+            return $task;
+        });
     }
 
     private function findDefaultStatus(WorkPackage $workPackage): Status

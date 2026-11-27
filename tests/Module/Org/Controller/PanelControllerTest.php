@@ -23,26 +23,6 @@ class PanelControllerTest extends WebTestCase
         $this->assertTrue(false);
     }
 
-    // createProject
-
-    public function testWhenNotLoggedInShouldBeRedirectedFromCreateProject(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldDisplayCreateProject(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInAndSubmitFormShouldCreateProject(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
     // modifyProject
 
     public function testWhenNotLoggedInShouldBeRedirectedFromModifyProject(): void

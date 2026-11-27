@@ -239,13 +239,12 @@ final readonly class PublicProfileService
         }
         $projects = $this->em->createQueryBuilder()->from(Project::class, 'project')
             ->leftJoin('project.participants', 'participant', 'WITH',
-                'participant.profile = :profile AND participant.joinedAt IS NOT NULL AND participant.leftAt IS NULL')
+                'participant.profile = :profile')
             ->leftJoin('participant.status', 'participantStatus')
             ->andWhere('project.deletedAt IS NULL')->andWhere('project.publishedAt IS NOT NULL')
             ->andWhere('project.visibility = :visibility')->setParameter('visibility', 'public')
-            ->andWhere('project.ownerAccount = :account OR (participant.id IS NOT NULL AND LOWER(participantStatus.scope) = :scope AND LOWER(participantStatus.name) IN (:active))')
-            ->setParameter('account', $account->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid')
-            ->setParameter('scope', ProjectParticipation::SCOPE)->setParameter('active', ProjectParticipation::ACTIVE_NAMES);
+            ->andWhere('project.ownerAccount = :account OR (participant.id IS NOT NULL AND '.ProjectParticipation::predicate('participant', 'participantStatus').')')
+            ->setParameter('account', $account->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid');
         ProjectVisibility::restrictQuery($projects, 'project');
         $data['publicProjectCount'] = (int) (clone $projects)->select('COUNT(DISTINCT project.id)')->getQuery()->getSingleScalarResult();
         $data['projectPages'] = max(1, (int) ceil($data['publicProjectCount'] / self::PROJECT_PAGE_SIZE));

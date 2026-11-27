@@ -103,16 +103,8 @@ final class AccountsController extends AbstractController
     {
         $profile = $this->profile($em);
         $this->csrf($request, 'cancel_application'.$id);
-        $application = \Symfony\Component\Uid\Ulid::isValid($id) ? $em->find(ProjectApplication::class, new \Symfony\Component\Uid\Ulid($id)) : null;
-        if (!$application) {
-            throw $this->createNotFoundException('Aanmelding niet gevonden.');
-        }
-        try {
-            $changed = $service->withdraw($application, $profile);
-            $this->addFlash($changed ? 'success' : 'info', $changed ? 'Aanmelding ingetrokken.' : 'Deze aanmelding was al ingetrokken.');
-        } catch (\DomainException $exception) {
-            $this->addFlash('error', $exception->getMessage());
-        }
+        $result = $service->withdrawById($id, $profile);
+        $this->addFlash($result['type'], $result['message']);
         return $this->redirectToRoute('account.applications', status: 303);
     }
 

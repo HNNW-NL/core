@@ -10,11 +10,7 @@ final class ProjectVisibility
 {
     public static function isPubliclyVisible(Project $project): bool
     {
-        return $project->getDeletedAt() === null
-            && $project->getOwnerOrganisation() !== null
-            && $project->getOwnerOrganisation()->getDeletedAt() === null
-            && strcasecmp((string) $project->getStatus()?->getScope(), 'project') === 0
-            && ProjectLifecycle::isPubliclyVisible($project);
+        return ProjectLifecycle::isPubliclyVisible($project);
     }
 
     public static function acceptsApplications(Project $project): bool
@@ -29,7 +25,7 @@ final class ProjectVisibility
             ->andWhere($alias.'.deletedAt IS NULL')->andWhere($alias.'.publishedAt IS NOT NULL')
             ->andWhere($alias.'.visibility = :'.$alias.'PublicVisibility')->setParameter($alias.'PublicVisibility', 'public')
             ->andWhere($alias.'OwnerOrganisation.deletedAt IS NULL')
-            ->andWhere('LOWER('.$alias.'LifecycleStatus.scope) = :'.$alias.'LifecycleScope')->setParameter($alias.'LifecycleScope', 'project')
+            ->andWhere($alias.'LifecycleStatus.scope = :'.$alias.'LifecycleScope')->setParameter($alias.'LifecycleScope', 'project')
             ->andWhere('LOWER('.$alias.'LifecycleStatus.name) IN (:'.$alias.'PublicStatuses)')
             ->setParameter($alias.'PublicStatuses', ProjectLifecycle::PUBLIC_STATUSES);
     }

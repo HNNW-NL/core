@@ -438,6 +438,101 @@ final class ProfileAndParticipantsTest extends WebTestCase
         }
     }
 
+    #[\PHPUnit\Framework\Attributes\TestWith(['public', 'published', false, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['private', 'published', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['private', 'published', false, true, true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['public', 'archived', false, false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['public', 'published', true, false])]
+    public function testApplicationProjectLinksRespectActualAccess(string $visibility, string $status, bool $deleted, bool $linked, bool $active = false): void
+    {
+        $this->project->setVisibility($visibility)->setStatus($this->fixtureStatus('project', $status));
+        if ($deleted) { $this->project->softDelete(); }
+        if ($active) {
+            $role = $this->em->getRepository(ProjectRole::class)->findOneBy(['project' => $this->project, 'name' => 'Developer']);
+            $participant = (new ProjectParticipant())->setProject($this->project)->setProfile($this->outsider->getProfile())->setRole($role)
+                ->setStatus($this->fixtureStatus('ProjectParticipant', 'active'));
+            $participant->join();
+            $this->persist($participant);
+        }
+        $this->em->flush();
+        $this->client->loginUser($this->outsider);
+        $page = $this->client->request('GET', '/account/applications');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.account-card h3', 'Samen bouwen');
+        $links = $page->filter('.account-card h3 a');
+        self::assertCount($linked ? 1 : 0, $links);
+        if ($linked) {
+            $this->client->click($links->link());
+            self::assertResponseIsSuccessful();
+        }
+    }
+
+    public function testAcceptanceRollsBackBothApplicationAndInsertedParticipantOnFailure(): void
+    {
+        $candidate = $this->account('rollback-applicant', true);
+        $application = (new ProjectApplication())->setProject($this->project)->setProfile($candidate->getProfile())
+            ->setStatus($this->fixtureStatus('ProjectApplication', 'send'));
+        $this->persist($application);
+        $this->em->flush();
+        $projectId = (string) $this->project->getId();
+        $applicationId = $application->getId();
+        $profileId = $candidate->getProfile()->getId();
+        $listener = new class($projectId) {
+            public bool $insertReached = false;
+            public function __construct(private string $projectId) {}
+            public function postPersist(object $event): void
+            {
+                $entity = $event->getObject();
+                if ($entity instanceof ProjectParticipant && (string) $entity->getProject()->getId() === $this->projectId) {
+                    $this->insertReached = true;
+                    throw new \RuntimeException('Injected failure after participant INSERT');
+                }
+            }
+        };
+        $events = $this->em->getEventManager();
+        $events->addEventListener([\Doctrine\ORM\Events::postPersist], $listener);
+        try {
+            static::getContainer()->get(\App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler::class)
+                ->acceptApplication($this->project, (string) $applicationId, $this->owner->getProfile());
+            self::fail('The injected failure must abort acceptance.');
+        } catch (\RuntimeException $exception) {
+            self::assertStringContainsString('Injected failure', $exception->getMessage());
+            self::assertTrue($listener->insertReached);
+        } finally {
+            $events->removeEventListener([\Doctrine\ORM\Events::postPersist], $listener);
+            $this->em = static::getContainer()->get('doctrine')->resetManager();
+        }
+        $application = $this->em->find(ProjectApplication::class, $applicationId);
+        self::assertSame('send', $application->getStatus()->getName());
+        self::assertNull($application->getReviewedAt());
+        self::assertNull($application->getReviewerProfile());
+        self::assertNull($application->getParticipant());
+        self::assertSame(0, $this->em->getRepository(ProjectParticipant::class)->count(['project' => $application->getProject(), 'profile' => $application->getProfile()]));
+    }
+
+    public function testAcceptedApplicationRemainsConsistentWithTeamOneLifecycle(): void
+    {
+        $this->fixtureStatus('project', 'applications_closed');
+        $this->fixtureStatus('project', 'completed');
+        $this->em->flush();
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['profile' => $this->outsider->getProfile()]);
+        $workflow = static::getContainer()->get(\App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler::class);
+        self::assertTrue($workflow->acceptApplication($this->project, (string) $application->getId(), $this->owner->getProfile())['success']);
+        $lifecycle = static::getContainer()->get(\App\Module\Org\Service\ProjectLifecycle::class);
+        $lifecycle->transition($this->project, 'applications_closed');
+        $this->em->flush();
+        self::assertFalse($lifecycle::acceptsApplications($this->project));
+        $lifecycle->transition($this->project, 'completed');
+        $this->em->flush();
+        self::assertSame('accepted', $application->getStatus()->getName());
+        self::assertSame('completed', $this->project->getStatus()->getName());
+        self::assertFalse($lifecycle::allowsTaskChanges($this->project));
+        self::assertTrue($lifecycle::isPubliclyVisible($this->project));
+        self::assertSame(1, $this->em->getRepository(ProjectParticipant::class)->count(['application' => $application]));
+        $data = static::getContainer()->get(\App\Module\Main\Service\PublicProfileService::class)->load($this->owner->getUsername(), null);
+        self::assertSame(1, $data['publicProjectCount']);
+    }
+
     public function testPublicProfileRespectsVisibilityAndDatabaseChanges(): void
     {
         $path = '/profile/'.$this->owner->getUsername();

@@ -18,54 +18,69 @@
 
 <h2>Create project</h2>
 
-<form method="post">
+{% if organisations|length > 1 %}
+    <form method="get">
+        <label for="organisation">Organisation</label>
+        <select name="organisation" id="organisation">
+            {% for candidate in organisations %}
+                <option value="{{ candidate.id }}" {{ candidate.id == organisation.id ? 'selected' }}>{{ candidate.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Select organisation</button>
+    </form>
+{% endif %}
+
+{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+<form method="post" action="{{ path('org.createProject') }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('org_create_project_' ~ organisation.id) }}">
+    <input type="hidden" name="organisation_id" value="{{ organisation.id }}">
+    <p>Organisation: {{ organisation.name }}</p>
     <div>
         <label for="name">Project name</label>
-        <input type="text" id="name" name="name" required placeholder="Enter a project name">
+        <input id="name" name="name" required maxlength="120" value="{{ input.name|default('') }}">
         <p id="title-counter">0 characters</p>
     </div>
-
     <div>
         <label for="summary">Summary</label>
-        <textarea id="summary" name="summary" required placeholder="Write a short summary of your project"></textarea>
+        <textarea id="summary" name="summary" required maxlength="280">{{ input.summary|default('') }}</textarea>
         <p id="summary-counter">0 characters</p>
     </div>
-
     <div>
         <label for="description">Description</label>
-        <textarea id="description" name="description" required placeholder="Describe your project in detail"></textarea>
+        <textarea id="description" name="description" required maxlength="500">{{ input.description|default('') }}</textarea>
         <p id="description-counter">0 characters</p>
     </div>
-
     <div>
-        <label for="capacity">Capacity</label>
-        <input value="0" type="number" id="capacity" name="capacity" min="0">
-    </div>
-
-    <div>
-        <label for="visibility">Visibility</label>
-        <select id="visibility" name="visibility" required>
-            <option value="" selected disabled>Choose visibility</option>
-            <option value="public">Public</option>
-            <option value="private">Private</option>
+        <label for="project-lead">Project lead</label>
+        <select id="project-lead" name="project_lead" required>
+            <option value="">Choose a project lead</option>
+            {% for key, lead in leads %}
+                <option value="{{ key }}" {{ input.project_lead|default('') == key ? 'selected' }}>{{ lead.profile.displayName ?: lead.email }}</option>
+            {% endfor %}
         </select>
     </div>
-
     <div>
-        <label for="status">Status</label>
-
-        {% include 'components/status-autocomplete.html.twig' with {
-            statuses: statuses|default([]),
-            name: 'status',
-            id: 'status'
-        } %}
+        <label for="start-date">Start date</label>
+        <input type="date" id="start-date" name="start_date" value="{{ input.start_date|default('') }}">
+        <label for="end-date">End date</label>
+        <input type="date" id="end-date" name="end_date" value="{{ input.end_date|default('') }}">
     </div>
-
-    {# Project opslaan #}
     <div>
-        <button type="submit" id="submit-btn">Create new project</button>
+        <label for="capacity">Capacity</label>
+        <input type="number" id="capacity" name="capacity" min="1" max="500" required value="{{ input.capacity|default('') }}">
     </div>
-
+    <div>
+        <label for="visibility">Visibility after publishing</label>
+        <select id="visibility" name="visibility" required>
+            {% for choice in ['public', 'private', 'unlisted'] %}
+                <option value="{{ choice }}" {{ input.visibility|default('public') == choice ? 'selected' }}>{{ choice|capitalize }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <input type="checkbox" name="remote_possible" id="remote-possible" value="1" {{ input.remote_possible|default('') == '1' ? 'checked' }}>
+        <label for="remote-possible">Remote work possible</label>
+    </div>
+    <button type="submit">Save draft</button>
 </form>
-
 {% endblock %}

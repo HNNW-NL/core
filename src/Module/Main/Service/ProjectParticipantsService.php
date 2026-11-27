@@ -27,10 +27,8 @@ final readonly class ProjectParticipantsService
             ->innerJoin('participant.profile', 'profile')->innerJoin('profile.account', 'account')
             ->innerJoin('participant.status', 'status')
             ->andWhere('participant.project = :project')->setParameter('project', $project->getId(), 'ulid')
-            ->andWhere('participant.joinedAt IS NOT NULL')->andWhere('participant.leftAt IS NULL')
-            ->andWhere('profile.deletedAt IS NULL')->andWhere('account.deletedAt IS NULL')
-            ->andWhere('LOWER(status.scope) = :scope')->setParameter('scope', ProjectParticipation::SCOPE)
-            ->andWhere('LOWER(status.name) IN (:active)')->setParameter('active', ProjectParticipation::ACTIVE_NAMES);
+            ->andWhere(ProjectParticipation::predicate('participant', 'status'))
+            ->andWhere('profile.deletedAt IS NULL')->andWhere('account.deletedAt IS NULL');
         $owner = $project->getOwnerAccount();
         if ($viewer->getId() != $owner?->getId()) {
             $access = (clone $query)->select('COUNT(participant.id)')->andWhere('account.id = :viewer')
@@ -43,14 +41,12 @@ final readonly class ProjectParticipantsService
         // EXISTS avoids collection fetch joins truncating either the page or its roles.
         $activeMembership = 'EXISTS (SELECT membership.id FROM '.ProjectParticipant::class.' membership'
             .' JOIN membership.status membershipStatus WHERE membership.profile = profile'
-            .' AND membership.project = :project AND membership.joinedAt IS NOT NULL AND membership.leftAt IS NULL'
-            .' AND LOWER(membershipStatus.scope) = :scope AND LOWER(membershipStatus.name) IN (:active))';
+            .' AND membership.project = :project AND '.ProjectParticipation::predicate('membership', 'membershipStatus').')';
         $profiles = $this->em->createQueryBuilder()->from(Profile::class, 'profile')
             ->innerJoin('profile.account', 'account')->leftJoin('account.setting', 'setting')
             ->andWhere('profile.deletedAt IS NULL')->andWhere('account.deletedAt IS NULL')
             ->andWhere($activeMembership)
-            ->setParameter('project', $project->getId(), 'ulid')
-            ->setParameter('scope', ProjectParticipation::SCOPE)->setParameter('active', ProjectParticipation::ACTIVE_NAMES);
+            ->setParameter('project', $project->getId(), 'ulid');
         $total = (int) (clone $profiles)->select('COUNT(profile.id)')->getQuery()->getSingleScalarResult();
         $pages = max(1, (int) ceil($total / self::PAGE_SIZE));
         $page = min($pages, max(1, $requestedPage));

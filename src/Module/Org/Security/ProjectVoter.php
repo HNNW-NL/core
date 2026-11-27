@@ -50,20 +50,12 @@ final class ProjectVoter extends Voter
 
     private function hasPermission(Profile $profile, Project $project, ProjectPermission $permission): bool
     {
-        $participant = $this->participantRepository ->findLatestActiveParticipantByProjectAndProfile($project, $profile);
-        if ($participant === null)
-        {
-            return false;
+        foreach ($this->participantRepository->findActiveParticipantsByProjectAndProfile($project, $profile) as $participant) {
+            if ($permission->isGrantedBy($participant->getRole(), $project)) {
+                return true;
+            }
         }
 
-        $role = $participant->getRole();
-
-        if ($role === null)
-        {
-            return false;
-        }
-
-        return $permission->in($role->getPermissionsMask());
+        return false;
     }
-
 }

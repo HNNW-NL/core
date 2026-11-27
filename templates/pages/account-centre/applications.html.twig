@@ -41,7 +41,7 @@
                         {% set has_active_applications = true %}
                         <div class="account-card">
                             <div class="account-card-content">
-                                <h3>{{ application.project.title|default('Naamloze aanmelding') }}</h3>
+                                <h3>{% if row.projectSlug %}<a href="{{ path('main.projects.detail', {slug: row.projectSlug}) }}">{{ application.project.title|default('Naamloze aanmelding') }}</a>{% else %}{{ application.project.title|default('Naamloze aanmelding') }}{% endif %}</h3>
                                 <p>{{ application.project.ownerOrganisation.name|default('') }}</p>
                                 <p>Aangemeld op {{ application.createdAt|date('d-m-Y H:i') }}</p>
 

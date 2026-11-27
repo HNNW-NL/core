@@ -10,6 +10,9 @@ use App\Repository\Common\StatusRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\AccountApplicationRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Uid\Ulid;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Module\Main\DTO\ProjectApplicationSubmission;
 use App\Module\Main\DTO\ProjectApplyResult;
 use App\Module\Main\DTO\ProjectApplyStatus;
@@ -26,6 +29,7 @@ final readonly class ProjectApplicationService
         private EntityManagerInterface $em,
         private StatusRepository $statuses,
         private ProjectParticipantRepository $participants,
+        private ?AuthorizationCheckerInterface $authorization = null,
     ) {
     }
 
@@ -166,10 +170,28 @@ final readonly class ProjectApplicationService
         $pagination = $repository->pageForProfile($profile, $filter, max(1, $request->query->getInt('page', 1)));
         $rows = [];
         foreach ($pagination['items'] as $application) {
+            $project = $application->getProject();
+            $canView = $project !== null && $project->getDeletedAt() === null && trim((string) $project->getSlug()) !== ''
+                && (ProjectVisibility::isPubliclyVisible($project) || $this->authorization?->isGranted('PROJECT_VIEW', $project));
             $rows[] = ['application' => $application, 'label' => $this->label($application),
+                'projectSlug' => $canView ? $project->getSlug() : null,
                 'withdrawable' => $application->getDeletedAt() === null && $application->getParticipant() === null && $this->pending($application)];
         }
         return compact('profile', 'rows', 'filter', 'pagination');
+    }
+
+    public function withdrawById(string $id, Profile $profile): array
+    {
+        $application = Ulid::isValid($id) ? $this->em->find(ProjectApplication::class, Ulid::fromString($id)) : null;
+        if ($application === null) {
+            throw new NotFoundHttpException('Aanmelding niet gevonden.');
+        }
+        try {
+            $changed = $this->withdraw($application, $profile);
+            return ['type' => $changed ? 'success' : 'info', 'message' => $changed ? 'Aanmelding ingetrokken.' : 'Deze aanmelding was al ingetrokken.'];
+        } catch (\DomainException $exception) {
+            return ['type' => 'error', 'message' => $exception->getMessage()];
+        }
     }
 
     public function pending(ProjectApplication $application): bool
