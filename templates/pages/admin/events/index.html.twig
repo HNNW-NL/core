@@ -1,0 +1,32 @@
+{% extends 'layouts/admin.base.html.twig' %}
+
+{# Page title meta tag #}
+{% block title %}Events{% endblock %}
+
+{# CSS #}
+{% block stylesheets %}{% endblock %}
+
+{# JavaScript #}
+{% block javascript %}{% endblock %}
+
+{# Page content #}
+{% block body %}
+    <h2>Evenementen</h2>
+    {% if events is empty %}
+        <p>Geen evenementen gevonden.</p>
+    {% else %}
+        <table>
+            <thead><tr><th>Titel</th><th>Start</th><th>Locatie</th><th>Actie</th></tr></thead>
+            <tbody>
+            {% for event in events %}
+                <tr>
+                    <td>{{ event.title }}</td>
+                    <td>{{ event.startDatetime|date('d-m-Y H:i') }}</td>
+                    <td>{{ event.location }}</td>
+                    <td><a href="{{ path('admin.events.modify', {id: event.id}) }}">Bekijken</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

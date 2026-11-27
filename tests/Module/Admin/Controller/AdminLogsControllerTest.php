@@ -12,13 +12,13 @@ class AdminLogsControllerTest extends ApiTestCase
     public function testWhenUserIsNotAdminShouldGiveErrorFromSystem(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenUserIsAdminShouldGiveSystemlogAssJson(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // audit
@@ -26,12 +26,12 @@ class AdminLogsControllerTest extends ApiTestCase
     public function testWhenUserIsNotAdminShouldGiveErrorFromAudit(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenUserIsAdminShouldGiveAuditlogAssJson(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

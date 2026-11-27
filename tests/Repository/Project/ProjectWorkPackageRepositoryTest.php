@@ -11,24 +11,24 @@ class ProjectWorkPackageRepositoryTest extends KernelTestCase
     public function testWhenProjectIsNotDeletedShouldReturnWorkPackages(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectIsNotDeletedAndWorkPackagesAreDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectIsDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectDoesntExistShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

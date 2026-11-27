@@ -19,7 +19,7 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInShouldDisplayIndex(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // applications
@@ -35,12 +35,12 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInAndHaveApplicationsShouldDisplayApplications(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
     public function testWhenLoggedInAndHaveNoApplicationsShouldDisplayNoApplications(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     //applicationsCancel
@@ -48,19 +48,19 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInAndHaveApplicationsShouldRemoveApplication(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndDoesntHaveApplicationsShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndNotOwnerofApplicationShouldNotRemoveApplication(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     //availability
@@ -76,37 +76,37 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInSubmitFormShouldSaveAvailablity(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormWithTimeMondayChangedShouldSaveMondayTime(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormWithTimeWednesdayChangedShouldSaveWednesdayTime(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormWithTimeFridayChangedShouldSaveFridayTime(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormWithTimeSaturdayEnabledShouldSaveSaturday(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormWithTimeMondayDisabledShouldNotSaveMonday(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     //deleteAvailability
@@ -114,19 +114,19 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInAndHaveAvailabilityShouldRemoveAvailability(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndDoesntHaveAvailabilityShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndNotOwnerofAvailabilityShouldNotRemoveAvailability(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     //experience
@@ -142,31 +142,31 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInShouldSaveExperience(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndStartTimeIsAfterEndTimeShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndJobTitleIsEmptyTimeShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndOrginazationNameIsEmptyTimeShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndStartDateIsEmptyTimeShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // deleteExperience
@@ -174,19 +174,19 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInAndHaveExperienceShouldRemoveExperience(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndDoesntHaveExperienceShouldGiveError(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInAndNotOwnerofExperienceShouldNotRemoveExperience(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // modify
@@ -202,13 +202,13 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInSubmitFormShouldSaveProfile(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormShouldSaveSettings(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // notifications
@@ -224,25 +224,25 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInSubmitFormAndnotifyProjectsEnabledShouldEnableNotifyProjects(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormAndnotifyProjectsDisabledShouldDisableNotifyProjects(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormAndnotifyNewsletterEnabledShouldEnableNewsletter(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInSubmitFormAndnotifyNewsletterDisabledShouldDisableNotifyNewsletter(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // projects
@@ -258,12 +258,12 @@ class AcountsControllerTest extends WebTestCase
     public function testWhenLoggedInAndHaveProjectsShouldDisplayProjects(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
     public function testWhenLoggedInAndHaveNoProjectsShouldDisplayNoProjects(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // reputation

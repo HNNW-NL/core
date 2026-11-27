@@ -11,19 +11,19 @@ class PackageTaskRepositoryTest extends KernelTestCase
     public function testWhenProjectIsNotAssignedAndNotDeletedShouldReturnProject(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectIsAssignedAndNotDeletedShouldReturnNull(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectIsNotAssignedAndDeletedShouldReturnNull(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // findOneForProject
@@ -31,13 +31,13 @@ class PackageTaskRepositoryTest extends KernelTestCase
     public function testWhenProjectNotDeletedShouldReturnProject(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectDeletedShouldReturnNull(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // findVisibleForProjectSlug
@@ -45,13 +45,13 @@ class PackageTaskRepositoryTest extends KernelTestCase
     public function testWhenProjectIsNotDeletedShouldReturnProjectAndNotDeletedWorkPackagesAndNotDeletedPackageTasks(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProjectIsDeletedShouldReturnEmptyResult(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // save
@@ -59,7 +59,7 @@ class PackageTaskRepositoryTest extends KernelTestCase
     public function testShouldSavePackageTask(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     // isAssignedToProfile
@@ -67,12 +67,12 @@ class PackageTaskRepositoryTest extends KernelTestCase
     public function testWhenPackageTaskIsAssignedToProfileShouldReturnTrue(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenPackageTaskIsAssignedNotToProfileShouldReturnFalse(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

@@ -11,6 +11,6 @@ class SystemLogRepositoryTest extends KernelTestCase
     public function testWhenMoreThanLimitExistShouldReturnLatestCreated(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

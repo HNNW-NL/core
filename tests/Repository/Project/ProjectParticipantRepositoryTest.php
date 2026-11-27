@@ -12,13 +12,13 @@ class ProjectParticipantRepositoryTest extends KernelTestCase
     public function testWhenProfileIsParticipantOfProjectExistShouldReturnProfile(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProfileIsNotParticipantOfProjectExistShouldReturnNull(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
 
@@ -27,12 +27,12 @@ class ProjectParticipantRepositoryTest extends KernelTestCase
     public function testWhenProfileIsParticipantOfProjectExistShouldReturnTrue(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenProfileIsNotParticipantOfProjectExistShouldReturnFalse(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

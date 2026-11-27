@@ -29,7 +29,7 @@ final class AccountUserProvider implements UserProviderInterface, PasswordUpgrad
         $account = $repository->findOneBy(['username' => $identifier])
             ?? $repository->findOneBy(['email' => $identifier]);
 
-        if (!$account instanceof Account) {
+        if (!$account instanceof Account || $account->getDeletedAt() !== null) {
             throw new UserNotFoundException(sprintf('Geen account gevonden voor "%s".', $identifier));
         }
 
@@ -44,7 +44,7 @@ final class AccountUserProvider implements UserProviderInterface, PasswordUpgrad
 
         $refreshed = $this->entityManager->getRepository(Account::class)->find($user->getId());
 
-        if (!$refreshed instanceof Account) {
+        if (!$refreshed instanceof Account || $refreshed->getDeletedAt() !== null) {
             throw new UserNotFoundException('Account bestaat niet meer.');
         }
 

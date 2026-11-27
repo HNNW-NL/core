@@ -1,9 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const table = document.getElementById('edit-participants-table');
-    const headerRow = table.querySelector('thead tr');
+    if (!table) {
+        return;
+    }
     let draggedColumnIndex = null;
 
-    
+
     const initDraggableHeaders = () => {
         const headers = table.querySelectorAll('th');
 

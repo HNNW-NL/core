@@ -26,7 +26,7 @@ class ProfileControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/profile');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('#profile-text > p', "TestUser");
+        $this->assertSelectorTextContains('#pcin-name > h1', "TestUser");
     }
 
     public function testWhenLoggedInShouldDisplayProfielFoto(): void
@@ -48,7 +48,7 @@ class ProfileControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInShouldDisplayLocation(): void
@@ -70,7 +70,7 @@ class ProfileControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInShouldDisplayStatus(): void
@@ -92,7 +92,7 @@ class ProfileControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInShouldDisplayLastLogin(): void
@@ -114,7 +114,7 @@ class ProfileControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInShouldDisplayExpertise(): void
@@ -136,7 +136,7 @@ class ProfileControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInShouldDisplaySocials(): void
@@ -158,7 +158,7 @@ class ProfileControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLoggedInShouldDisplayAchievements(): void
@@ -180,7 +180,7 @@ class ProfileControllerTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenNotLoggedInShouldRedirectToLoginPage(): void

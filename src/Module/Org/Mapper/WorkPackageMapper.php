@@ -15,7 +15,7 @@ class WorkPackageMapper
         $statusName = $this->getStatusName($workPackage);
 
         return [
-            'id' => $workPackage->getId()->toRfc4122(),
+            'id' => $workPackage->getId()->toBase32(),
             'title' => $workPackage->getTitle() ?? 'Zonder titel',
             'slug' => $workPackage->getSlug(),
             'description' => $workPackage->getDescription(),

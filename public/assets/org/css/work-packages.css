@@ -330,7 +330,7 @@ body {
             font-size: 14px;
         }
 
-        .work-packages-stat-cardus {
+        .work-package-status {
             display: inline-flex;
             min-height: 28px;
             align-items: center;
@@ -341,17 +341,17 @@ body {
             white-space: nowrap;
         }
 
-        .work-packages-stat-cardus.busy {
+        .work-package-status.busy {
             background: #fff3d8;
             color: #b7791f;
         }
 
-        .work-packages-stat-cardus.open {
+        .work-package-status.open {
             background: #e4f0fb;
             color: #2468a8;
         }
 
-        .work-packages-stat-cardus.done {
+        .work-package-status.done {
             background: #dff2e7;
             color: #2d8b57;
         }

@@ -11,7 +11,7 @@ class AccountRepositoryTest extends WebTestCase
     public function testShouldReturnAdminsInDescendingOrderOfId(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
 
@@ -20,18 +20,18 @@ class AccountRepositoryTest extends WebTestCase
     public function testWhenEmailMatchesSearchShouldReturnAdminWithEmail(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenFirstNameMatchesSearchShouldReturnAdminWithFirstName(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenLastNameMatchesSearchShouldReturnAdminWithLastName(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

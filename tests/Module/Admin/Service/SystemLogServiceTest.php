@@ -11,12 +11,12 @@ class SystemLogServiceTest extends KernelTestCase
     public function testWhenAccountExistShouldCreateAuditLogWithAccount(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenAccountDoesntExistShouldCreateAuditLogWithoutAccount(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }

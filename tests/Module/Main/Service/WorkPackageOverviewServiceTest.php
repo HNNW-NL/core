@@ -11,12 +11,12 @@ class WorkPackageOverviewServiceTest extends WebTestCase
     public function testWhenWorkPackagesExistsShouldReturnWorkPackageOverViewList(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 
     public function testWhenWorkPackageDoesntExistsShouldemptyArray(): void
     {
         //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->markTestIncomplete("Test is nog niet geïmplementeerd.");
     }
 }
