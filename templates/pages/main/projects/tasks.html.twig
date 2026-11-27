@@ -7,6 +7,7 @@
 {% block seoAuthor %}HNNW{% endblock %}
     
 {% block body %}
+    {% include 'core/main/_project-navigation.html.twig' %}
     {% set workPackageOverviews = hnnw_work_package_overviews(slug) %}
     {% set currentProfile = hnnw_current_profile() %}
     {% set selectedWorkPackage = app.request.query.get('workPackage', '') %}
@@ -107,15 +108,11 @@
                         <article class="project-tasks__task">
                             <h4>{{ packageTask.title }}</h4>
 
-                            {% if packageTask.description %}
-                                <p>{{ packageTask.description }}</p>
-                            {% endif %}
-
                             <dl>
                                 <dt>Werkpakket</dt>
                                 <dd>{{ workPackage.title }}</dd>
                                 <dt>Taak-DoD</dt>
-                                <dd>Niet vastgelegd</dd>
+                                <dd>{{ packageTask.description ? packageTask.description|nl2br : 'Niet vastgelegd' }}</dd>
                                 <dt>Status</dt>
                                 <dd>{{ packageTask.status ? packageTask.status.name : 'Onbekend' }}</dd>
                                 <dt>Uitvoerder</dt>

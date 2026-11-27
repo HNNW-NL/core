@@ -39,14 +39,20 @@ class PackageTaskRepository extends ServiceEntityRepository
         Project $project,
         bool $lockForUpdate = false,
     ): ?PackageTask {
+        try {
+            $taskId = is_string($taskId) ? Ulid::fromString($taskId) : $taskId;
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
+
         $query = $this->createQueryBuilder('packageTask')
             ->innerJoin('packageTask.workPackage', 'workPackage')
             ->andWhere('packageTask.id = :taskId')
             ->andWhere('workPackage.project = :project')
-            ->andWhere('packageTask.deletedAt IS NULL')
             ->andWhere('workPackage.deletedAt IS NULL')
-            ->setParameter('taskId', $taskId)
-            ->setParameter('project', $project)
+            ->andWhere('packageTask.deletedAt IS NULL')
+            ->setParameter('taskId', $taskId, 'ulid')
+            ->setParameter('project', $project->getId(), 'ulid')
             ->getQuery();
 
         if ($lockForUpdate) {
