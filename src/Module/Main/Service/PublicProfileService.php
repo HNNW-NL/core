@@ -13,16 +13,13 @@ use App\Entity\Account\Review;
 use App\Entity\Project\Project;
 use App\Enum\ProfileVisibilityPermission;
 use App\Enum\VisibilityLevel;
-use App\Security\ProjectParticipation;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Uid\Ulid;
 
 final readonly class PublicProfileService
 {
     public const PROJECT_PAGE_SIZE = 20;
-    public const SECTION_PAGE_SIZE = 5;
+    public const RECOMMENDATION_PAGE_SIZE = 10;
 
     public function __construct(private EntityManagerInterface $em)
     {
@@ -50,11 +47,10 @@ final readonly class PublicProfileService
 
     private static function safeImageUrl(?string $url): ?string
     {
-        // Develop supplies local image assets; no external image origins are configured as trusted.
         if ($url !== null && preg_match('~\A/(?!/)[^\\\\\x00-\x20]*\z~', $url)) {
             return $url;
         }
-        return null;
+        return self::safeUrl($url);
     }
 
     public static function safeUrl(?string $url): ?string
@@ -65,8 +61,13 @@ final readonly class PublicProfileService
         return preg_match('~\Ahttps?://~i', $url) && filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
     }
 
-    public function load(string $username, ?Account $viewer, int $requestedProjectPage = 1, array $requestedSectionPages = []): array
-    {
+    public function load(
+        string $username,
+        ?Account $viewer,
+        int $requestedProjectPage = 1,
+        int $requestedReceivedPage = 1,
+        int $requestedGivenPage = 1,
+    ): array {
         $account = $this->em->getRepository(Account::class)->findOneBy(['username' => $username, 'deletedAt' => null]);
         $profile = $account?->getProfile();
         if ($profile === null || !$this->canView($profile, $viewer)) {
@@ -92,59 +93,41 @@ final readonly class PublicProfileService
             ],
             'skills' => [], 'experience' => [], 'experienceGroups' => [], 'education' => [], 'certificates' => [], 'socialLinks' => [],
             'receivedRecommendations' => [], 'givenRecommendations' => [], 'suggestions' => [],
-            'topSkills' => [], 'pagination' => [],
         ];
         if ($visible(ProfileVisibilityPermission::SKILLS)) {
-            $skills = $this->em->createQueryBuilder()
+            $data['skills'] = $this->em->createQueryBuilder()->select('skill.name')
                 ->from(ProfileSkill::class, 'record')->innerJoin('record.skill', 'skill')
                 ->andWhere('skill.active = true')
                 ->andWhere('record.profile = :profile')->setParameter('profile', $profile->getId(), 'ulid')
-                ->orderBy('record.featured', 'DESC')->addOrderBy('skill.name', 'ASC')->addOrderBy('record.id', 'ASC');
-            $data['topSkills'] = (clone $skills)->select('skill.name')->andWhere('record.featured = true')
-                ->setMaxResults(5)->getQuery()->getArrayResult();
-            $data['skills'] = $this->sectionPage($skills, 'skills', $requestedSectionPages, $data)
-                ->select('skill.name, record.proficiencyLevel, record.yearsOfExperience, record.featured')->getQuery()->getArrayResult();
-            foreach ($data['skills'] as &$skill) {
-                $level = $skill['proficiencyLevel'];
-                $level = $level instanceof \BackedEnum ? $level->value : $level;
-                $context = [];
-                if ($level !== null) {
-                    $context[] = match ($level) {
-                        'beginner' => 'Beginner', 'intermediate' => 'Gemiddeld', 'advanced' => 'Gevorderd', 'expert' => 'Expert',
-                        default => $level,
-                    };
-                }
-                if ($skill['yearsOfExperience'] !== null) {
-                    $context[] = $skill['yearsOfExperience'].' jaar ervaring';
-                }
-                $skill['context'] = $context === [] ? null : implode(' · ', $context);
-            }
-            unset($skill);
+                ->orderBy('skill.name', 'ASC')->getQuery()->getArrayResult();
         }
         if ($visible(ProfileVisibilityPermission::EXPERIENCE)) {
-            $data['experience'] = $this->experiencePage($profile, $requestedSectionPages, $data);
+            $data['experience'] = $this->em->createQueryBuilder()
+                ->select('record.id, record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.id AS organisationId, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
+                ->from(ProfileExperience::class, 'record')->leftJoin('record.organisation', 'organisation')
+                ->andWhere('record.profile = :profile')->andWhere('record.deletedAt IS NULL')
+                ->setParameter('profile', $profile->getId(), 'ulid')
+                ->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC')->getQuery()->getArrayResult();
             foreach ($data['experience'] as &$experience) {
                 $experience['organisationLogo'] = self::safeImageUrl($experience['organisationLogo']);
             }
             unset($experience);
             $groups = [];
             foreach ($data['experience'] as $experience) {
-                $company = $experience['organisationName'] ?: $experience['externalOrganisationName'];
-                $key = $experience['organisationId'] !== null ? 'org:'.$experience['organisationId']
-                    : ($company ? 'external:'.$company : 'record:'.$experience['id']);
-                $groups[$key] ??= ['company' => $company, 'logo' => $experience['organisationLogo'], 'positions' => [], 'paginationKey' => $experience['paginationKey'], 'total' => $experience['groupTotal']];
+                $company = trim((string) ($experience['organisationName'] ?: $experience['externalOrganisationName']));
+                $key = $experience['organisationId'] !== null
+                    ? 'org:'.$experience['organisationId']
+                    : ($company !== '' ? 'external:'.mb_strtolower($company) : 'record:'.$experience['id']);
+                $groups[$key] ??= ['company' => $company !== '' ? $company : null, 'logo' => $experience['organisationLogo'], 'positions' => []];
                 $groups[$key]['positions'][] = [
-                    'title' => $experience['jobTitle'], 'description' => $experience['description'],
+                    'title' => $experience['jobTitle'], 'description' => $experience['description'], 'type' => '', 'location' => '',
                     'period' => $experience['startDate']->format('m-Y').' – '.($experience['endDate']?->format('m-Y') ?? 'heden'),
                 ];
             }
             $data['experienceGroups'] = array_values($groups);
         }
         if ($visible(ProfileVisibilityPermission::EDUCATION)) {
-            $educationQuery = $this->em->createQueryBuilder()->from(ProfileEducation::class, 'record')
-                ->leftJoin('record.organisation', 'organisation')->andWhere('record.profile = :profile')
-                ->setParameter('profile', $profile->getId(), 'ulid')->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC');
-            foreach ($this->sectionPage($educationQuery, 'education', $requestedSectionPages, $data)->select('record', 'organisation')->getQuery()->getResult() as $education) {
+            foreach ($this->em->getRepository(ProfileEducation::class)->findBy(['profile' => $profile], ['startDate' => 'DESC', 'id' => 'DESC']) as $education) {
                 $data['education'][] = [
                     'school' => $education->getInstitutionName(), 'degree' => $education->getDegree(),
                     'fieldOfStudy' => $education->getFieldOfStudy(),
@@ -155,10 +138,7 @@ final readonly class PublicProfileService
             }
         }
         if ($visible(ProfileVisibilityPermission::CERTIFICATIONS)) {
-            $certificateQuery = $this->em->createQueryBuilder()->from(ProfileCertification::class, 'record')
-                ->andWhere('record.profile = :profile')->setParameter('profile', $profile->getId(), 'ulid')
-                ->orderBy('record.issuedOn', 'DESC')->addOrderBy('record.id', 'DESC');
-            foreach ($this->sectionPage($certificateQuery, 'certificates', $requestedSectionPages, $data)->select('record')->getQuery()->getResult() as $certificate) {
+            foreach ($this->em->getRepository(ProfileCertification::class)->findBy(['profile' => $profile], ['issuedOn' => 'DESC', 'id' => 'DESC']) as $certificate) {
                 $data['certificates'][] = [
                     'title' => $certificate->getName(), 'issuer' => $certificate->getIssuer(),
                     'issuedOn' => $certificate->getIssuedOn(), 'expiresOn' => $certificate->getExpiresOn(),
@@ -168,44 +148,26 @@ final readonly class PublicProfileService
             }
         }
         if ($visible(ProfileVisibilityPermission::SOCIAL_LINKS)) {
-            $socialQuery = $this->em->createQueryBuilder()->from(ProfileSocialLink::class, 'record')
-                ->andWhere('record.profile = :profile')->setParameter('profile', $profile->getId(), 'ulid')
-                ->orderBy('record.sortOrder', 'ASC')->addOrderBy('record.id', 'ASC');
-            foreach ($this->sectionPage($socialQuery, 'socialLinks', $requestedSectionPages, $data)->select('record')->getQuery()->getResult() as $link) {
+            foreach ($this->em->getRepository(ProfileSocialLink::class)->findBy(['profile' => $profile], ['sortOrder' => 'ASC', 'id' => 'ASC']) as $link) {
                 $url = self::safeUrl($link->getUrl());
                 if ($url !== null) {
                     $data['socialLinks'][] = ['label' => $link->getLabel(), 'url' => $url];
                 }
             }
         }
-        foreach (['receivedRecommendations' => 'profile', 'givenRecommendations' => 'reviewerProfile'] as $key => $relation) {
-            $otherRelation = $relation === 'profile' ? 'reviewerProfile' : 'profile';
-            $reviewQuery = $this->em->createQueryBuilder()->from(Review::class, 'record')
-                ->innerJoin('record.'.$otherRelation, 'person')->innerJoin('person.account', 'otherAccount')
-                ->leftJoin('otherAccount.setting', 'otherSetting')
-                ->andWhere('record.'.$relation.' = :profile')->setParameter('profile', $profile->getId(), 'ulid')
-                ->andWhere('record.isPublic = true')->andWhere('record.deletedAt IS NULL')
-                ->andWhere('person.deletedAt IS NULL')->andWhere('otherAccount.deletedAt IS NULL')
-                ->andWhere('otherSetting.profileVisibility = :public OR otherAccount.id = :viewer')
-                ->setParameter('public', 'public')->setParameter('viewer', $viewer?->getId(), 'ulid')
-                ->orderBy('record.id', 'DESC');
-            $reviews = $this->sectionPage($reviewQuery, $key, $requestedSectionPages, $data)
-                ->select('record', 'person', 'otherAccount', 'otherSetting')->getQuery()->getResult();
-            foreach ($reviews as $review) {
-                $person = $relation === 'profile' ? $review->getReviewerProfile() : $review->getProfile();
-                if ($person === null || !$this->canView($person, $viewer)) {
-                    continue;
-                }
-                $summary = $this->summary($person, $viewer);
-                $data[$key][] = [
-                    'name' => $summary['name'], 'initials' => mb_substr($summary['name'], 0, 1),
-                    'headline' => $viewer?->getId() == $person->getAccount()->getId()
-                        || $person->getAccount()->getSetting()?->getSectionVisibility(ProfileVisibilityPermission::HEADLINE) === VisibilityLevel::PUBLIC
-                        ? $person->getHeadline() : null,
-                    'date' => $review->getCreatedAt(), 'text' => $review->getMessage(),
-                ];
-            }
-        }
+
+        $received = $this->recommendations($profile, $viewer, 'profile', 'reviewerProfile', $requestedReceivedPage);
+        $data['receivedRecommendations'] = $received['items'];
+        $data['receivedRecommendationCount'] = $received['count'];
+        $data['receivedRecommendationPages'] = $received['pages'];
+        $data['receivedRecommendationPage'] = $received['page'];
+
+        $given = $this->recommendations($profile, $viewer, 'reviewerProfile', 'profile', $requestedGivenPage);
+        $data['givenRecommendations'] = $given['items'];
+        $data['givenRecommendationCount'] = $given['count'];
+        $data['givenRecommendationPages'] = $given['pages'];
+        $data['givenRecommendationPage'] = $given['page'];
+
         $suggestions = $this->em->createQueryBuilder()->select('account', 'profile', 'setting')
             ->from(Account::class, 'account')->innerJoin('account.profile', 'profile')->innerJoin('account.setting', 'setting')
             ->andWhere('account.deletedAt IS NULL')->andWhere('profile.deletedAt IS NULL')
@@ -229,7 +191,7 @@ final readonly class PublicProfileService
             ->andWhere('project.visibility = :visibility')->setParameter('visibility', 'public')
             ->andWhere('project.ownerAccount = :account OR (participant.id IS NOT NULL AND LOWER(participantStatus.scope) = :scope AND LOWER(participantStatus.name) IN (:active))')
             ->setParameter('account', $account->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid')
-            ->setParameter('scope', ProjectParticipation::SCOPE)->setParameter('active', ProjectParticipation::ACTIVE_NAMES);
+            ->setParameter('scope', 'projectparticipant')->setParameter('active', ['active', 'actief']);
         $data['publicProjectCount'] = (int) (clone $projects)->select('COUNT(DISTINCT project.id)')->getQuery()->getSingleScalarResult();
         $data['projectPages'] = max(1, (int) ceil($data['publicProjectCount'] / self::PROJECT_PAGE_SIZE));
         $data['projectPage'] = min($data['projectPages'], max(1, $requestedProjectPage));
@@ -240,50 +202,59 @@ final readonly class PublicProfileService
         return $data;
     }
 
-    /** Paginate organisations first, then paginate positions within each selected organisation. */
-    private function experiencePage(Profile $profile, array $requestedPages, array &$data): array
+    /**
+     * Openbare aanbevelingen van of voor dit profiel, gepagineerd.
+     * De privacyvoorwaarden (zelfde regels als canView()) zitten in de query,
+     * zodat tellen en limiteren alleen zichtbare aanbevelingen meetelt.
+     *
+     * @param string $ownRelation    relatie naar het bekeken profiel ('profile' = ontvangen, 'reviewerProfile' = gegeven)
+     * @param string $personRelation relatie naar de andere partij
+     *
+     * @return array{items: list<array<string, mixed>>, count: int, pages: int, page: int}
+     */
+    private function recommendations(Profile $profile, ?Account $viewer, string $ownRelation, string $personRelation, int $requestedPage): array
     {
-        $db = $this->em->getConnection();
-        $groupKey = "COALESCE('org:' || organisation_id::text, 'external:' || NULLIF(external_organisation_name, ''), 'record:' || id::text)";
-        $base = " FROM profile_experiences WHERE profile_id = :profile AND deleted_at IS NULL GROUP BY ".$groupKey;
-        $params = ['profile' => $profile->getId()];
-        $types = ['profile' => 'ulid'];
-        $total = (int) $db->fetchOne('SELECT COUNT(*) FROM (SELECT '.$groupKey.$base.') groups', $params, $types);
-        $pages = max(1, (int) ceil($total / self::SECTION_PAGE_SIZE));
-        $page = min($pages, max(1, (int) ($requestedPages['experience'] ?? 1)));
-        $data['pagination']['experience'] = ['total' => $total, 'pages' => $pages, 'page' => $page];
-        $groups = $db->fetchAllAssociative('SELECT '.$groupKey.' AS group_key, MAX(organisation_id::text) AS organisation_id, MAX(external_organisation_name) AS external_name, MAX(id::text) AS record_id'
-            .$base.' ORDER BY MAX(start_date) DESC, group_key ASC LIMIT '.self::SECTION_PAGE_SIZE.' OFFSET '.(($page - 1) * self::SECTION_PAGE_SIZE), $params, $types);
-        $rows = [];
-        foreach ($groups as $group) {
-            $query = $this->em->createQueryBuilder()->from(ProfileExperience::class, 'record')->leftJoin('record.organisation', 'organisation')
-                ->andWhere('record.profile = :profile')->andWhere('record.deletedAt IS NULL')->setParameter('profile', $profile->getId(), 'ulid')
-                ->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC');
-            if ($group['organisation_id'] !== null) {
-                $query->andWhere('record.organisation = :organisation')->setParameter('organisation', Ulid::fromRfc4122($group['organisation_id']), 'ulid');
-            } elseif ($group['external_name'] !== null && $group['external_name'] !== '') {
-                $query->andWhere('record.organisation IS NULL')->andWhere('record.externalOrganisationName = :name')->setParameter('name', $group['external_name']);
-            } else {
-                $query->andWhere('record.id = :id')->setParameter('id', Ulid::fromRfc4122($group['record_id']), 'ulid');
-            }
-            $key = 'positions_'.substr(hash('sha256', $group['group_key']), 0, 12);
-            $items = $this->sectionPage($query, $key, $requestedPages, $data)
-                ->select('record.id, record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.id AS organisationId, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
-                ->getQuery()->getArrayResult();
-            foreach ($items as $item) {
-                $rows[] = $item + ['paginationKey' => $key, 'groupTotal' => $data['pagination'][$key]['total']];
-            }
+        $qb = $this->em->createQueryBuilder()
+            ->from(Review::class, 'review')
+            ->innerJoin('review.'.$personRelation, 'person')
+            ->innerJoin('person.account', 'personAccount')
+            ->leftJoin('personAccount.setting', 'personSetting')
+            ->andWhere('review.'.$ownRelation.' = :profile')->setParameter('profile', $profile->getId(), 'ulid')
+            ->andWhere('review.isPublic = true')
+            ->andWhere('review.deletedAt IS NULL')
+            ->andWhere('person.deletedAt IS NULL')
+            ->andWhere('personAccount.deletedAt IS NULL');
+        if ($viewer !== null) {
+            $qb->andWhere('personSetting.profileVisibility = :public OR personAccount.id = :viewer')
+                ->setParameter('viewer', $viewer->getId(), 'ulid');
+        } else {
+            $qb->andWhere('personSetting.profileVisibility = :public');
         }
-        return $rows;
-    }
+        $qb->setParameter('public', 'public');
 
-    /** Counts without hydrating records and limits every visible section before fetching its data. */
-    private function sectionPage(QueryBuilder $query, string $section, array $requestedPages, array &$data): QueryBuilder
-    {
-        $total = (int) (clone $query)->select('COUNT(record.id)')->resetDQLPart('orderBy')->getQuery()->getSingleScalarResult();
-        $pages = max(1, (int) ceil($total / self::SECTION_PAGE_SIZE));
-        $page = min($pages, max(1, (int) ($requestedPages[$section] ?? 1)));
-        $data['pagination'][$section] = ['total' => $total, 'page' => $page, 'pages' => $pages];
-        return $query->setFirstResult(($page - 1) * self::SECTION_PAGE_SIZE)->setMaxResults(self::SECTION_PAGE_SIZE);
+        $count = (int) (clone $qb)->select('COUNT(review.id)')->getQuery()->getSingleScalarResult();
+        $pages = max(1, (int) ceil($count / self::RECOMMENDATION_PAGE_SIZE));
+        $page = min($pages, max(1, $requestedPage));
+
+        $reviews = $qb->select('review', 'person', 'personAccount', 'personSetting')
+            ->orderBy('review.id', 'DESC')
+            ->setFirstResult(($page - 1) * self::RECOMMENDATION_PAGE_SIZE)
+            ->setMaxResults(self::RECOMMENDATION_PAGE_SIZE)
+            ->getQuery()->getResult();
+
+        $items = [];
+        foreach ($reviews as $review) {
+            $person = $personRelation === 'reviewerProfile' ? $review->getReviewerProfile() : $review->getProfile();
+            $summary = $this->summary($person, $viewer);
+            $items[] = [
+                'name' => $summary['name'], 'initials' => mb_substr($summary['name'], 0, 1),
+                'headline' => $viewer?->getId() == $person->getAccount()->getId()
+                    || $person->getAccount()->getSetting()?->getSectionVisibility(ProfileVisibilityPermission::HEADLINE) === VisibilityLevel::PUBLIC
+                    ? $person->getHeadline() : null,
+                'date' => $review->getCreatedAt(), 'text' => $review->getMessage(),
+            ];
+        }
+
+        return ['items' => $items, 'count' => $count, 'pages' => $pages, 'page' => $page];
     }
 }
