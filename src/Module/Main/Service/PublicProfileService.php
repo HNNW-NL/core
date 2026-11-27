@@ -13,12 +13,15 @@ use App\Entity\Account\Review;
 use App\Entity\Project\Project;
 use App\Enum\ProfileVisibilityPermission;
 use App\Enum\VisibilityLevel;
+use App\Security\ProjectParticipation;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final readonly class PublicProfileService
 {
     public const PROJECT_PAGE_SIZE = 20;
+    public const SECTION_PAGE_SIZE = 5;
 
     public function __construct(private EntityManagerInterface $em)
     {
@@ -60,7 +63,7 @@ final readonly class PublicProfileService
         return preg_match('~\Ahttps?://~i', $url) && filter_var($url, FILTER_VALIDATE_URL) ? $url : null;
     }
 
-    public function load(string $username, ?Account $viewer, int $requestedProjectPage = 1): array
+    public function load(string $username, ?Account $viewer, int $requestedProjectPage = 1, array $requestedSectionPages = []): array
     {
         $account = $this->em->getRepository(Account::class)->findOneBy(['username' => $username, 'deletedAt' => null]);
         $profile = $account?->getProfile();
@@ -87,13 +90,18 @@ final readonly class PublicProfileService
             ],
             'skills' => [], 'experience' => [], 'experienceGroups' => [], 'education' => [], 'certificates' => [], 'socialLinks' => [],
             'receivedRecommendations' => [], 'givenRecommendations' => [], 'suggestions' => [],
+            'topSkills' => [], 'pagination' => [],
         ];
         if ($visible(ProfileVisibilityPermission::SKILLS)) {
-            $data['skills'] = $this->em->createQueryBuilder()->select('skill.name, record.proficiencyLevel, record.yearsOfExperience, record.featured')
+            $skills = $this->em->createQueryBuilder()
                 ->from(ProfileSkill::class, 'record')->innerJoin('record.skill', 'skill')
                 ->andWhere('skill.active = true')
                 ->andWhere('record.profile = :profile')->setParameter('profile', $profile->getId(), 'ulid')
-                ->orderBy('record.featured', 'DESC')->addOrderBy('skill.name', 'ASC')->getQuery()->getArrayResult();
+                ->orderBy('record.featured', 'DESC')->addOrderBy('skill.name', 'ASC')->addOrderBy('record.id', 'ASC');
+            $data['topSkills'] = (clone $skills)->select('skill.name')->andWhere('record.featured = true')
+                ->setMaxResults(5)->getQuery()->getArrayResult();
+            $data['skills'] = $this->sectionPage($skills, 'skills', $requestedSectionPages, $data)
+                ->select('skill.name, record.proficiencyLevel, record.yearsOfExperience, record.featured')->getQuery()->getArrayResult();
             foreach ($data['skills'] as &$skill) {
                 $level = $skill['proficiencyLevel'];
                 $level = $level instanceof \BackedEnum ? $level->value : $level;
@@ -112,12 +120,14 @@ final readonly class PublicProfileService
             unset($skill);
         }
         if ($visible(ProfileVisibilityPermission::EXPERIENCE)) {
-            $data['experience'] = $this->em->createQueryBuilder()
-                ->select('record.id, record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.id AS organisationId, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
+            $experienceQuery = $this->em->createQueryBuilder()
                 ->from(ProfileExperience::class, 'record')->leftJoin('record.organisation', 'organisation')
                 ->andWhere('record.profile = :profile')->andWhere('record.deletedAt IS NULL')
                 ->setParameter('profile', $profile->getId(), 'ulid')
-                ->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC')->getQuery()->getArrayResult();
+                ->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC');
+            $data['experience'] = $this->sectionPage($experienceQuery, 'experience', $requestedSectionPages, $data)
+                ->select('record.id, record.jobTitle, record.description, record.startDate, record.endDate, record.externalOrganisationName, organisation.id AS organisationId, organisation.name AS organisationName, organisation.logoUrl AS organisationLogo')
+                ->getQuery()->getArrayResult();
             foreach ($data['experience'] as &$experience) {
                 $experience['organisationLogo'] = self::safeImageUrl($experience['organisationLogo']);
             }
@@ -136,7 +146,10 @@ final readonly class PublicProfileService
             $data['experienceGroups'] = array_values($groups);
         }
         if ($visible(ProfileVisibilityPermission::EDUCATION)) {
-            foreach ($this->em->getRepository(ProfileEducation::class)->findBy(['profile' => $profile], ['startDate' => 'DESC', 'id' => 'DESC']) as $education) {
+            $educationQuery = $this->em->createQueryBuilder()->from(ProfileEducation::class, 'record')
+                ->leftJoin('record.organisation', 'organisation')->andWhere('record.profile = :profile')
+                ->setParameter('profile', $profile->getId(), 'ulid')->orderBy('record.startDate', 'DESC')->addOrderBy('record.id', 'DESC');
+            foreach ($this->sectionPage($educationQuery, 'education', $requestedSectionPages, $data)->select('record', 'organisation')->getQuery()->getResult() as $education) {
                 $data['education'][] = [
                     'school' => $education->getInstitutionName(), 'degree' => $education->getDegree(),
                     'fieldOfStudy' => $education->getFieldOfStudy(),
@@ -147,7 +160,10 @@ final readonly class PublicProfileService
             }
         }
         if ($visible(ProfileVisibilityPermission::CERTIFICATIONS)) {
-            foreach ($this->em->getRepository(ProfileCertification::class)->findBy(['profile' => $profile], ['issuedOn' => 'DESC', 'id' => 'DESC']) as $certificate) {
+            $certificateQuery = $this->em->createQueryBuilder()->from(ProfileCertification::class, 'record')
+                ->andWhere('record.profile = :profile')->setParameter('profile', $profile->getId(), 'ulid')
+                ->orderBy('record.issuedOn', 'DESC')->addOrderBy('record.id', 'DESC');
+            foreach ($this->sectionPage($certificateQuery, 'certificates', $requestedSectionPages, $data)->select('record')->getQuery()->getResult() as $certificate) {
                 $data['certificates'][] = [
                     'title' => $certificate->getName(), 'issuer' => $certificate->getIssuer(),
                     'issuedOn' => $certificate->getIssuedOn(), 'expiresOn' => $certificate->getExpiresOn(),
@@ -157,7 +173,10 @@ final readonly class PublicProfileService
             }
         }
         if ($visible(ProfileVisibilityPermission::SOCIAL_LINKS)) {
-            foreach ($this->em->getRepository(ProfileSocialLink::class)->findBy(['profile' => $profile], ['sortOrder' => 'ASC', 'id' => 'ASC']) as $link) {
+            $socialQuery = $this->em->createQueryBuilder()->from(ProfileSocialLink::class, 'record')
+                ->andWhere('record.profile = :profile')->setParameter('profile', $profile->getId(), 'ulid')
+                ->orderBy('record.sortOrder', 'ASC')->addOrderBy('record.id', 'ASC');
+            foreach ($this->sectionPage($socialQuery, 'socialLinks', $requestedSectionPages, $data)->select('record')->getQuery()->getResult() as $link) {
                 $url = self::safeUrl($link->getUrl());
                 if ($url !== null) {
                     $data['socialLinks'][] = ['label' => $link->getLabel(), 'url' => $url];
@@ -206,7 +225,7 @@ final readonly class PublicProfileService
             ->andWhere('project.visibility = :visibility')->setParameter('visibility', 'public')
             ->andWhere('project.ownerAccount = :account OR (participant.id IS NOT NULL AND LOWER(participantStatus.scope) = :scope AND LOWER(participantStatus.name) IN (:active))')
             ->setParameter('account', $account->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid')
-            ->setParameter('scope', \App\Security\ProjectParticipation::SCOPE)->setParameter('active', \App\Security\ProjectParticipation::ACTIVE_NAMES);
+            ->setParameter('scope', ProjectParticipation::SCOPE)->setParameter('active', ProjectParticipation::ACTIVE_NAMES);
         $data['publicProjectCount'] = (int) (clone $projects)->select('COUNT(DISTINCT project.id)')->getQuery()->getSingleScalarResult();
         $data['projectPages'] = max(1, (int) ceil($data['publicProjectCount'] / self::PROJECT_PAGE_SIZE));
         $data['projectPage'] = min($data['projectPages'], max(1, $requestedProjectPage));
@@ -215,5 +234,15 @@ final readonly class PublicProfileService
             ->setFirstResult(($data['projectPage'] - 1) * self::PROJECT_PAGE_SIZE)->setMaxResults(self::PROJECT_PAGE_SIZE)
             ->getQuery()->getArrayResult();
         return $data;
+    }
+
+    /** Counts without hydrating records and limits every visible section before fetching its data. */
+    private function sectionPage(QueryBuilder $query, string $section, array $requestedPages, array &$data): QueryBuilder
+    {
+        $total = (int) (clone $query)->select('COUNT(record.id)')->resetDQLPart('orderBy')->getQuery()->getSingleScalarResult();
+        $pages = max(1, (int) ceil($total / self::SECTION_PAGE_SIZE));
+        $page = min($pages, max(1, (int) ($requestedPages[$section] ?? 1)));
+        $data['pagination'][$section] = ['total' => $total, 'page' => $page, 'pages' => $pages];
+        return $query->setFirstResult(($page - 1) * self::SECTION_PAGE_SIZE)->setMaxResults(self::SECTION_PAGE_SIZE);
     }
 }

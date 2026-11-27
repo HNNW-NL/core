@@ -6,6 +6,7 @@ use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
+use App\Security\ProjectParticipation;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -28,8 +29,8 @@ final readonly class ProjectParticipantsService
             ->andWhere('participant.project = :project')->setParameter('project', $project->getId(), 'ulid')
             ->andWhere('participant.joinedAt IS NOT NULL')->andWhere('participant.leftAt IS NULL')
             ->andWhere('profile.deletedAt IS NULL')->andWhere('account.deletedAt IS NULL')
-            ->andWhere('LOWER(status.scope) = :scope')->setParameter('scope', \App\Security\ProjectParticipation::SCOPE)
-            ->andWhere('LOWER(status.name) IN (:active)')->setParameter('active', \App\Security\ProjectParticipation::ACTIVE_NAMES);
+            ->andWhere('LOWER(status.scope) = :scope')->setParameter('scope', ProjectParticipation::SCOPE)
+            ->andWhere('LOWER(status.name) IN (:active)')->setParameter('active', ProjectParticipation::ACTIVE_NAMES);
         $owner = $project->getOwnerAccount();
         if ($viewer->getId() != $owner?->getId()) {
             $access = (clone $query)->select('COUNT(participant.id)')->andWhere('account.id = :viewer')
@@ -49,7 +50,7 @@ final readonly class ProjectParticipantsService
             ->andWhere('profile.deletedAt IS NULL')->andWhere('account.deletedAt IS NULL')
             ->andWhere($activeMembership)
             ->setParameter('project', $project->getId(), 'ulid')
-            ->setParameter('scope', \App\Security\ProjectParticipation::SCOPE)->setParameter('active', \App\Security\ProjectParticipation::ACTIVE_NAMES);
+            ->setParameter('scope', ProjectParticipation::SCOPE)->setParameter('active', ProjectParticipation::ACTIVE_NAMES);
         $total = (int) (clone $profiles)->select('COUNT(profile.id)')->getQuery()->getSingleScalarResult();
         $pages = max(1, (int) ceil($total / self::PAGE_SIZE));
         $page = min($pages, max(1, $requestedPage));

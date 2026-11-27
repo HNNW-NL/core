@@ -11,6 +11,7 @@ use App\Entity\Project\ProjectParticipant;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRoleRepository;
+use App\Workflow\ProjectApplicationWorkflow;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,13 +21,13 @@ class ProjectParticipantUpdateRoleHandler
     // OR06-A: aanvragen beoordelen
     public const REJECT_REASON_MAX_LENGTH = 500;
 
-    public const APPLICATION_SCOPE = 'ProjectApplication';
+    public const APPLICATION_SCOPE = ProjectApplicationWorkflow::APPLICATION_SCOPE;
     private const PARTICIPANT_SCOPE = 'ProjectParticipant';
 
     /** 'send' komt uit de bestaande fixtures; de rest zijn toegestane synoniemen. */
-    public const PENDING_NAMES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
-    public const ACCEPTED_NAMES = ['accepted', 'geaccepteerd'];
-    public const REJECTED_NAMES = ['rejected', 'afgewezen'];
+    public const PENDING_NAMES = ProjectApplicationWorkflow::PENDING_NAMES;
+    public const ACCEPTED_NAMES = ProjectApplicationWorkflow::ACCEPTED_NAMES;
+    public const REJECTED_NAMES = ProjectApplicationWorkflow::REJECTED_NAMES;
     private const PARTICIPANT_ACTIVE_NAMES = \App\Security\ProjectParticipation::ACTIVE_NAMES;
 
     public function __construct(
@@ -76,8 +77,7 @@ class ProjectParticipantUpdateRoleHandler
 
     public function isPendingStatus(Status $status): bool
     {
-        return strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) === 0
-            && in_array(mb_strtolower((string) $status->getName()), self::PENDING_NAMES, true);
+        return ProjectApplicationWorkflow::matches($status, self::PENDING_NAMES);
     }
 
     public function applicationStatusLabel(Status $status): string

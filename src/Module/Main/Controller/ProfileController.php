@@ -6,6 +6,7 @@ use App\Entity\Account\Account;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Module\Main\DTO\UpdateLocationDto;
 use App\Module\Main\Service\LocationService;
+use App\Module\Main\Service\PublicProfileService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,10 +31,16 @@ final class ProfileController extends AbstractController
     }
 
     #[Route('/profile/{slug}', name: 'main.profile', methods: ['GET'])]
-    public function viewProfile(string $slug, Request $request, \App\Module\Main\Service\PublicProfileService $profiles): Response
+    public function viewProfile(string $slug, Request $request, PublicProfileService $profiles): Response
     {
         $response = $this->render('pages/main/profile.html.twig', [
-            'profileView' => $profiles->load($slug, $this->getAccount(), $request->query->getInt('projects_page', 1)),
+            'profileView' => $profiles->load($slug, $this->getAccount(), $request->query->getInt('projects_page', 1), [
+                'experience' => $request->query->getInt('experience_page', 1),
+                'education' => $request->query->getInt('education_page', 1),
+                'certificates' => $request->query->getInt('certificates_page', 1),
+                'skills' => $request->query->getInt('skills_page', 1),
+                'socialLinks' => $request->query->getInt('socialLinks_page', 1),
+            ]),
         ]);
         $response->setPrivate();
         $response->headers->addCacheControlDirective('no-store');

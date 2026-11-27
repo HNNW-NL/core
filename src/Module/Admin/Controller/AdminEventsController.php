@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Uid\Ulid;
 
 #[Route('/admin/events', name: 'admin.events.')]
 #[IsGranted('ROLE_ADMIN')]
@@ -33,7 +34,7 @@ final class AdminEventsController extends AbstractController
     #[Route('/modify/{id}', name: 'modify', methods: ['GET'])]
     public function modify(string $id, EntityManagerInterface $em): Response
     {
-        $event = $em->getRepository(Event::class)->find($id);
+        $event = Ulid::isValid($id) ? $em->find(Event::class, Ulid::fromString($id)) : null;
         if ($event === null) {
             throw $this->createNotFoundException('Evenement niet gevonden.');
         }

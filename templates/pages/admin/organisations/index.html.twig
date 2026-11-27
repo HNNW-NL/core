@@ -12,13 +12,13 @@
 {# Page content #}
 {% block body %}
     <h2>Organisaties</h2>
-    {% if organizations is empty %}
+    {% if organisations is empty %}
         <p>Geen organisaties gevonden.</p>
     {% else %}
         <table>
             <thead><tr><th>Naam</th><th>Locatie</th><th>Status</th><th>Actie</th></tr></thead>
             <tbody>
-            {% for organisation in organizations %}
+            {% for organisation in organisations %}
                 <tr>
                     <td>{{ organisation.name }}</td>
                     <td>{{ organisation.location }}</td>

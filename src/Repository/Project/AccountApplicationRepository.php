@@ -4,7 +4,7 @@ namespace App\Repository\Project;
 
 use App\Entity\Account\Profile;
 use App\Entity\Project\ProjectApplication;
-use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler as ApplicationWorkflow;
+use App\Workflow\ProjectApplicationWorkflow as ApplicationWorkflow;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class AccountApplicationRepository

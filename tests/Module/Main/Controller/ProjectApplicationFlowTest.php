@@ -121,6 +121,11 @@ final class ProjectApplicationFlowTest extends WebTestCase
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'Ingetrokken');
         self::assertSelectorNotExists('button[type="submit"].btn-card-cancel');
+        $client->submit($form);
+        self::assertResponseRedirects('/account/applications', 303);
+        $client->followRedirect();
+        self::assertSelectorTextContains('body', 'Deze aanmelding was al ingetrokken.');
+        self::assertSelectorTextNotContains('body', 'Aanmelding ingetrokken.');
         $client->request('GET', '/account/applications?status=Ingediend');
         self::assertSelectorTextContains('body', 'Geen aanmeldingen');
         $client->request('POST', $applyPath, ['project_apply' => ['_token' => $token, 'motivation' => $motivation]]);

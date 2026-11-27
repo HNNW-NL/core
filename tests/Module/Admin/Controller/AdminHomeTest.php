@@ -85,7 +85,7 @@ final class AdminHomeTest extends WebTestCase
         foreach (['accounts' => $accounts, 'organisations' => $organisations, 'projects' => $projects] as $key => $count) {
             self::assertSelectorTextSame('#dashboard-total-'.$key, (string) $count);
         }
-        foreach (['accounts', 'organizations', 'logs', 'statuses', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
+        foreach (['accounts', 'organisations', 'logs', 'statuses', 'notifications', 'settings', 'social/manage-staff', 'events'] as $path) {
             self::assertSelectorExists(sprintf('nav a[href="/admin/%s"]', $path));
         }
         if ($accounts === 0 && $organisations === 0 && $projects === 0) {
@@ -106,7 +106,7 @@ final class AdminHomeTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('nav a[href="/admin/notifications"]');
         self::assertSelectorExists('nav a[href="/admin/events"]');
-        foreach (['accounts', 'organizations', 'logs', 'statuses', 'settings', 'social/manage-staff'] as $path) {
+        foreach (['accounts', 'organisations', 'logs', 'statuses', 'settings', 'social/manage-staff'] as $path) {
             self::assertSelectorNotExists(sprintf('nav a[href="/admin/%s"]', $path));
         }
     }
@@ -118,9 +118,9 @@ final class AdminHomeTest extends WebTestCase
 
     public static function adminReadRoutes(): iterable
     {
-        foreach (['', '/accounts', '/organizations', '/logs', '/statuses', '/notifications', '/settings',
+        foreach (['', '/accounts', '/organisations', '/logs', '/statuses', '/notifications', '/settings',
             '/social/manage-staff', '/events', '/api/logs/system', '/api/logs/audit',
-            '/accounts/create', '/accounts/modify/test', '/accounts/view/test', '/organizations/create', '/organizations/modify/test',
+            '/accounts/create', '/accounts/modify/test', '/accounts/view/test', '/organisations/create', '/organisations/modify/test',
             '/events/create', '/events/modify/test'] as $path) {
             yield '/admin'.$path => ['/admin'.$path];
         }
@@ -155,7 +155,11 @@ final class AdminHomeTest extends WebTestCase
         }
         $client->request('GET', $path);
 
-        self::assertResponseIsSuccessful();
+        if (str_contains($path, '/modify/test')) {
+            self::assertResponseStatusCodeSame(404);
+        } else {
+            self::assertResponseIsSuccessful();
+        }
     }
 
     #[DataProvider('landingPages')]
@@ -180,8 +184,8 @@ final class AdminHomeTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('main', $description);
         self::assertSelectorTextContains('main', 'PackageTask');
-        self::assertSelectorTextContains('tbody tr:first-child td:nth-child(2)', 'Ingediend');
-        self::assertSelectorTextContains('tbody tr:first-child td:nth-child(5)', 'Geaccepteerd');
+        self::assertSelectorTextContains('tbody tr:first-child td:first-child', 'Ingediend');
+        self::assertSelectorTextContains('tbody tr:first-child td:nth-child(4)', 'Geaccepteerd');
         self::assertSelectorExists('main a[href="/admin"]');
     }
 
@@ -208,6 +212,7 @@ final class AdminHomeTest extends WebTestCase
         $query->method('setMaxResults')->willReturnSelf();
         $query->method('getSingleScalarResult')->willReturn(1);
         $query->method('getArrayResult')->willReturn([[
+            'id' => \Symfony\Component\Uid\Ulid::generate(new \DateTimeImmutable('2026-01-02')),
             'username' => 'account-fixture',
             'email' => 'account-fixture@example.test',
             'firstName' => 'Test',

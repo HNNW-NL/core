@@ -1,4 +1,5 @@
 {% extends 'layouts/main.base.html.twig' %}
+{% import 'pages/main/_profile-pagination.html.twig' as pagination %}
 
 {# Page title meta tag #}
 {% block title %}{{ profileView.name }}{% endblock %}
@@ -46,6 +47,7 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="m8.38 12l2.41 2.42l4.83-4.84"/><path d="M10.75 2.45c.69-.59 1.82-.59 2.52 0l1.58 1.36c.3.26.86.47 1.26.47h1.7c1.06 0 1.93.87 1.93 1.93v1.7c0 .39.21.96.47 1.26l1.36 1.58c.59.69.59 1.82 0 2.52l-1.36 1.58c-.26.3-.47.86-.47 1.26v1.7c0 1.06-.87 1.93-1.93 1.93h-1.7c-.39 0-.96.21-1.26.47l-1.58 1.36c-.69.59-1.82.59-2.52 0l-1.58-1.36c-.3-.26-.86-.47-1.26-.47H6.18c-1.06 0-1.93-.87-1.93-1.93V16.1c0-.39-.21-.95-.46-1.25l-1.35-1.59c-.58-.69-.58-1.81 0-2.5l1.35-1.59c.25-.3.46-.86.46-1.25V6.2c0-1.06.87-1.93 1.93-1.93h1.73c.39 0 .96-.21 1.26-.47z"/></g></svg>
                                     </figure>
                                 </div>
+                                {# Pronouns en connecties hebben nog geen veld/relatie in het huidige datamodel. #}
                                 <div id="pci-pronouns" hidden aria-hidden="true">
                                     <p></p>
                                 </div>
@@ -73,14 +75,17 @@
                         {% endif %}
                     </div>
 
-                    {% if profileView.socialLinks is not empty %}
+                    {% if profileView.pagination.socialLinks is defined and profileView.pagination.socialLinks.total > 0 %}
                     <div id="pi-website">
                         {% for link in profileView.socialLinks %}
                             <a {% if loop.first %}id="piw-link"{% endif %} class="profile-website" href="{{ link.url }}" target="_blank" rel="noopener noreferrer"><p>{{ link.label|default(link.url) }}</p><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6v2H5v12h12v-6zM13 3v2h4.586l-7.793 7.793l1.414 1.414L19 6.414V11h2V3z"/></svg></a>
                         {% endfor %}
                     </div>
+                    {{ pagination.section(profileView, 'socialLinks', 'pi-website', '') }}
                     {% endif %}
-                    <div id="pi-stats"><p><span>{{ profileView.publicProjectCount }}</span> openbare projecten</p></div>
+                    <div id="pi-stats">
+                        <p><span>{{ profileView.publicProjectCount }}</span> openbare projecten{% if profileView.sections.skills %} · <span>{{ profileView.pagination.skills.total }}</span> vaardigheden{% endif %}{% if profileView.sections.certificates %} · <span>{{ profileView.pagination.certificates.total }}</span> certificeringen{% endif %}</p>
+                    </div>
                     <div id="pi-btns">
                         <a href="#profile-projects" id="pib-projects"><span>Bekijk projecten</span></a>
                         {% if profileView.canEdit %}<a href="{{ path('account.modify') }}"><span>Profiel bewerken</span></a>{% endif %}
@@ -91,13 +96,13 @@
             <section id="about" class="section">
                 <h2 id="a-title">Over</h2>
                 <p id="a-descr" class="profile-biography">{{ profileView.biography|default('Er is nog geen biografie toegevoegd.')|nl2br }}</p>
-                {% if profileView.skills is not empty %}<div id="top-skills">
+                {% if profileView.topSkills is not empty %}<div id="top-skills">
                     <figure id="ts-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m19.467 8.694l.246-.566a4.36 4.36 0 0 1 2.22-2.25l.759-.339a.53.53 0 0 0 0-.963l-.717-.319a4.37 4.37 0 0 1-2.251-2.326l-.253-.611a.506.506 0 0 0-.942 0l-.253.61a4.37 4.37 0 0 1-2.25 2.327l-.718.32a.53.53 0 0 0 0 .962l.76.338a4.36 4.36 0 0 1 2.219 2.251l.246.566c.18.414.753.414.934 0M5 6a1 1 0 0 0-.8.4l-3 4a1 1 0 0 0 .057 1.269l9 10a1 1 0 0 0 1.486 0l9-10l-1.486-1.338L11 19.505l-7.707-8.563L5.5 8H14V6z"/></svg>
                     </figure>
                     <div id="ts-content">
                         <p id="ts-title">Top skills</p>
-                        <p>{{ profileView.skills|slice(0, 5)|map(skill => skill.name)|join(' • ') }}</p>
+                        <p>{{ profileView.topSkills|map(skill => skill.name)|join(' • ') }}</p>
                     </div>
                 </div>
             {% endif %}</section>
@@ -157,10 +162,7 @@
                     {% else %}<p class="profile-empty">Er is nog geen werkervaring toegevoegd.</p>
                     {% endfor %}
                 </div>
-                <a class="e-footer" href="#e-list" data-profile-toggle="e-list">
-                    <p>Alle werkervaring weergeven</p>
-                    <span aria-hidden="true">→</span>
-                </a>
+                {{ pagination.section(profileView, 'experience', 'experience', 'e-footer') }}
             </section>
             {% endif %}
 
@@ -205,16 +207,13 @@
                     {% else %}<p class="profile-empty">Er zijn nog geen opleidingen toegevoegd.</p>
                     {% endfor %}
                 </div>
-                <a class="edu-footer" href="#edu-list" data-profile-toggle="edu-list">
-                    <p>Alle opleidingen weergeven</p>
-                    <span aria-hidden="true">→</span>
-                </a>
+                {{ pagination.section(profileView, 'education', 'education', 'edu-footer') }}
             </section>
             {% endif %}
 
             {% if profileView.sections.certificates %}
             <section id="licenses" class="section">
-                <h2 id="l-title">Licenties en certificeringen ({{ profileView.certificates|length }})</h2>
+                <h2 id="l-title">Licenties en certificeringen ({{ profileView.pagination.certificates.total }})</h2>
 
                 {% set certificates = profileView.certificates|map(certificate => {
     title: certificate.title, issuer: certificate.issuer,
@@ -257,16 +256,13 @@
                     {% else %}<p class="profile-empty">Er zijn nog geen certificaten toegevoegd.</p>
                     {% endfor %}
                 </div>
-                <a class="l-footer" href="#l-list" data-profile-toggle="l-list">
-                    <p>Alle certificeringen weergeven</p>
-                    <span aria-hidden="true">→</span>
-                </a>
+                {{ pagination.section(profileView, 'certificates', 'licenses', 'l-footer') }}
             </section>
             {% endif %}
 
             {% if profileView.sections.skills %}
             <section id="skills" class="section">
-                <h2 id="s-title">Vaardigheden ({{ profileView.skills|length }})</h2>
+                <h2 id="s-title">Vaardigheden ({{ profileView.pagination.skills.total }})</h2>
 
                 {% set profileSkills = profileView.skills %}
 
@@ -291,10 +287,7 @@
                     {% else %}<p class="profile-empty">Er zijn nog geen vaardigheden toegevoegd.</p>
                     {% endfor %}
                 </div>
-                <a class="s-footer" href="#s-list" data-profile-toggle="s-list">
-                    <p>Alle {{ profileView.skills|length }} vaardigheden weergeven</p>
-                    <span aria-hidden="true">→</span>
-                </a>
+                {{ pagination.section(profileView, 'skills', 'skills', 's-footer') }}
             </section>
             {% endif %}
 
@@ -307,9 +300,9 @@
                 </ul>
                 {% if profileView.projectPages > 1 %}
                     <nav class="profile-project-pagination" aria-label="Paginering openbare projecten">
-                        {% if profileView.projectPage > 1 %}<a rel="prev" href="{{ path('main.profile', {slug: profileView.username, projects_page: profileView.projectPage - 1}) }}#profile-projects">Vorige</a>{% endif %}
+                        {% if profileView.projectPage > 1 %}<a rel="prev" href="{{ path('main.profile', app.request.query.all|merge({slug: profileView.username, projects_page: profileView.projectPage - 1})) }}#profile-projects">Vorige</a>{% endif %}
                         <span>Pagina {{ profileView.projectPage }} van {{ profileView.projectPages }}</span>
-                        {% if profileView.projectPage < profileView.projectPages %}<a rel="next" href="{{ path('main.profile', {slug: profileView.username, projects_page: profileView.projectPage + 1}) }}#profile-projects">Volgende</a>{% endif %}
+                        {% if profileView.projectPage < profileView.projectPages %}<a rel="next" href="{{ path('main.profile', app.request.query.all|merge({slug: profileView.username, projects_page: profileView.projectPage + 1})) }}#profile-projects">Volgende</a>{% endif %}
                     </nav>
                 {% endif %}
             </section>

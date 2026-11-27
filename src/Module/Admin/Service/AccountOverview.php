@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Uid\Ulid;
 
 final readonly class AccountOverview
 {
@@ -61,7 +62,7 @@ final readonly class AccountOverview
         $pages = max(1, intdiv($total, self::PAGE_SIZE) + (int) ($total % self::PAGE_SIZE !== 0));
         $page = min($pages, max(1, $requestedPage ?: 1));
         $items = $accounts->select(
-            'account.id, account.username, account.email, account.emailVerifiedAt, account.createdAt',
+            'account.id, account.username, account.email, account.emailVerifiedAt',
             'profile.displayName, profile.firstName, profile.lastName, status.name AS statusName',
             'admin.id AS adminId, adminRole.name AS adminRoleName',
         )
@@ -73,6 +74,11 @@ final readonly class AccountOverview
             ->setFirstResult(($page - 1) * self::PAGE_SIZE)
             ->setMaxResults(self::PAGE_SIZE)
             ->getQuery()->getArrayResult();
+        foreach ($items as &$item) {
+            // Account::getCreatedAt() derives its date from the ULID; it is not a mapped column.
+            $item['createdAt'] = Ulid::fromString((string) $item['id'])->getDateTime();
+        }
+        unset($item);
 
         return [
             'items' => $items, 'total' => $total, 'page' => $page, 'pages' => $pages,

@@ -117,8 +117,8 @@ final class AccountsController extends AbstractController
             throw $this->createNotFoundException('Aanmelding niet gevonden.');
         }
         try {
-            $service->withdraw($application, $profile);
-            $this->addFlash('success', 'Aanmelding ingetrokken.');
+            $changed = $service->withdraw($application, $profile);
+            $this->addFlash($changed ? 'success' : 'info', $changed ? 'Aanmelding ingetrokken.' : 'Deze aanmelding was al ingetrokken.');
         } catch (\DomainException $exception) {
             $this->addFlash('error', $exception->getMessage());
         }

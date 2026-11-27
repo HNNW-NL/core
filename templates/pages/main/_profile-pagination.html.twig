@@ -1,0 +1,14 @@
+{% macro section(view, section, anchor, footerClass) %}
+    {% set pagination = view.pagination[section] %}
+    {% if pagination.pages > 1 %}
+        {% set parameters = {slug: view.username, projects_page: view.projectPage} %}
+        {% for key, state in view.pagination %}
+            {% set parameters = parameters|merge({(key ~ '_page'): state.page}) %}
+        {% endfor %}
+        <nav class="profile-project-pagination {{ footerClass }}" aria-label="Paginering {{ anchor }}">
+            {% if pagination.page > 1 %}<a rel="prev" href="{{ path('main.profile', parameters|merge({(section ~ '_page'): pagination.page - 1})) }}#{{ anchor }}">Vorige</a>{% endif %}
+            <span>Pagina {{ pagination.page }} van {{ pagination.pages }} ({{ pagination.total }})</span>
+            {% if pagination.page < pagination.pages %}<a rel="next" href="{{ path('main.profile', parameters|merge({(section ~ '_page'): pagination.page + 1})) }}#{{ anchor }}">Volgende</a>{% endif %}
+        </nav>
+    {% endif %}
+{% endmacro %}

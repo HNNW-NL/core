@@ -7,6 +7,7 @@ use App\Entity\Project\Project;
 use App\Module\Main\DTO\ProjectApplyDto;
 use App\Module\Main\DTO\ProjectApplyResult;
 use App\Module\Main\DTO\ProjectApplyStatus;
+use App\Module\Main\Exception\ProjectApplicationBlocked;
 
 final readonly class ProjectApplyService
 {
@@ -31,6 +32,8 @@ final readonly class ProjectApplyService
                 $submission->created ? 'Je aanvraag is ingediend en staat in Mijn aanmeldingen.'
                     : 'Je had je al aangemeld voor dit project. Je bestaande aanvraag staat in Mijn aanmeldingen.',
                 $submission->application);
+        } catch (ProjectApplicationBlocked $exception) {
+            return $exception->result;
         } catch (\DomainException $exception) {
             return new ProjectApplyResult(ProjectApplyStatus::NotOpen, $exception->getMessage());
         }

@@ -8,6 +8,7 @@ use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Module\Main\DTO\ProjectApplyDto;
+use App\Module\Main\DTO\ProjectApplyStatus;
 use App\Module\Main\Service\ProjectApplicationService;
 use App\Module\Main\Service\ProjectApplyService;
 use App\Module\Main\Handler\ProjectApplyHandler;
@@ -32,6 +33,7 @@ final class ProjectApplyServiceTest extends TestCase
     #[TestWith(['pending'])]
     #[TestWith(['withdrawn'])]
     #[TestWith(['accepted'])]
+    #[TestWith(['rejected'])]
     #[TestWith(['missing-status'])]
     #[TestWith(['short-motivation'])]
     public function testAllEntryPointsShareTheSubmissionRules(string $scenario): void
@@ -45,9 +47,9 @@ final class ProjectApplyServiceTest extends TestCase
         $project->publish();
         if ($scenario === 'owner') { $project->setOwnerAccount($account); }
         $existing = null;
-        if (in_array($scenario, ['pending', 'withdrawn', 'accepted'], true)) {
+        if (in_array($scenario, ['pending', 'withdrawn', 'accepted', 'rejected'], true)) {
             $existing = (new ProjectApplication())->setProject($project)->setProfile($profile)
-                ->setStatus((new Status())->setScope('ProjectApplication')->setName($scenario === 'accepted' ? 'accepted' : 'send'));
+                ->setStatus((new Status())->setScope('ProjectApplication')->setName(in_array($scenario, ['accepted', 'rejected'], true) ? $scenario : 'send'));
             if ($scenario === 'withdrawn') { $existing->softDelete(); }
         }
         $repository = $this->createStub(EntityRepository::class);
@@ -73,6 +75,13 @@ final class ProjectApplyServiceTest extends TestCase
         if ($scenario === 'unverified') { $this->expectException(AccessDeniedHttpException::class); }
         $result = $handler->handle($project, $profile, $dto);
         self::assertSame($success, $result->isSuccessful());
+        self::assertSame(match ($scenario) {
+            'valid', 'inactive' => ProjectApplyStatus::Success,
+            'active' => ProjectApplyStatus::AlreadyParticipant,
+            'pending', 'withdrawn', 'accepted', 'rejected' => ProjectApplyStatus::AlreadyApplied,
+            'missing-status' => ProjectApplyStatus::StatusNotFound,
+            default => ProjectApplyStatus::NotOpen,
+        }, $result->status);
         if ($scenario === 'pending') { self::assertSame($existing, $result->application); }
     }
 }

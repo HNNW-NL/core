@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Uid\Ulid;
 
 #[Route('/admin/organisations', name: 'admin.organisations.')]
 #[IsGranted('ROLE_ADMIN')]
@@ -20,7 +21,7 @@ final class AdminOrganisationsController extends AbstractController
     public function index(EntityManagerInterface $em): Response
     {
         return $this->render('pages/admin/organisations/index.html.twig', [
-            'organisations' => $em->getRepository(Organisation::class)->findBy([], ['createdAt' => 'DESC'], 100),
+            'organisations' => $em->getRepository(Organisation::class)->findBy([], ['id' => 'DESC'], 100),
         ]);
     }
 
@@ -33,7 +34,7 @@ final class AdminOrganisationsController extends AbstractController
     #[Route('/modify/{id}', name: 'modify', methods: ['GET'])]
     public function modify(string $id, EntityManagerInterface $em): Response
     {
-        $organisation = $em->getRepository(Organisation::class)->find($id);
+        $organisation = Ulid::isValid($id) ? $em->find(Organisation::class, Ulid::fromString($id)) : null;
         if ($organisation === null) {
             throw $this->createNotFoundException('Organisatie niet gevonden.');
         }

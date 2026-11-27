@@ -6,13 +6,13 @@ use App\Entity\Account\Account;
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
-use App\Entity\Project\ProjectParticipant;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Module\Main\DTO\ProjectApplicationSubmission;
 use App\Module\Main\DTO\ProjectApplyResult;
 use App\Module\Main\DTO\ProjectApplyStatus;
-use App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler as ApplicationWorkflow;
+use App\Workflow\ProjectApplicationWorkflow as ApplicationWorkflow;
+use App\Module\Main\Exception\ProjectApplicationBlocked;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -42,7 +42,7 @@ final readonly class ProjectApplicationService
         if (mb_strlen($motivation) < 20 || mb_strlen($motivation) > 2000) {
             throw new \DomainException('De motivatie moet 20 tot en met 2.000 tekens bevatten.');
         }
-        $result = $this->em->wrapInTransaction(function () use ($project, $account, $profile, $motivation): ProjectApplicationSubmission|ProjectApplyResult|string {
+        $result = $this->em->wrapInTransaction(function () use ($project, $account, $profile, $motivation): ProjectApplicationSubmission|ProjectApplyResult {
             $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
             $this->em->refresh($project);
             $this->em->refresh($account);
@@ -52,29 +52,26 @@ final readonly class ProjectApplicationService
             }
             $blocked = $this->check($project, $profile);
             if ($blocked !== null) {
-                if ($blocked->status === ProjectApplyStatus::NoProfile) {
-                    return $blocked;
-                }
                 $existing = $blocked->application;
                 if ($blocked->status === ProjectApplyStatus::AlreadyApplied && $existing !== null
                     && $existing->getDeletedAt() === null && $this->pending($existing)) {
                     return new ProjectApplicationSubmission($existing, false);
                 }
-                return $blocked->message;
+                return $blocked;
             }
             $status = $this->statuses->findFirstByScopeAndNames(ApplicationWorkflow::APPLICATION_SCOPE, ApplicationWorkflow::PENDING_NAMES);
             if ($status === null) {
-                return 'De aanvraagstatus is nog niet geconfigureerd.';
+                return new ProjectApplyResult(ProjectApplyStatus::StatusNotFound, 'De aanvraagstatus is nog niet geconfigureerd.');
             }
             $application = (new ProjectApplication())->setProject($project)->setProfile($profile)->setStatus($status)->setMotivation($motivation);
             $this->em->persist($application);
             return new ProjectApplicationSubmission($application, true);
         });
         if ($result instanceof ProjectApplyResult) {
-            throw new AccessDeniedHttpException($result->message);
-        }
-        if (is_string($result)) {
-            throw new \DomainException($result);
+            if ($result->status === ProjectApplyStatus::NoProfile) {
+                throw new AccessDeniedHttpException($result->message);
+            }
+            throw new ProjectApplicationBlocked($result);
         }
         return $result;
     }
@@ -110,9 +107,9 @@ final readonly class ProjectApplicationService
         return null;
     }
 
-    public function withdraw(ProjectApplication $application, Profile $profile): void
+    public function withdraw(ProjectApplication $application, Profile $profile): bool
     {
-        $this->em->wrapInTransaction(function () use ($application, $profile): void {
+        return $this->em->wrapInTransaction(function () use ($application, $profile): bool {
             $this->em->lock($application->getProject(), LockMode::PESSIMISTIC_WRITE);
             $this->em->lock($application, LockMode::PESSIMISTIC_WRITE);
             $this->em->refresh($application);
@@ -120,19 +117,19 @@ final readonly class ProjectApplicationService
                 throw new AccessDeniedHttpException();
             }
             if ($application->getDeletedAt() !== null) {
-                return;
+                return false;
             }
             if (!$this->pending($application) || $application->getParticipant() !== null) {
                 throw new \DomainException('Alleen een ingediende aanvraag kan worden ingetrokken.');
             }
             $application->softDelete();
+            return true;
         });
     }
 
     public function pending(ProjectApplication $application): bool
     {
-        return strcasecmp((string) $application->getStatus()?->getScope(), ApplicationWorkflow::APPLICATION_SCOPE) === 0
-            && in_array(mb_strtolower((string) $application->getStatus()?->getName()), ApplicationWorkflow::PENDING_NAMES, true);
+        return ApplicationWorkflow::matches($application->getStatus(), ApplicationWorkflow::PENDING_NAMES);
     }
 
     public function label(ProjectApplication $application): string
@@ -143,11 +140,10 @@ final readonly class ProjectApplicationService
         if ($this->pending($application)) {
             return 'Ingediend';
         }
-        $name = mb_strtolower((string) $application->getStatus()?->getName());
         return match (true) {
-            in_array($name, ApplicationWorkflow::ACCEPTED_NAMES, true) => 'Geaccepteerd',
-            in_array($name, ApplicationWorkflow::REJECTED_NAMES, true) => 'Afgewezen',
-            default => (string) $application->getStatus()?->getName(),
+            ApplicationWorkflow::matches($application->getStatus(), ApplicationWorkflow::ACCEPTED_NAMES) => 'Geaccepteerd',
+            ApplicationWorkflow::matches($application->getStatus(), ApplicationWorkflow::REJECTED_NAMES) => 'Afgewezen',
+            default => 'Onbekend',
         };
     }
 }

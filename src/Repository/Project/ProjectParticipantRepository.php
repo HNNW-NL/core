@@ -2,6 +2,8 @@
 
 namespace App\Repository\Project;
 
+use App\Security\ProjectParticipation;
+
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
@@ -30,8 +32,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('pp.joinedAt IS NOT NULL')->andWhere('pp.leftAt IS NULL')
             ->andWhere('activeProfile.deletedAt IS NULL')->andWhere('activeAccount.deletedAt IS NULL')
             ->andWhere('LOWER(activeStatus.scope) = :scope')->andWhere('LOWER(activeStatus.name) IN (:names)')
-            ->setParameter('scope', \App\Security\ProjectParticipation::SCOPE)
-            ->setParameter('names', \App\Security\ProjectParticipation::ACTIVE_NAMES)
+            ->setParameter('scope', ProjectParticipation::SCOPE)
+            ->setParameter('names', ProjectParticipation::ACTIVE_NAMES)
             ->setParameter('project', $project->getId(), 'ulid')->setParameter('profile', $profile->getId(), 'ulid');
     }
 

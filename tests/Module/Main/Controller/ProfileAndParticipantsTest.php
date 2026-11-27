@@ -148,6 +148,77 @@ final class ProfileAndParticipantsTest extends WebTestCase
         }
     }
 
+    #[\PHPUnit\Framework\Attributes\TestWith(['send', 'Ingediend'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['accepted', 'Geaccepteerd'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['rejected', 'Afgewezen'])]
+    public function testApplicationLabelsAndFiltersRequireTheSameScope(string $name, string $label): void
+    {
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['profile' => $this->outsider->getProfile()]);
+        $service = static::getContainer()->get(\App\Module\Main\Service\ProjectApplicationService::class);
+        $repository = static::getContainer()->get(\App\Repository\Project\AccountApplicationRepository::class);
+        foreach (['ProjectApplication', 'pRoJeCtApPlIcAtIoN', 'ProjectParticipant'] as $scope) {
+            $application->setStatus($this->fixtureStatus($scope, $name));
+            $this->em->flush();
+            $valid = strcasecmp($scope, 'ProjectApplication') === 0;
+            self::assertSame($valid ? $label : 'Onbekend', $service->label($application));
+            self::assertSame($valid ? 1 : 0, $repository->pageForProfile($this->outsider->getProfile(), $label, 1)['total']);
+        }
+    }
+
+    public function testProfileSectionsArePaginatedAndOnlyFeaturedSkillsAreHighlighted(): void
+    {
+        $profile = $this->owner->getProfile();
+        $service = static::getContainer()->get(\App\Module\Main\Service\PublicProfileService::class);
+        self::assertSame([], $service->load($this->owner->getUsername(), $this->owner)['topSkills']);
+        for ($i = 0; $i < 7; ++$i) {
+            $this->persist((new ProfileExperience())->setProfile($profile)->setJobTitle('Functie '.$i)
+                ->setExternalOrganisationName('Werkgever '.$i)->setStartDate(new \DateTimeImmutable('2025-01-01')));
+            $this->persist((new \App\Entity\Account\ProfileEducation())->setProfile($profile)
+                ->setInstitutionName('School '.$i)->setStartDate(new \DateTimeImmutable('2025-01-01')));
+            $this->persist((new \App\Entity\Account\ProfileCertification())->setProfile($profile)->setName('Certificaat '.$i)->setIssuer('Instelling'));
+            $this->persist((new \App\Entity\Account\ProfileSocialLink())->setProfile($profile)
+                ->setLabel('Website '.$i)->setUrl('https://example.test/'.$i));
+            $skill = (new Skill())->setName('Vaardigheid '.$i.'-'.$this->runId)->setSlug('page-skill-'.$i.'-'.$this->runId)->setCategory('Development');
+            $this->persist($skill);
+            $record = (new ProfileSkill())->setProfile($profile)->setSkill($skill);
+            if ($i === 6) { $record->feature(); }
+            $this->persist($record);
+        }
+        $this->em->flush();
+        $sections = ['experience', 'education', 'certificates', 'skills', 'socialLinks'];
+        $first = $service->load($this->owner->getUsername(), $this->owner);
+        $second = $service->load($this->owner->getUsername(), $this->owner, 1, array_fill_keys($sections, 2));
+        foreach ($sections as $section) {
+            self::assertCount(5, $first[$section], $section);
+            self::assertCount(3, $second[$section], $section);
+            self::assertSame(['total' => 8, 'page' => 2, 'pages' => 2], $second['pagination'][$section]);
+            self::assertSame([], array_intersect(array_map('serialize', $first[$section]), array_map('serialize', $second[$section])));
+        }
+        self::assertSame([['name' => 'Vaardigheid 6-'.$this->runId]], $first['topSkills']);
+        self::assertSame($first['topSkills'], $second['topSkills']);
+        self::assertEquals($second, $service->load($this->owner->getUsername(), $this->owner, 1, array_fill_keys($sections, PHP_INT_MAX)));
+        self::assertEquals($first, $service->load($this->owner->getUsername(), $this->owner, 1, array_fill_keys($sections, -1)));
+        $this->client->loginUser($this->owner);
+        $page = $this->client->request('GET', '/profile/'.$this->owner->getUsername().'?education_page=2&skills_page=1');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(5, '#s-list article');
+        self::assertSelectorCount(3, '#edu-list article');
+        self::assertSelectorTextContains('#top-skills', 'Vaardigheid 6-');
+        self::assertSelectorTextNotContains('#top-skills', 'Databasevaardigheid');
+        $this->client->click($page->filter('#skills a[rel="next"]')->link());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorCount(3, '#s-list article');
+        self::assertSelectorCount(3, '#edu-list article');
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $owner = $em->find(Account::class, $this->owner->getId());
+        $owner->getSetting()->setSectionVisibility(ProfileVisibilityPermission::SKILLS, VisibilityLevel::PRIVATE);
+        $em->flush();
+        $hidden = static::getContainer()->get(\App\Module\Main\Service\PublicProfileService::class)->load($owner->getUsername(), null);
+        self::assertSame([], $hidden['skills']);
+        self::assertSame([], $hidden['topSkills']);
+        self::assertArrayNotHasKey('skills', $hidden['pagination']);
+    }
+
     public function testPublicProfileRespectsVisibilityAndDatabaseChanges(): void
     {
         $path = '/profile/'.$this->owner->getUsername();
@@ -205,9 +276,10 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSelectorExists('#education .edui-logo img[src="/uploads/organisation-logo.png"]');
         self::assertSelectorTextContains('#licenses', 'Certificaat uit database');
         self::assertSelectorTextContains('#licenses', 'Geldig tot 12-2030');
-        foreach (['.e-footer', '.edu-footer', '.l-footer', '.s-footer', '.suggestion-footer'] as $selector) {
+        foreach (['.suggestion-footer'] as $selector) {
             self::assertSelectorExists($selector);
         }
+        self::assertSelectorNotExists('.profile-project-pagination');
         foreach (['#pcin-name', '#pc-companies', '#experience', '#education', '#licenses', '#skills', '#recommendations'] as $selector) {
             self::assertSelectorExists('#profile '.$selector);
         }

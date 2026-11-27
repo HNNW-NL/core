@@ -122,9 +122,9 @@ final class ProjectApplicationServiceTest extends TestCase
         if (!$allowed) {
             $this->expectException(\DomainException::class);
         }
-        $service->withdraw($application, $profile);
+        self::assertTrue($service->withdraw($application, $profile));
         self::assertSame('Ingetrokken', $service->label($application));
-        $service->withdraw($application, $profile);
+        self::assertFalse($service->withdraw($application, $profile));
         self::assertNull($application->getParticipant());
     }
 }
