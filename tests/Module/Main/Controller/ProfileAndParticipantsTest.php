@@ -623,6 +623,44 @@ final class ProfileAndParticipantsTest extends WebTestCase
         self::assertSame(0, $em->getRepository(ProjectParticipant::class)->count(['application' => $application]));
     }
 
+    #[\PHPUnit\Framework\Attributes\TestWith(['published', true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['active', true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['applications_closed', true])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['draft', false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['completed', false])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['archived', false])]
+    public function testAcceptanceRechecksCurrentProjectLifecycle(string $status, bool $allowed): void
+    {
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['project' => $this->project, 'profile' => $this->outsider->getProfile()]);
+        $newStatus = $this->fixtureStatus('project', $status);
+        $this->em->flush();
+        // Change the database while the managed project still has its previous status.
+        $this->em->getConnection()->update($this->em->getClassMetadata(Project::class)->getTableName(),
+            ['status_id' => $newStatus->getId()], ['id' => $this->project->getId()], ['status_id' => 'ulid', 'id' => 'ulid']);
+        $result = self::getContainer()->get(\App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler::class)
+            ->acceptApplication($this->project, (string) $application->getId(), $this->owner->getProfile());
+        self::assertSame($allowed, $result['success']);
+        self::assertSame($allowed ? 'accepted' : 'send', $application->getStatus()->getName());
+        self::assertSame($allowed ? 1 : 0, $this->em->getRepository(ProjectParticipant::class)->count(['application' => $application]));
+    }
+
+    #[\PHPUnit\Framework\Attributes\TestWith(['profile'])]
+    #[\PHPUnit\Framework\Attributes\TestWith(['account'])]
+    public function testAcceptanceReloadsDeletedApplicantIdentity(string $target): void
+    {
+        $profile = $this->outsider->getProfile();
+        $application = $this->em->getRepository(ProjectApplication::class)->findOneBy(['project' => $this->project, 'profile' => $profile]);
+        $entity = $target === 'profile' ? $profile : $this->outsider;
+        $this->em->getConnection()->update($this->em->getClassMetadata($entity::class)->getTableName(),
+            ['deleted_at' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')], ['id' => $entity->getId()], ['id' => 'ulid']);
+        $result = self::getContainer()->get(\App\Module\Org\Handler\ProjectParticipantUpdateRoleHandler::class)
+            ->acceptApplication($this->project, (string) $application->getId(), $this->owner->getProfile());
+        self::assertFalse($result['success']);
+        self::assertSame('send', $application->getStatus()->getName());
+        self::assertNull($application->getReviewerProfile());
+        self::assertSame(0, $this->em->getRepository(ProjectParticipant::class)->count(['application' => $application]));
+    }
+
     public function testPublicProfileRespectsVisibilityAndDatabaseChanges(): void
     {
         $path = '/profile/'.$this->owner->getUsername();

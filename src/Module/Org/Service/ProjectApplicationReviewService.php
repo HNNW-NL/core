@@ -82,6 +82,13 @@ final readonly class ProjectApplicationReviewService
         $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
         $this->em->refresh($project);
 
+        if ($project->getOwnerOrganisation() !== null) {
+            $this->em->refresh($project->getOwnerOrganisation());
+        }
+        if (!ProjectLifecycle::allowsParticipantAcceptance($project)) {
+            return $this->failure('Dit project accepteert geen nieuwe deelnemers meer.');
+        }
+
         // Vergrendelen en daarna pas de status controleren: zo ziet een wachtende tweede klik de nieuwe status.
         $application = $this->participantRepo->findApplicationForProject($applicationId, $project, true);
 
@@ -105,6 +112,17 @@ final readonly class ProjectApplicationReviewService
         }
 
         $applicant = $application->getProfile();
+        if ($applicant === null) {
+            return $this->failure('Het profiel van deze aanvrager is niet beschikbaar.');
+        }
+        $this->em->refresh($applicant);
+        $account = $applicant->getAccount();
+        if ($account !== null) {
+            $this->em->refresh($account);
+        }
+        if ($applicant->getDeletedAt() !== null || $account === null || $account->getDeletedAt() !== null) {
+            return $this->failure('Het profiel of account van deze aanvrager is niet meer actief.');
+        }
         if (!$this->participantRepo->isActiveParticipant($project, $applicant)
             && !ProjectLifecycle::hasAvailableCapacity($project, $this->participantRepo->countActiveProfiles($project))) {
             return $this->failure('De maximale deelnemerscapaciteit is bereikt.');

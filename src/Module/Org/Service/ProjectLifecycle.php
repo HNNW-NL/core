@@ -72,6 +72,14 @@ final class ProjectLifecycle
             || ($activeParticipants !== null && $activeParticipants >= 0 && $activeParticipants < $project->getCapacity());
     }
 
+    public static function allowsParticipantAcceptance(Project $project): bool
+    {
+        return self::hasValidProjectContext($project)
+            && $project->getPublishedAt() !== null
+            && in_array(strtolower((string) $project->getStatus()?->getName()), [...self::OPEN_APPLICATION_STATUSES, 'applications_closed'], true)
+            && ($project->getEndDate() === null || $project->getEndDate() >= new \DateTimeImmutable());
+    }
+
     public static function allowsTaskChanges(Project $project): bool
     {
         return self::hasValidProjectContext($project)

@@ -21,7 +21,7 @@ final class ApplicationReviewTest extends TestCase
     #[\PHPUnit\Framework\Attributes\TestWith(['ProjectApplication', false])]
     public function testInvalidOrDisabledTransitionsCannotBeExecuted(string $scope, bool $enabled): void
     {
-        $project = new Project();
+        $project = $this->openProject();
         $reviewer = new Profile();
         $status = (new Status())->setScope($scope)->setName('send');
         $status->configureApplicationTransitions($enabled, $enabled);
@@ -69,8 +69,8 @@ final class ApplicationReviewTest extends TestCase
 
     public function testDisplayedAcceptanceMatchesApplicationReview(): void
     {
-        $project = new Project();
-        $applicant = new Profile();
+        $project = $this->openProject();
+        $applicant = (new Profile())->setAccount(new \App\Entity\Account\Account());
         $reviewer = new Profile();
         $pending = (new Status())->setScope('ProjectApplication')->setName('send');
         $accepted = (new Status())->setScope('ProjectApplication')->setName('accepted');
@@ -108,5 +108,13 @@ final class ApplicationReviewTest extends TestCase
         self::assertSame($accepted, $application->getStatus());
         self::assertFalse($workflow->acceptApplication($project, $id, $reviewer)['success']);
         self::assertSame([], $workflow->configuredTransitions($accepted));
+    }
+
+    private function openProject(): Project
+    {
+        $project = (new Project())->setOwnerOrganisation(new \App\Entity\Org\Organisation())
+            ->setStatus((new Status())->setScope('project')->setName('published'));
+        $project->publish();
+        return $project;
     }
 }
