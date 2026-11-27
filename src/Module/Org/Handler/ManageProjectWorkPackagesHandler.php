@@ -8,6 +8,7 @@ use App\Module\Main\DTO\CreatePackageTaskDTO;
 use App\Module\Main\DTO\CreateWorkPackageDTO;
 use App\Module\Main\DTO\UpdateWorkPackageDTO;
 use App\Module\Main\Service\PackageTaskCrudService;
+use App\Module\Main\Service\PackageTaskInputValidator;
 use App\Module\Main\Service\WorkPackageCrudService;
 use App\Repository\Project\WorkPackageRepository;
 use App\Security\Voter\WorkPackageVoter;
@@ -23,6 +24,7 @@ final readonly class ManageProjectWorkPackagesHandler
         private WorkPackageCrudService $packages,
         private PackageTaskCrudService $tasks,
         private AuthorizationCheckerInterface $authorization,
+        private PackageTaskInputValidator $taskValidator,
     ) {
     }
 
@@ -41,22 +43,29 @@ final readonly class ManageProjectWorkPackagesHandler
             $this->packages->delete((string) $package->getId(), $project);
             return;
         }
-        $isTask = $action === 'create_package_task';
-        $title = trim($input->getString($isTask ? 'taskTitle' : 'title'));
-        $slug = trim($input->getString($isTask ? 'taskSlug' : 'slug'));
+        if ($action === 'create_package_task') {
+            $this->tasks->create(new CreatePackageTaskDTO(
+                (string) $package->getId(),
+                $input->getString('taskTitle'),
+                $input->getString('taskSlug'),
+                $input->getString('taskDescription'),
+                $this->taskValidator->parseDueDate($input->getString('taskDueDate')),
+                $input->getString('taskPriority', PackageTaskInputValidator::DEFAULT_PRIORITY),
+            ), $project);
+            return;
+        }
+
+        $title = trim($input->getString('title'));
+        $slug = trim($input->getString('slug'));
         if ($title === '' || mb_strlen($title) > 255) {
             throw new \InvalidArgumentException('Vul een titel van maximaal 255 tekens in.');
         }
-        $unchangedSlug = !$isTask && $package !== null && $slug === $package->getSlug();
+        $unchangedSlug = $package !== null && $slug === $package->getSlug();
         if (!$unchangedSlug && (strlen($slug) > 255 || !preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug))) {
             throw new \InvalidArgumentException('Gebruik een slug met kleine letters, cijfers en enkele koppeltekens.');
         }
-        $description = trim($input->getString($isTask ? 'taskDescription' : 'description'));
-        $dueDate = $this->parseDate($input->getString($isTask ? 'taskDueDate' : 'dueDate'));
-        if ($isTask) {
-            $this->tasks->create(new CreatePackageTaskDTO((string) $package->getId(), $title, $slug, $description, $dueDate, 'normal'), $project);
-            return;
-        }
+        $description = trim($input->getString('description'));
+        $dueDate = $this->parseDate($input->getString('dueDate'));
 
         $existing = $this->repository->findOneBy(['project' => $project, 'slug' => $slug]);
         if ($existing !== null && $existing !== $package) {

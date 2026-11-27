@@ -110,6 +110,28 @@ final class WorkPackageManagementTest extends WebTestCase
             self::assertSame($beforePackages, $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id'));
         }
         $definitionOfDone = "Alle drie bronnen zijn gecontroleerd.\nHet overzicht bevat bronverwijzingen.";
+        foreach ([
+            [['taskTitle' => ''], 'taaktitel'],
+            [['taskSlug' => 'Invalid Slug'], 'taakslug'],
+            [['taskPriority' => 'normal'], 'taakprioriteit'],
+            [['taskPriority' => 'urgent'], 'taakprioriteit'],
+            [['taskDueDate' => 'next monday'], 'geldige deadline'],
+            [['taskDueDate' => '2026-02-30'], 'geldige deadline'],
+            [['taskDueDate' => '2026-12-15T10:30'], 'geldige deadline'],
+            [['taskDueDate' => "2026-12-15\0"], 'geldige deadline'],
+        ] as [$invalidInput, $message]) {
+            $client->request('POST', $path, array_replace([
+                '_action' => 'create_package_task', '_token' => $taskForm->get('_token')->getValue(),
+                'workPackageId' => $packageId, 'taskTitle' => 'Invalid input', 'taskSlug' => 'or11-invalid-task',
+                'taskDescription' => $definitionOfDone, 'taskPriority' => 'medium',
+            ], $invalidInput));
+            self::assertResponseRedirects($path, 303);
+            $client->followRedirect();
+            self::assertSelectorTextContains('[role="alert"]', $message);
+            $em = static::getContainer()->get(EntityManagerInterface::class);
+            self::assertSame($beforeTasks, $em->getConnection()->fetchAllAssociative('SELECT * FROM package_tasks ORDER BY id'));
+            self::assertSame($beforePackages, $em->getConnection()->fetchAllAssociative('SELECT * FROM work_packages ORDER BY id'));
+        }
         $client->submit($taskForm, [
             'taskTitle' => 'OR11 Child', 'taskSlug' => 'or11-child', 'taskDueDate' => '2026-12-15',
             'taskDescription' => $definitionOfDone,
@@ -125,6 +147,8 @@ final class WorkPackageManagementTest extends WebTestCase
         self::assertSame('Changed description', $saved->getDescription());
         $task = $em->getRepository(PackageTask::class)->findOneBy(['slug' => 'or11-child']);
         self::assertSame($definitionOfDone, $task->getDescription());
+        self::assertSame('medium', $task->getPriority());
+        self::assertSame('2026-12-15', $task->getDueDate()->format('Y-m-d'));
         self::assertSame('PackageTask', $task->getStatus()->getScope());
         self::assertSame('active', $task->getStatus()->getName());
 

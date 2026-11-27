@@ -23,6 +23,7 @@ class PackageTaskCrudService
         private readonly EntityManagerInterface $entityManager,
         private readonly StatusRepository $statusRepository,
         private readonly AuthorizationCheckerInterface $authorization,
+        private readonly PackageTaskInputValidator $validator,
     ) {
     }
 
@@ -56,20 +57,16 @@ class PackageTaskCrudService
                 throw new AccessDeniedException('Je mag geen taken aanmaken binnen dit werkpakket.');
             }
 
-            // Keep the concrete task DoD in the existing description field.
-            $definitionOfDone = trim($dto->description ?? '');
-            if (preg_match('/[^\s\p{Z}]/u', $definitionOfDone) !== 1) {
-                throw new \InvalidArgumentException('Vul een concrete taak-DoD met acceptatiecriteria in.');
-            }
+            $validated = $this->validator->validateCreation($dto, $workPackage);
 
             $task = new PackageTask();
             $task->setWorkPackage($workPackage);
             $task->setStatus($this->findDefaultStatus());
-            $task->setTitle($dto->title);
-            $task->setSlug($dto->slug);
-            $task->setDescription($definitionOfDone);
-            $task->setDueDate($dto->dueDate);
-            $task->setPriority($dto->priority);
+            $task->setTitle($validated->title);
+            $task->setSlug($validated->slug);
+            $task->setDescription($validated->description);
+            $task->setDueDate($validated->dueDate);
+            $task->setPriority($validated->priority);
 
             $this->entityManager->persist($task);
             $this->entityManager->flush();

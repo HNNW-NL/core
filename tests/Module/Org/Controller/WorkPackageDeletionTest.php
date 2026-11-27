@@ -139,14 +139,14 @@ final class WorkPackageDeletionTest extends WebTestCase
         $em->flush();
         $service = static::getContainer()->get(PackageTaskCrudService::class);
         $this->expectException(\InvalidArgumentException::class);
-        $service->create(new CreatePackageTaskDTO((string) $package->getId(), 'Rejected', 'or11b-rejected', 'Het overzicht bevat alle gecontroleerde bronnen.', null, 'normal'));
+        $service->create(new CreatePackageTaskDTO((string) $package->getId(), 'Rejected', 'or11b-rejected', 'Het overzicht bevat alle gecontroleerde bronnen.', null, 'medium'));
     }
 
     public function testOR09CannotMoveATaskToADeletedPackage(): void
     {
         [, $em, $package] = $this->loginEditor();
         $task = static::getContainer()->get(PackageTaskCrudService::class)
-            ->create(new CreatePackageTaskDTO((string) $package->getId(), 'Preserved', 'or11b-source', 'Het overzicht bevat alle gecontroleerde bronnen.', null, 'normal'));
+            ->create(new CreatePackageTaskDTO((string) $package->getId(), 'Preserved', 'or11b-source', 'Het overzicht bevat alle gecontroleerde bronnen.', null, 'medium'));
         $deleted = (new WorkPackage())->setProject($package->getProject())->setStatus($package->getStatus())
             ->setTitle('Deleted target')->setSlug('or11b-deleted-target');
         $deleted->softDelete();
