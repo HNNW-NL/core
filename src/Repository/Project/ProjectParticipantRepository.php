@@ -24,7 +24,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     public function findActiveParticipant(
         Project $project,
         Profile $profile
-    ): ?ProjectParticipant {
+    ): ?ProjectParticipant
+    {
         return $this->createQueryBuilder('participant')
             ->andWhere('participant.project = :project')
             ->andWhere('participant.profile = :profile')
@@ -35,11 +36,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
-
-    public function findActiveParticipantsByProjectAndProfile(
-        Project $project,
-        Profile $profile
-    ): array {
+    public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
+    {
         return $this->createQueryBuilder('pp')
             ->andWhere('pp.project = :project')
             ->andWhere('pp.profile = :profile')
@@ -52,10 +50,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findLatestActiveParticipantByProjectAndProfile(
-        Project $project,
-        Profile $profile
-    ): ?ProjectParticipant {
+    public function findLatestActiveParticipantByProjectAndProfile(Project $project, Profile $profile): ?ProjectParticipant
+    {
         return $this->createQueryBuilder('pp')
             ->andWhere('pp.project = :project')
             ->andWhere('pp.profile = :profile')
@@ -69,19 +65,13 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function isActiveParticipant(
-        Project $project,
-        Profile $profile
-    ): bool {
-        return $this->findActiveParticipantsByProjectAndProfile(
-            $project,
-            $profile
-        ) !== [];
+    public function isActiveParticipant(Project $project, Profile $profile): bool
+    {
+        return $this->findActiveParticipantsByProjectAndProfile($project, $profile) !== [];
     }
 
     /**
-     * OR06-A: alle niet-verwijderde aanvragen van een project,
-     * nieuwste eerst op basis van de ULID.
+     * OR06-A: alle (niet verwijderde) aanvragen van een project, nieuwste eerst.
      *
      * @return list<ProjectApplication>
      */
@@ -101,13 +91,11 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     }
 
     /**
-     * OR06-A: één aanvraag binnen een specifiek project.
+     * OR06-A: één aanvraag binnen een specifiek project, zodat een organisatie
+     * nooit een aanvraag van een ander project kan behandelen.
      */
-    public function findApplicationForProject(
-        string $applicationId,
-        Project $project,
-        bool $lockForUpdate = false
-    ): ?ProjectApplication {
+    public function findApplicationForProject(string $applicationId, Project $project, bool $lockForUpdate = false): ?ProjectApplication
+    {
         if (!Ulid::isValid($applicationId)) {
             return null;
         }
@@ -122,8 +110,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->setParameter('project', $project->getId(), 'ulid')
             ->getQuery();
 
-        // OR06-B: voorkomt gelijktijdige behandeling
-        // van dezelfde aanvraag binnen een transactie.
+        // OR06-B: binnen een transactie blokkeert dit een gelijktijdige tweede behandeling van dezelfde aanvraag.
         if ($lockForUpdate) {
             $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
         }

@@ -19,7 +19,7 @@
     {% block javascript %}{% endblock %}
     {{ importmap('app') }}
 
-    {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
+    {% set frankenphpHotReload = app.request is not null ? app.request.server.get('FRANKENPHP_HOT_RELOAD') : null %}
     {% if frankenphpHotReload %}
         <meta name="frankenphp-hot-reload:url" content="{{ frankenphpHotReload }}">
         <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>

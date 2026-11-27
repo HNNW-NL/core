@@ -3,9 +3,11 @@
 namespace App\Tests\Module\Org\Controller;
 
 use App\Entity\Account\Account;
+use App\Entity\Org\OrgMember;
 use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\WorkPackage;
 use App\Kernel;
+use App\Security\Permission;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -53,9 +55,24 @@ final class TerminateParticipantTest extends WebTestCase
         $client = static::createClient();
         $em = static::getContainer()->get(EntityManagerInterface::class);
         [$path, $participant] = $this->terminatePathAndParticipant($em);
-        // TestUser heeft zonder ORG_MANAGE_PROJECTS geen beheerrechten (zie WorkPackageStatusTest).
+        // Maak de test onafhankelijk van de standaardrechten in de fixtures.
         $account = $em->getRepository(Account::class)->findOneBy(['username' => 'TestUser']);
         self::assertInstanceOf(Account::class, $account);
+
+        $membership = $em->getRepository(OrgMember::class)->findOneBy([
+            'account' => $account,
+            'organisation' => $participant->getProject()->getOwnerOrganisation(),
+        ]);
+        self::assertInstanceOf(OrgMember::class, $membership);
+
+        $role = $membership->getOrgRole();
+        self::assertNotNull($role);
+
+        $role->setPermissionsMask(
+            $role->getPermissionsMask() & ~Permission::ORG_MANAGE_PROJECTS->value
+        );
+        $em->flush();
+
         $client->loginUser($account);
 
         $client->request('POST', $path, ['_token' => 'x']);

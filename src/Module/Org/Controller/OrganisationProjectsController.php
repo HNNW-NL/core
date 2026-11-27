@@ -3,6 +3,11 @@
 namespace App\Module\Org\Controller;
 
 use App\Repository\Project\ProjectParticipantRepository;
+
+use Doctrine\ORM\EntityManagerInterface;
+
+use App\Entity\Org\Organisation;
+
 use App\Entity\Project\Project;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -16,19 +21,52 @@ use App\Security\Voter\ProjectVoter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Uid\Ulid;
 use App\Security\Permission;
 
 #[Route('/org', name: 'org.')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class OrganisationProjectsController extends AbstractController
 {
     #[Route('/projects', name: 'projects', methods: ['GET'])]
-    public function projects(): Response
-    {
+    public function projects(
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
         if ($this->getUser() === null) {
             throw $this->createAccessDeniedException('Log eerst in.');
         }
-        return $this->render('pages/org/projects.html.twig');
+
+        $query = $request->query->all();
+        $organisationId = $query['organisation']
+            ?? $query['organisation_id']
+            ?? null;
+
+        if (!is_string($organisationId)) {
+            throw $this->createNotFoundException('Organisatie niet gevonden.');
+        }
+
+        try {
+            $id = Ulid::fromString($organisationId);
+        } catch (\InvalidArgumentException) {
+            throw $this->createNotFoundException('Organisatie niet gevonden.');
+        }
+
+        $organisation = $entityManager->find(Organisation::class, $id);
+
+        if ($organisation === null || $organisation->getDeletedAt() !== null) {
+            throw $this->createNotFoundException('Organisatie niet gevonden.');
+        }
+
+        $this->denyAccessUnlessGranted(
+            Permission::ORG_MANAGE_PROJECTS->name,
+            $organisation,
+        );
+
+        return $this->render('pages/org/projects.html.twig', [
+            'organisationId' => $id->toRfc4122(),
+        ]);
     }
 
     #[Route('/projects/create', name: 'createProject', methods: ['GET'])]
@@ -65,41 +103,26 @@ final class OrganisationProjectsController extends AbstractController
 
     #[Route('/projects/modify/{id}/participants', name: 'modifyProject.participants', methods: ['GET'])]
     public function modifyProjectParticipants(
-    string $id,
-    ProjectRepository $projectRepository,
-    ProjectParticipantRepository $participantRepository,
-    ProjectParticipantUpdateRoleHandler $applicationHandler,
-): Response {
-    $project = $this->getProjectAndCheckEditAccess(
-        $id,
-        $projectRepository
-    );
+        string $id,
+        ProjectRepository $projectRepository,
+        ProjectParticipantRepository $participantRepository,
+        ProjectParticipantUpdateRoleHandler $applicationHandler,
+    ): Response {
+        $project = $this->getProjectAndCheckEditAccess($id, $projectRepository);
 
-    $applications = $participantRepository
-        ->findApplicationsForProject($project);
+        $applications = $participantRepository->findApplicationsForProject($project);
 
-    $pendingApplicationIds = [];
-
-    foreach ($applications as $application) {
-        if ($applicationHandler->isPending($application)) {
-            $pendingApplicationIds[] = $application
-                ->getId()
-                ->toBase32();
-        }
-    }
-
-    return $this->render(
-        'pages/org/projects/modify-participants.html.twig',
-        [
+        return $this->render('pages/org/projects/modify-participants.html.twig', [
             'id' => $id,
             'project' => $project,
             'applications' => $applications,
-            'pending_application_ids' => $pendingApplicationIds,
-            'reject_reason_max_length' =>
-                ProjectParticipantUpdateRoleHandler::REJECT_REASON_MAX_LENGTH,
-        ]
-    );
-}
+            'pending_application_ids' => array_map(
+                static fn ($application): string => $application->getId()->toBase32(),
+                array_filter($applications, $applicationHandler->isPending(...)),
+            ),
+            'reject_reason_max_length' => ProjectParticipantUpdateRoleHandler::REJECT_REASON_MAX_LENGTH,
+        ]);
+    }
 
     #[Route('/projects/modify/{id}/participants/invite', name: 'modifyProject.inviteParticipants', methods: ['GET'])]
     public function inviteProjectParticipants(
