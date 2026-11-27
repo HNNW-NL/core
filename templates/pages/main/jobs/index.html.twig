@@ -18,6 +18,31 @@
 {% block body %}
     <section>
         <h1>Vacatures</h1>
+
+        <form method="get" action="{{ path('main.jobs.home') }}" role="search">
+            <label for="job-search">Zoek op functietitel of trefwoord</label>
+            <input
+                type="search"
+                id="job-search"
+                name="q"
+                value="{{ q }}"
+                maxlength="100"
+                placeholder="Bijvoorbeeld: developer"
+            >
+            <button type="submit">Zoeken</button>
+            {% if q is not empty %}
+                <a href="{{ path('main.jobs.home') }}">Zoekopdracht wissen</a>
+            {% endif %}
+        </form>
+
+        {% if q is not empty %}
+            <p>
+                {{ jobs|length }}
+                {{ jobs|length == 1 ? 'resultaat' : 'resultaten' }}
+                voor &ldquo;{{ q }}&rdquo;
+            </p>
+        {% endif %}
+
         {% for job in jobs %}
             <article>
                 <h2>
@@ -33,7 +58,11 @@
                 {% endif %}
             </article>
         {% else %}
-            <p>Er zijn momenteel geen gepubliceerde vacatures beschikbaar.</p>
+            {% if q is not empty %}
+                <p>Geen vacatures gevonden voor &ldquo;{{ q }}&rdquo;. Controleer de spelling of probeer een andere zoekterm.</p>
+            {% else %}
+                <p>Er zijn momenteel geen gepubliceerde vacatures beschikbaar.</p>
+            {% endif %}
         {% endfor %}
     </section>
 {% endblock %}
