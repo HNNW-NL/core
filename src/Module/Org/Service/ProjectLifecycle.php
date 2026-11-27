@@ -15,8 +15,8 @@ final class ProjectLifecycle
 
     private const TRANSITIONS = [
         'draft' => ['published', 'archived'],
-        'published' => ['applications_closed'],
-        'applications_closed' => ['completed'],
+        'published' => ['applications_closed', 'withdrawn'],
+        'applications_closed' => ['completed', 'withdrawn'],
         'completed' => ['archived'],
     ];
 
@@ -26,9 +26,13 @@ final class ProjectLifecycle
 
     public function allowedTargets(Project $project): array
     {
+        if (!self::hasValidProjectContext($project)) {
+            return [];
+        }
+
         $status = strtolower((string) $project->getStatus()?->getName());
         $targets = match ($status) {
-            'active' => $project->getPublishedAt() === null ? ['published'] : ['applications_closed'],
+            'active' => $project->getPublishedAt() === null ? ['published'] : ['applications_closed', 'withdrawn'],
             default => self::TRANSITIONS[$status] ?? [],
         };
 
@@ -47,27 +51,39 @@ final class ProjectLifecycle
 
     public static function isPubliclyVisible(Project $project): bool
     {
-        return $project->getVisibility() === 'public'
+        return self::hasValidProjectContext($project)
+            && $project->getVisibility() === 'public'
             && $project->getPublishedAt() !== null
             && in_array(strtolower((string) $project->getStatus()?->getName()), self::PUBLIC_STATUSES, true);
     }
 
     public static function acceptsApplications(Project $project): bool
     {
-        return $project->getPublishedAt() !== null
+        return self::hasValidProjectContext($project)
+            && $project->getPublishedAt() !== null
             && in_array(strtolower((string) $project->getStatus()?->getName()), self::OPEN_APPLICATION_STATUSES, true);
     }
 
     public static function allowsTaskChanges(Project $project): bool
     {
+        return self::hasValidProjectContext($project)
+            && in_array(strtolower((string) $project->getStatus()?->getName()), ['active', 'draft', 'published', 'applications_closed'], true);
+    }
+
+    private static function hasValidProjectContext(Project $project): bool
+    {
+        $organisation = $project->getOwnerOrganisation();
+
         return $project->getDeletedAt() === null
-            && !in_array(strtolower((string) $project->getStatus()?->getName()), ['completed', 'archived'], true);
+            && $organisation !== null
+            && $organisation->getDeletedAt() === null
+            && $project->getStatus()?->getScope() === 'project';
     }
 
     public static function assertTaskChangesAllowed(Project $project): void
     {
         if (!self::allowsTaskChanges($project)) {
-            throw new \InvalidArgumentException('Tasks cannot be changed in a completed, archived or deleted project.');
+            throw new \InvalidArgumentException('The current project state does not allow this change.');
         }
     }
 
@@ -79,6 +95,10 @@ final class ProjectLifecycle
 
     private function transitionStatus(string $target): ?Status
     {
+        if ($target === 'withdrawn') {
+            return $this->findStatus('draft') ?? $this->findStatus('active');
+        }
+
         // Legacy installations publish an active project by setting its publication timestamp.
         return $this->findStatus($target) ?? ($target === 'published' ? $this->findStatus('active') : null);
     }
@@ -110,7 +130,7 @@ final class ProjectLifecycle
         }
 
         $project->setStatus($status);
-        if ($next === 'archived') {
+        if (in_array($next, ['archived', 'withdrawn'], true)) {
             $project->unpublish();
         }
     }

@@ -42,7 +42,8 @@ class PackageTaskService
         return $this->projectWriteLock->run($project, function () use ($task, $completedStatus, $project): PackageTask {
             ProjectLifecycle::assertTaskChangesAllowed($project);
             $this->entityManager->refresh($task);
-            if ($task->getWorkPackage()?->getProject() !== $project) {
+            if ($task->getDeletedAt() !== null || $task->getWorkPackage()?->getProject() !== $project
+                || $task->getWorkPackage()->getDeletedAt() !== null) {
                 throw new \InvalidArgumentException('Task does not belong to this project.');
             }
             $task->setStatus($completedStatus);

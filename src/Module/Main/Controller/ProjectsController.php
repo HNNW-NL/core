@@ -29,9 +29,12 @@ final class ProjectsController extends AbstractController
     {
         $projects = $projectRepository->createQueryBuilder('p')
             ->andWhere('p.deletedAt IS NULL')
+            ->join('p.ownerOrganisation', 'projectOrganisation')
+            ->andWhere('projectOrganisation.deletedAt IS NULL')
             ->andWhere('p.publishedAt IS NOT NULL')
             ->join('p.status', 'projectStatus')
-            ->andWhere('LOWER(projectStatus.name) IN (:publicStatuses)')
+            ->andWhere('projectStatus.scope = :projectStatusScope AND LOWER(projectStatus.name) IN (:publicStatuses)')
+            ->setParameter('projectStatusScope', 'project')
             ->setParameter('publicStatuses', ProjectLifecycle::PUBLIC_STATUSES)
             ->andWhere('p.visibility = :visibility')
             ->setParameter('visibility', 'public')

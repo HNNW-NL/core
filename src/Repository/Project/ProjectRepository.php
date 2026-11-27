@@ -118,24 +118,16 @@ class ProjectRepository extends ServiceEntityRepository
         }
 
         // Active project roles grant access only to the project they belong to.
-        $newerParticipant = $this->getEntityManager()->createQueryBuilder()
-            ->select('newer.id')
-            ->from(ProjectParticipant::class, 'newer')
-            ->where('newer.project = project.id AND newer.profile = :profile')
-            ->andWhere('newer.joinedAt IS NOT NULL AND newer.leftAt IS NULL')
-            ->andWhere('(newer.joinedAt > participant.joinedAt OR (newer.joinedAt = participant.joinedAt AND newer.id > participant.id))');
-
         $editableParticipation = $this->getEntityManager()->createQueryBuilder()
             ->select('participant.id')
             ->from(ProjectParticipant::class, 'participant')
             ->innerJoin('participant.role', 'projectRole')
             ->where('participant.project = project.id AND participant.profile = :profile')
-            ->andWhere('participant.joinedAt IS NOT NULL AND participant.leftAt IS NULL')
             ->andWhere('projectRole.project = project.id')
             // The EDIT bit is set in the upper half of each mask period, including signed masks.
             ->andWhere('(MOD(projectRole.permissionsMask, :editPeriod) >= :editPermission
-                OR MOD(projectRole.permissionsMask, :editPeriod) BETWEEN :negativeEditRemainder AND -1)')
-            ->andWhere('NOT EXISTS (' . $newerParticipant->getDQL() . ')');
+                OR MOD(projectRole.permissionsMask, :editPeriod) BETWEEN :negativeEditRemainder AND -1)');
+        ProjectParticipantRepository::restrictToActive($editableParticipation, 'participant');
 
         $access->add('EXISTS (' . $editableParticipation->getDQL() . ')');
 
@@ -150,10 +142,10 @@ class ProjectRepository extends ServiceEntityRepository
     public function findOrganisationOverviewPage(QueryBuilder $query, int $offset, int $limit): array
     {
         $participantCount = $this->getEntityManager()->createQueryBuilder()
-            ->select('COUNT(activeParticipant.id)')
+            ->select('COUNT(DISTINCT activeParticipantProfile.id)')
             ->from(ProjectParticipant::class, 'activeParticipant')
-            ->where('activeParticipant.project = project.id')
-            ->andWhere('activeParticipant.joinedAt IS NOT NULL AND activeParticipant.leftAt IS NULL');
+            ->where('activeParticipant.project = project.id');
+        ProjectParticipantRepository::restrictToActive($participantCount, 'activeParticipant');
 
         $applicationCount = $this->getEntityManager()->createQueryBuilder()
             ->select('COUNT(application.id)')

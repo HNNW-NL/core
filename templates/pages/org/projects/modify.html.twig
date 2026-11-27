@@ -116,7 +116,7 @@
                 {% endif %}
                 <p>Status: {{ project.status.name }}</p>
                 {% if transitions %}
-                    {% set labels = { published: 'Publish', applications_closed: 'Close applications', completed: 'Complete', archived: 'Archive' } %}
+                    {% set labels = { published: 'Publish', withdrawn: 'Withdraw publication', applications_closed: 'Close applications', completed: 'Complete', archived: 'Archive' } %}
                     <form method="post" action="{{ path('org.modifyProject', {id: id}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('org_modify_project_' ~ id) }}">
                         <input type="hidden" name="intent" value="transition">

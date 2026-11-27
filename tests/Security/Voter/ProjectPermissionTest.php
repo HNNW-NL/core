@@ -74,10 +74,10 @@ final class ProjectPermissionTest extends TestCase
         $role = (new ProjectRole())->setProject($project)->setPermissionsMask($mask);
         $participant = (new ProjectParticipant())->setRole($role);
         $repository = $this->createStub(ProjectParticipantRepository::class);
-        foreach (['findActiveParticipant', 'findLatestActiveParticipantByProjectAndProfile'] as $method) {
+        foreach (['findActiveParticipantsByProjectAndProfile'] as $method) {
             $repository->method($method)->willReturnMap([
-                [$project, $profile, $participant],
-                [$otherProject, $profile, (new ProjectParticipant())->setProject($otherProject)->setRole($role)],
+                [$project, $profile, [$participant]],
+                [$otherProject, $profile, [(new ProjectParticipant())->setProject($otherProject)->setRole($role)]],
             ]);
         }
         $security = $this->createStub(Security::class);

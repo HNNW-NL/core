@@ -38,6 +38,8 @@ class ModifyProjectService
         private ModifyProjectMapper $mapper,
         private TranslatorInterface $translator,
         private CsrfTokenManagerInterface $csrfTokenManager,
+        private ProjectWriteLock $projectWriteLock,
+        private ProjectManagementAccess $projectAccess,
     ) {}
 
     public function modify(ModifyProjectDTO $dto): Project
@@ -49,30 +51,28 @@ class ModifyProjectService
             throw new NotFoundHttpException('Project not found');
         }
 
-        $this->assertProjectNotModifiedSinceLoaded($project, $dto);
-
-        $this->assertProjectBelongsToOrganisation($project, $dto->organisationId);
-
-        if ($dto->hasStatusNameChanged()) {
-            $requestedStatusName = strtolower(trim((string) ($dto->statusName ?? '')));
-            $currentStatusName = strtolower(trim((string) ($project->getStatus()?->getName() ?? '')));
-
-            // Resolve and set status only when user actually changed it.
-            if ($requestedStatusName !== '' && $requestedStatusName !== $currentStatusName) {
-                $project->setStatus($this->resolveStatus($requestedStatusName));
+        return $this->projectWriteLock->run($project, function () use ($project, $dto): Project {
+            if (!$this->projectAccess->canEdit($project)) {
+                throw new AccessDeniedHttpException();
             }
-        }
+            ProjectLifecycle::assertTaskChangesAllowed($project);
+            $this->assertProjectNotModifiedSinceLoaded($project, $dto);
 
-        // Run all business-rule checks before copying form data onto the project entity.
-        $this->validateModifyConstraints($dto, $project);
+            $this->assertProjectBelongsToOrganisation($project, $dto->organisationId);
 
-        $project = $this->mapper->toEntity($project, $dto);
+            if ($dto->hasStatusNameChanged()) {
+                throw new \InvalidArgumentException('Use the project lifecycle actions to change status.');
+            }
 
-        $this->applyPublicationState($dto, $project);
+            // Run all business-rule checks before copying form data onto the project entity.
+            $this->validateModifyConstraints($dto, $project);
 
-        $this->entityManager->flush();
+            $project = $this->mapper->toEntity($project, $dto);
 
-        return $project;
+            $this->entityManager->flush();
+
+            return $project;
+        });
     }
 
     public function buildResponsePayload(
@@ -482,22 +482,6 @@ class ModifyProjectService
         $dto->visibility = $visibility;
     }
 
-    private function applyPublicationState(ModifyProjectDTO $dto, Project $project): void
-    {
-        if (!$dto->hasStatusNameChanged()) {
-            return;
-        }
-
-        $statusName = strtolower((string) ($project->getStatus()?->getName() ?? ''));
-        if ($statusName === 'published' && $project->getPublishedAt() === null) {
-            $project->publish();
-        }
-
-        if ($statusName === 'draft' || $statusName === 'archived') {
-            $project->unpublish();
-        }
-    }
-
     private function buildVisibilityOptions(): array
     {
         // TODO: Replace this placeholder with DB-backed visibility options.
@@ -539,42 +523,6 @@ class ModifyProjectService
         }
 
         return strlen($value);
-    }
-
-    private function resolveStatus(?string $statusRef): Status
-    {
-        $statusRef = trim((string) $statusRef);
-        if ($statusRef === '') {
-            throw new \InvalidArgumentException('Status is required');
-        }
-
-        try {
-            $statusById = $this->entityManager->getRepository(Status::class)->find($statusRef);
-            if ($statusById instanceof Status && $statusById->getScope() === 'project') {
-                return $statusById;
-            }
-        } catch (\Throwable) {
-            // Not an id value for this platform/type: continue with name-based lookup.
-        }
-
-        $statusName = strtolower($statusRef);
-
-        $status = $this->entityManager
-            ->getRepository(Status::class)
-            ->createQueryBuilder('s')
-            ->where('LOWER(s.name) = :name')
-            ->andWhere('s.scope = :scope')
-            ->setParameter('name', $statusName)
-            ->setParameter('scope', 'project')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
-
-        if (!$status instanceof Status) {
-            throw new BadRequestHttpException('Unknown project status: ' . $statusRef);
-        }
-
-        return $status;
     }
 
     private function translateOrFallback(string $key, string $fallback): string

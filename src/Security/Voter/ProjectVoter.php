@@ -70,16 +70,19 @@ class ProjectVoter extends Voter
          * Controleer of deze gebruiker daadwerkelijk een actieve
          * participant is van DIT specifieke project.
          */
-        $participant = $this->participantRepository
-            ->findLatestActiveParticipantByProjectAndProfile($project, $profile);
-
-        $role = $participant?->getRole();
-
-        return match ($attribute) {
-            self::VIEW => ProjectPermission::VIEW->isGrantedBy($role, $project),
-            self::EDIT => ProjectPermission::EDIT->isGrantedBy($role, $project),
-            self::DELETE => ProjectPermission::DELETE->isGrantedBy($role, $project),
-            default => false,
+        $permission = match ($attribute) {
+            self::VIEW => ProjectPermission::VIEW,
+            self::EDIT => ProjectPermission::EDIT,
+            self::DELETE => ProjectPermission::DELETE,
+            default => null,
         };
+
+        foreach ($this->participantRepository->findActiveParticipantsByProjectAndProfile($project, $profile) as $participant) {
+            if ($permission?->isGrantedBy($participant->getRole(), $project)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

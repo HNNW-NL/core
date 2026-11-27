@@ -71,9 +71,9 @@ class ProjectVoterTest extends TestCase
             ->willReturn(null);
 
         $repository
-            ->method('findLatestActiveParticipantByProjectAndProfile')
+            ->method('findActiveParticipantsByProjectAndProfile')
             ->with($project, $profile)
-            ->willReturn(null);
+            ->willReturn([]);
 
         $token = new UsernamePasswordToken(
             $account,
@@ -116,9 +116,9 @@ class ProjectVoterTest extends TestCase
         $participant = new ProjectParticipant();
 
         $repository
-            ->method('findLatestActiveParticipantByProjectAndProfile')
+            ->method('findActiveParticipantsByProjectAndProfile')
             ->with($project, $profile)
-            ->willReturn($participant);
+            ->willReturn([$participant]);
 
         $token = new UsernamePasswordToken(
             $account,
@@ -170,9 +170,9 @@ class ProjectVoterTest extends TestCase
         $participant->setRole($role);
 
         $repository
-            ->method('findLatestActiveParticipantByProjectAndProfile')
+            ->method('findActiveParticipantsByProjectAndProfile')
             ->with($project, $profile)
-            ->willReturn($participant);
+            ->willReturn([$participant]);
 
         $token = new UsernamePasswordToken(
             $account,

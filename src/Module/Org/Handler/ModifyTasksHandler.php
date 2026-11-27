@@ -34,7 +34,8 @@ class ModifyTasksHandler
             $workPackage = $this->workPackageRepository->find($taskData['workPackage']);
             $status = $this->statusRepository->find($taskData['status']);
 
-            if (!$task || $task->getWorkPackage()?->getProject() !== $project) {
+            if (!$task || $task->getDeletedAt() !== null || $task->getWorkPackage()?->getProject() !== $project
+                || $task->getWorkPackage()->getDeletedAt() !== null) {
                 throw new InvalidArgumentException('Invalid task or project id');
             }
 
@@ -51,13 +52,13 @@ class ModifyTasksHandler
             if (!empty($taskData['assignedProfile'])) {
                 $assignedProfile = $this->profileRepository->find($taskData['assignedProfile']);
 
-                if (!$assignedProfile) {
+                $account = $assignedProfile?->getAccount();
+                if (!$assignedProfile || $assignedProfile->getDeletedAt() !== null
+                    || $account === null || $account->getDeletedAt() !== null) {
                     throw new InvalidArgumentException('Invalid Profile id');
                 }
 
-                $participant = $this->projectParticipantRepository->findOneBy(['project' => $project, 'profile' => $assignedProfile]);
-
-                if (!$participant) {
+                if (!$this->projectParticipantRepository->isActiveParticipant($project, $assignedProfile)) {
                     throw new InvalidArgumentException('Profile not in project');
                 }
             }
@@ -76,14 +77,18 @@ class ModifyTasksHandler
 
     public function deleteTaskById(string $taskId, Project $project): void
     {
-        $task = $this->packageTaskRepository->find($taskId);
+        $this->projectWriteLock->run($project, function () use ($taskId, $project): void {
+            ProjectLifecycle::assertTaskChangesAllowed($project);
+            $task = $this->packageTaskRepository->find($taskId);
 
-        if (!$task || $task->getWorkPackage()?->getProject() !== $project) {
-            throw new InvalidArgumentException('Invalid task or project id');
-        }
+            if (!$task || $task->getDeletedAt() !== null || $task->getWorkPackage()?->getProject() !== $project
+                    || $task->getWorkPackage()->getDeletedAt() !== null) {
+                throw new InvalidArgumentException('Invalid task or project id');
+            }
 
-        $task->softDelete();
-        $this->em->flush();
+            $task->softDelete();
+            $this->em->flush();
+        });
     }
 
     public function restoreTaskById(string $taskId, Project $project): void
@@ -92,7 +97,8 @@ class ModifyTasksHandler
             ProjectLifecycle::assertTaskChangesAllowed($project);
             $task = $this->packageTaskRepository->find($taskId);
 
-            if (!$task || $task->getWorkPackage()?->getProject() !== $project) {
+            if (!$task || $task->getDeletedAt() === null || $task->getWorkPackage()?->getProject() !== $project
+                || $task->getWorkPackage()->getDeletedAt() !== null) {
                 throw new InvalidArgumentException('Invalid task or project id');
             }
 

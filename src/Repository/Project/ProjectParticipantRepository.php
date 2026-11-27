@@ -7,6 +7,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Uid\Ulid;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,16 +22,25 @@ class ProjectParticipantRepository extends ServiceEntityRepository
         parent::__construct($registry, ProjectParticipant::class);
     }
 
+    public static function restrictToActive(QueryBuilder $query, string $alias): QueryBuilder
+    {
+        return $query
+            ->innerJoin($alias . '.status', $alias . 'Status')
+            ->innerJoin($alias . '.profile', $alias . 'Profile')
+            ->innerJoin($alias . 'Profile.account', $alias . 'Account')
+            ->andWhere($alias . '.joinedAt IS NOT NULL AND ' . $alias . '.leftAt IS NULL')
+            ->andWhere($alias . 'Profile.deletedAt IS NULL AND ' . $alias . 'Account.deletedAt IS NULL')
+            ->andWhere(sprintf("%sStatus.scope = 'ProjectParticipant' AND LOWER(%sStatus.name) = 'active'", $alias, $alias));
+    }
+
     public function findActiveParticipant(
         Project $project,
         Profile $profile
     ): ?ProjectParticipant
     {
-        return $this->createQueryBuilder('participant')
+        return self::restrictToActive($this->createQueryBuilder('participant'), 'participant')
             ->andWhere('participant.project = :project')
             ->andWhere('participant.profile = :profile')
-            ->andWhere('participant.joinedAt IS NOT NULL')
-            ->andWhere('participant.leftAt IS NULL')
             ->setParameter('project', $project)
             ->setParameter('profile', $profile)
             ->getQuery()
@@ -38,11 +48,9 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     }
     public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
     {
-        return $this->createQueryBuilder('pp')
+        return self::restrictToActive($this->createQueryBuilder('pp'), 'pp')
             ->andWhere('pp.project = :project')
             ->andWhere('pp.profile = :profile')
-            ->andWhere('pp.leftAt IS NULL')
-            ->andWhere('pp.joinedAt IS NOT NULL')
             ->setParameter('project', $project)
             ->setParameter('profile', $profile)
             ->orderBy('pp.joinedAt', 'DESC')
@@ -52,11 +60,9 @@ class ProjectParticipantRepository extends ServiceEntityRepository
 
     public function findLatestActiveParticipantByProjectAndProfile(Project $project, Profile $profile): ?ProjectParticipant
     {
-        return $this->createQueryBuilder('pp')
+        return self::restrictToActive($this->createQueryBuilder('pp'), 'pp')
             ->andWhere('pp.project = :project')
             ->andWhere('pp.profile = :profile')
-            ->andWhere('pp.leftAt IS NULL')
-            ->andWhere('pp.joinedAt IS NOT NULL')
             ->setParameter('project', $project->getId(), 'ulid')
             ->setParameter('profile', $profile->getId(), 'ulid')
             ->orderBy('pp.joinedAt', 'DESC')
