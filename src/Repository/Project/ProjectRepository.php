@@ -42,7 +42,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->andWhere('project.publishedAt IS NOT NULL')
             ->andWhere('project.visibility IN (:visibilities)')
             ->setParameter('slug', $slug)
-            ->setParameter('visibilities', ['public', 'unlisted'])
+            ->setParameter('visibilities', ['public'])
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -122,9 +122,10 @@ class ProjectRepository extends ServiceEntityRepository
      */
     public function findPublicProjects(?int $limit = null): array
     {
-        $queryBuilder = $this->createPublicProjectsQueryBuilder();
+        $queryBuilder = $this->createPublicProjectsQueryBuilder('', true);
         $queryBuilder
-            ->orderBy('project.publishedAt', 'DESC')
+            ->orderBy('canApply', 'DESC')
+            ->addOrderBy('project.publishedAt', 'DESC')
             ->addOrderBy('project.id', 'ASC');
 
         if ($limit !== null) {
@@ -160,7 +161,8 @@ class ProjectRepository extends ServiceEntityRepository
             true,
             $remotePossible,
         )
-            ->orderBy('project.publishedAt', 'DESC')
+            ->orderBy('canApply', 'DESC')
+            ->addOrderBy('project.publishedAt', 'DESC')
             ->addOrderBy('project.id', 'ASC')
             ->setFirstResult((max(1, $page) - 1) * $perPage)
             ->setMaxResults($perPage)
@@ -220,12 +222,23 @@ class ProjectRepository extends ServiceEntityRepository
             ->andWhere('project.visibility = :visibility')
             ->setParameter('visibility', 'public');
 
+        if ($includeAvailability || $onlyAcceptingApplications) {
+            $queryBuilder->setParameter(
+                'applicationDate',
+                new \DateTimeImmutable('today')
+            );
+        }
+
+        $availabilityConditions =
+            "(LOWER(status.name) IN ('active', 'published')"
+            . " AND (project.endDate IS NULL OR project.endDate >= :applicationDate))";
+
         if ($includeAvailability) {
             $availabilityParticipantCount = $activeParticipantCount(
                 'availabilityParticipant',
             );
             $queryBuilder->addSelect(
-                'CASE WHEN '
+                'CASE WHEN ' . $availabilityConditions . ' AND '
                     . '(project.capacity IS NULL OR '
                     . $availabilityParticipantCount
                     . ' < project.capacity) THEN 1 ELSE 0 END AS canApply'
@@ -251,6 +264,7 @@ class ProjectRepository extends ServiceEntityRepository
         }
 
         if ($onlyAcceptingApplications) {
+            $queryBuilder->andWhere($availabilityConditions);
             $filterParticipantCount = $activeParticipantCount('filterParticipant');
             $queryBuilder->andWhere(
                 '(project.capacity IS NULL OR '

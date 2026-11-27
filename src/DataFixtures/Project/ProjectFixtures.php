@@ -39,6 +39,8 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $project->setVisibility("public");
         $project->setDescription("Dit is een test project");
 
+        $project->publish();
+
         $manager->persist($project);
 
         $homepageProject = new Project();

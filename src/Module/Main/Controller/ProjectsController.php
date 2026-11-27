@@ -103,6 +103,7 @@ final class ProjectsController extends AbstractController
         ProjectRepository $projectRepository,
         CurrentProfileProvider $currentProfileProvider,
         \App\Module\Main\Service\ProjectApplyService $projectApplyService,
+        \App\Module\Main\Service\ProjectLeaderDisplayService $projectLeaderDisplayService,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
@@ -124,6 +125,7 @@ final class ProjectsController extends AbstractController
             'application' => $blocked?->application,
             'blocked' => $blocked,
             'isOpen' => $projectApplyService->isOpen($project),
+            'projectLeaderDisplayName' => $projectLeaderDisplayService->getDisplayName($project),
         ]));
     }
 
@@ -426,6 +428,10 @@ final class ProjectsController extends AbstractController
             $project->getOwnerOrganisation() === null
             || $project->getOwnerOrganisation()->getDeletedAt() !== null
         ) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        if ($project->getPublishedAt() === null) {
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 

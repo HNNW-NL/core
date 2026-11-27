@@ -92,7 +92,15 @@
         display: inline-flex;
         align-items: center;
         gap: .5rem;
+        min-width: 0;
+        max-width: 100%;
         overflow-wrap: anywhere;
+
+        a,
+        span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
 
         &:not(:first-child)::before {
             content: "/";

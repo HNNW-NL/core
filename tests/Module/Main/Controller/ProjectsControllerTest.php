@@ -2,6 +2,10 @@
 
 namespace App\Tests\Module\Main\Controller;
 
+use App\Entity\Account\Account;
+use App\Entity\Project\ProjectApplication;
+use App\Entity\Project\Project;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\Project\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -120,5 +124,101 @@ class ProjectsControllerTest extends WebTestCase
         $this->assertSelectorTextContains('a[href="/projects/public-project"]', 'Public project');
         $this->assertStringNotContainsString('PRIVATE APPLICATION MOTIVATION', (string) $client->getResponse()->getContent());
         $this->assertStringNotContainsString('private@example.test', (string) $client->getResponse()->getContent());
+    }
+
+    public function testWhenNotLoggedInShouldBeRedirectedFromApply(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/projects/Test-Project/apply');
+
+        $this->assertResponseRedirects('/auth/login');
+    }
+
+    public function testWhenProjectDoesntExistApplyShouldGiveNotFound(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/projects/bestaat-niet/apply');
+
+        $this->assertResponseStatusCodeSame(404);
+    }
+
+    public function testShouldBeAbleToSendApplyForm(): void
+    {
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $account = $entityManager->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']);
+        $client->loginUser($account);
+
+        $client->request('GET', '/projects/Test-Project/apply');
+        $this->assertResponseIsSuccessful();
+
+        $client->submitForm('Aanmelding versturen', [
+            'project_apply[motivation]' => 'ik wil graag meedoen aan dit project',
+        ]);
+        $this->assertResponseRedirects('/projects/Test-Project/apply');
+
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $project = $entityManager->getRepository(Project::class)->findOneBy([
+            'slug' => 'Test-Project',
+        ]);
+
+        $this->assertNotNull($project);
+
+        $application = $entityManager->getRepository(ProjectApplication::class)->findOneBy([
+            'profile' => $account->getProfile(),
+            'project' => $project,
+        ]);
+        $this->assertNotNull($application);
+        $this->assertSame('ik wil graag meedoen aan dit project', $application->getMotivation());
+    }
+
+    public function testWhenMotivationIsEmptyShouldGiveError(): void
+    {
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $account = $entityManager->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']);
+        $client->loginUser($account);
+
+        $client->request('GET', '/projects/Test-Project/apply');
+        $client->submitForm('Aanmelding versturen', [
+            'project_apply[motivation]' => '',
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertSelectorTextContains('.form-errors', 'Vul een motivatie in.');
+    }
+
+    public function testWhenAlreadyAppliedShouldNotShowApplyForm(): void
+    {
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $account = $entityManager->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']);
+        $client->loginUser($account);
+
+        $client->request('GET', '/projects/Test-Project/apply');
+        $client->submitForm('Aanmelding versturen', [
+            'project_apply[motivation]' => 'ik wil graag meedoen aan dit project',
+        ]);
+        $client->followRedirect();
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.alert-success', 'Je aanmelding is verstuurd.');
+        $this->assertSelectorNotExists('form[name="project_apply"]');
+        $this->assertSelectorTextContains('.project-apply', 'Je hebt al een aanmelding voor dit project.');
+    }
+
+    public function testWhenAlreadyParticipantShouldNotShowApplyForm(): void
+    {
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $account = $entityManager->getRepository(Account::class)->findOneBy(['username' => 'TestUser']);
+        $client->loginUser($account);
+
+        $client->request('GET', '/projects/Test-Project/apply');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorNotExists('form[name="project_apply"]');
+        $this->assertSelectorTextContains('.project-apply', 'Je doet al mee aan dit project.');
     }
 }
