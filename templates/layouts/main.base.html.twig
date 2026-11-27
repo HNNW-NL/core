@@ -17,11 +17,12 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="{{ asset("assets/shared/css/style.css") }}">
-    <link rel="stylesheet" href="{{ asset("assets/main/css/core.css") }}">
     <link rel="stylesheet" href="{{ asset("assets/main/css/style.css") }}">
+    <link rel="stylesheet" href="{{ asset("assets/main/css/core.css") }}">
     {% block stylesheets %}{% endblock %}
 
     <!-- JavaScript -->
+    {{ importmap('app') }}
     {% block javascript %}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
@@ -31,12 +32,12 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
     {% endif %}
 </head>
-<body data-theme="dark">
-<a class="skip-link" href="#main-content">Direct naar de inhoud</a>
+<body class="hnnw-public" data-turbo="false" data-theme="{{ app.user and app.user.setting and app.user.setting.theme == 'light' ? 'light' : 'dark' }}">
 
 {% include "/core/main/_header.html.twig" %}
 
-<main id="main-content">
+<main>
+    {% block breadcrumbs %}{% endblock %}
     {% block body %}{% endblock %}
 </main>
 

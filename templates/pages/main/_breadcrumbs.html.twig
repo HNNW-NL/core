@@ -1,10 +1,15 @@
 <nav class="main-breadcrumbs" aria-label="Kruimelpad">
     <ol>
-        {% if isHome %}
-            <li><span aria-current="page">{{ currentPage }}</span></li>
-        {% else %}
-            <li><a href="/">Home</a></li>
-            <li><span aria-current="page">{{ currentPage }}</span></li>
-        {% endif %}
+        <li><a href="{{ path('main.home') }}">Home</a></li>
+
+        {% for item in parents|default([]) %}
+            <li>
+                <a href="{{ item.url }}">{{ item.label }}</a>
+            </li>
+        {% endfor %}
+
+        <li>
+            <span aria-current="page">{{ currentPage }}</span>
+        </li>
     </ol>
 </nav>

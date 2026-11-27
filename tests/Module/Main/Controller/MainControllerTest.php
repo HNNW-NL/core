@@ -2,85 +2,69 @@
 
 namespace App\Tests;
 
+use App\Repository\Project\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class MainControllerTest extends WebTestCase
 {
-    // Index
-
-    public function testShouldDisplayHome(): void
+    public function testLoggedOutHomepageShowsLoginWithoutAccountDataAndIsNotSharedCached(): void
     {
         $client = static::createClient();
+        $this->mockHomepageProjects([]);
         $crawler = $client->request('GET', '/');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'Home');
+        $this->assertSelectorExists('a[href="/auth/login"]');
+        $this->assertSelectorNotExists('a[href="/account"]');
+        $this->assertStringNotContainsString('TestUser', $crawler->text());
+        $this->assertNoStoreResponse($client->getResponse());
     }
 
-    //About
+    public function testLoggedInHomepageShowsAccountAndLogoutLinks(): void
+    {
+        $client = static::createClient();
+        $this->mockHomepageProjects([]);
+        $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $authorizationChecker->expects($this->once())
+            ->method('isGranted')
+            ->with('ROLE_USER')
+            ->willReturn(true);
+        static::getContainer()->set('security.authorization_checker', $authorizationChecker);
+
+        $client->request('GET', '/');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('a[href="/account"]');
+        $this->assertSelectorExists('a[href="/auth/logout"]');
+        $this->assertSelectorNotExists('a[href="/auth/login"]');
+        $this->assertNoStoreResponse($client->getResponse());
+    }
 
     public function testShouldDisplayAbout(): void
     {
         $client = static::createClient();
-        $crawler = $client->request('GET', '/about');
+        $client->request('GET', '/about');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h2', 'About');
+        $this->assertSelectorTextContains('h1', 'Samenwerken');
     }
 
-    // viewProfile
-
-    public function testWhenUserDoesntExistShouldGiveError(): void
+    private function mockHomepageProjects(array $projects): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $repository = $this->createMock(ProjectRepository::class);
+        $repository->expects($this->once())
+            ->method('findPublicProjects')
+            ->with(6)
+            ->willReturn($projects);
+        static::getContainer()->set(ProjectRepository::class, $repository);
     }
 
-    public function testWhenUserExistShouldDisplayUserName(): void
+    private function assertNoStoreResponse(\Symfony\Component\HttpFoundation\Response $response): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayProfielFoto(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayLocation(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayStatus(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenUserExistShouldDisplayLastLogin(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testUserExistShouldDisplayExpertise(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testUserExistShouldDisplaySocials(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testUserExistInShouldDisplayAchievements(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $cacheControl = (string) $response->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('private', $cacheControl);
+        $this->assertSame('no-cache', $response->headers->get('Pragma'));
     }
 }

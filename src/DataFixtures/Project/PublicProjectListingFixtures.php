@@ -13,6 +13,7 @@ use App\Entity\Account\Skill;
 use App\Entity\Common\Status;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
+use App\Entity\Project\ProjectSkill;
 use App\Entity\Project\ProjectParticipant;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -42,7 +43,10 @@ class PublicProjectListingFixtures extends Fixture implements DependentFixtureIn
                 ->setCapacity($number === 21 ? 1 : 10)
                 ->setVisibility('public')
                 ->setDescription('Een openbaar project voor de pagineringsacceptatietest.');
-            $project->addSkill($skill);
+            $projectSkill = new ProjectSkill();
+            $projectSkill->setProject($project);
+            $projectSkill->setSkill($skill);
+            $manager->persist($projectSkill);
             $project->publish();
             $manager->persist($project);
 
@@ -72,7 +76,10 @@ class PublicProjectListingFixtures extends Fixture implements DependentFixtureIn
             ->setCapacity(10)
             ->setVisibility('public')
             ->setDescription('Dit concept mag niet in openbare resultaten verschijnen.');
-        $draft->addSkill($skill);
+        $projectSkill = new ProjectSkill();
+        $projectSkill->setProject($draft);
+        $projectSkill->setSkill($skill);
+        $manager->persist($projectSkill);
         $manager->persist($draft);
 
         $manager->flush();

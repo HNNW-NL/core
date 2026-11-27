@@ -11,6 +11,7 @@ use App\Entity\Account\Skill;
 use App\Entity\Common\Status;
 use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
+use App\Entity\Project\ProjectSkill;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -38,6 +39,8 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $project->setVisibility("public");
         $project->setDescription("Dit is een test project");
 
+        $project->publish();
+
         $manager->persist($project);
 
         $homepageProject = new Project();
@@ -52,7 +55,10 @@ class ProjectFixtures extends Fixture implements DependentFixtureInterface
         $homepageProject->setCapacity(10);
         $homepageProject->setVisibility("public");
         $homepageProject->setDescription("Een gepubliceerd project voor de homepage.");
-        $homepageProject->addSkill($skill);
+        $projectSkill = new ProjectSkill();
+        $projectSkill->setProject($homepageProject);
+        $projectSkill->setSkill($skill);
+        $manager->persist($projectSkill);
         $homepageProject->publish();
         $manager->persist($homepageProject);
 

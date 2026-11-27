@@ -24,7 +24,7 @@ class WorkPackageRepository extends ServiceEntityRepository
             ->andWhere('workPackage.deletedAt IS NULL')
             ->setParameter('projectId', $projectId)
             ->orderBy('workPackage.dueDate', 'ASC')
-            ->addOrderBy('workPackage.createdAt', 'DESC')
+            ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -38,13 +38,9 @@ class WorkPackageRepository extends ServiceEntityRepository
             ->innerJoin('workPackage.project', 'project')
             ->andWhere('project.slug = :projectSlug')
             ->andWhere('workPackage.deletedAt IS NULL')
-            ->andWhere('project.deletedAt IS NULL')
-            ->andWhere('project.publishedAt IS NOT NULL')
-            ->andWhere('project.visibility IN (:visibilities)')
             ->setParameter('projectSlug', $projectSlug)
-            ->setParameter('visibilities', ['public', 'unlisted'])
             ->orderBy('workPackage.dueDate', 'ASC')
-            ->addOrderBy('workPackage.createdAt', 'DESC')
+            ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -59,8 +55,9 @@ class WorkPackageRepository extends ServiceEntityRepository
             ->andWhere('workPackage.deletedAt IS NULL')
             ->setParameter('project', $project)
             ->orderBy('workPackage.dueDate', 'ASC')
-            ->addOrderBy('workPackage.createdAt', 'DESC')
+            ->addOrderBy('workPackage.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
 }
+

@@ -4,11 +4,11 @@
 {% block title %}Modify Project{% endblock %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="{{ asset('assets/org/css/modify-project.css') }}?v=20260625">
+<link rel="stylesheet" href="{{ asset('assets/org/css/modify-project.css') }}">
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ asset('assets/org/js/modify-project.js') }}?v=20260630-1"></script>
+<script src="{{ asset('assets/org/js/modify-project.js') }}"></script>
 {% endblock %}
 
 {# Page content #}
@@ -56,11 +56,11 @@
                                 {% for skill in availableSkills %}
                                     {% set selected = false %}
                                     {% for projectSkill in project.skills %}
-                                        {% if projectSkill.id.toRfc4122() == skill.id.toRfc4122() %}
+                                        {% if projectSkill.skill.id.toBase32() == skill.id.toBase32() %}
                                             {% set selected = true %}
                                         {% endif %}
                                     {% endfor %}
-                                    <option value="{{ skill.id.toRfc4122() }}" {% if selected %}selected{% endif %}>{{ skill.name }}</option>
+                                    <option value="{{ skill.id.toBase32() }}" {% if selected %}selected{% endif %}>{{ skill.name }}</option>
                                 {% endfor %}
                             </select>
                             <p id="projectSkillsHelp" class="field-help">Select the skills relevant to this project. Leave all unselected to remove skills.</p>

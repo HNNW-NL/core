@@ -2,167 +2,223 @@
 
 namespace App\Tests\Module\Main\Controller;
 
+use App\Entity\Account\Account;
+use App\Entity\Project\ProjectApplication;
+use App\Entity\Project\Project;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\Project\ProjectRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ProjectsControllerTest extends WebTestCase
 {
-    // index
-    public function testShouldDiplayProjects(): void
+    public function testSearchAndRemoteFilterArePagedOnServer(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $repository = $this->createMock(ProjectRepository::class);
+        $repository->expects($this->once())
+            ->method('countPublicProjects')
+            ->with('water', true, true)
+            ->willReturn(21);
+        $repository->expects($this->once())
+            ->method('findPaginatedPublicProjects')
+            ->with('water', true, 2, 20, true)
+            ->willReturn([[
+                'slug' => 'water-project',
+                'title' => 'Water project',
+                'summary' => 'A public project.',
+                'organisationName' => 'Public organisation',
+                'location' => null,
+                'projectStatus' => 'published',
+                'remotePossible' => true,
+                'canApply' => true,
+                'skills' => ['PHP'],
+            ]]);
+
+        $client = static::createClient();
+        static::getContainer()->set(ProjectRepository::class, $repository);
+        $client->request('GET', '/projects?q=water&remote=yes&open=1&page=2');
+
+        $this->assertResponseIsSuccessful();
+        $cacheControl = (string) $client->getResponse()->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertSelectorTextContains('.project-results-count', '21 projecten gevonden');
+        $this->assertSelectorTextContains('a[href="/projects/water-project"]', 'Water project');
+        $this->assertSelectorExists('select[name="remote"] option[value="yes"][selected]');
+        $this->assertSelectorTextContains('.project-pagination', 'Pagina 2 van 2');
     }
 
-    public function testShouldDiplayProjectsSummary(): void
+    public function testCombinedFiltersWithNoResultsOfferARecoveryLink(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $repository = $this->createMock(ProjectRepository::class);
+        $repository->expects($this->once())
+            ->method('countPublicProjects')
+            ->with('unknown', false, false)
+            ->willReturn(0);
+        $repository->expects($this->once())
+            ->method('findPaginatedPublicProjects')
+            ->with('unknown', false, 1, 20, false)
+            ->willReturn([]);
+
+        $client = static::createClient();
+        static::getContainer()->set(ProjectRepository::class, $repository);
+        $client->request('GET', '/projects?q=unknown&remote=no');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.open-projects-empty', 'Geen projecten gevonden');
+        $this->assertSelectorExists('.open-projects-empty a[href="/projects"]');
+        $this->assertSelectorExists('input[name="q"][value="unknown"]');
+        $this->assertSelectorExists('select[name="remote"] option[value="no"][selected]');
     }
 
-    public function testShouldDiplayProjectsStatus(): void
+    public function testInvalidSearchFilterAndPageAreReportedAndRecovered(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $repository = $this->createMock(ProjectRepository::class);
+        $repository->expects($this->once())
+            ->method('countPublicProjects')
+            ->with('', false, null)
+            ->willReturn(0);
+        $repository->expects($this->once())
+            ->method('findPaginatedPublicProjects')
+            ->with('', false, 1, 20, null)
+            ->willReturn([]);
+
+        $client = static::createClient();
+        static::getContainer()->set(ProjectRepository::class, $repository);
+        $client->request('GET', '/projects?q=' . str_repeat('a', 101) . '&remote=invalid&page=0');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('[role="alert"]', 'maximaal 100 tekens');
+        $this->assertSelectorTextContains('[role="alert"]', 'projectfilter is ongeldig');
+        $this->assertSelectorTextContains('[role="alert"]', 'paginanummer is ongeldig');
+        $this->assertSelectorExists('input[name="q"][value=""]');
     }
 
-    // details
-    public function testShouldDiplayProjectTitle(): void
+    public function testPublicListingDoesNotRenderPrivateProjectFields(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $repository = $this->createMock(ProjectRepository::class);
+        $repository->expects($this->once())
+            ->method('countPublicProjects')
+            ->with('', false, null)
+            ->willReturn(1);
+        $repository->expects($this->once())
+            ->method('findPaginatedPublicProjects')
+            ->with('', false, 1, 20, null)
+            ->willReturn([[
+                'slug' => 'public-project',
+                'title' => 'Public project',
+                'summary' => 'Public summary',
+                'organisationName' => 'Public organisation',
+                'location' => null,
+                'projectStatus' => 'published',
+                'remotePossible' => false,
+                'canApply' => false,
+                'skills' => [],
+                'applicationMotivation' => 'PRIVATE APPLICATION MOTIVATION',
+                'participantEmail' => 'private@example.test',
+            ]]);
+
+        $client = static::createClient();
+        static::getContainer()->set(ProjectRepository::class, $repository);
+        $client->request('GET', '/projects');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('a[href="/projects/public-project"]', 'Public project');
+        $this->assertStringNotContainsString('PRIVATE APPLICATION MOTIVATION', (string) $client->getResponse()->getContent());
+        $this->assertStringNotContainsString('private@example.test', (string) $client->getResponse()->getContent());
     }
 
-    public function testShouldDiplayProjectDescription(): void
+    public function testWhenNotLoggedInShouldBeRedirectedFromApply(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $client = static::createClient();
+        $client->request('GET', '/projects/Test-Project/apply');
+
+        $this->assertResponseRedirects('/auth/login');
     }
 
-    public function testShouldDiplayProjectStatus(): void
+    public function testWhenProjectDoesntExistApplyShouldGiveNotFound(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
+        $client = static::createClient();
+        $client->request('GET', '/projects/bestaat-niet/apply');
 
-    public function testShouldDiplayProjectStartdate(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->assertResponseStatusCodeSame(404);
     }
-
-    public function testShouldDiplayProjectEndDate(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayProjectCapacity(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayIfRemoteIsPossible(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayOwner(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testShouldDiplayOwnerOrginasation(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // apply
 
     public function testShouldBeAbleToSendApplyForm(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $account = $entityManager->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']);
+        $client->loginUser($account);
+
+        $client->request('GET', '/projects/Test-Project/apply');
+        $this->assertResponseIsSuccessful();
+
+        $client->submitForm('Aanmelding versturen', [
+            'project_apply[motivation]' => 'ik wil graag meedoen aan dit project',
+        ]);
+        $this->assertResponseRedirects('/projects/Test-Project/apply');
+
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $project = $entityManager->getRepository(Project::class)->findOneBy([
+            'slug' => 'Test-Project',
+        ]);
+
+        $this->assertNotNull($project);
+
+        $application = $entityManager->getRepository(ProjectApplication::class)->findOneBy([
+            'profile' => $account->getProfile(),
+            'project' => $project,
+        ]);
+        $this->assertNotNull($application);
+        $this->assertSame('ik wil graag meedoen aan dit project', $application->getMotivation());
     }
 
-    // chat
-
-    public function testShouldDiplayMessages(): void
+    public function testWhenMotivationIsEmptyShouldGiveError(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $account = $entityManager->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']);
+        $client->loginUser($account);
+
+        $client->request('GET', '/projects/Test-Project/apply');
+        $client->submitForm('Aanmelding versturen', [
+            'project_apply[motivation]' => '',
+        ]);
+
+        $this->assertResponseStatusCodeSame(422);
+        $this->assertSelectorTextContains('.form-errors', 'Vul een motivatie in.');
     }
 
-    public function testShouldBeAbleToAddMessage(): void
+    public function testWhenAlreadyAppliedShouldNotShowApplyForm(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $account = $entityManager->getRepository(Account::class)->findOneBy(['username' => 'AdminUser']);
+        $client->loginUser($account);
+
+        $client->request('GET', '/projects/Test-Project/apply');
+        $client->submitForm('Aanmelding versturen', [
+            'project_apply[motivation]' => 'ik wil graag meedoen aan dit project',
+        ]);
+        $client->followRedirect();
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.alert-success', 'Je aanmelding is verstuurd.');
+        $this->assertSelectorNotExists('form[name="project_apply"]');
+        $this->assertSelectorTextContains('.project-apply', 'Je hebt al een aanmelding voor dit project.');
     }
 
-    // participants
-
-    public function testShouldDiplayParticipants(): void
+    public function testWhenAlreadyParticipantShouldNotShowApplyForm(): void
     {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $account = $entityManager->getRepository(Account::class)->findOneBy(['username' => 'TestUser']);
+        $client->loginUser($account);
 
-    // tasks
+        $client->request('GET', '/projects/Test-Project/apply');
 
-    public function testShouldDiplayTasks(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // enrollTask
-
-    public function testWhenNotLoggedInShouldBeRedirectedFromEnrollTask(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenLoggedInShouldBeAbleToEnroll(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // updates
-
-    public function testWhenNotOwnerShouldGiveError(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenOwnerShouldDisplayPage(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenOwnerAndSubmitUpdateShouldUpdateProject(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    // workPackages
-
-    public function testWhenWorkPackagesExistShouldDisplayThem(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
-    }
-
-    public function testWhenWorkPackagesDoesntExistShouldDisplayNoWorkPackagesAvailable(): void
-    {
-        //Reminder that test is not yet implemented
-        $this->assertTrue(false);
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorNotExists('form[name="project_apply"]');
+        $this->assertSelectorTextContains('.project-apply', 'Je doet al mee aan dit project.');
     }
 }
