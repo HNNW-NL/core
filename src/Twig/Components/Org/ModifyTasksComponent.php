@@ -31,6 +31,18 @@ class ModifyTasksComponent
     #[LiveProp(writable: true)]
     public array $taskMap = [];
 
+    #[LiveProp(writable: true)]
+    public array $newTask = [
+        'title' => '',
+        'assignedProfile' => '',
+        'description' => '',
+        'workPackage' => '',
+        'status' => '',
+        'priority' => 'low',
+        'slug' => '',
+        'dueDate' => '',
+    ];
+
     public function __construct(readonly private AuthorizationCheckerInterface $authorizationChecker,
                                 readonly private ProjectRepository             $projectRepository,
                                 readonly private PackageTaskRepository         $packageTaskRepository,
@@ -81,6 +93,52 @@ class ModifyTasksComponent
                 'slug' => $task->getSlug(),
                 'dueDate' => $task->getDueDate()?->format('Y-m-d\TH:i') ?? ''
             ];
+        }
+    }
+
+    #[LiveAction]
+    public function createTask(): void
+    {
+        if (!$this->authorizationChecker->isGranted('PROJECT_EDIT', $this->getProject())) {
+            $this->errorMessage = 'You are not allowed to edit tasks for this project';
+            return;
+        }
+
+        if ($this->newTask['workPackage'] === '') {
+            $workPackages = $this->getWorkPackages();
+            if (is_array($workPackages) || $workPackages instanceof \Countable) {
+                $first = $workPackages[0] ?? null;
+                if ($first) {
+                    $this->newTask['workPackage'] = (string) $first->getId();
+                }
+            }
+        }
+
+        if ($this->newTask['status'] === '') {
+            $statuses = $this->getStatuses();
+            if (is_array($statuses) || $statuses instanceof \Countable) {
+                $first = $statuses[0] ?? null;
+                if ($first) {
+                    $this->newTask['status'] = (string) $first->getId();
+                }
+            }
+        }
+
+        try {
+            $this->modifyTasksHandler->createTask($this->newTask, $this->getProject());
+            $this->errorMessage = '';
+            $this->newTask = [
+                'title' => '',
+                'assignedProfile' => '',
+                'description' => '',
+                'workPackage' => '',
+                'status' => '',
+                'priority' => 'low',
+                'slug' => '',
+                'dueDate' => '',
+            ];
+        } catch (\InvalidArgumentException $e) {
+            $this->errorMessage = $e->getMessage();
         }
     }
 
