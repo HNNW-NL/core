@@ -19,6 +19,7 @@ use App\Entity\Project\ProjectParticipant;
 use App\Enum\AvailabilityType;
 use App\Enum\DayOfWeek;
 use App\Enum\SkillProficiencyLevel;
+use App\Form\ProfileSkillType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\DBAL\LockMode;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -95,7 +96,7 @@ final class AccountsController extends AbstractController
     #[Route('/applications', name: 'applications', methods: ['GET'])]
     public function applications(EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
+        $account = $this->account();
 
         $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
@@ -119,7 +120,7 @@ final class AccountsController extends AbstractController
         $profile = $this->profile($em);
 
         $application = $em->getRepository(ProjectApplication::class)->find($id);
-        $account = $this->getAndCheckAccount();
+        $account = $this->account();
         $profile = $em->getRepository(Profile::class)->findOneBy(['account' => $account]);
 
         if (!$application || $application->getDeletedAt() !== null) {
@@ -418,7 +419,7 @@ final class AccountsController extends AbstractController
     #[Route('/experience/{id}/delete', name: 'experience_delete', methods: ['POST'])]
     public function deleteExperience(string $id, Request $request, EntityManagerInterface $em): Response
     {
-        $account = $this->getAndCheckAccount();
+        $account = $this->account();
 
         $experience = $em->getRepository(ProfileExperience::class)->find($id);
         if (!$experience || $experience->getDeletedAt() !== null) {
@@ -694,30 +695,115 @@ final class AccountsController extends AbstractController
     public function skills(EntityManagerInterface $em): Response
     {
         $profile = $this->profile($em);
+
+        $form = $this->createForm(ProfileSkillType::class, new ProfileSkill(),[
+            'action' => $this->generateUrl('account.skills_save'),
+            'method' => 'POST',
+        ]);
         return $this->render('pages/account-centre/skills.html.twig', [
-            'skills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
+            'ProfileSkills' => $em->getRepository(ProfileSkill::class)->findBy(['profile' => $profile]),
             'availableSkills' => $em->getRepository(Skill::class)->findBy(['active' => true], ['name' => 'ASC']),
+            'levels' => SkillProficiencyLevel::cases(),
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/skills', name: 'skills_save', methods: ['POST'])]
-    public function saveSkill(Request $request, EntityManagerInterface $em): Response
-    {
-        $this->csrf($request, 'account_skills');
+    public function saveSkill(
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
         $profile = $this->profile($em);
-        $skill = $em->getRepository(Skill::class)->find((string) $request->request->get('skill_id', ''));
-        $level = SkillProficiencyLevel::tryFrom((string) $request->request->get('level', 'beginner'));
-        if (!$skill || !$skill->isActive() || !$level) {
-            throw $this->createNotFoundException('Skill of niveau niet gevonden.');
+
+        if (!$profile) {
+            $this->addFlash('error', 'Profiel niet gevonden.');
+
+            return $this->redirectToRoute('account.home');
         }
-        $entry = $em->getRepository(ProfileSkill::class)->findOneBy(['profile' => $profile, 'skill' => $skill]);
-        if (!$entry) {
-            $entry = (new ProfileSkill())->setProfile($profile)->setSkill($skill);
-            $em->persist($entry);
+
+        $form = $this->createForm(ProfileSkillType::class, new ProfileSkill(), [
+            'action' => $this->generateUrl('account.skills_save'),
+            'method' => 'POST',
+        ]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var ProfileSkill $data */
+            $data = $form->getData();
+
+            $skill = $data->getSkill();
+            $level = $data->getProficiencyLevel();
+
+            if (!$skill || !$skill->isActive()) {
+                $form->get('skill')->addError(
+                    new FormError('Selecteer een geldige, actieve vaardigheid.')
+                );
+            }
+
+            if (!$level) {
+                $form->get('proficiencyLevel')->addError(
+                    new FormError('Selecteer een geldig vaardigheidsniveau.')
+                );
+            }
+
+            if ($form->isValid()) {
+                $entry = $em->getRepository(ProfileSkill::class)->findOneBy([
+                    'profile' => $profile,
+                    'skill' => $skill,
+                ]);
+
+                $isNew = false;
+
+                if (!$entry) {
+                    $entry = new ProfileSkill();
+                    $entry->setProfile($profile);
+                    $entry->setSkill($skill);
+
+                    $em->persist($entry);
+                    $isNew = true;
+                }
+
+                $entry->setProficiencyLevel($level);
+
+                try {
+                    $em->flush();
+
+                    if ($isNew) {
+                        $this->addFlash('info', 'Vaardigheid is toegevoegd.');
+                    } else {
+                        $this->addFlash('info', 'Vaardigheid is aangepast.');
+                    }
+
+                    $this->addFlash('success', 'Vaardigheid is opgeslagen.');
+
+                    return $this->redirectToRoute('account.skills');
+
+                } catch (UniqueConstraintViolationException $e) {
+                    $form->get('skill')->addError(
+                        new FormError('Deze vaardigheid is al toegevoegd.')
+                    );
+                }
+            }
         }
-        $entry->setProficiencyLevel($level);
-        $em->flush();
-        return $this->redirectToRoute('account.skills');
+
+        if (!$form->isSubmitted()) {
+            $this->addFlash('error', 'Controleer de ingevoerde gegevens.');
+
+            return $this->redirectToRoute('account.skills');
+        }
+
+        return $this->render('pages/account-centre/skills.html.twig', [
+            'ProfileSkills' => $em->getRepository(ProfileSkill::class)->findBy([
+                'profile' => $profile,
+            ]),
+            'availableSkills' => $em->getRepository(Skill::class)->findBy(
+                ['active' => true],
+                ['name' => 'ASC']
+            ),
+            'levels' => SkillProficiencyLevel::cases(),
+            'form' => $form->createView(),
+        ]);
     }
 
     #[Route('/skills/{id}/delete', name: 'skills_delete', methods: ['POST'])]
@@ -760,16 +846,6 @@ final class AccountsController extends AbstractController
         $em->remove($item);
         $em->flush();
         return $this->redirectToRoute('account.saved_items');
-    }
-
-    private function getAndCheckAccount(): Account
-    {
-        $account = $this->getUser();
-
-        if (!$account instanceof Account) {
-            throw $this->createAccessDeniedException();
-        }
-        return $account;
     }
 
     private function createAccountSettings($entityManager, $account): AccountSetting

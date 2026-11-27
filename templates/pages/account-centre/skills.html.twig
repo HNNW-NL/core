@@ -39,7 +39,7 @@
                 <p>Voeg je belangrijkste vaardigheden toe om beter gevonden te worden.</p>
             </div>
 
-            {{ form_start(form) }}
+            {{ form_start(form, {'action': path('account.skills_save'), 'method': 'POST'}) }}
                 {{ form_label(form.skill) }}
                 {{ form_widget(form.skill) }}
                 {{ form_errors(form.skill) }}
