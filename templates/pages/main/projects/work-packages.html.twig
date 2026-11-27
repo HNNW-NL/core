@@ -65,10 +65,30 @@
                                 {% for packageTask in packageTasks %}
                                     {% set assignedProfile = packageTask.assignedProfile %}
                                     {% set isAssignedToCurrentProfile = currentProfile and assignedProfile and assignedProfile.id == currentProfile.id %}
+                                    {% set statusName = packageTask.status.name %}
+                                    {% set statusKey = statusName|lower %}
+                                    {% if assignedProfile and statusKey in ['active', 'open'] %}
+                                        {% set statusName = 'Assigned' %}
+                                    {% elseif statusKey == 'active' %}
+                                        {% set statusName = 'Open' %}
+                                    {% elseif statusKey in ['assigned', 'toegewezen'] %}
+                                        {% set statusName = 'Assigned' %}
+                                    {% elseif statusKey in ['in progress', 'in-progress', 'in behandeling', 'bezig'] %}
+                                        {% set statusName = 'In progress' %}
+                                    {% elseif statusKey in ['changes requested', 'changes_requested'] %}
+                                        {% set statusName = 'Changes requested' %}
+                                    {% elseif statusKey == 'submitted' %}
+                                        {% set statusName = 'Submitted' %}
+                                    {% elseif statusKey == 'accepted' %}
+                                        {% set statusName = 'Accepted' %}
+                                    {% endif %}
+                                    {% set workflowEvent = taskWorkflowEvents[packageTask.id.toBase32()] ?? null %}
+                                    {% set workflowValues = workflowEvent ? workflowEvent.newValuesJson|default({}) : {} %}
 
                                     <article class="package-task-card">
                                         <div class="package-task-card__content">
                                             <h4>{{ packageTask.title }}</h4>
+                                            <p>Status: {{ statusName }}</p>
 
                                             {% if packageTask.description %}
                                                 <p>{{ packageTask.description }}</p>
@@ -80,12 +100,50 @@
                                                     · Deadline: {{ packageTask.dueDate|date('d-m-Y') }}
                                                 {% endif %}
                                             </p>
+                                            {% if workflowValues.submission is defined and workflowValues.submission %}
+                                                <p>Jouw ingediende resultaat: {{ workflowValues.submission }}</p>
+                                            {% endif %}
+                                            {% if workflowValues.review_reason is defined and workflowValues.review_reason %}
+                                                <p>Reviewreden: {{ workflowValues.review_reason }}</p>
+                                            {% endif %}
                                         </div>
 
                                         <div class="package-task-card__action">
                                             {% if assignedProfile %}
                                                 {% if isAssignedToCurrentProfile %}
-                                                    <span>Jij bent ingeschreven op deze taak.</span>
+                                                    {% if statusName == 'Assigned' %}
+                                                        <form method="post" action="{{ path('main.projects.workPackages', { slug: slug }) }}">
+                                                            <input type="hidden" name="action" value="start">
+                                                            <input type="hidden" name="task_id" value="{{ packageTask.id }}">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('package-task-start-' ~ packageTask.id) }}">
+                                                            <button type="submit">Start taak</button>
+                                                        </form>
+                                                    {% elseif statusName == 'Changes requested' %}
+                                                        <p>De projectleider heeft om aanpassingen gevraagd.</p>
+                                                        <form method="post" action="{{ path('main.projects.workPackages', { slug: slug }) }}">
+                                                            <input type="hidden" name="action" value="start">
+                                                            <input type="hidden" name="task_id" value="{{ packageTask.id }}">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('package-task-start-' ~ packageTask.id) }}">
+                                                            <button type="submit">Verder werken</button>
+                                                        </form>
+                                                    {% elseif statusName == 'In progress' %}
+                                                        <form method="post" action="{{ path('main.projects.workPackages', { slug: slug }) }}">
+                                                            <input type="hidden" name="action" value="submit">
+                                                            <input type="hidden" name="task_id" value="{{ packageTask.id }}">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('package-task-submit-' ~ packageTask.id) }}">
+                                                            <label>
+                                                                Resultaat
+                                                                <textarea name="submission" maxlength="20000" required></textarea>
+                                                            </label>
+                                                            <button type="submit">Resultaat indienen</button>
+                                                        </form>
+                                                    {% elseif statusName == 'Submitted' %}
+                                                        <span>Je resultaat wacht op beoordeling.</span>
+                                                    {% elseif statusName == 'Accepted' %}
+                                                        <span>Je resultaat is geaccepteerd.</span>
+                                                    {% else %}
+                                                        <span>Jij bent ingeschreven op deze taak.</span>
+                                                    {% endif %}
                                                 {% else %}
                                                     <span>Deze taak is al toegewezen.</span>
                                                 {% endif %}

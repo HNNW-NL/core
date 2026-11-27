@@ -3,11 +3,53 @@
         <p>{{ this.errorMessage }}</p>
     {% endif %}
 
+    {% set latestWorkflowEvents = this.latestWorkflowEvents %}
     <table class="modify-tasks-table">
         <tbody>
         {% for task in this.tasks %}
             <tr id="{{ task.id }}" class="task-row">
                 <td>
+                    <p>Status: {{ task.status.name }}</p>
+                    {% set workflowEvent = latestWorkflowEvents[task.id.toBase32()] ?? null %}
+                    {% set workflowValues = workflowEvent ? workflowEvent.newValuesJson|default({}) : {} %}
+                    {% if workflowValues.submission is defined and workflowValues.submission %}
+                        <p>Ingediend resultaat: {{ workflowValues.submission }}</p>
+                    {% endif %}
+                    {% if workflowValues.review_reason is defined and workflowValues.review_reason %}
+                        <p>Reviewreden: {{ workflowValues.review_reason }}</p>
+                    {% endif %}
+                    {% if workflowEvent and workflowEvent.actorUsername %}
+                        <p>Laatst bijgewerkt door: {{ workflowEvent.actorUsername }}</p>
+                    {% endif %}
+                    {% if task.status.name == 'Submitted' %}
+                        <label>
+                            Retourreden
+                            <textarea
+                                maxlength="2000"
+                                data-model="norender|reviewData[{{ task.id }}].reason"
+                            ></textarea>
+                        </label>
+                        <button
+                            type="button"
+                            data-action="live#action"
+                            data-live-action-param="reviewTask"
+                            data-live-id-param="{{ task.id }}"
+                            data-live-decision-param="accept"
+                            data-live-token-param="{{ csrf_token('review-package-task-' ~ task.id) }}"
+                        >
+                            Accepteer resultaat
+                        </button>
+                        <button
+                            type="button"
+                            data-action="live#action"
+                            data-live-action-param="reviewTask"
+                            data-live-id-param="{{ task.id }}"
+                            data-live-decision-param="return"
+                            data-live-token-param="{{ csrf_token('review-package-task-' ~ task.id) }}"
+                        >
+                            Retourneer resultaat
+                        </button>
+                    {% endif %}
                     {% if task.deletedAt %}
                         Deleted at: {{ task.deletedAt|date('d/m/Y') }}
                     {% endif %}
@@ -53,18 +95,7 @@
                             {% endfor %}
                         </select>
                     </label>
-                    <label>
-                        Status
-                        <select data-model="norender|taskMap[{{ task.id }}].status">
-                            {% for status in this.statuses %}
-                                <option value="{{ status.id }}"
-                                        {% if task.status == status %}selected{% endif %}
-                                >
-                                    {{ status.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </label>
+                    <p>Status: {{ task.status.name }}</p>
                 </td>
                 <td>
                     <label>

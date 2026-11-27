@@ -6,6 +6,7 @@ use App\Entity\Common\Status;
 use App\Entity\Project\PackageTask;
 use App\Entity\Project\WorkPackage;
 use App\Module\Admin\DTO\CreatePackageTaskDTO;
+use App\Enum\PackageTaskWorkflowStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Uid\Ulid;
 
@@ -30,7 +31,7 @@ class PackageTaskCrudService
 
         $task = new PackageTask();
         $task->setWorkPackage($workPackage);
-        $task->setStatus($this->findDefaultStatus($workPackage));
+        $task->setStatus($this->findDefaultStatus());
         $task->setTitle($dto->title);
         $task->setSlug($dto->slug);
         $task->setDescription($dto->description);
@@ -43,24 +44,24 @@ class PackageTaskCrudService
         return $task;
     }
 
-    private function findDefaultStatus(WorkPackage $workPackage): Status
+    private function findDefaultStatus(): Status
     {
         $statusRepository = $this->entityManager->getRepository(Status::class);
 
         $status = $statusRepository->findOneBy([
-            'name' => 'open',
-            'scope' => 'package_task',
+            'name' => PackageTaskWorkflowStatus::OPEN->value,
+            'scope' => PackageTaskWorkflowStatus::STATUS_SCOPE,
         ]) ?? $statusRepository->findOneBy([
-            'name' => 'Open',
-            'scope' => 'package_task',
-        ]) ?? $statusRepository->findOneBy([
-            'name' => 'open',
-        ]) ?? $statusRepository->findOneBy([
-            'name' => 'Open',
-        ]) ?? $workPackage->getStatus();
+            'name' => strtolower(PackageTaskWorkflowStatus::OPEN->value),
+            'scope' => PackageTaskWorkflowStatus::STATUS_SCOPE,
+        ]);
 
         if (!$status) {
-            throw new \InvalidArgumentException('Default task status not found.');
+            $status = (new Status())
+                ->setName(PackageTaskWorkflowStatus::OPEN->value)
+                ->setScope(PackageTaskWorkflowStatus::STATUS_SCOPE)
+                ->setColourHex('#10B981');
+            $this->entityManager->persist($status);
         }
 
         return $status;

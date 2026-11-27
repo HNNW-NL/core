@@ -4,7 +4,9 @@ namespace App\Module\Main\Controller;
 
 use App\Entity\Project\Project;
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
+use App\Module\Main\Handler\PackageTaskWorkflowHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
+use App\Repository\Log\AuditLogRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectRepository;
 use App\Repository\Project\WorkPackageRepository;
@@ -179,20 +181,23 @@ final class ProjectsController extends AbstractController
     public function tasks(
         string $slug,
         ProjectRepository $projectRepository,
-        WorkPackageRepository $workPackageRepository,
+        PackageTaskRepository $packageTaskRepository,
+        AuditLogRepository $auditLogRepository,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
             $projectRepository
         );
 
+        $packageTasks = $packageTaskRepository->findVisibleForProjectSlug($slug);
+
         return $this->render('pages/main/projects/tasks.html.twig', [
             'slug' => $slug,
             'project' => $project,
-            'packageTasks' => array_merge([], ...array_map(
-                static fn ($workPackage): array => $workPackage->getWorkPackageTasks()->toArray(),
-                $workPackageRepository->findActiveByProject($project)
-            )),
+            'packageTasks' => $packageTasks,
+            'taskWorkflowEvents' => $auditLogRepository->findLatestPackageTaskWorkflowEvents(
+                array_map(static fn ($task): string => $task->getId()->toBase32(), $packageTasks),
+            ),
         ]);
     }
 
@@ -290,21 +295,79 @@ final class ProjectsController extends AbstractController
         ]);
     }
 
-    #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET'])]
+    #[Route('/{slug}/work-packages', name: 'workPackages', methods: ['GET', 'POST'])]
     public function workPackages(
         string $slug,
+        Request $request,
         WorkPackageRepository $workPackageRepository,
         ProjectRepository $projectRepository,
+        CurrentProfileProvider $currentProfileProvider,
+        PackageTaskWorkflowHandler $taskWorkflowHandler,
+        AuditLogRepository $auditLogRepository,
     ): Response {
         $project = $this->getProjectAndCheckViewAccess(
             $slug,
             $projectRepository
         );
 
+        if ($request->isMethod('POST')) {
+            $taskId = $request->request->getString('task_id');
+            $action = $request->request->getString('action');
+            if (!in_array($action, ['start', 'submit'], true)
+                || !$this->isCsrfTokenValid(
+                    'package-task-' . $action . '-' . $taskId,
+                    $request->request->getString('_token'),
+                )
+            ) {
+                $this->addFlash('danger', 'Ongeldige aanvraag. Vernieuw de pagina en probeer het opnieuw.');
+            } else {
+                $profile = $currentProfileProvider->getProfile();
+                $account = $profile?->getAccount();
+                if ($profile === null || $account === null) {
+                    $this->addFlash('danger', 'Je moet ingelogd zijn met een profiel om deze taak te wijzigen.');
+                } else {
+                    try {
+                        if ($action === 'start') {
+                            $taskWorkflowHandler->start($project, $taskId, $profile, $account);
+                            $this->addFlash('success', 'Je bent gestart met deze taak.');
+                        } else {
+                            $taskWorkflowHandler->submit(
+                                $project,
+                                $taskId,
+                                $profile,
+                                $account,
+                                $request->request->getString('submission'),
+                            );
+                            $this->addFlash('success', 'Je resultaat is ingediend en wacht op beoordeling.');
+                        }
+                    } catch (\InvalidArgumentException $exception) {
+                        $this->addFlash('danger', $exception->getMessage());
+                    }
+                }
+            }
+
+            return $this->redirectToRoute(
+                'main.projects.workPackages',
+                ['slug' => $slug],
+                Response::HTTP_SEE_OTHER,
+            );
+        }
+
+        $workPackages = $workPackageRepository->findActiveByProject($project);
+        $taskIds = [];
+        foreach ($workPackages as $workPackage) {
+            foreach ($workPackage->getWorkPackageTasks() as $task) {
+                if ($task->getDeletedAt() === null) {
+                    $taskIds[] = $task->getId()->toBase32();
+                }
+            }
+        }
+
         return $this->render('pages/main/projects/work-packages.html.twig', [
             'slug' => $slug,
             'project' => $project,
-            'workPackages' => $workPackageRepository->findActiveByProject($project),
+            'workPackages' => $workPackages,
+            'taskWorkflowEvents' => $auditLogRepository->findLatestPackageTaskWorkflowEvents($taskIds),
         ]);
     }
 

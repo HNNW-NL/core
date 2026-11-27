@@ -5,6 +5,7 @@ namespace App\DataFixtures\Common;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Common\Status;
+use App\Enum\PackageTaskWorkflowStatus;
 use App\Module\Main\Service\WorkPackageWorkflowService;
 
 class StatusFixtures extends Fixture
@@ -58,8 +59,8 @@ class StatusFixtures extends Fixture
         $manager->persist($defaultAdminStatus);
 
         $defaultPackageTaskStatus = new Status();
-        $defaultPackageTaskStatus->setName('active');
-        $defaultPackageTaskStatus->setScope('PackageTask');
+        $defaultPackageTaskStatus->setName(PackageTaskWorkflowStatus::OPEN->value);
+        $defaultPackageTaskStatus->setScope(PackageTaskWorkflowStatus::STATUS_SCOPE);
         $defaultPackageTaskStatus->setColourHex('#10B981');
         $manager->persist($defaultPackageTaskStatus);
 

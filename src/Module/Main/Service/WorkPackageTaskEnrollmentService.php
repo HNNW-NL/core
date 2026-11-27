@@ -4,30 +4,19 @@ namespace App\Module\Main\Service;
 
 use App\Entity\Account\Profile;
 use App\Entity\Project\Project;
+use App\Module\Main\Handler\PackageTaskWorkflowHandler;
 use App\Module\Main\DTO\WorkPackageTaskEnrollmentResult;
 use App\Module\Main\DTO\WorkPackageTaskEnrollmentStatus;
-use App\Repository\Common\StatusRepository;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use Symfony\Component\Uid\Ulid;
 
 final readonly class WorkPackageTaskEnrollmentService
 {
-    private const ASSIGNED_STATUS_SCOPE = 'package_task';
-
-    private const ASSIGNED_STATUS_NAMES = [
-        'assigned',
-        'toegewezen',
-        'in progress',
-        'in-progress',
-        'in behandeling',
-        'bezig',
-    ];
-
     public function __construct(
         private PackageTaskRepository $packageTaskRepository,
         private ProjectParticipantRepository $projectParticipantRepository,
-        private StatusRepository $statusRepository,
+        private PackageTaskWorkflowHandler $workflowHandler,
     ) {
     }
 
@@ -64,18 +53,24 @@ final readonly class WorkPackageTaskEnrollmentService
                 $packageTask,
             );
         }
-        $packageTask->setAssignedProfile($profile);
-
-        $assignedStatus = $this->statusRepository->findFirstByScopeAndNames(
-            self::ASSIGNED_STATUS_SCOPE,
-            self::ASSIGNED_STATUS_NAMES,
-        );
-
-        if ($assignedStatus !== null) {
-            $packageTask->setStatus($assignedStatus);
+        $account = $profile->getAccount();
+        if ($account === null) {
+            return new WorkPackageTaskEnrollmentResult(
+                WorkPackageTaskEnrollmentStatus::NotParticipant,
+                'Je profiel is niet gekoppeld aan een account.',
+                $packageTask,
+            );
         }
 
-        $this->packageTaskRepository->save($packageTask);
+        try {
+            $this->workflowHandler->assign($packageTask, $profile, $account);
+        } catch (\InvalidArgumentException $exception) {
+            return new WorkPackageTaskEnrollmentResult(
+                WorkPackageTaskEnrollmentStatus::InvalidWorkflowState,
+                $exception->getMessage(),
+                $packageTask,
+            );
+        }
 
         return new WorkPackageTaskEnrollmentResult(
             WorkPackageTaskEnrollmentStatus::Success,

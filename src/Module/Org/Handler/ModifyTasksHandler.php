@@ -2,7 +2,9 @@
 
 namespace App\Module\Org\Handler;
 
+use App\Entity\Account\Account;
 use App\Entity\Project\Project;
+use App\Module\Main\Handler\PackageTaskWorkflowHandler;
 use App\Repository\Project\PackageTaskRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\WorkPackageRepository;
@@ -20,10 +22,18 @@ class ModifyTasksHandler
         readonly private WorkPackageRepository $workPackageRepository,
         readonly private ProfileRepository $profileRepository,
         readonly private StatusRepository $statusRepository,
+        readonly private PackageTaskWorkflowHandler $taskWorkflowHandler,
         readonly private EntityManagerInterface $em
     ) {}
 
-    public function handleModifyTask(array $taskData, Project $project): void
+    public function handleModifyTask(array $taskData, Project $project, Account $actor): void
+    {
+        $this->em->getConnection()->transactional(
+            fn () => $this->doHandleModifyTask($taskData, $project, $actor),
+        );
+    }
+
+    private function doHandleModifyTask(array $taskData, Project $project, Account $actor): void
     {
         $task = $this->packageTaskRepository->find($taskData['id']);
         $workPackage = $this->workPackageRepository->find($taskData['workPackage']);
@@ -37,8 +47,11 @@ class ModifyTasksHandler
             throw new InvalidArgumentException('Invalid work package id');
         }
 
-        if (!$status || $status->getScope() !== 'PackageTask') {
+        if (!$status || strcasecmp((string) $status->getScope(), 'PackageTask') !== 0) {
             throw new InvalidArgumentException('Invalid status id');
+        }
+        if ($status !== $task->getStatus()) {
+            throw new InvalidArgumentException('Task statuses can only be changed through workflow actions.');
         }
 
         $assignedProfile = null;
@@ -50,21 +63,27 @@ class ModifyTasksHandler
                 throw new InvalidArgumentException('Invalid Profile id');
             }
 
-            $participant = $this->projectParticipantRepository->findOneBy(['project' => $project, 'profile' => $assignedProfile]);
-
-            if (!$participant) {
+            if (!$this->projectParticipantRepository->isActiveParticipant($project, $assignedProfile)) {
                 throw new InvalidArgumentException('Profile not in project');
             }
         }
 
+        $dueDate = $taskData['dueDate'] !== '' ? new DateTimeImmutable($taskData['dueDate']) : null;
+        $currentAssignedProfile = $task->getAssignedProfile();
+        if (($currentAssignedProfile?->getId()->toBase32()) !== ($assignedProfile?->getId()->toBase32())) {
+            if ($assignedProfile === null) {
+                throw new InvalidArgumentException('An assigned task cannot be unassigned outside the workflow.');
+            }
+
+            $this->taskWorkflowHandler->assign($task, $assignedProfile, $actor, true);
+        }
+
         $task->setTitle($taskData['title']);
         $task->setDescription($taskData['description']);
-        $task->setAssignedProfile($assignedProfile);
         $task->setWorkPackage($workPackage);
-        $task->setStatus($status);
         $task->setPriority($taskData['priority']);
         $task->setSlug($taskData['slug']);
-        $task->setDueDate($taskData['dueDate'] !== '' ? new DateTimeImmutable($taskData['dueDate']) : null);
+        $task->setDueDate($dueDate);
         $this->em->flush();
 
     }

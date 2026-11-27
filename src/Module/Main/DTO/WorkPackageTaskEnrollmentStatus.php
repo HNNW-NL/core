@@ -9,4 +9,5 @@ enum WorkPackageTaskEnrollmentStatus: string
     case AlreadyAssignedToOtherProfile = 'already_assigned_to_other_profile';
     case NotParticipant = 'not_participant';
     case TaskNotFound = 'task_not_found';
+    case InvalidWorkflowState = 'invalid_workflow_state';
 }

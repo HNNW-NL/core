@@ -21,4 +21,42 @@ class AuditLogRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @param list<string> $taskIds
+     * @return array<string, AuditLog>
+     */
+    public function findLatestPackageTaskWorkflowEvents(array $taskIds): array
+    {
+        if ($taskIds === []) {
+            return [];
+        }
+
+        $events = $this->createQueryBuilder('auditLog')
+            ->andWhere('auditLog.entityType = :entityType')
+            ->andWhere('auditLog.entityId IN (:taskIds)')
+            ->andWhere('auditLog.action IN (:actions)')
+            ->setParameter('entityType', \App\Entity\Project\PackageTask::class)
+            ->setParameter('taskIds', $taskIds)
+            ->setParameter('actions', [
+                'package_task.assigned',
+                'package_task.started',
+                'package_task.submitted',
+                'package_task.accepted',
+                'package_task.returned',
+            ])
+            ->orderBy('auditLog.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $latestByTask = [];
+        foreach ($events as $event) {
+            $taskId = $event->getEntityId();
+            if ($taskId !== null && !isset($latestByTask[$taskId])) {
+                $latestByTask[$taskId] = $event;
+            }
+        }
+
+        return $latestByTask;
+    }
 }

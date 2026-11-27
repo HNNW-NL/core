@@ -14,7 +14,7 @@
     <section class="project-tasks">
         <header>
             <h2>Taken</h2>
-            <p>Bekijk de beschikbare taken en schrijf jezelf in.</p>
+            <p>Schrijf jezelf in, werk aan je taak en dien je resultaat ter beoordeling in.</p>
         </header>
 
         {% for flashType, flashMessages in app.flashes %}
@@ -39,6 +39,25 @@
                 {% for packageTask in packageTasks %}
                     {% set assignedProfile = packageTask.assignedProfile %}
                     {% set isMine = currentProfile and assignedProfile and assignedProfile.id == currentProfile.id %}
+                    {% set statusName = packageTask.status.name %}
+                    {% set statusKey = statusName|lower %}
+                    {% if assignedProfile and statusKey in ['active', 'open'] %}
+                        {% set statusName = 'Assigned' %}
+                    {% elseif statusKey == 'active' %}
+                        {% set statusName = 'Open' %}
+                    {% elseif statusKey in ['assigned', 'toegewezen'] %}
+                        {% set statusName = 'Assigned' %}
+                    {% elseif statusKey in ['in progress', 'in-progress', 'in behandeling', 'bezig'] %}
+                        {% set statusName = 'In progress' %}
+                    {% elseif statusKey in ['changes requested', 'changes_requested'] %}
+                        {% set statusName = 'Changes requested' %}
+                    {% elseif statusKey == 'submitted' %}
+                        {% set statusName = 'Submitted' %}
+                    {% elseif statusKey == 'accepted' %}
+                        {% set statusName = 'Accepted' %}
+                    {% endif %}
+                    {% set workflowEvent = taskWorkflowEvents[packageTask.id.toBase32()] ?? null %}
+                    {% set workflowValues = workflowEvent ? workflowEvent.newValuesJson|default({}) : {} %}
 
                     <article>
                         <h4>{{ packageTask.title }}</h4>
@@ -48,10 +67,51 @@
                         {% endif %}
 
                         <p>Prioriteit: {{ packageTask.priority|capitalize }}</p>
+                        <p>Status: {{ statusName }}</p>
+                        {% if workflowValues.submission is defined and workflowValues.submission %}
+                            <p>Jouw ingediende resultaat: {{ workflowValues.submission }}</p>
+                        {% endif %}
+                        {% if workflowValues.review_reason is defined and workflowValues.review_reason %}
+                            <p>Reviewreden: {{ workflowValues.review_reason }}</p>
+                        {% endif %}
 
                         {% if assignedProfile %}
                             {% if isMine %}
-                                <p>Jij bent ingeschreven op deze taak.</p>
+                                {% if statusName == 'Assigned' %}
+                                    {% set action = 'start' %}
+                                    <form method="post" action="{{ path('main.projects.workPackages', { slug: slug }) }}">
+                                        <input type="hidden" name="action" value="{{ action }}">
+                                        <input type="hidden" name="task_id" value="{{ packageTask.id }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('package-task-' ~ action ~ '-' ~ packageTask.id) }}">
+                                        <button type="submit">Start taak</button>
+                                    </form>
+                                {% elseif statusName == 'Changes requested' %}
+                                    {% set action = 'start' %}
+                                    <form method="post" action="{{ path('main.projects.workPackages', { slug: slug }) }}">
+                                        <input type="hidden" name="action" value="{{ action }}">
+                                        <input type="hidden" name="task_id" value="{{ packageTask.id }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('package-task-' ~ action ~ '-' ~ packageTask.id) }}">
+                                        <button type="submit">Verder werken</button>
+                                    </form>
+                                {% elseif statusName == 'In progress' %}
+                                    {% set action = 'submit' %}
+                                    <form method="post" action="{{ path('main.projects.workPackages', { slug: slug }) }}">
+                                        <input type="hidden" name="action" value="{{ action }}">
+                                        <input type="hidden" name="task_id" value="{{ packageTask.id }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('package-task-' ~ action ~ '-' ~ packageTask.id) }}">
+                                        <label>
+                                            Resultaat
+                                            <textarea name="submission" maxlength="20000" required></textarea>
+                                        </label>
+                                        <button type="submit">Resultaat indienen</button>
+                                    </form>
+                                {% elseif statusName == 'Submitted' %}
+                                    <p>Je resultaat wacht op beoordeling.</p>
+                                {% elseif statusName == 'Accepted' %}
+                                    <p>Je resultaat is geaccepteerd.</p>
+                                {% else %}
+                                    <p>Jij bent ingeschreven op deze taak.</p>
+                                {% endif %}
                             {% else %}
                                 <p>Deze taak is al toegewezen.</p>
                             {% endif %}
