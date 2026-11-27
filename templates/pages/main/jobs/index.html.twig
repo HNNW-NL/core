@@ -16,6 +16,7 @@
 
 {# Page content #}
 {% block body %}
+    <div class="content-panel">
     <section>
         <h1>Vacatures</h1>
         {% for job in jobs %}
@@ -36,4 +37,5 @@
             <p>Er zijn momenteel geen gepubliceerde vacatures beschikbaar.</p>
         {% endfor %}
     </section>
+    </div>
 {% endblock %}

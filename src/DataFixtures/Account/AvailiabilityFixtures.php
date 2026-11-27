@@ -4,6 +4,8 @@ namespace App\DataFixtures\Account;
 
 use App\Entity\Account\Availability;
 use App\Entity\Account\Profile;
+use App\Enum\AvailabilityType;
+use App\Enum\DayOfWeek;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -13,83 +15,42 @@ class AvailiabilityFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
-        $avalability = new Availability();
-        $avalability->setAvailabilityType("office");        
-        $avalability->setDayOfWeek("Monday");        
-        $avalability->setValidFrom(new DateTimeImmutable("now"));
-        $avalability->setStartTime(new DateTimeImmutable("11:00"));
-        $avalability->setEndTime(new DateTimeImmutable("15:00"));
-        $avalability->setProfile($this->getReference(ProfileFixtures::TEST_PROFILE_REFERENCE, Profile::class));
-        
-        $manager->persist($avalability);
+        $profile = $this->getReference(
+            ProfileFixtures::TEST_PROFILE_REFERENCE,
+            Profile::class
+        );
 
-        $avalability = new Availability();
-        $avalability->setAvailabilityType("office");        
-        $avalability->setDayOfWeek("Tuesday");        
-        $avalability->setValidFrom(new DateTimeImmutable("now"));
-        $avalability->setStartTime(new DateTimeImmutable("8:00"));
-        $avalability->setEndTime(new DateTimeImmutable("16:00"));
-        $avalability->setProfile($this->getReference(ProfileFixtures::TEST_PROFILE_REFERENCE, Profile::class));
-        
-        $manager->persist($avalability);
-        
-        $avalability = new Availability();
-        $avalability->setAvailabilityType("office");        
-        $avalability->setDayOfWeek("Wednesday");        
-        $avalability->setValidFrom(new DateTimeImmutable("now"));
-        $avalability->setStartTime(new DateTimeImmutable("10:00"));
-        $avalability->setEndTime(new DateTimeImmutable("17:00"));
-        $avalability->setProfile($this->getReference(ProfileFixtures::TEST_PROFILE_REFERENCE, Profile::class));
-        
-        $manager->persist($avalability);
+        $schedule = [
+            [DayOfWeek::MONDAY, '11:00', '15:00'],
+            [DayOfWeek::TUESDAY, '08:00', '16:00'],
+            [DayOfWeek::WEDNESDAY, '10:00', '17:00'],
+            [DayOfWeek::THURSDAY, '10:00', '17:00'],
+            [DayOfWeek::FRIDAY, '10:00', '17:00'],
+            [DayOfWeek::SATURDAY, '10:00', '17:00'],
+            [DayOfWeek::SUNDAY, '10:00', '17:00'],
+        ];
 
-        $avalability = new Availability();
-        $avalability->setAvailabilityType("office");        
-        $avalability->setDayOfWeek("Thursday");        
-        $avalability->setValidFrom(new DateTimeImmutable("now"));
-        $avalability->setStartTime(new DateTimeImmutable("10:00"));
-        $avalability->setEndTime(new DateTimeImmutable("17:00"));
-        $avalability->setProfile($this->getReference(ProfileFixtures::TEST_PROFILE_REFERENCE, Profile::class));
-        
-        $manager->persist($avalability);
+        $validFrom = new DateTimeImmutable('now');
 
-        $avalability = new Availability();
-        $avalability->setAvailabilityType("office");        
-        $avalability->setDayOfWeek("Friday");        
-        $avalability->setValidFrom(new DateTimeImmutable("now"));
-        $avalability->setStartTime(new DateTimeImmutable("10:00"));
-        $avalability->setEndTime(new DateTimeImmutable("17:00"));
-        $avalability->setProfile($this->getReference(ProfileFixtures::TEST_PROFILE_REFERENCE, Profile::class));
-        
-        $manager->persist($avalability);
+        foreach ($schedule as [$day, $startTime, $endTime]) {
+            $availability = new Availability();
+            $availability->setAvailabilityType(AvailabilityType::AVAILABLE);
+            $availability->setDayOfWeek($day);
+            $availability->setValidFrom($validFrom);
+            $availability->setStartTime(new DateTimeImmutable($startTime));
+            $availability->setEndTime(new DateTimeImmutable($endTime));
+            $availability->setProfile($profile);
 
-        $avalability = new Availability();
-        $avalability->setAvailabilityType("office");        
-        $avalability->setDayOfWeek("Saturday");        
-        $avalability->setValidFrom(new DateTimeImmutable("now"));
-        $avalability->setStartTime(new DateTimeImmutable("10:00"));
-        $avalability->setEndTime(new DateTimeImmutable("17:00"));
-        $avalability->setProfile($this->getReference(ProfileFixtures::TEST_PROFILE_REFERENCE, Profile::class));
-        
-        $manager->persist($avalability);
-
-        $avalability = new Availability();
-        $avalability->setAvailabilityType("office");        
-        $avalability->setDayOfWeek("Sunday");        
-        $avalability->setValidFrom(new DateTimeImmutable("now"));
-        $avalability->setStartTime(new DateTimeImmutable("10:00"));
-        $avalability->setEndTime(new DateTimeImmutable("17:00"));
-        $avalability->setProfile($this->getReference(ProfileFixtures::TEST_PROFILE_REFERENCE, Profile::class));
-        
-        $manager->persist($avalability);
+            $manager->persist($availability);
+        }
 
         $manager->flush();
     }
 
     public function getDependencies(): array
     {
-        return array(
-            'App\DataFixtures\Account\ProfileFixtures'
-        );
+        return [
+            ProfileFixtures::class,
+        ];
     }
 }

@@ -7,7 +7,7 @@ use App\Entity\Project\Project;
 use App\Entity\Project\ProjectParticipant;
 use App\Entity\Project\ProjectApplication;
 use Doctrine\DBAL\LockMode;
-use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\Ulid;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -57,8 +57,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('pp.profile = :profile')
             ->andWhere('pp.leftAt IS NULL')
             ->andWhere('pp.joinedAt IS NOT NULL')
-            ->setParameter('project', $project)
-            ->setParameter('profile', $profile)
+            ->setParameter('project', $project->getId(), 'ulid')
+            ->setParameter('profile', $profile->getId(), 'ulid')
             ->orderBy('pp.joinedAt', 'DESC')
             ->addOrderBy('pp.id', 'DESC')
             ->setMaxResults(1)
@@ -86,7 +86,8 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
             ->setParameter('project', $project)
-            ->orderBy('application.createdAt', 'DESC')
+            ->orderBy('application.lastModified', 'DESC')
+            ->addOrderBy('application.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
@@ -97,7 +98,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
      */
     public function findApplicationForProject(string $applicationId, Project $project, bool $lockForUpdate = false): ?ProjectApplication
     {
-        if (!Uuid::isValid($applicationId)) {
+        if (!Ulid::isValid($applicationId)) {
             return null;
         }
 
@@ -107,7 +108,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.id = :id')
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
-            ->setParameter('id', Uuid::fromString($applicationId), 'uuid')
+            ->setParameter('id', Ulid::fromString($applicationId), 'ulid')
             ->setParameter('project', $project)
             ->getQuery();
 
