@@ -858,10 +858,6 @@ final class AccountsController extends AbstractController
     {
         $settings = new AccountSetting();
         $settings->setAccount($account);
-        $settings->setLanguage('nl');
-        $settings->setTheme('dark');
-        $settings->setProfileVisibility('public');
-        $settings->setEmailNotificationsEnabled(true);
 
         $entityManager->persist($settings);
 
