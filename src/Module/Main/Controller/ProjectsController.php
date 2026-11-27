@@ -3,6 +3,8 @@
 namespace App\Module\Main\Controller;
 
 use App\Entity\Project\Project;
+use App\Service\Project\ProjectPublicationPolicy;
+use App\Module\Main\Service\PublicProjectListingService;
 use App\Module\Main\Handler\WorkPackageTaskEnrollmentHandler;
 use App\Module\Main\Service\CurrentProfileProvider;
 use App\Repository\Project\PackageTaskRepository;
@@ -23,76 +25,15 @@ use App\Module\Main\Handler\ProjectApplyHandler;
 #[Route('/projects', name: 'main.projects.')]
 final class ProjectsController extends AbstractController
 {
-    private const PROJECTS_PER_PAGE = 20;
-
     #[Route('', name: 'home', methods: ['GET'])]
     public function index(
         Request $request,
-        ProjectRepository $projectRepository,
+        PublicProjectListingService $publicProjectListingService,
     ): Response {
-        $query = $request->query->all();
-        $errors = [];
-
-        $rawSearch = $query['q'] ?? '';
-        if (!is_string($rawSearch) || preg_match('/\A.{0,100}\z/us', trim($rawSearch)) !== 1) {
-            $errors[] = 'Gebruik een zoekterm van maximaal 100 tekens.';
-            $search = '';
-        } else {
-            $search = trim($rawSearch);
-        }
-
-        $rawRemoteFilter = $query['remote'] ?? '';
-        if (!is_string($rawRemoteFilter) || !in_array($rawRemoteFilter, ['', 'yes', 'no'], true)) {
-            $errors[] = 'De gekozen projectfilter is ongeldig.';
-            $remoteFilter = '';
-        } else {
-            $remoteFilter = $rawRemoteFilter;
-        }
-
-        $rawOpenFilter = $query['open'] ?? '';
-        if (!is_string($rawOpenFilter) || !in_array($rawOpenFilter, ['', '1', '0'], true)) {
-            $errors[] = 'De gekozen aanmeldfilter is ongeldig.';
-            $rawOpenFilter = '';
-        }
-        $onlyAcceptingApplications = $rawOpenFilter === '1';
-
-        $rawPage = $query['page'] ?? '1';
-        $requestedPage = is_string($rawPage)
-            ? filter_var($rawPage, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])
-            : false;
-        if ($requestedPage === false) {
-            $errors[] = 'Het paginanummer is ongeldig. Je ziet pagina 1.';
-            $requestedPage = 1;
-        }
-
-        $remotePossible = $remoteFilter === 'yes' ? true : ($remoteFilter === 'no' ? false : null);
-
-        $totalProjects = $projectRepository->countPublicProjects(
-            $search,
-            $onlyAcceptingApplications,
-            $remotePossible,
+        $response = $this->render(
+            'pages/main/projects.html.twig',
+            $publicProjectListingService->getListing($request->query->all()),
         );
-
-        $totalPages = max(1, (int) ceil($totalProjects / self::PROJECTS_PER_PAGE));
-        $page = min(max(1, $requestedPage), $totalPages);
-
-        $response = $this->render('pages/main/projects.html.twig', [
-            'publicProjects' => $projectRepository->findPaginatedPublicProjects(
-                $search,
-                $onlyAcceptingApplications,
-                $page,
-                self::PROJECTS_PER_PAGE,
-                $remotePossible,
-            ),
-            'search' => $search,
-            'onlyAcceptingApplications' => $onlyAcceptingApplications,
-            'remoteFilter' => $remoteFilter,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
-            'totalProjects' => $totalProjects,
-            'filterErrors' => $errors,
-            'hasFilters' => $search !== '' || $onlyAcceptingApplications || $remoteFilter !== '',
-        ]);
 
         return $this->noStore($response);
     }
@@ -431,17 +372,14 @@ final class ProjectsController extends AbstractController
             throw $this->createNotFoundException('Project niet gevonden.');
         }
 
-        if ($project->getPublishedAt() === null) {
-            throw $this->createNotFoundException('Project niet gevonden.');
-        }
+        if ($allowPublicAccess) {
+            if (!ProjectPublicationPolicy::isPublished($project)) {
+                throw $this->createNotFoundException('Project niet gevonden.');
+            }
 
-        if (
-            $allowPublicAccess
-            && $project->getVisibility() === 'public'
-            && $project->getPublishedAt() !== null
-            && strtolower((string) $project->getStatus()?->getName()) !== 'archived'
-        ) {
-            return $project;
+            if (ProjectPublicationPolicy::isPublic($project)) {
+                return $project;
+            }
         }
 
         $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);

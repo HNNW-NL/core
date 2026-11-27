@@ -34,9 +34,11 @@
 </head>
 <body class="hnnw-public" data-turbo="false" data-theme="{{ app.user and app.user.setting and app.user.setting.theme == 'light' ? 'light' : 'dark' }}">
 
+<a class="skip-link" href="#main-content">Direct naar de hoofdinhoud</a>
+
 {% include "/core/main/_header.html.twig" %}
 
-<main>
+<main id="main-content" tabindex="-1">
     {% block breadcrumbs %}{% endblock %}
     {% block body %}{% endblock %}
 </main>
