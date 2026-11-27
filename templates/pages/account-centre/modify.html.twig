@@ -23,6 +23,12 @@
             <p>Wijzig hier uw gegevens en uw zichtbaarheid van de profiel.</p>
         </div>
 
+        {% for message in app.flashes('error') %}
+            <div class="account-flash-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
         {% for message in app.flashes('success') %}
             <div class="account-flash-success">
                 {{ message }}
