@@ -39,7 +39,7 @@
                             </div>
 
                             {% if application.status.name == 'send' %}
-                                <form action="{{ path('account.applications_cancel', {'id': application.id}) }}" method="POST" data-confirm-cancel-application>
+                                <form action="{{ path('account.applications_cancel', {'id': application.id}) }}" method="POST" data-controller="confirm" data-action="submit->confirm#submit" data-confirm-message-value="Weet je zeker dat je deze aanmelding wilt annuleren?">
                                     <input type="hidden" name="_token" value="{{ csrf_token('cancel_application' ~ application.id) }}">
                                     <button type="submit" class="btn-card-cancel">Aanmelding annuleren</button>
                                 </form>

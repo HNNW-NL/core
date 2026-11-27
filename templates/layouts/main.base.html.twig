@@ -2,7 +2,7 @@
 <html lang="nl-NL">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
     <title>{% block title %}{% endblock %} | HNNW</title>
@@ -17,11 +17,12 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="{{ asset("assets/shared/css/style.css") }}">
-    <link rel="stylesheet" href="{{ asset("assets/main/css/core.css") }}">
     <link rel="stylesheet" href="{{ asset("assets/main/css/style.css") }}">
+    <link rel="stylesheet" href="{{ asset("assets/main/css/core.css") }}">
     {% block stylesheets %}{% endblock %}
 
     <!-- JavaScript -->
+    {{ importmap('app') }}
     {% block javascript %}{% endblock %}
 
     {% set frankenphpHotReload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
@@ -31,7 +32,7 @@
         <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
     {% endif %}
 </head>
-<body data-theme="dark">
+<body class="hnnw-public" data-turbo="false" data-theme="{{ app.user and app.user.setting and app.user.setting.theme == 'light' ? 'light' : 'dark' }}">
 
 {% include "/core/main/_header.html.twig" %}
 
