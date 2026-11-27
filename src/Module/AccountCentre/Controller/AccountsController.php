@@ -854,6 +854,7 @@ final class AccountsController extends AbstractController
 
                 $entry->setProficiencyLevel($level);
 
+
                 try {
                     $em->flush();
 
@@ -868,10 +869,14 @@ final class AccountsController extends AbstractController
                     return $this->redirectToRoute('account.skills');
 
                 } catch (UniqueConstraintViolationException $e) {
-                    $form->get('skill')->addError(
-                        new FormError('Deze vaardigheid is al toegevoegd.')
+                    $this->addFlash(
+                        'error',
+                        'Deze vaardigheid is inmiddels al toegevoegd. Controleer je vaardigheden.'
                     );
+
+                    return $this->redirectToRoute('account.skills');
                 }
+
             }
         }
 
