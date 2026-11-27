@@ -138,6 +138,7 @@ final class OrganisationProjectsController extends AbstractController
             'project' => $project,
             'canDelete' => $this->projectAccess->canDelete($project),
             'transitions' => $lifecycle->allowedTargets($project),
+            'unavailableTransitions' => $lifecycle->unavailableTargets($project),
             'error' => $error,
         ], new Response(status: $error === null ? 200 : 422));
     }

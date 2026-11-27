@@ -8,6 +8,7 @@ use App\Entity\Common\Status;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
+use App\Module\Org\Service\ProjectLifecycle;
 use App\Repository\Common\StatusRepository;
 use App\Repository\Project\ProjectParticipantRepository;
 use App\Repository\Project\ProjectRoleRepository;
@@ -24,7 +25,6 @@ class ProjectParticipantUpdateRoleHandler
     private const PARTICIPANT_SCOPE = 'ProjectParticipant';
 
     /** 'send' komt uit de bestaande fixtures; de rest zijn toegestane synoniemen. */
-    private const PENDING_NAMES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
     private const ACCEPTED_NAMES = ['accepted', 'geaccepteerd'];
     private const REJECTED_NAMES = ['rejected', 'afgewezen'];
     private const PARTICIPANT_ACTIVE_NAMES = ['active', 'actief'];
@@ -77,7 +77,7 @@ class ProjectParticipantUpdateRoleHandler
     public function isPendingStatus(Status $status): bool
     {
         return strcasecmp((string) $status->getScope(), self::APPLICATION_SCOPE) === 0
-            && in_array(mb_strtolower((string) $status->getName()), self::PENDING_NAMES, true);
+            && in_array(mb_strtolower((string) $status->getName()), ProjectLifecycle::PENDING_APPLICATION_STATUSES, true);
     }
 
     public function applicationStatusLabel(Status $status): string
@@ -90,7 +90,7 @@ class ProjectParticipantUpdateRoleHandler
         $code = mb_strtolower($name);
 
         return match (true) {
-            in_array($code, self::PENDING_NAMES, true) => 'Ingediend',
+            in_array($code, ProjectLifecycle::PENDING_APPLICATION_STATUSES, true) => 'Ingediend',
             in_array($code, self::ACCEPTED_NAMES, true) => 'Geaccepteerd',
             in_array($code, self::REJECTED_NAMES, true) => 'Afgewezen',
             default => $name,
@@ -169,7 +169,11 @@ class ProjectParticipantUpdateRoleHandler
     {
         // Eerst het project vergrendelen: zo kunnen er per project nooit twee accepties tegelijk lopen. Dat
         // garandeert één participant per profiel/project, ook zonder extra unieke index in de database.
-        $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
+        $this->em->refresh($project, LockMode::PESSIMISTIC_WRITE);
+        if (!ProjectLifecycle::allowsApplicationReview($project)) {
+            return $this->failure('De huidige projectstatus staat het behandelen van aanvragen niet toe.');
+        }
+
 
         // Vergrendelen en daarna pas de status controleren: zo ziet een wachtende tweede klik de nieuwe status.
         $application = $this->participantRepo->findApplicationForProject($applicationId, $project, true);
@@ -229,7 +233,11 @@ class ProjectParticipantUpdateRoleHandler
     private function doRejectApplication(Project $project, string $applicationId, string $reason, Profile $reviewer): array
     {
         // Gebruik dezelfde lockvolgorde als bij accepteren: project, dan aanvraag.
-        $this->em->lock($project, LockMode::PESSIMISTIC_WRITE);
+        $this->em->refresh($project, LockMode::PESSIMISTIC_WRITE);
+        if (!ProjectLifecycle::allowsApplicationReview($project)) {
+            return $this->failure('De huidige projectstatus staat het behandelen van aanvragen niet toe.');
+        }
+
         $application = $this->participantRepo->findApplicationForProject($applicationId, $project, true);
 
         if ($application === null) {

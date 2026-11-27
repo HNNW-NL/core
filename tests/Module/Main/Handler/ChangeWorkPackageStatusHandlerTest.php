@@ -3,11 +3,13 @@
 namespace App\Tests\Module\Main\Handler;
 
 use App\Entity\Common\Status;
+use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
 use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
 use App\Module\Main\Handler\ChangeWorkPackageStatusHandler;
 use App\Module\Main\Service\WorkPackageWorkflowService;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Security\Voter\WorkPackageVoter;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\LockMode;
@@ -22,7 +24,8 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
 {
     public function testAllowedTransitionUpdatesStatusAndFlushes(): void
     {
-        $project = new Project();
+        $project = (new Project())->setOwnerOrganisation(new Organisation())
+            ->setStatus((new Status())->setScope('project')->setName('active'));
         $workPackage = (new WorkPackage())->setProject($project);
         $workPackage->setStatus((new Status())->setName('Open')->setScope('work_package'));
         $newStatus = (new Status())->setName('Assigned')->setScope('work_package');
@@ -48,6 +51,7 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
             new WorkPackageWorkflowService(),
             $entityManager,
             $this->expectEditDecision($workPackage, true),
+            new ProjectWriteLock($entityManager),
         );
 
         $handler->handle(new ChangeWorkPackageStatusDTO(
@@ -61,7 +65,8 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
     public function testDisallowedTransitionDoesNotUpdateStatusOrFlush(): void
     {
         $currentStatus = (new Status())->setName('Draft')->setScope('work_package');
-        $project = new Project();
+        $project = (new Project())->setOwnerOrganisation(new Organisation())
+            ->setStatus((new Status())->setScope('project')->setName('active'));
         $workPackage = (new WorkPackage())->setProject($project);
         $workPackage->setStatus($currentStatus);
         $newStatus = (new Status())->setName('Closed')->setScope('work_package');
@@ -87,6 +92,7 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
             new WorkPackageWorkflowService(),
             $entityManager,
             $this->expectEditDecision($workPackage, true),
+            new ProjectWriteLock($entityManager),
         );
 
         try {
@@ -108,7 +114,8 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
     public function testDeniedUserCannotChangeStatus(): void
     {
         $currentStatus = (new Status())->setName('Open')->setScope('work_package');
-        $project = new Project();
+        $project = (new Project())->setOwnerOrganisation(new Organisation())
+            ->setStatus((new Status())->setScope('project')->setName('active'));
         $workPackage = (new WorkPackage())->setProject($project);
         $workPackage->setStatus($currentStatus);
 
@@ -121,6 +128,7 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
             new WorkPackageWorkflowService(),
             $entityManager,
             $this->expectEditDecision($workPackage, false),
+            new ProjectWriteLock($entityManager),
         );
 
         $this->expectException(AccessDeniedException::class);
@@ -133,7 +141,8 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
 
     public function testRejectsCurrentStatusFromAnotherScope(): void
     {
-        $project = new Project();
+        $project = (new Project())->setOwnerOrganisation(new Organisation())
+            ->setStatus((new Status())->setScope('project')->setName('active'));
         $status = (new Status())->setName('Open')->setScope('project');
         $workPackage = (new WorkPackage())->setProject($project)->setStatus($status);
         $entityManager = $this->transactionalEntityManager();
@@ -144,6 +153,7 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
             new WorkPackageWorkflowService(),
             $entityManager,
             $this->expectEditDecision($workPackage, true),
+            new ProjectWriteLock($entityManager),
         );
 
         $this->expectExceptionMessage('Current status is outside the work package scope.');
@@ -158,10 +168,35 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
         $entityManager->expects(self::never())->method('flush');
         $authorizationChecker = $this->createMock(AuthorizationCheckerInterface::class);
         $authorizationChecker->expects(self::never())->method('isGranted');
-        $handler = new ChangeWorkPackageStatusHandler(new WorkPackageWorkflowService(), $entityManager, $authorizationChecker);
+        $handler = new ChangeWorkPackageStatusHandler(
+            new WorkPackageWorkflowService(),
+            $entityManager,
+            $authorizationChecker,
+            new ProjectWriteLock($entityManager),
+        );
 
         $this->expectExceptionMessage('Work package not found in this project.');
         $handler->handle(new ChangeWorkPackageStatusDTO($workPackage->getId()->toRfc4122(), 'Assigned'), new Project());
+    }
+
+    public function testCompletedProjectCannotChangeWorkPackageStatus(): void
+    {
+        $project = (new Project())->setOwnerOrganisation(new Organisation())
+            ->setStatus((new Status())->setScope('project')->setName('completed'));
+        $workPackage = (new WorkPackage())->setProject($project);
+        $entityManager = $this->transactionalEntityManager();
+        $entityManager->method('find')->willReturn($workPackage);
+        $entityManager->expects(self::never())->method('flush');
+
+        $handler = new ChangeWorkPackageStatusHandler(
+            new WorkPackageWorkflowService(),
+            $entityManager,
+            $this->expectEditDecision($workPackage, true),
+            new ProjectWriteLock($entityManager),
+        );
+
+        $this->expectExceptionMessage('The current project state does not allow this change.');
+        $handler->handle(new ChangeWorkPackageStatusDTO($workPackage->getId()->toRfc4122(), 'Assigned'), $project);
     }
 
     private function transactionalEntityManager(): EntityManagerInterface
@@ -170,6 +205,7 @@ class ChangeWorkPackageStatusHandlerTest extends TestCase
         $connection->method('transactional')->willReturnCallback(static fn (\Closure $operation) => $operation());
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->method('getConnection')->willReturn($connection);
+        $entityManager->expects(self::once())->method('refresh')->with(self::isInstanceOf(Project::class), LockMode::PESSIMISTIC_WRITE);
 
         return $entityManager;
     }

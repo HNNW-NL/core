@@ -7,6 +7,8 @@ use App\Entity\Project\Project;
 use App\Entity\Project\WorkPackage;
 use App\Module\Main\DTO\ChangeWorkPackageStatusDTO;
 use App\Module\Main\Service\WorkPackageWorkflowService;
+use App\Module\Org\Service\ProjectLifecycle;
+use App\Module\Org\Service\ProjectWriteLock;
 use App\Security\Voter\WorkPackageVoter;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,6 +22,7 @@ final class ChangeWorkPackageStatusHandler
         private readonly WorkPackageWorkflowService $workflowService,
         private readonly EntityManagerInterface $entityManager,
         private readonly AuthorizationCheckerInterface $authorizationChecker,
+        private readonly ProjectWriteLock $projectWriteLock,
     ) {
     }
 
@@ -29,7 +32,7 @@ final class ChangeWorkPackageStatusHandler
             throw new \InvalidArgumentException('Invalid work package id.');
         }
 
-        $this->entityManager->getConnection()->transactional(function () use ($dto, $project): void {
+        $this->projectWriteLock->run($project, function () use ($dto, $project): void {
             $workPackage = $this->entityManager->find(
                 WorkPackage::class,
                 Ulid::fromString($dto->workPackageId),
@@ -42,15 +45,17 @@ final class ChangeWorkPackageStatusHandler
                 throw new \InvalidArgumentException('Work package not found in this project.');
             }
 
-            $this->changeStatus($workPackage, $dto->statusName);
+            $this->changeStatus($workPackage, $project, $dto->statusName);
         });
     }
 
-    private function changeStatus(WorkPackage $workPackage, string $statusName): void
+    private function changeStatus(WorkPackage $workPackage, Project $project, string $statusName): void
     {
         if (!$this->authorizationChecker->isGranted(WorkPackageVoter::EDIT, $workPackage)) {
             throw new AccessDeniedException('You do not have permission to change this work package status.');
         }
+
+        ProjectLifecycle::assertTaskChangesAllowed($project);
 
         $currentStatus = $workPackage->getStatus();
         $currentName = $currentStatus?->getName();

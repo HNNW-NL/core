@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 final class ProjectLifecycle
 {
     private const OPEN_APPLICATION_STATUSES = ['active', 'published'];
+    public const PENDING_APPLICATION_STATUSES = ['send', 'sent', 'pending', 'submitted', 'ingediend'];
     public const PUBLIC_STATUSES = [...self::OPEN_APPLICATION_STATUSES, 'applications_closed', 'completed'];
 
     private const TRANSITIONS = [
@@ -26,21 +27,31 @@ final class ProjectLifecycle
 
     public function allowedTargets(Project $project): array
     {
+        return array_values(array_filter(
+            $this->candidateTargets($project),
+            fn (string $target): bool => $this->transitionStatus($target) !== null,
+        ));
+    }
+
+    public function unavailableTargets(Project $project): array
+    {
+        return array_values(array_filter(
+            $this->candidateTargets($project),
+            fn (string $target): bool => $this->transitionStatus($target) === null,
+        ));
+    }
+
+    private function candidateTargets(Project $project): array
+    {
         if (!self::hasValidProjectContext($project)) {
             return [];
         }
 
         $status = strtolower((string) $project->getStatus()?->getName());
-        $targets = match ($status) {
+        return match ($status) {
             'active' => $project->getPublishedAt() === null ? ['published'] : ['applications_closed', 'withdrawn'],
             default => self::TRANSITIONS[$status] ?? [],
         };
-
-        if ($targets === []) {
-            return [];
-        }
-
-        return array_values(array_filter($targets, fn (string $target): bool => $this->transitionStatus($target) !== null));
     }
 
     public function initialStatus(): Status
@@ -62,6 +73,11 @@ final class ProjectLifecycle
         return self::hasValidProjectContext($project)
             && $project->getPublishedAt() !== null
             && in_array(strtolower((string) $project->getStatus()?->getName()), self::OPEN_APPLICATION_STATUSES, true);
+    }
+
+    public static function allowsApplicationReview(Project $project): bool
+    {
+        return self::allowsTaskChanges($project);
     }
 
     public static function allowsTaskChanges(Project $project): bool
@@ -159,7 +175,7 @@ final class ProjectLifecycle
             ->where('application.project = :project AND application.deletedAt IS NULL')
             ->andWhere('LOWER(applicationStatus.name) IN (:pending)')
             ->setParameter('project', $project)
-            ->setParameter('pending', ['send', 'submitted'])
+            ->setParameter('pending', self::PENDING_APPLICATION_STATUSES)
             ->getQuery()
             ->getSingleScalarResult();
         if ((int) $pendingApplications > 0) {

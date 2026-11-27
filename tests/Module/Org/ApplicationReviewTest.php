@@ -4,6 +4,7 @@ namespace App\Tests\Module\Org;
 
 use App\Entity\Account\Profile;
 use App\Entity\Common\Status;
+use App\Entity\Org\Organisation;
 use App\Entity\Project\Project;
 use App\Entity\Project\ProjectApplication;
 use App\Entity\Project\ProjectParticipant;
@@ -21,7 +22,8 @@ final class ApplicationReviewTest extends TestCase
     #[\PHPUnit\Framework\Attributes\TestWith(['ProjectApplication', false])]
     public function testInvalidOrDisabledTransitionsCannotBeExecuted(string $scope, bool $enabled): void
     {
-        $project = new Project();
+        $project = (new Project())->setOwnerOrganisation(new Organisation())
+            ->setStatus((new Status())->setScope('project')->setName('applications_closed'));
         $reviewer = new Profile();
         $status = (new Status())->setScope($scope)->setName('send');
         $status->configureApplicationTransitions($enabled, $enabled);
@@ -36,7 +38,7 @@ final class ApplicationReviewTest extends TestCase
             static fn (callable $operation): array => $operation(),
         );
         $em->expects(self::never())->method('persist');
-        $em->expects(self::exactly(2))->method('lock')->with($project, LockMode::PESSIMISTIC_WRITE);
+        $em->expects(self::exactly(2))->method('refresh')->with($project, LockMode::PESSIMISTIC_WRITE);
         $workflow = new ProjectParticipantUpdateRoleHandler(
             $participants, $this->createStub(ProjectRoleRepository::class), $em, $statuses,
         );
@@ -69,7 +71,8 @@ final class ApplicationReviewTest extends TestCase
 
     public function testDisplayedAcceptanceMatchesApplicationReview(): void
     {
-        $project = new Project();
+        $project = (new Project())->setOwnerOrganisation(new Organisation())
+            ->setStatus((new Status())->setScope('project')->setName('applications_closed'));
         $applicant = new Profile();
         $reviewer = new Profile();
         $pending = (new Status())->setScope('ProjectApplication')->setName('send');
@@ -95,7 +98,7 @@ final class ApplicationReviewTest extends TestCase
         $em->expects(self::exactly(2))->method('wrapInTransaction')->willReturnCallback(
             static fn (callable $operation): array => $operation(),
         );
-        $em->expects(self::exactly(2))->method('lock')->with($project, LockMode::PESSIMISTIC_WRITE);
+        $em->expects(self::exactly(2))->method('refresh')->with($project, LockMode::PESSIMISTIC_WRITE);
         $em->expects(self::once())->method('persist')->with(self::callback(
             static fn ($participant): bool => $participant instanceof ProjectParticipant,
         ));
