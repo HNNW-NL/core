@@ -27,15 +27,12 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     ): ?ProjectParticipant
     {
         return $this->createQueryBuilder('participant')
-            ->innerJoin('participant.status', 'status')
             ->andWhere('participant.project = :project')
             ->andWhere('participant.profile = :profile')
             ->andWhere('participant.joinedAt IS NOT NULL')
             ->andWhere('participant.leftAt IS NULL')
-            ->andWhere('LOWER(status.name) = :active')
-            ->setParameter('project', $project)
-            ->setParameter('profile', $profile)
-            ->setParameter('active', 'active')
+            ->setParameter('project', $project->getId(), 'ulid')
+            ->setParameter('profile', $profile->getId(), 'ulid')
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -43,15 +40,12 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     public function findActiveParticipantsByProjectAndProfile(Project $project, Profile $profile): array
     {
         return $this->createQueryBuilder('pp')
-            ->innerJoin('pp.status', 'status')
             ->andWhere('pp.project = :project')
             ->andWhere('pp.profile = :profile')
             ->andWhere('pp.leftAt IS NULL')
             ->andWhere('pp.joinedAt IS NOT NULL')
-            ->andWhere('LOWER(status.name) = :active')
-            ->setParameter('project', $project)
-            ->setParameter('profile', $profile)
-            ->setParameter('active', 'active')
+            ->setParameter('project', $project->getId(), 'ulid')
+            ->setParameter('profile', $profile->getId(), 'ulid')
             ->orderBy('pp.joinedAt', 'DESC')
             ->getQuery()
             ->getResult();
@@ -60,15 +54,12 @@ class ProjectParticipantRepository extends ServiceEntityRepository
     public function findLatestActiveParticipantByProjectAndProfile(Project $project, Profile $profile): ?ProjectParticipant
     {
         return $this->createQueryBuilder('pp')
-            ->innerJoin('pp.status', 'status')
             ->andWhere('pp.project = :project')
             ->andWhere('pp.profile = :profile')
             ->andWhere('pp.leftAt IS NULL')
             ->andWhere('pp.joinedAt IS NOT NULL')
-            ->andWhere('LOWER(status.name) = :active')
             ->setParameter('project', $project->getId(), 'ulid')
             ->setParameter('profile', $profile->getId(), 'ulid')
-            ->setParameter('active', 'active')
             ->orderBy('pp.joinedAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
@@ -94,7 +85,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->innerJoin('application.status', 'status')
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId(), 'ulid')
             ->orderBy('application.lastModified', 'DESC')
             ->addOrderBy('application.id', 'DESC')
             ->getQuery()
@@ -118,7 +109,7 @@ class ProjectParticipantRepository extends ServiceEntityRepository
             ->andWhere('application.project = :project')
             ->andWhere('application.deletedAt IS NULL')
             ->setParameter('id', Ulid::fromString($applicationId), 'ulid')
-            ->setParameter('project', $project)
+            ->setParameter('project', $project->getId(), 'ulid')
             ->getQuery();
 
         // OR06-B: binnen een transactie blokkeert dit een gelijktijdige tweede behandeling van dezelfde aanvraag.

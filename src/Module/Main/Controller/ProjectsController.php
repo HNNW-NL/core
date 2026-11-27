@@ -127,6 +127,33 @@ final class ProjectsController extends AbstractController
         ]));
     }
 
+    #[Route('/{slug}/preview', name: 'preview', methods: ['GET'])]
+    public function preview(
+        string $slug,
+        ProjectRepository $projectRepository,
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $project = $projectRepository->findOneUnpublishedBySlug($slug);
+
+        if (
+            $project === null
+            || $project->getOwnerOrganisation() === null
+            || $project->getOwnerOrganisation()->getDeletedAt() !== null
+        ) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        return $this->noStore($this->render('pages/main/projects/detail.html.twig', [
+            'slug' => $slug,
+            'project' => $project,
+            'previewMode' => true,
+            'application' => null,
+            'blocked' => null,
+            'isOpen' => false,
+        ]));
+    }
+
     #[Route('/{slug}/apply', name: 'apply', methods: ['GET', 'POST'])]
     public function apply(
         string $slug,
@@ -396,17 +423,21 @@ final class ProjectsController extends AbstractController
         }
 
         if (
+            $project->getOwnerOrganisation() === null
+            || $project->getOwnerOrganisation()->getDeletedAt() !== null
+        ) {
+            throw $this->createNotFoundException('Project niet gevonden.');
+        }
+
+        if (
             $allowPublicAccess
             && $project->getVisibility() === 'public'
             && $project->getPublishedAt() !== null
-            && $project->getOwnerOrganisation()?->getDeletedAt() === null
         ) {
             return $project;
         }
 
-        if (!$allowPublicAccess || $project->getVisibility() !== 'public' || $project->getPublishedAt() === null) {
-            $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
-        }
+        $this->denyAccessUnlessGranted(ProjectVoter::VIEW, $project);
 
         return $project;
     }

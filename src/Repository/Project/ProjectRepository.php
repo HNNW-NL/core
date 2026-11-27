@@ -37,9 +37,9 @@ class ProjectRepository extends ServiceEntityRepository
             ->andWhere('project.deletedAt IS NULL')
             ->andWhere('ownerOrganisation.deletedAt IS NULL')
             ->andWhere('project.publishedAt IS NOT NULL')
-            ->andWhere('project.visibility = :visibility')
+            ->andWhere('project.visibility IN (:visibilities)')
             ->setParameter('slug', $slug)
-            ->setParameter('visibility', 'public')
+            ->setParameter('visibilities', ['public', 'unlisted'])
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -60,7 +60,7 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('project')
             ->andWhere('project.id = :id')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('id', $id)
+            ->setParameter('id', $id, 'ulid')
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -90,7 +90,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->innerJoin('project.participants', 'participant')
             ->andWhere('participant.profile = :profile')
             ->andWhere('project.deletedAt IS NULL')
-            ->setParameter('profile', $profile);
+            ->setParameter('profile', $profile->getId(), 'ulid');
 
         $query = trim($query);
 
@@ -192,11 +192,9 @@ class ProjectRepository extends ServiceEntityRepository
         $activeParticipantCount = static fn (string $participantAlias): string =>
             '(SELECT COUNT(' . $participantAlias . '.id)
                 FROM App\Entity\Project\ProjectParticipant ' . $participantAlias . '
-                INNER JOIN ' . $participantAlias . '.status ' . $participantAlias . 'Status
                 WHERE ' . $participantAlias . '.project = project
                     AND ' . $participantAlias . '.joinedAt IS NOT NULL
                     AND ' . $participantAlias . '.leftAt IS NULL
-                    AND LOWER(' . $participantAlias . 'Status.name) = \'active\'
             )';
 
         $queryBuilder = $this->createQueryBuilder('project')
@@ -222,9 +220,8 @@ class ProjectRepository extends ServiceEntityRepository
                 'availabilityParticipant',
             );
             $queryBuilder->addSelect(
-                'CASE WHEN LOWER(status.name) IN (\'active\', \'published\') '
-                    . 'AND (project.endDate IS NULL OR project.endDate >= CURRENT_DATE()) '
-                    . 'AND (project.capacity IS NULL OR '
+                'CASE WHEN '
+                    . '(project.capacity IS NULL OR '
                     . $availabilityParticipantCount
                     . ' < project.capacity) THEN 1 ELSE 0 END AS canApply'
             );
@@ -251,9 +248,7 @@ class ProjectRepository extends ServiceEntityRepository
         if ($onlyAcceptingApplications) {
             $filterParticipantCount = $activeParticipantCount('filterParticipant');
             $queryBuilder->andWhere(
-                "LOWER(status.name) IN ('active', 'published') "
-                    . 'AND (project.endDate IS NULL OR project.endDate >= CURRENT_DATE()) '
-                    . 'AND (project.capacity IS NULL OR '
+                '(project.capacity IS NULL OR '
                     . $filterParticipantCount
                     . ' < project.capacity)'
             );

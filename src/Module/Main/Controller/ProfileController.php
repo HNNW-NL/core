@@ -25,23 +25,53 @@ final class ProfileController extends AbstractController
     #[Route('/profile', name: 'app_profile', methods: ['GET'])]
     public function index(): Response
     {
-        $this->denyAccessUnlessGranted('ROLE_USER');
-
         $account = $this->getAccount();
         $profile = $account?->getProfile();
 
-        $response = $this->render('pages/main/profile.html.twig', [
+        return $this->render('pages/main/profile.html.twig', [
             'slug' => $account?->getUsername() ?? 'profiel',
             'profile' => $profile,
             'guest_location' => $profile?->getLocation(),
         ]);
-        $response->setPrivate();
-        $response->setMaxAge(0);
-        $response->headers->set('Cache-Control', 'no-store, private, max-age=0, must-revalidate');
-        $response->headers->set('Pragma', 'no-cache');
-
-        return $response;
     }
+
+    #[Route('/profile/{slug}', name: 'main.profile', methods: ['GET'])]
+    public function viewProfile(string $slug): Response
+    {
+        /*
+         * TODO: Databasekoppeling activeren zodra er accounts bestaan.
+         *
+         * De publieke profielslug is altijd de username van het account.
+         *
+         * $account = $entityManager->getRepository(Account::class)->findOneBy([
+         *     'username' => $slug,
+         * ]);
+         *
+         * if ($account === null) {
+         *     throw $this->createNotFoundException('Gebruiker niet gevonden.');
+         * }
+         *
+         * $profile = $account->getProfile();
+         *
+         * if ($profile === null) {
+         *     throw $this->createNotFoundException('Profiel niet gevonden.');
+         * }
+         *
+         * return $this->render('pages/main/profile.html.twig', [
+         *     'slug' => $account->getUsername(),
+         *     'profile' => $profile,
+         *     'guest_location' => $profile->getLocation(),
+         * ]);
+         */
+
+        // Tijdelijke weergave zonder databasegegevens.
+        return $this->render('pages/main/profile.html.twig', [
+            'slug' => $slug,
+            'profile' => null,
+            'guest_location' => null,
+        ]);
+    }
+
 
     #[Route('/profile/location', name: 'profile_update_location', methods: ['POST'])]
     public function updateLocation(

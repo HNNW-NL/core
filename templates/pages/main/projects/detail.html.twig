@@ -37,7 +37,9 @@
                     {% endif %}
                 </header>
 
-                {% include 'core/main/_project_navigation.html.twig' %}
+                {% if not previewMode|default(false) %}
+                    {% include 'core/main/_project_navigation.html.twig' %}
+                {% endif %}
 
                 <div class="project-detail__layout">
                     <section class="project-detail__content" aria-labelledby="project-description-heading">
