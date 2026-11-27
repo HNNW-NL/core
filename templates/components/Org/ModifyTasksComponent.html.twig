@@ -3,6 +3,60 @@
         <p>{{ this.errorMessage }}</p>
     {% endif %}
 
+    <form class="create-task-form" data-action="live#action" data-live-action-param="createTask">
+        <h3>Nieuwe taak</h3>
+        <label>
+            Titel
+            <input type="text" maxlength="255" required data-model="norender|newTask.title">
+        </label>
+        <label>
+            Slug
+            <input type="text" maxlength="255" required data-model="norender|newTask.slug" placeholder="taak-uitvoering">
+        </label>
+        <label>
+            Eigenaar
+            <select data-model="norender|newTask.assignedProfile">
+                <option value="">Geen eigenaar</option>
+                {% for profile in this.profiles %}
+                    <option value="{{ profile.id }}">{{ profile.displayName }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Werkpakket
+            <select required data-model="norender|newTask.workPackage">
+                {% for workPackage in this.workPackages %}
+                    <option value="{{ workPackage.id }}">{{ workPackage.title }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Status
+            <select required data-model="norender|newTask.status">
+                {% for status in this.statuses %}
+                    <option value="{{ status.id }}">{{ status.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Prioriteit
+            <select data-model="norender|newTask.priority">
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low" selected>Low</option>
+            </select>
+        </label>
+        <label>
+            Deadline
+            <input type="datetime-local" data-model="norender|newTask.dueDate">
+        </label>
+        <label>
+            Taak-DoD (definitie van klaar)
+            <textarea rows="4" cols="50" required data-model="norender|newTask.description" placeholder="Beschrijf meetbare criteria om deze taak als klaar te beoordelen."></textarea>
+        </label>
+        <button type="button" data-action="live#action" data-live-action-param="createTask">Taak aanmaken</button>
+    </form>
+
     <table class="modify-tasks-table">
         <tbody>
         {% for task in this.tasks %}
@@ -15,7 +69,7 @@
                 <td>
                     <label>
                         Name
-                        <input type="text" value="{{ task.title }}" data-model="norender|taskMap[{{ task.id }}].title" >
+                        <input type="text" maxlength="255" required value="{{ task.title }}" data-model="norender|taskMap[{{ task.id }}].title" >
                     </label>
                     <label>
                         Assigned Profile
@@ -34,11 +88,15 @@
                     </label>
                 </td>
                 <td>
+                    <label>
+                        Taak-DoD (definitie van klaar)
                     <textarea
                         rows="7"
                         cols="50"
+                        required
                         data-model="norender|taskMap[{{ task.id }}].description"
                     >{{ task.description }}</textarea>
+                    </label>
                 </td>
                 <td>
                     <label>
@@ -80,7 +138,7 @@
                     </label>
                     <label>
                         Slug
-                        <input type="text" value="{{ task.slug }}" data-model="norender|taskMap[{{ task.id }}].slug">
+                        <input type="text" maxlength="255" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value="{{ task.slug }}" data-model="norender|taskMap[{{ task.id }}].slug">
                     </label>
                 </td>
                 <td>
