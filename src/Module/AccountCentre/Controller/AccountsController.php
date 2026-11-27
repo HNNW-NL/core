@@ -452,6 +452,7 @@ final class AccountsController extends AbstractController
             'username' => $account->getUsername(),
             'first_name' => $profile?->getFirstName() ?? '',
             'last_name' => $profile?->getLastName() ?? '',
+            'email' => $account->getEmail() ?? '',
             'display_name' => $profile?->getDisplayName() ?? '',
             'avatar_url' => $profile?->getAvatarUrl() ?? '',
             'location' => $profile?->getLocation() ?? '',
@@ -547,10 +548,15 @@ final class AccountsController extends AbstractController
                 if (method_exists($profile, 'setLastModified')) {
                     $profile->setLastModified(new \DateTimeImmutable());
                 }
+                try {
+                    $em->flush();
+                    $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
+                } catch(UniqueConstraintViolationException $e) {
+                    $this->addFlash('error', 'Je wijzigingen zijn niet succesvol opgeslagen!');
+                }
 
-                $em->flush();
 
-                $this->addFlash('success', 'Je wijzigingen zijn succesvol opgeslagen!');
+
 
                 return $this->redirectToRoute('account.modify');
             }
